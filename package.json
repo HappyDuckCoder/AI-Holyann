@@ -6,17 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "mcp:typecheck": "tsc --noEmit",
+    "mcp:lint": "eslint . --ext .ts,.tsx",
+    "mcp:full": "tsx scripts/mcp-build.ts",
+    "build:full": "tsx scripts/simple-build.ts"
   },
   "dependencies": {
-    "@radix-ui/react-slot": "^1.2.4",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.554.0",
     "next": "16.0.2",
     "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "tailwind-merge": "^3.4.0"
+    "react-dom": "19.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
