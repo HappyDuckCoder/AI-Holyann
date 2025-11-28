@@ -4,7 +4,36 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="153a232e-a8a3-4f37-aba3-e1e8c6c131e4" name="Changes" comment="" />
+    <list default="true" id="153a232e-a8a3-4f37-aba3-e1e8c6c131e4" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/public/images/logos/Logo Holyann nè.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/images/logos/Logo_Holyann_ngang-removebg-preview.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/dashboard/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Register.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/landing/AboutSection.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/landing/AchievementsSection.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/landing/HeroSection.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/landing/HighlightsSection.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/landing/ServicesSection.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/landing/TestimonialsSection.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/layout/Footer.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/layout/Header.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/FadeInView.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/SectionHeading.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/data.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/globals.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/login/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/register/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/AuthHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/AuthHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Loading.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Loading.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -63,7 +92,7 @@
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;npm.Next.js: server-side.executor&quot;: &quot;Run&quot;,
     &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;D:\\holyann-ai-web\\node_modules\\prettier&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.grazie&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;ts.external.directory.path&quot;: &quot;D:\\holyann-ai-web\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
@@ -72,6 +101,7 @@
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\holyann-ai-web\src" />
+      <recent name="D:\holyann-ai-web\public\images\logos" />
     </key>
   </component>
   <component name="RunManager" selected="npm.Next.js: server-side">
@@ -112,6 +142,14 @@
       <workItem from="1763831740876" duration="2053000" />
       <workItem from="1763882446559" duration="1974000" />
       <workItem from="1763907749075" duration="7937000" />
+      <workItem from="1763947100978" duration="1332000" />
+      <workItem from="1763992776733" duration="4473000" />
+      <workItem from="1764032967717" duration="188000" />
+      <workItem from="1764082302454" duration="4601000" />
+      <workItem from="1764119900711" duration="38000" />
+      <workItem from="1764311570370" duration="2460000" />
+      <workItem from="1764316082182" duration="3950000" />
+      <workItem from="1764320433090" duration="2177000" />
     </task>
     <servers />
   </component>
@@ -140,5 +178,13 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>

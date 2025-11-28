@@ -1,39 +1,48 @@
 "use client"
 import Image from 'next/image'
 import {useState} from 'react'
-import Link from 'next/link' // Import Link để chuyển trang mượt mà
+import Link from 'next/link'
 
-interface LoginProps {
-    onLogin: (email: string, name: string) => void
+interface RegisterProps {
+    onRegister: (email: string, name: string) => void
 }
 
-export default function Login({onLogin}: LoginProps) {
-    const [loginData, setLoginData] = useState({
+export default function Register({onRegister}: RegisterProps) {
+    const [registerData, setRegisterData] = useState({
+        name: '',
         email: '',
-        password: ''
+        password: '',
+        confirmPassword: ''
     })
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleRegister = (e: React.FormEvent) => {
         e.preventDefault()
-        const name = loginData.email.split('@')[0]
-        onLogin(loginData.email, name)
+        // Simple validation
+        if (registerData.password !== registerData.confirmPassword) {
+            alert('Mật khẩu không khớp!')
+            return
+        }
+
+        if (registerData.password.length < 6) {
+            alert('Mật khẩu phải có ít nhất 6 ký tự!')
+            return
+        }
+
+        onRegister(registerData.email, registerData.name)
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLoginData({
-            ...loginData,
+        setRegisterData({
+            ...registerData,
             [e.target.name]: e.target.value
         })
     }
 
-    // CHÚ Ý: Đã bỏ thẻ div bao ngoài (min-h-screen...) vì page.tsx đã lo phần đó.
-    // Chỉ giữ lại phần Card chính.
     return (
         <div
             className="w-full max-w-5xl bg-white dark:bg-card rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100 dark:border-white/10 transition-all duration-300">
 
             {/* 1. LEFT SIDE - IMAGE (Banner) */}
-            {/* md:w-1/2 để chiếm 50% chiều ngang trên PC */}
             <div className="w-full md:w-1/2 relative h-64 md:h-auto min-h-[400px] md:min-h-[600px]">
                 <Image
                     src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&h=600&fit=crop"
@@ -55,15 +64,31 @@ export default function Login({onLogin}: LoginProps) {
 
             {/* 2. RIGHT SIDE - FORM */}
             <div
-                className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white dark:bg-card transition-colors">
+                className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white dark:bg-card transition-colors overflow-y-auto">
                 <div className="max-w-md mx-auto w-full">
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-heading font-bold text-primary dark:text-sky-400 mb-2">Đăng
-                            Nhập</h1>
-                        <p className="text-muted-foreground">Chào mừng bạn quay trở lại!</p>
+                            Ký</h1>
+                        <p className="text-muted-foreground">Tham gia để bắt đầu hành trình du học của bạn</p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-5">
+                    <form onSubmit={handleRegister} className="space-y-5">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-2">
+                                Họ và Tên
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                value={registerData.name}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                                placeholder="Nhập họ và tên"
+                                required
+                            />
+                        </div>
+
                         <div>
                             <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-2">
                                 Email
@@ -72,7 +97,7 @@ export default function Login({onLogin}: LoginProps) {
                                 type="email"
                                 id="email"
                                 name="email"
-                                value={loginData.email}
+                                value={registerData.email}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
                                 placeholder="name@example.com"
@@ -81,20 +106,31 @@ export default function Login({onLogin}: LoginProps) {
                         </div>
 
                         <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <label htmlFor="password" className="block text-sm font-semibold text-foreground">
-                                    Mật khẩu
-                                </label>
-                                <a href="#"
-                                   className="text-xs text-primary dark:text-sky-400 hover:underline font-medium">
-                                    Quên mật khẩu?
-                                </a>
-                            </div>
+                            <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-2">
+                                Mật khẩu
+                            </label>
                             <input
                                 type="password"
                                 id="password"
                                 name="password"
-                                value={loginData.password}
+                                value={registerData.password}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="confirmPassword"
+                                   className="block text-sm font-semibold text-foreground mb-2">
+                                Xác nhận mật khẩu
+                            </label>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                value={registerData.confirmPassword}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
                                 placeholder="••••••••"
@@ -106,14 +142,14 @@ export default function Login({onLogin}: LoginProps) {
                             type="submit"
                             className="w-full bg-primary hover:bg-primary/90 text-white font-heading font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all duration-200"
                         >
-                            Đăng Nhập
+                            Tạo Tài Khoản
                         </button>
                     </form>
 
                     <p className="mt-8 text-center text-sm text-muted-foreground">
-                        Chưa có tài khoản?{' '}
-                        <Link href="/register" className="text-accent hover:underline font-bold">
-                            Đăng ký ngay
+                        Đã có tài khoản?{' '}
+                        <Link href="/login" className="text-accent hover:underline font-bold">
+                            Đăng nhập ngay
                         </Link>
                     </p>
 
@@ -125,12 +161,13 @@ export default function Login({onLogin}: LoginProps) {
                             </div>
                             <div className="relative flex justify-center text-sm">
                                 <span
-                                    className="px-3 bg-white dark:bg-card text-muted-foreground">Hoặc đăng nhập nhanh</span>
+                                    className="px-3 bg-white dark:bg-card text-muted-foreground">Hoặc đăng ký nhanh</span>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <button
+                                type="button"
                                 className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border rounded-xl hover:bg-muted transition-colors dark:text-white group">
                                 <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                                     <path fill="#4285F4"
@@ -146,6 +183,7 @@ export default function Login({onLogin}: LoginProps) {
                             </button>
 
                             <button
+                                type="button"
                                 className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border rounded-xl hover:bg-muted transition-colors dark:text-white group">
                                 <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="#1877F2"
                                      viewBox="0 0 24 24">
@@ -161,3 +199,4 @@ export default function Login({onLogin}: LoginProps) {
         </div>
     )
 }
+

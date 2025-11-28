@@ -1,57 +1,153 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import {useAuth} from '../contexts/AuthContext'
+import {useState, useEffect} from 'react'
 
 export default function AuthHeader() {
     const {user, logout, isAuthenticated} = useAuth()
 
+    // State quản lý chế độ tối
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    // Effect: Kiểm tra theme khi load trang
+    useEffect(() => {
+        // Kiểm tra localStorage hoặc cấu hình hệ thống
+        if (localStorage.getItem('theme') === 'dark' ||
+            (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setIsDarkMode(true);
+            document.documentElement.classList.add('dark');
+        } else {
+            setIsDarkMode(false);
+            document.documentElement.classList.remove('dark');
+        }
+    }, []);
+
+    // Hàm chuyển đổi
+    const toggleTheme = () => {
+        if (isDarkMode) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+            setIsDarkMode(false);
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            setIsDarkMode(true);
+        }
+    };
+
     return (
-        <header className="bg-[#0f4c81] text-white px-8 py-5 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                <Link href="/">
-                    <h1 className="text-2xl font-bold tracking-tight cursor-pointer">
-                        HOEX <span className="text-xs font-normal opacity-80">(Holyann Explore)</span>
-                    </h1>
+        <header
+            className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 shadow-md flex justify-between items-center sticky top-0 z-50 transition-colors duration-300">
+
+            {/* 1. LOGO KHU VỰC */}
+            <div className="flex items-center gap-3">
+                <Link href="/" className="flex items-center gap-3 group">
+                    <div
+                        className="relative w-10 h-10 md:w-12 md:h-12 bg-primary-foreground/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
+                        {/* Logo Icon */}
+                        <i className="fas fa-paper-plane text-accent text-lg md:text-xl transform -rotate-12 group-hover:scale-110 transition-transform"></i>
+                    </div>
+
+                    {/* Typography Logo */}
+                    <div className="flex flex-col justify-center leading-none">
+                        <span
+                            className="font-heading font-extrabold text-lg md:text-xl tracking-wider text-primary-foreground group-hover:text-accent transition-colors">
+                            HOLYANN
+                        </span>
+                        <span
+                            className="font-heading font-medium text-[0.6rem] md:text-[0.7rem] tracking-[0.3em] text-primary-foreground/90 uppercase">
+                            Explore
+                        </span>
+                    </div>
                 </Link>
-                <i className="fas fa-globe-americas text-orange-400 text-sm"></i>
             </div>
 
-            <nav className="hidden md:flex gap-8 text-sm font-medium text-blue-100">
-                <Link href="/" className="text-white font-bold border-b-2 border-orange-400 pb-1">Dashboard</Link>
-                <a href="#" className="hover:text-white transition">Hồ sơ</a>
-                <a href="#" className="hover:text-white transition">Trường học</a>
-                <a href="#" className="hover:text-white transition">Học bổng</a>
-                <a href="#" className="hover:text-white transition">Cài đặt</a>
+            {/* 2. NAVIGATION */}
+            <nav className="hidden md:flex items-center gap-8">
+                {[
+                    {name: 'Dashboard', href: '/'},
+                    {name: 'Hồ sơ', href: '/profile'},
+                    {name: 'Trường học', href: '/schools'},
+                    {name: 'Học bổng', href: '/scholarships'},
+                    {name: 'Cài đặt', href: '/settings'},
+                ].map((item) => (
+                    <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`
+                            font-heading text-sm font-semibold tracking-wide transition-all duration-300 relative py-1
+                            ${item.name === 'Dashboard'
+                            ? 'text-primary-foreground after:w-full'
+                            : 'text-primary-foreground/80 hover:text-primary-foreground after:w-0 hover:after:w-full'
+                        }
+                            after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-accent after:transition-all after:duration-300
+                        `}
+                    >
+                        {item.name}
+                    </Link>
+                ))}
             </nav>
 
-            <div className="flex items-center gap-3">
+            {/* 3. USER ACTION & THEME TOGGLE */}
+            <div className="flex items-center gap-4">
+
+                {/* NÚT CHUYỂN ĐỔI THEME (MỚI THÊM) */}
+                <button
+                    onClick={toggleTheme}
+                    className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-all border border-primary-foreground/10 hover:border-accent group"
+                    title={isDarkMode ? "Chuyển sang chế độ Sáng" : "Chuyển sang chế độ Tối"}
+                >
+                    {isDarkMode ? (
+                        // Icon Mặt trời (cho chế độ tối -> bấm để sáng)
+                        <i className="fas fa-sun text-accent text-lg group-hover:rotate-90 transition-transform"></i>
+                    ) : (
+                        // Icon Mặt trăng (cho chế độ sáng -> bấm để tối)
+                        <i className="fas fa-moon text-primary-foreground text-lg group-hover:-rotate-12 transition-transform"></i>
+                    )}
+                </button>
+
+                {/* Phân cách */}
+                <div className="h-6 w-[1px] bg-primary-foreground/20 hidden md:block"></div>
+
                 {isAuthenticated ? (
-                    <>
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium">{user?.name.charAt(0).toUpperCase()}</span>
+                    <div className="flex items-center gap-3 pl-2">
+                        <div className="text-right hidden lg:block">
+                            <p className="text-xs text-muted-foreground font-sans">Xin chào,</p>
+                            <p className="text-sm font-bold font-heading text-primary-foreground max-w-[100px] truncate">{user?.name}</p>
                         </div>
-                        <span className="text-sm font-medium">Hi, {user?.name}!</span>
-                        <button
-                            onClick={logout}
-                            className="ml-2 text-xs text-blue-200 hover:text-white transition-colors"
-                        >
-                            (Logout)
-                        </button>
-                    </>
+
+                        <div className="relative group cursor-pointer">
+                            <div
+                                className="w-10 h-10 bg-primary-foreground/20 rounded-full flex items-center justify-center text-primary-foreground font-bold border-2 border-primary-foreground/30 shadow-lg group-hover:border-accent transition-colors">
+                                {user?.name.charAt(0).toUpperCase()}
+                            </div>
+
+                            <div
+                                className="absolute right-0 top-full mt-2 w-32 bg-popover dark:bg-card rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right text-foreground">
+                                <button
+                                    onClick={logout}
+                                    className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-lg font-medium"
+                                >
+                                    <i className="fas fa-sign-out-alt mr-2"></i> Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 ) : (
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 pl-2">
                         <Link
                             href="/login"
-                            className="px-4 py-2 text-sm font-medium bg-white text-gray-700 rounded-lg hover:bg-[#0f4c81] hover:text-white transition-colors border border-gray-300 hover:border-[#0f4c81]"
+                            className="hidden md:block px-5 py-2 text-sm font-heading font-bold text-primary-foreground hover:text-accent transition-colors"
                         >
                             Đăng nhập
                         </Link>
                         <Link
-                            href="/login"
-                            className="px-4 py-2 text-sm font-medium bg-white text-gray-700 rounded-lg hover:bg-[#0f4c81] hover:text-white transition-colors border border-gray-300 hover:border-[#0f4c81]"
+                            href="/register"
+                            className="px-6 py-2 text-sm font-heading font-bold bg-accent text-accent-foreground rounded-full shadow-lg hover:bg-accent/90 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
                         >
-                            Đăng ký
+                            Đăng ký <i className="fas fa-arrow-right text-xs"></i>
                         </Link>
                     </div>
                 )}

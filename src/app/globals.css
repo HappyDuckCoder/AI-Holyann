@@ -1,0 +1,394 @@
+/*@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap');*/
+/*@import "tailwindcss";*/
+/*@import "tw-animate-css";*/
+/*!* 1. IMPORT FONTS: Inter (Body) & Montserrat (Heading) *!*/
+
+/*@custom-variant dark (&:is(.dark *));*/
+
+/*@theme inline {*/
+/*    --color-background: var(--background);*/
+/*    --color-foreground: var(--foreground);*/
+
+/*    !* Cập nhật Font theo Brand *!*/
+/*    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;*/
+/*    --font-heading: "Montserrat", ui-sans-serif, system-ui, sans-serif;*/
+/*    --font-mono: var(--font-geist-mono);*/
+
+/*    --color-sidebar-ring: var(--sidebar-ring);*/
+/*    --color-sidebar-border: var(--sidebar-border);*/
+/*    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);*/
+/*    --color-sidebar-accent: var(--sidebar-accent);*/
+/*    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);*/
+/*    --color-sidebar-primary: var(--sidebar-primary);*/
+/*    --color-sidebar-foreground: var(--sidebar-foreground);*/
+/*    --color-sidebar: var(--sidebar);*/
+/*    --color-chart-5: var(--chart-5);*/
+/*    --color-chart-4: var(--chart-4);*/
+/*    --color-chart-3: var(--chart-3);*/
+/*    --color-chart-2: var(--chart-2);*/
+/*    --color-chart-1: var(--chart-1);*/
+/*    --color-ring: var(--ring);*/
+/*    --color-input: var(--input);*/
+/*    --color-border: var(--border);*/
+/*    --color-destructive: var(--destructive);*/
+/*    --color-accent-foreground: var(--accent-foreground);*/
+/*    --color-accent: var(--accent);*/
+/*    --color-muted-foreground: var(--muted-foreground);*/
+/*    --color-muted: var(--muted);*/
+/*    --color-secondary-foreground: var(--secondary-foreground);*/
+/*    --color-secondary: var(--secondary);*/
+/*    --color-primary-foreground: var(--primary-foreground);*/
+/*    --color-primary: var(--primary);*/
+/*    --color-popover-foreground: var(--popover-foreground);*/
+/*    --color-popover: var(--popover);*/
+/*    --color-card-foreground: var(--card-foreground);*/
+/*    --color-card: var(--card);*/
+
+/*    --radius-sm: calc(var(--radius) - 4px);*/
+/*    --radius-md: calc(var(--radius) - 2px);*/
+/*    --radius-lg: var(--radius);*/
+/*    --radius-xl: calc(var(--radius) + 4px);*/
+/*}*/
+
+/*!* 2. ROOT VARIABLES - CẬP NHẬT THEO BRAND HOLYANN *!*/
+/*:root {*/
+/*    --radius: 0.625rem;*/
+
+/*    !* Nền trắng tinh khiết *!*/
+/*    --background: #FFFFFF;*/
+/*    !* Chữ màu đen ánh xanh (Dark Text) *!*/
+/*    --foreground: #1A202C;*/
+
+/*    --card: #FFFFFF;*/
+/*    --card-foreground: #1A202C;*/
+/*    --popover: #FFFFFF;*/
+/*    --popover-foreground: #1A202C;*/
+
+/*    !* PRIMARY: Xanh Holyann Đậm (#0F4C81) *!*/
+/*    --primary: #0F4C81;*/
+/*    --primary-foreground: #FFFFFF;*/
+
+/*    !* SECONDARY: Xanh Cyan/Sky (#00B4DB) *!*/
+/*    --secondary: #00B4DB;*/
+/*    --secondary-foreground: #FFFFFF;*/
+
+/*    !* ACCENT: Màu Cam Vàng (#F5A623) *!*/
+/*    --accent: #F5A623;*/
+/*    --accent-foreground: #FFFFFF;*/
+
+/*    !* MUTED: Xám xanh nhạt cho nền phụ (#F7FAFC) *!*/
+/*    --muted: #F7FAFC;*/
+/*    --muted-foreground: #718096;*/
+
+/*    --destructive: oklch(0.577 0.245 27.325);*/
+
+/*    !* Border màu xám nhạt *!*/
+/*    --border: #E2E8F0;*/
+/*    --input: #E2E8F0;*/
+/*    --ring: #0F4C81; !* Ring focus theo màu brand *!*/
+
+/*    !* Chart colors (Giữ nguyên hoặc chỉnh theo brand nếu cần) *!*/
+/*    --chart-1: #0F4C81;*/
+/*    --chart-2: #00B4DB;*/
+/*    --chart-3: #F5A623;*/
+/*    --chart-4: oklch(0.828 0.189 84.429);*/
+/*    --chart-5: oklch(0.769 0.188 70.08);*/
+
+/*    --sidebar: #F7FAFC;*/
+/*    --sidebar-foreground: #1A202C;*/
+/*    --sidebar-primary: #0F4C81;*/
+/*    --sidebar-primary-foreground: #FFFFFF;*/
+/*    --sidebar-accent: #E2E8F0;*/
+/*    --sidebar-accent-foreground: #0F4C81;*/
+/*    --sidebar-border: #E2E8F0;*/
+/*    --sidebar-ring: #0F4C81;*/
+/*}*/
+
+/*!* DARK MODE CONFIG (Tự động đảo màu hợp lý) *!*/
+/*.dark {*/
+/*    --background: #0f172a; !* Xanh đen đậm *!*/
+/*    --foreground: #f8fafc;*/
+
+/*    --card: #1e293b;*/
+/*    --card-foreground: #f8fafc;*/
+/*    --popover: #1e293b;*/
+/*    --popover-foreground: #f8fafc;*/
+
+/*    --primary: #00B4DB; !* Đảo sang màu sáng hơn trong dark mode *!*/
+/*    --primary-foreground: #0F4C81;*/
+
+/*    --secondary: #0F4C81;*/
+/*    --secondary-foreground: #f8fafc;*/
+
+/*    --muted: #1e293b;*/
+/*    --muted-foreground: #94a3b8;*/
+
+/*    --accent: #F5A623; !* Giữ nguyên màu cam *!*/
+/*    --accent-foreground: #ffffff;*/
+
+/*    --destructive: oklch(0.704 0.191 22.216);*/
+/*    --border: #334155;*/
+/*    --input: #334155;*/
+/*    --ring: #00B4DB;*/
+
+/*    --chart-1: #00B4DB;*/
+/*    --chart-2: #0F4C81;*/
+/*    --chart-3: #F5A623;*/
+/*    --chart-4: oklch(0.627 0.265 303.9);*/
+/*    --chart-5: oklch(0.645 0.246 16.439);*/
+
+/*    --sidebar: #0f172a;*/
+/*    --sidebar-foreground: #f8fafc;*/
+/*    --sidebar-primary: #00B4DB;*/
+/*    --sidebar-primary-foreground: #0F4C81;*/
+/*    --sidebar-accent: #1e293b;*/
+/*    --sidebar-accent-foreground: #f8fafc;*/
+/*    --sidebar-border: #334155;*/
+/*    --sidebar-ring: #00B4DB;*/
+/*}*/
+
+/*@layer base {*/
+/*    * {*/
+/*        @apply border-border outline-ring/50;*/
+/*    }*/
+
+/*    body {*/
+/*        @apply bg-background text-foreground font-sans;*/
+/*    }*/
+
+/*    !* Áp dụng font heading cho các thẻ H *!*/
+/*    h1, h2, h3, h4, h5, h6 {*/
+/*        @apply font-heading font-bold text-primary;*/
+/*    }*/
+/*}*/
+
+/*!* 3. CUSTOM COMPONENTS - PHONG CÁCH BOOKLET *!*/
+/*@layer components {*/
+
+/*    !* Gradient Text thương hiệu (Dùng cho logo text hoặc điểm nhấn) *!*/
+/*    .text-gradient {*/
+/*        @apply bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent;*/
+/*    }*/
+
+/*    !* Nút bấm Gradient (Giống trong Booklet) *!*/
+/*    .btn-holyann {*/
+/*        @apply bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white font-heading font-semibold*/
+/*        hover:opacity-90 transition-all duration-300 shadow-md hover:translate-y-[-2px] rounded-lg px-6 py-2;*/
+/*    }*/
+
+/*    !* Tiêu đề Section (Gạch chân màu xanh sáng) *!*/
+/*    .section-title {*/
+/*        @apply font-heading text-3xl font-bold text-center uppercase tracking-wide text-primary relative mb-8;*/
+/*    }*/
+
+/*    .section-title::after {*/
+/*        content: '';*/
+/*        @apply block w-16 h-1 bg-secondary mx-auto mt-2 rounded-full;*/
+/*    }*/
+
+/*    !* Card Style (Bo góc lớn, bóng nhẹ) *!*/
+/*    .card-holyann {*/
+/*        @apply bg-card rounded-2xl shadow-sm border border-border p-6 hover:shadow-md transition-shadow duration-300;*/
+/*    }*/
+/*}*/
+
+/*!* Material Symbols Outlined styles *!*/
+/*.material-symbols-outlined {*/
+/*    font-family: 'Material Symbols Outlined';*/
+/*    font-weight: normal;*/
+/*    font-style: normal;*/
+/*    font-size: 24px;*/
+/*    line-height: 1;*/
+/*    letter-spacing: normal;*/
+/*    text-transform: none;*/
+/*    display: inline-block;*/
+/*    white-space: nowrap;*/
+/*    word-wrap: normal;*/
+/*    direction: ltr;*/
+/*    -webkit-font-feature-settings: 'liga';*/
+/*    -webkit-font-smoothing: antialiased;*/
+/*    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;*/
+/*}*/
+
+/* 1. IMPORT FONTS (LUÔN Ở ĐẦU TIÊN) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap');
+
+/* 2. TAILWIND IMPORTS */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    /* Cập nhật Font theo Brand */
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-heading: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono);
+
+    /* Mapping các biến màu */
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-destructive: var(--destructive);
+
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+}
+
+/* 3. ROOT VARIABLES - LIGHT MODE (Giao diện Sáng) */
+:root {
+    --radius: 0.625rem;
+
+    /* Nền trắng tinh khiết */
+    --background: #FFFFFF;
+    /* Chữ màu đen ánh xanh (Dark Text) */
+    --foreground: #0F172A;
+
+    /* Card: Nền trắng */
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+    --popover: #FFFFFF;
+    --popover-foreground: #0F172A;
+
+    /* PRIMARY: Xanh Holyann Đậm (#0F4C81) - Dùng cho nút chính, tiêu đề */
+    --primary: #0F4C81;
+    --primary-foreground: #FFFFFF;
+
+    /* SECONDARY: Xanh Cyan/Sky (#00B4DB) - Dùng cho Gradient, Icon */
+    --secondary: #00B4DB;
+    --secondary-foreground: #FFFFFF;
+
+    /* ACCENT: Màu Cam Vàng (#F5A623) - Dùng cho nút CTA quan trọng */
+    --accent: #F5A623;
+    --accent-foreground: #FFFFFF;
+
+    /* MUTED: Xám xanh nhạt (#F1F5F9) - Dùng cho nền phụ */
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B; /* Slate-500 */
+
+    --destructive: #EF4444;
+
+    /* Border: Xám nhạt */
+    --border: #E2E8F0;
+    --input: #E2E8F0;
+    --ring: #0F4C81; /* Ring focus theo màu brand */
+}
+
+/* 4. DARK MODE CONFIG (Giao diện Tối - Deep Ocean Theme) */
+.dark {
+    /* Nền: Xanh than chì rất đậm (Không dùng đen tuyền #000) -> Tạo cảm giác cao cấp */
+    --background: #020617; /* Slate-950 */
+    /* Chữ: Trắng ngà (Không dùng trắng tinh gây chói) */
+    --foreground: #F8FAFC; /* Slate-50 */
+
+    /* Card: Xanh than chì nhạt hơn nền một chút để nổi khối */
+    --card: #0F172A; /* Slate-900 */
+    --card-foreground: #F8FAFC;
+    --popover: #0F172A;
+    --popover-foreground: #F8FAFC;
+
+    /* PRIMARY ĐẢO NGƯỢC:
+       Trong nền tối, màu xanh đậm (#0F4C81) sẽ bị chìm.
+       Ta đổi Primary thành màu Xanh Sáng (#38BDF8 hoặc #00B4DB) để nổi bật.
+    */
+    --primary: #0EA5E9; /* Sky-500: Sáng hơn, dễ đọc trên nền tối */
+    --primary-foreground: #FFFFFF;
+
+    /* SECONDARY: Lúc này màu Xanh Đậm (#0F4C81) đóng vai trò nền phụ hoặc viền */
+    --secondary: #1E293B; /* Slate-800 */
+    --secondary-foreground: #F8FAFC;
+
+    /* ACCENT: Màu Cam giữ nguyên vì tương phản tốt trên nền tối */
+    --accent: #F5A623;
+    --accent-foreground: #FFFFFF;
+
+    /* MUTED: Màu nền cho các khối phụ */
+    --muted: #1E293B; /* Slate-800 */
+    --muted-foreground: #94A3B8; /* Slate-400 */
+
+    --destructive: #7f1d1d;
+    --border: #1E293B; /* Viền tối */
+    --input: #1E293B;
+    --ring: #0EA5E9; /* Ring sáng theo màu Primary mới */
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    body {
+        @apply bg-background text-foreground font-sans transition-colors duration-300;
+    }
+
+    /* Áp dụng font heading cho các thẻ H */
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-heading font-bold;
+        /* Ở Light mode là màu xanh đậm, Dark mode tự động chuyển theo biến --foreground hoặc --primary */
+        @apply text-primary dark:text-foreground;
+    }
+}
+
+@layer components {
+    /* Gradient Text thương hiệu */
+    .text-gradient {
+        @apply bg-gradient-to-r from-[#0F4C81] to-[#00B4DB] bg-clip-text text-transparent dark:from-[#38BDF8] dark:to-[#00B4DB];
+    }
+
+    /* Nút bấm Gradient */
+    .btn-holyann {
+        @apply bg-gradient-to-r from-[var(--primary)] to-[#00B4DB] text-white font-heading font-semibold
+        hover:opacity-90 transition-all duration-300 shadow-md hover:translate-y-[-2px] rounded-lg px-6 py-2
+        dark:from-[#0EA5E9] dark:to-[#0284C7];
+        /* Gradient sáng hơn trong dark mode */
+    }
+
+    /* Tiêu đề Section */
+    .section-title {
+        @apply font-heading text-3xl font-bold text-center uppercase tracking-wide text-primary dark:text-white relative mb-8;
+    }
+
+    .section-title::after {
+        content: '';
+        @apply block w-16 h-1 bg-secondary dark:bg-accent mx-auto mt-2 rounded-full;
+    }
+
+    /* Card Style */
+    .card-holyann {
+        @apply bg-card rounded-2xl shadow-sm border border-border p-6 hover:shadow-md transition-all duration-300;
+    }
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
