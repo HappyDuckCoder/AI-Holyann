@@ -1,6 +1,8 @@
 "use client";
 import React from 'react';
 import {Globe, Users, Mail, Facebook, Instagram, Send} from 'lucide-react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faTiktok} from '@fortawesome/free-brands-svg-icons';
 import {BRAND_COLORS} from '../../lib/data'; // Sử dụng đường dẫn tương đối để tránh lỗi
 
 export default function Footer() {
@@ -32,7 +34,7 @@ export default function Footer() {
                         </a>
                         <a href="#"
                            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-black transition-all hover:-translate-y-1">
-                            <Users size={18} className="text-white"/> {/* Tiktok icon placeholder */}
+                            <FontAwesomeIcon icon={faTiktok} className="text-white text-lg"/>
                         </a>
                     </div>
                 </div>
@@ -52,21 +54,30 @@ export default function Footer() {
                         </li>
                         <li className="flex items-start gap-3">
                             <Facebook className="w-5 h-5 text-blue-500 shrink-0"/>
-                            <span className="hover:text-blue-400 transition-colors cursor-pointer">
-                 Fanpage: Holyann Explore
-               </span>
+                            <a href="https://www.facebook.com/holyannxplore"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="hover:text-blue-400 transition-colors">
+                                Holyann Explore
+                            </a>
                         </li>
                         <li className="flex items-start gap-3">
                             <Instagram className="w-5 h-5 text-blue-500 shrink-0"/>
-                            <span className="hover:text-blue-400 transition-colors cursor-pointer">
-                 Instagram: @holyannexplore
-               </span>
+                            <a href="https://www.instagram.com/holyannexplore/"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="hover:text-blue-400 transition-colors">
+                                @holyannexplore
+                            </a>
                         </li>
                         <li className="flex items-start gap-3">
-                            <Globe className="w-5 h-5 text-blue-500 shrink-0"/>
-                            <span className="hover:text-blue-400 transition-colors cursor-pointer">
-                 Tiktok: @holyannexplore
-               </span>
+                            <FontAwesomeIcon icon={faTiktok} className="text-blue-500 text-lg shrink-0 mt-0.5"/>
+                            <a href="https://www.tiktok.com/@holyannexplore"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="hover:text-blue-400 transition-colors">
+                                @holyannexplore
+                            </a>
                         </li>
                     </ul>
                 </div>

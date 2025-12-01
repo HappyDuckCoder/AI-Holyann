@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import {useAuth} from '../contexts/AuthContext'
+import {useAuth} from '@/contexts/AuthContext'
 import {useState, useEffect} from 'react'
+import {usePathname} from 'next/navigation'
 
 export default function AuthHeader() {
     const {user, logout, isAuthenticated} = useAuth()
+    const pathname = usePathname()
 
     // State quản lý chế độ tối
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -43,7 +45,7 @@ export default function AuthHeader() {
 
             {/* 1. LOGO KHU VỰC */}
             <div className="flex items-center gap-3">
-                <Link href="/" className="flex items-center gap-3 group">
+                <Link href="/public" className="flex items-center gap-3 group">
                     <div
                         className="relative w-10 h-10 md:w-12 md:h-12 bg-primary-foreground/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
                         {/* Logo Icon */}
@@ -67,18 +69,19 @@ export default function AuthHeader() {
             {/* 2. NAVIGATION */}
             <nav className="hidden md:flex items-center gap-8">
                 {[
-                    {name: 'Dashboard', href: '/'},
-                    {name: 'Hồ sơ', href: '/profile'},
-                    {name: 'Trường học', href: '/schools'},
-                    {name: 'Học bổng', href: '/scholarships'},
-                    {name: 'Cài đặt', href: '/settings'},
+                    {name: 'DASHBOARD', href: '/dashboard'},
+                    {name: 'HỒ SƠ', href: '/dashboard/profile'},
+                    {name: 'CHECKLIST', href: '/checklist'},
+                    {name: 'MỤC TIÊU', href: '/target'},
+                    {name: 'TRAO ĐỔI', href: '/chatbox'},
+                    {name: 'CÀI ĐẶT', href: '/settings'},
                 ].map((item) => (
                     <Link
                         key={item.name}
                         href={item.href}
                         className={`
                             font-heading text-sm font-semibold tracking-wide transition-all duration-300 relative py-1
-                            ${item.name === 'Dashboard'
+                            ${pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard')
                             ? 'text-primary-foreground after:w-full'
                             : 'text-primary-foreground/80 hover:text-primary-foreground after:w-0 hover:after:w-full'
                         }
@@ -114,7 +117,7 @@ export default function AuthHeader() {
                 {isAuthenticated ? (
                     <div className="flex items-center gap-3 pl-2">
                         <div className="text-right hidden lg:block">
-                            <p className="text-xs text-muted-foreground font-sans">Xin chào,</p>
+                            <p className="text-xs text-white font-sans">XIN CHÀO,</p>
                             <p className="text-sm font-bold font-heading text-primary-foreground max-w-[100px] truncate">{user?.name}</p>
                         </div>
 

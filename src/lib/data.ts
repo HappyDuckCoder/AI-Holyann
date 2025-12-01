@@ -1,6 +1,8 @@
 // src/lib/data.ts
 import {Users, ShieldCheck, Lightbulb, Infinity as InfinityIcon} from 'lucide-react';
 
+export type DocumentType = 'transcript' | 'certificate' | 'letter' | 'essay' | 'other';
+
 export const BRAND_COLORS = {
     primaryGradient: "bg-gradient-to-r from-[#00c6ff] to-[#0072ff]",
     textGradient: "bg-clip-text text-transparent bg-gradient-to-r from-[#00c6ff] to-[#0072ff]",
@@ -83,3 +85,47 @@ export const TESTIMONIALS = [
         img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&h=200&auto=format&fit=crop",
     }
 ];
+
+
+export interface Document {
+    id: string;
+    name: string;
+    type: DocumentType;
+    uploadDate: string;
+    size: string;
+    url: string;
+}
+
+export interface StudentProfile {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    avatarUrl: string;
+    address: string;
+    dob: string;
+
+    // Academic Info
+    gpa: number;
+    gpaScale: number;
+    englishLevel: string; // e.g., "IELTS 7.5"
+    satScore?: number;
+
+    // Lists
+    extracurriculars: Activity[];
+    achievements: string[];
+    documents: Document[];
+
+    // Target
+    targetMajor: string;
+    targetCountry: string;
+}
+
+export interface Activity {
+    id: string;
+    title: string;
+    role: string;
+    year: string;
+    description: string;
+}
+

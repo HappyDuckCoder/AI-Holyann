@@ -32,6 +32,9 @@
       ],
       "@/contexts/*": [
         "./src/contexts/*"
+      ],
+      "@/service/*": [
+        "./src/service/*"
       ]
     }
   },

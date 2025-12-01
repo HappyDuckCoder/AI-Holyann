@@ -5,10 +5,10 @@ export default function AchievementsSection() {
     return (
         <section id="thanh-tich" className="py-20 bg-slate-900 text-white overflow-hidden">
             <div className="container mx-auto px-4 text-center">
-                <SectionHeading subtitle="Hall of Fame">Dấu Ấn Thành Công</SectionHeading>
+                <SectionHeading subtitle="Holie shinning stars">Dấu Ấn Thành Công</SectionHeading>
                 <p className="text-slate-400 mb-12 max-w-2xl mx-auto">
-                    [cite_start]Học viên của chúng tôi đã chinh phục các học bổng và trường đại học danh giá trên toàn
-                    cầu. [cite: 56-106]
+                    Học viên của chúng tôi đã chinh phục các học bổng và trường đại học danh giá trên toàn
+                    cầu.
                 </p>
 
                 <div

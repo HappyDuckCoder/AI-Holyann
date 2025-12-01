@@ -2,8 +2,8 @@
 import {useAuth} from '@/contexts/AuthContext'
 import {useRouter} from 'next/navigation'
 import {useEffect} from 'react'
-import Login from '@/components/Login'
-import Loading from '@/components/Loading'
+import Login from '@/components/dashboard/Login'
+import Loading from '@/components/dashboard/Loading'
 
 export default function LoginPage() {
     const {login, isAuthenticated} = useAuth()

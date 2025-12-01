@@ -5,33 +5,48 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="153a232e-a8a3-4f37-aba3-e1e8c6c131e4" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/public/images/logos/Logo Holyann nè.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/images/logos/Logo_Holyann_ngang-removebg-preview.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/app/dashboard/page.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/Register.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/landing/AboutSection.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/landing/AchievementsSection.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/landing/HeroSection.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/landing/HighlightsSection.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/landing/ServicesSection.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/landing/TestimonialsSection.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/layout/Footer.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/layout/Header.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/ui/FadeInView.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/ui/SectionHeading.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/lib/data.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/constants.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/images/avatars/avt.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/swot/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/checklist/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/dashboard/profile/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/dashboard/swotCard/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/dashboard/tests/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Test/ResultChart.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Test/ResultView.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Test/TestCard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Test/TestSelection.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Test/TestView.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/constants.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/dashboard/Profile/EditProfileModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/dashboard/Profile/ProfilePage.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/dashboard/Profile/SwotCard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/dashboard/checklist/ChecklistPage.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/dashboard/checklist/ProgressBar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/dashboard/checklist/StageNavigation.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/service/geminiService.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/copilotDiffState.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_11_2025_00_46_[Changes]1/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_11_2025_00_46_[Changes]1/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_11_2025_00_46__Changes_1.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/globals.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/login/page.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/register/page.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/AuthHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/AuthHeader.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Dashboard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Loading.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Loading.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/login/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/register/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/register/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/AuthHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/dashboard/AuthHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/dashboard/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Loading.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/dashboard/Loading.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/dashboard/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Register.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/dashboard/Register.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/landing/AchievementsSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/landing/AchievementsSection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/landing/ServicesSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/landing/ServicesSection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/landing/TestimonialsSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/landing/TestimonialsSection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Footer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Footer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ui/SectionHeading.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ui/SectionHeading.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/data.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/data.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -77,7 +92,7 @@
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;homePageFeature&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;featureFE&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
     &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
@@ -100,6 +115,9 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\holyann-ai-web\public\images\avatars" />
+      <recent name="D:\holyann-ai-web\src\components\dashboard\Profile" />
+      <recent name="D:\holyann-ai-web\src\components\dashboard" />
       <recent name="D:\holyann-ai-web\src" />
       <recent name="D:\holyann-ai-web\public\images\logos" />
     </key>
@@ -149,7 +167,13 @@
       <workItem from="1764119900711" duration="38000" />
       <workItem from="1764311570370" duration="2460000" />
       <workItem from="1764316082182" duration="3950000" />
-      <workItem from="1764320433090" duration="2177000" />
+      <workItem from="1764320433090" duration="4622000" />
+      <workItem from="1764328574422" duration="3102000" />
+      <workItem from="1764332478539" duration="7368000" />
+      <workItem from="1764431079457" duration="1795000" />
+      <workItem from="1764494115132" duration="6799000" />
+      <workItem from="1764552185875" duration="388000" />
+      <workItem from="1764587306326" duration="9654000" />
     </task>
     <servers />
   </component>
@@ -167,7 +191,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="origin/main" />
+                        <option value="origin/featureFE" />
                       </list>
                     </value>
                   </entry>

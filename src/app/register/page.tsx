@@ -2,8 +2,8 @@
 import {useEffect} from 'react'
 import {useAuth} from '@/contexts/AuthContext'
 import {useRouter} from 'next/navigation'
-import Loading from '@/components/Loading'
-import Register from '@/components/Register'
+import Loading from '@/components/dashboard/Loading'
+import Register from '@/components/dashboard/Register'
 
 export default function RegisterPage() {
     const {login, isAuthenticated} = useAuth()

@@ -1,9 +1,9 @@
 "use client";
 import React, {useState} from 'react';
-import AuthHeader from '@/components/AuthHeader';
-import DashboardComponent from '@/components/Dashboard';
-import Login from '@/components/Login';
-import Register from '@/components/Register';
+import AuthHeader from '@/components/dashboard/AuthHeader';
+import DashboardComponent from '@/components/dashboard/Dashboard';
+import Login from '@/components/dashboard/Login';
+import Register from '@/components/dashboard/Register';
 import {useAuth} from '@/contexts/AuthContext';
 
 export default function DashboardPage() {
