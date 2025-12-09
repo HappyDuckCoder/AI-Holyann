@@ -38,16 +38,16 @@ const getDaysRemaining = (deadline: string) => {
 
 const ChecklistPage: React.FC = () => {
     const [stages, setStages] = useState<Stage[]>([
-        {id: 1, name: 'Khởi động', description: 'Làm quen với HOEX, thiết lập hồ sơ & mục tiêu.', isUnlocked: true},
+        {id: 1, name: 'KHỞI ĐỘNG', description: 'Làm quen với HOEX, thiết lập hồ sơ & mục tiêu.', isUnlocked: true},
         {
             id: 2,
-            name: 'Phát triển',
+            name: 'PHÁT TRIỂN',
             description: 'Xây dựng hồ sơ học thuật, ngoại khóa và tài liệu ứng tuyển.',
             isUnlocked: false
         },
         {
             id: 3,
-            name: 'Về đích',
+            name: 'VỀ ĐÍCH',
             description: 'Hoàn tất thủ tục visa, vé máy bay và chuẩn bị lên đường.',
             isUnlocked: false
         },

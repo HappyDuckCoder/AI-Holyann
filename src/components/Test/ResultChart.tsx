@@ -35,11 +35,11 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
 
     // Grit Breakdown Data (Consistency vs Perseverance)
     const gritBreakdownData = result.type === 'GRIT' ? [
-        {name: 'Bền bỉ nỗ lực', score: result.scores.Perseverance || 0, fill: '#8b5cf6'},
-        {name: 'Duy trì hứng thú', score: result.scores.Consistency || 0, fill: '#ec4899'},
+        {name: 'Bền bỉ nỗ lực', score: result.scores.Perseverance || 0, fill: 'var(--grit-perseverance)'},
+        {name: 'Duy trì hứng thú', score: result.scores.Consistency || 0, fill: 'var(--grit-consistency)'},
     ] : [];
 
-    const GRIT_COLORS = ['#9333ea', '#e5e7eb']; // Purple and Gray
+    const GRIT_COLORS = ['var(--grit-strong)', 'var(--muted-light)']; // Purple and Gray
 
     return (
         <div
@@ -54,9 +54,10 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
                     <ResponsiveContainer width="100%" height="100%">
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={riasecData}>
                             <PolarGrid/>
-                            <PolarAngleAxis dataKey="subject" tick={{fill: '#4b5563', fontSize: 12}}/>
+                            <PolarAngleAxis dataKey="subject" tick={{fill: 'var(--tick-gray)', fontSize: 12}}/>
                             <PolarRadiusAxis angle={30} domain={[0, 25]} tick={false}/>
-                            <Radar name="My Interest" dataKey="A" stroke="#2563eb" fill="#3b82f6" fillOpacity={0.6}/>
+                            <Radar name="My Interest" dataKey="A" stroke="var(--stroke-blue)" fill="var(--tw-blue-500)"
+                                   fillOpacity={0.6}/>
                             <Tooltip/>
                         </RadarChart>
                     </ResponsiveContainer>
@@ -155,8 +156,8 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
                                     return null;
                                 }}
                             />
-                            <Bar dataKey="A" stackId="a" fill="#3b82f6" radius={[4, 0, 0, 4]}/>
-                            <Bar dataKey="B" stackId="a" fill="#e5e7eb" radius={[0, 4, 4, 0]}/>
+                            <Bar dataKey="A" stackId="a" fill="var(--tw-blue-500)" radius={[4, 0, 0, 4]}/>
+                            <Bar dataKey="B" stackId="a" fill="var(--muted-light)" radius={[0, 4, 4, 0]}/>
                         </BarChart>
                     </ResponsiveContainer>
                     <div className="flex justify-center gap-4 mt-2 text-xs text-gray-500">

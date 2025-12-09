@@ -17,15 +17,24 @@ export default function AboutSection() {
                         <h3 className="text-2xl font-bold mb-4 text-slate-800">Ý Nghĩa Tên Gọi</h3>
                         <ul className="space-y-4 text-slate-600">
                             <li className="flex gap-4">
-                                <span className="font-bold text-[#0072ff] min-w-[80px]">HOLYANN:</span>
+                                <span className="font-bold text-[var(--brand-blue)] min-w-[80px]">HOLYANN:</span>
                                 {/* Đã thay "Holy" và "Ann" thành &quot;...&quot; */}
                                 <span>Kết hợp từ &quot;Holy&quot; (thiêng liêng, uy tín) và &quot;Ann&quot; (tinh tế, tận tâm). Thể hiện cam kết chất lượng chuẩn mực.</span>
                             </li>
                             <li className="flex gap-4">
-                                <span className="font-bold text-[#00c6ff] min-w-[80px]">EXPLORE:</span>
+                                <span className="font-bold text-[var(--brand-cyan)] min-w-[80px]">EXPLORE:</span>
                                 <span>Tinh thần học hỏi không ngừng, tối ưu hóa cơ hội phát triển cá nhân và hội nhập quốc tế.</span>
                             </li>
                         </ul>
+                        <div
+                            className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border-l-4 border-[var(--brand-blue)]">
+                            <p className="text-slate-700 leading-relaxed italic">
+                                <span
+                                    className="font-bold text-[var(--brand-blue)]">&quot;Holyann Explore&quot;</span> là
+                                kim chỉ nam cho chúng tôi để giúp học sinh, sinh viên không chỉ phát triển bản thân mà
+                                còn có thể tự tin hội nhập, tiếp cận với những cơ hội trên phạm vi quốc tế.
+                            </p>
+                        </div>
                     </FadeInView>
 
                     {/* Cards Content */}
@@ -33,14 +42,14 @@ export default function AboutSection() {
                         <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 relative overflow-hidden">
                             <div className="relative z-10">
                                 <h4 className="font-bold text-xl mb-2 flex items-center gap-2">
-                                    <Globe className="w-5 h-5 text-blue-500"/> Tầm Nhìn
+                                    <Globe className="w-5 h-5 text-[var(--tw-blue-500)]"/> Tầm Nhìn
                                 </h4>
                                 {/* Đã thêm &quot; vào đầu và cuối câu */}
                                 <p className="text-slate-600 mb-6 italic">&quot;Dẫn đầu trong lĩnh vực cung cấp dịch vụ
                                     về các chương trình học tập và trải nghiệm quốc tế.&quot;</p>
 
                                 <h4 className="font-bold text-xl mb-2 flex items-center gap-2">
-                                    <MapPin className="w-5 h-5 text-amber-500"/> Sứ Mệnh
+                                    <MapPin className="w-5 h-5 text-[var(--accent)]"/> Sứ Mệnh
                                 </h4>
                                 {/* Đã thêm &quot; vào đầu và cuối câu */}
                                 <p className="text-slate-600 italic">&quot;Trở thành người bạn đồng hành sát sao, xây

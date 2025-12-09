@@ -16,7 +16,7 @@ export default function SectionHeading({children, subtitle, dark = false}: {
         </span>
             )}
             <h2 className={`text-3xl md:text-4xl font-bold ${textColor}`}>{children}</h2>
-            <div className="w-20 h-1 bg-[#0072ff] mx-auto mt-4 rounded-full"></div>
+            <div className="w-20 h-1 bg-[var(--brand-blue)] mx-auto mt-4 rounded-full"></div>
         </div>
     );
 }

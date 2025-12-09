@@ -7,7 +7,7 @@ import {BRAND_COLORS} from '../../lib/data'; // Sử dụng đường dẫn tư�
 
 export default function Footer() {
     return (
-        <footer id="contact" className="bg-[#0f172a] text-slate-300 py-16 border-t border-slate-800">
+        <footer id="contact" className="bg-[var(--footer-bg)] text-slate-300 py-16 border-t border-slate-800">
             <div className="container mx-auto px-4 grid md:grid-cols-3 gap-12">
 
                 {/* Cột 1: Thông tin thương hiệu */}
@@ -25,11 +25,11 @@ export default function Footer() {
                     {/* Social Icons */}
                     <div className="flex gap-4">
                         <a href="#"
-                           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#0072ff] transition-all hover:-translate-y-1">
+                           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--brand-blue)] transition-all hover:-translate-y-1">
                             <Facebook size={18} className="text-white"/>
                         </a>
                         <a href="#"
-                           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#E1306C] transition-all hover:-translate-y-1">
+                           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--instagram)] transition-all hover:-translate-y-1">
                             <Instagram size={18} className="text-white"/>
                         </a>
                         <a href="#"
@@ -94,7 +94,7 @@ export default function Footer() {
                         <input
                             type="email"
                             placeholder="Email của bạn..."
-                            className="bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500"
+                            className="bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-[var(--brand-blue)] outline-none transition-all placeholder:text-slate-500"
                         />
                         <button
                             className={`${BRAND_COLORS.primaryGradient} text-white px-4 py-3 rounded-lg font-bold transition-all hover:opacity-90 hover:shadow-lg flex items-center justify-center gap-2`}>

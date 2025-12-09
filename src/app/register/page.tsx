@@ -1,33 +1,48 @@
 'use client'
 import {useEffect} from 'react'
-import {useAuth} from '@/contexts/AuthContext'
-import {useRouter} from 'next/navigation'
+import {useAuth, UserRole} from '@/contexts/AuthContext'
+import {useRouter, usePathname} from 'next/navigation'
 import Loading from '@/components/dashboard/Loading'
 import Register from '@/components/dashboard/Register'
 
 export default function RegisterPage() {
-    const {login, isAuthenticated} = useAuth()
+    const {login, isAuthenticated, user, authReady} = useAuth()
     const router = useRouter()
-
+    const pathname = usePathname()
     useEffect(() => {
         if (isAuthenticated) {
-            router.push('/dashboard')
+            if (!authReady) return
+            if (isAuthenticated && user) {
+                // Redirect based on user role
+                let target = '/dashboard'
+                switch (user.role) {
+                    case 'admin':
+                        target = '/dashboard/admin'
+                        break
+                    case 'mentor':
+                        target = '/dashboard/mentor'
+                        break
+                    case 'user':
+                    default:
+                        target = '/dashboard'
+                        break
+                }
+                if (pathname !== target) router.replace(target)
+            }
         }
-    }, [isAuthenticated, router])
-
-    if (isAuthenticated) {
-        return <Loading/>
-    }
-
-    const handleRegister = (email: string, name: string) => {
-        login(email, name)
-        router.push('/dashboard')
-    }
-
-    return (
-        <main
-            className="min-h-screen w-full flex items-center justify-center p-4 bg-blue-50/30 dark:bg-background transition-colors duration-300">
-            <Register onRegister={handleRegister}/>
-        </main>
+    ,
+        [authReady, isAuthenticated, user, router, pathname]
     )
-}
+
+        const handleRegister = (email: string, name: string, role: UserRole) => {
+            // Only set auth state here; navigation will be handled by effect when authReady/isAuthenticated updates
+            login(email, name, role)
+        }
+
+        if (!authReady) {
+            return <Loading message="Đang kiểm tra quyền truy cập..."/>
+        }
+
+        // If already authenticated we'll have redirected; still render fallback
+
+        <main

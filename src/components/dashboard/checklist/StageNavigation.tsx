@@ -55,7 +55,7 @@ const StageNavigation: React.FC<StageNavigationProps> = ({stages, currentStageId
                             </div>
                             <div className="pt-1">
                                 <h4 className={`text-sm ${textClass} transition-colors`}>
-                                    Giai đoạn {stage.id}
+                                    GIAI ĐOẠN {stage.id}
                                 </h4>
                                 <p className={`text-base ${isActive ? 'text-gray-900 font-bold' : 'text-gray-500 font-medium'}`}>
                                     {stage.name}

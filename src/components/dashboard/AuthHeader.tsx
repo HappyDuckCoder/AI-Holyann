@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import {useAuth} from '@/contexts/AuthContext'
 import {useState, useEffect} from 'react'
 import {usePathname} from 'next/navigation'
@@ -10,34 +9,41 @@ export default function AuthHeader() {
     const {user, logout, isAuthenticated} = useAuth()
     const pathname = usePathname()
 
-    // State quản lý chế độ tối
-    const [isDarkMode, setIsDarkMode] = useState(false);
-
-    // Effect: Kiểm tra theme khi load trang
-    useEffect(() => {
-        // Kiểm tra localStorage hoặc cấu hình hệ thống
-        if (localStorage.getItem('theme') === 'dark' ||
-            (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setIsDarkMode(true);
-            document.documentElement.classList.add('dark');
-        } else {
-            setIsDarkMode(false);
-            document.documentElement.classList.remove('dark');
+    // Determine initial theme safely on first render
+    const getInitialDark = () => {
+        try {
+            const theme = localStorage.getItem('theme')
+            if (theme === 'dark') return true
+            if (theme === 'light') return false
+            return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+        } catch (e) {
+            return false
         }
-    }, []);
+    }
+
+    // State quản lý chế độ tối
+    const [isDarkMode, setIsDarkMode] = useState<boolean>(() => getInitialDark())
+
+    // Effect: Sync document class when isDarkMode changes
+    useEffect(() => {
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+
+        // persist preference
+        try {
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light')
+        } catch (e) {
+            // noop
+        }
+    }, [isDarkMode])
 
     // Hàm chuyển đổi
     const toggleTheme = () => {
-        if (isDarkMode) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-            setIsDarkMode(false);
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-            setIsDarkMode(true);
-        }
-    };
+        setIsDarkMode((prev) => !prev)
+    }
 
     return (
         <header
@@ -45,7 +51,7 @@ export default function AuthHeader() {
 
             {/* 1. LOGO KHU VỰC */}
             <div className="flex items-center gap-3">
-                <Link href="/public" className="flex items-center gap-3 group">
+                <Link href="/dashboard" className="flex items-center gap-3 group">
                     <div
                         className="relative w-10 h-10 md:w-12 md:h-12 bg-primary-foreground/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
                         {/* Logo Icon */}
@@ -72,7 +78,7 @@ export default function AuthHeader() {
                     {name: 'DASHBOARD', href: '/dashboard'},
                     {name: 'HỒ SƠ', href: '/dashboard/profile'},
                     {name: 'CHECKLIST', href: '/checklist'},
-                    {name: 'MỤC TIÊU', href: '/target'},
+                    {name: 'MỤC TIÊU', href: '/dashboard/profile/schools'},
                     {name: 'TRAO ĐỔI', href: '/chatbox'},
                     {name: 'CÀI ĐẶT', href: '/settings'},
                 ].map((item) => (

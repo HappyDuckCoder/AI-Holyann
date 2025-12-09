@@ -88,7 +88,7 @@ export default function SwotCardPage() {
                     <div>
                         <button
                             onClick={() => router.back()}
-                            className="flex items-center text-sm text-gray-500 hover:text-[#0f6093] mb-2 transition-colors"
+                            className="flex items-center text-sm text-gray-500 hover:text-[var(--brand-deep)] mb-2 transition-colors"
                         >
                             <ArrowLeft size={16} className="mr-1"/> Quay lại hồ sơ
                         </button>
@@ -99,7 +99,7 @@ export default function SwotCardPage() {
                     {!analyzed && !loading && (
                         <button
                             onClick={handleAnalysis}
-                            className="bg-[#0f6093] hover:bg-[#0a4b75] text-white px-6 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2 font-medium"
+                            className="bg-[var(--brand-deep)] hover:bg-[var(--brand-deep-darker)] text-white px-6 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2 font-medium"
                         >
                             <Sparkles className="w-5 h-5"/> Tạo phân tích AI
                         </button>
@@ -136,7 +136,7 @@ export default function SwotCardPage() {
                         <div className="text-right hidden md:block">
                             <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Điểm đánh
                                 giá chung</p>
-                            <div className="text-3xl font-bold text-[#0f6093]">
+                            <div className="text-3xl font-bold text-[var(--brand-deep)]">
                                 {swotData?.scores ? Math.round(((Object.values(swotData.scores) as number[]).reduce((a, b) => a + b, 0)) / 5) : '--'}
                                 <span className="text-lg text-gray-400 dark:text-gray-500 font-normal">/100</span>
                             </div>
@@ -148,7 +148,7 @@ export default function SwotCardPage() {
                 {loading && (
                     <div
                         className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-12 text-center animate-pulse">
-                        <Loader2 className="w-12 h-12 text-[#0f6093] animate-spin mx-auto mb-4"/>
+                        <Loader2 className="w-12 h-12 text-[var(--brand-deep)] animate-spin mx-auto mb-4"/>
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">Đang phân tích hồ sơ...</h3>
                         <p className="text-gray-500 dark:text-gray-400 text-sm">Hệ thống đang tổng hợp dữ liệu và so
                             sánh với tiêu chuẩn du học.</p>
@@ -279,4 +279,3 @@ export default function SwotCardPage() {
         </div>
     );
 }
-

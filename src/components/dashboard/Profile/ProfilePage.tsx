@@ -103,7 +103,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 </div>
                 <button
                     onClick={onEditClick}
-                    className="flex items-center gap-2 bg-[#0f6093] hover:bg-[#0a4b75] text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-md"
+                    className="flex items-center gap-2 bg-[var(--brand-blue)] hover:bg-[var(--brand-blue)]/90 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-md"
                 >
                     <Edit3 size={18}/>
                     Cập nhật hồ sơ
@@ -117,7 +117,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
                     {/* 1. Personal Identity Card */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="h-28 bg-gradient-to-r from-[#0f6093] to-[#2b8cc9]"></div>
+                        <div className="h-28 bg-gradient-to-r from-[var(--brand-blue)] to-[var(--tw-blue-500)]"></div>
                         <div className="px-6 pb-6 relative">
                             <div className="flex flex-col items-center -mt-12 mb-4">
                                 <div
@@ -140,28 +140,28 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                                     <div
                                         className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                                         <div
-                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#0f6093] flex-shrink-0">
+                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[var(--brand-blue)] flex-shrink-0">
                                             <Mail size={16}/></div>
                                         <span className="truncate font-medium">{profile.email}</span>
                                     </div>
                                     <div
                                         className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                                         <div
-                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#0f6093] flex-shrink-0">
+                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[var(--brand-blue)] flex-shrink-0">
                                             <Phone size={16}/></div>
                                         <span className="font-medium">{profile.phone}</span>
                                     </div>
                                     <div
                                         className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                                         <div
-                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#0f6093] flex-shrink-0">
+                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[var(--brand-blue)] flex-shrink-0">
                                             <Calendar size={16}/></div>
                                         <span className="font-medium">{profile.dob}</span>
                                     </div>
                                     <div
                                         className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                                         <div
-                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#0f6093] flex-shrink-0">
+                                            className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[var(--brand-blue)] flex-shrink-0">
                                             <MapPin size={16}/></div>
                                         <span className="font-medium">{profile.address}</span>
                                     </div>
@@ -177,14 +177,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => router.push('/dashboard/tests')}
-                                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md text-sm hover:from-purple-700 hover:to-blue-700 transition-colors shadow-md"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[var(--grit-strong)] to-[var(--tw-blue-500)] text-white rounded-md text-sm hover:from-[var(--grit-strong)] hover:to-[var(--tw-blue-500)] transition-colors shadow-md"
                                 >
                                     <Target size={16}/>
                                     Khám phá bản thân
                                 </button>
                                 <button
                                     onClick={() => router.push('/dashboard/swotCard')}
-                                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#0f6093] text-white rounded-md text-sm hover:bg-[#0a4b75] transition-colors"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--brand-blue)] text-white rounded-md text-sm hover:bg-[var(--brand-blue)]/90 transition-colors"
                                 >
                                     Xem chi tiết
                                 </button>
@@ -193,15 +193,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                         <div className="h-64 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
-                                    <PolarGrid stroke="#e5e7eb"/>
-                                    <PolarAngleAxis dataKey="subject" tick={{fill: '#6b7280', fontSize: 11}}/>
+                                    <PolarGrid stroke="var(--muted-light)"/>
+                                    <PolarAngleAxis dataKey="subject" tick={{fill: 'var(--tick-gray)', fontSize: 11}}/>
                                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false}/>
                                     <Radar
                                         name={profile.name}
                                         dataKey="A"
-                                        stroke="#0f6093"
+                                        stroke="var(--brand-blue)"
                                         strokeWidth={2}
-                                        fill="#0f6093"
+                                        fill="var(--brand-blue)"
                                         fillOpacity={0.3}
                                     />
                                 </RadarChart>
@@ -219,7 +219,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                         <div
                             className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <BookOpen className="text-[#0f6093]" size={20}/>
+                                <BookOpen className="text-[var(--brand-deep)]" size={20}/>
                                 THÔNG TIN HỌC THUẬT
                             </h3>
                             <StatusBadge isComplete={isAcademicComplete}/>
@@ -313,7 +313,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                                 <FileText className="text-gray-600" size={20}/>
                                 TÀI LIỆU ĐÍNH KÈM
                             </h3>
-                            <StatusBadge isComplete={isDocumentsComplete}/>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => router.push('/dashboard/profile/improve')}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                >
+                                    <Target size={16}/>
+                                    Cải thiện hồ sơ
+                                </button>
+                                <StatusBadge isComplete={isDocumentsComplete}/>
+                            </div>
                         </div>
 
                         <div className="p-6">

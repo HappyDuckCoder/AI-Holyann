@@ -18,7 +18,7 @@ export default function HighlightsSection() {
                             <div
                                 className="flex gap-5 p-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow h-full">
                                 <div className="shrink-0">
-                                    <CheckCircle2 className="w-8 h-8 text-[#00c6ff]"/>
+                                    <CheckCircle2 className="w-8 h-8 text-[var(--brand-cyan)]"/>
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">{item.title}</h3>

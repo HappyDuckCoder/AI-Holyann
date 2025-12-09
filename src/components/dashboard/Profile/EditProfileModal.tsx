@@ -72,7 +72,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {/* Modal Panel */}
             <div
                 className="relative inline-block align-middle bg-white rounded-lg text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-2xl w-full mx-4">
-                <div className="bg-[#0f6093] px-4 py-3 sm:px-6 flex justify-between items-center">
+                <div className="bg-[var(--brand-blue)] px-4 py-3 sm:px-6 flex justify-between items-center">
                     <h3 className="text-lg leading-6 font-medium text-white" id="modal-title">
                         Cập nhật hồ sơ du học
                     </h3>
@@ -101,7 +101,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                                             required
                                             value={formData.gpa}
                                             onChange={handleChange}
-                                            className="shadow-sm focus:ring-[#0f6093] focus:border-[#0f6093] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                            className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                                         />
                                     </div>
                                 </div>
@@ -119,7 +119,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                                             required
                                             value={formData.englishLevel}
                                             onChange={handleChange}
-                                            className="shadow-sm focus:ring-[#0f6093] focus:border-[#0f6093] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                            className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                                         />
                                     </div>
                                 </div>
@@ -134,7 +134,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                                             id="satScore"
                                             value={formData.satScore || ''}
                                             onChange={handleChange}
-                                            className="shadow-sm focus:ring-[#0f6093] focus:border-[#0f6093] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                            className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                                         />
                                     </div>
                                 </div>
@@ -150,7 +150,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                                             id="targetMajor"
                                             value={formData.targetMajor}
                                             onChange={handleChange}
-                                            className="shadow-sm focus:ring-[#0f6093] focus:border-[#0f6093] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                            className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                                         />
                                     </div>
                                 </div>
@@ -181,7 +181,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                                             value={ach}
                                             onChange={(e) => handleAchievementChange(index, e.target.value)}
                                             placeholder="VD: Giải Nhất học sinh giỏi..."
-                                            className="flex-1 shadow-sm focus:ring-[#0f6093] focus:border-[#0f6093] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                            className="flex-1 shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
                                         />
                                         <button
                                             type="button"

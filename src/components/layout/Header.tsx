@@ -23,10 +23,10 @@ export default function Header() {
                 </div>
 
                 {/* Desktop Menu */}
-                <nav className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
+                <nav className="hidden md:flex items-center gap-8">
                     {NAV_LINKS.map((link) => (
                         <a key={link.name} href={link.href}
-                           className="hover:text-[#0072ff] transition-colors uppercase text-xs tracking-wide">
+                           className="text-primary hover:text-[var(--brand-blue)] transition-colors uppercase text-sm tracking-wide font-bold">
                             {link.name}
                         </a>
                     ))}
@@ -52,7 +52,7 @@ export default function Header() {
                         <a
                             key={link.name}
                             href={link.href}
-                            className="block text-slate-800 font-medium py-3 border-b border-slate-50 text-lg"
+                            className="block text-primary font-bold py-3 border-b border-slate-50 text-lg uppercase"
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             {link.name}
