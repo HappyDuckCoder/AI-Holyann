@@ -1,0 +1,143 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Định nghĩa Enum cho Role
+enum UserRole {
+  STUDENT
+  TEACHER // Tôi thêm ví dụ, bạn có thể xóa nếu chưa cần
+  ADMIN
+}
+
+enum SchoolCategory {
+  REACH
+  MATCH
+  SAFETY
+}
+
+enum ApplicationStatus {
+  RESEARCHING
+  ESSAY_WRITING
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+  WAITLISTED
+}
+
+// 2. Định nghĩa bảng Users
+model users {
+  // uuid_generate_v4() tương đương với @default(uuid()) trong Prisma
+  id                   String                 @id @default(uuid()) @db.Uuid
+  full_name            String                 @db.VarChar(100)
+  email                String                 @unique @db.VarChar(255)
+  password_hash        String?                @db.VarChar(255)
+  phone_number         String?                @db.VarChar(20)
+  // default 'STUDENT'
+  role                 UserRole               @default(STUDENT)
+  auth_provider        String?                @default("LOCAL") @db.VarChar(50)
+  auth_provider_id     String?                @db.VarChar(255)
+  avatar_url           String?
+  is_active            Boolean?               @default(true)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  students             students[]
+  student_applications student_applications[]
+}
+
+// 2. Bảng Students (Thông tin hồ sơ chính)
+model students {
+  user_id         String    @id @db.Uuid
+  user            users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  current_school  String?   @db.VarChar(255)
+  current_grade   String?   @db.VarChar(50)
+  current_address String?
+  talents         String?
+  hobbies         String?
+  target_country  String?   @db.VarChar(100)
+  intended_major  String?   @db.VarChar(255)
+  yearly_budget   Decimal?  @db.Decimal(15, 2)
+  personal_desire String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  // Quan hệ 1-1 và 1-n
+  academic_profile student_academic_profiles?
+  background       student_backgrounds?
+  parents          student_parents[]
+}
+
+// 3. Bảng Hồ sơ học thuật (GPA, chứng chỉ)
+model student_academic_profiles {
+  student_id String   @id @db.Uuid
+  student    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  gpa_transcript_details Json?     @default("{}")
+  english_certificates   Json?     @default("{}")
+  standardized_tests     Json?     @default("{}")
+  updated_at             DateTime? @default(now()) @db.Timestamp(6)
+}
+
+// 4. Bảng Nền tảng ngoại khóa (Giải thưởng, kinh nghiệm)
+model student_backgrounds {
+  student_id String   @id @db.Uuid
+  student    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  academic_awards     String?
+  non_academic_awards String?
+  work_experience     String?
+  research_experience String?
+  updated_at          DateTime? @default(now()) @db.Timestamp(6)
+}
+
+// 5. Bảng Phụ huynh
+model student_parents {
+  id         String    @id @default(uuid()) @db.Uuid
+  student_id String?   @db.Uuid
+  student    students? @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  full_name    String    @db.VarChar(100)
+  relationship String?   @db.VarChar(50)
+  phone_number String?   @db.VarChar(20)
+  email        String?   @db.VarChar(255)
+  job_title    String?   @db.VarChar(150)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+// 6. Bảng Universities (Cần thiết để bảng Applications hoạt động)
+model universities {
+  id                 Int     @id @default(autoincrement())
+  name               String  @db.VarChar(255)
+  country            String? @db.VarChar(100)
+  state              String? @db.VarChar(100)
+  current_ranking    Int?
+  website_url        String?
+  logo_url           String?
+  ai_matching_data   Json?   @default("{}")
+  essay_requirements String?
+  scholarship_info   Json?   @default("{}")
+
+  applications student_applications[]
+}
+
+// 7. Bảng Ứng tuyển (Applications)
+model student_applications {
+  id String @id @default(uuid()) @db.Uuid
+
+  user_id       String?       @db.Uuid
+  user          users?        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  university_id Int?
+  university    universities? @relation(fields: [university_id], references: [id], onDelete: Cascade)
+
+  category       SchoolCategory    @default(MATCH)
+  status         ApplicationStatus @default(RESEARCHING)
+  personal_notes String?
+  created_at     DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at     DateTime?         @default(now()) @db.Timestamp(6)
+
+  @@unique([user_id, university_id])
+}

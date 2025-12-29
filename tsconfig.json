@@ -22,26 +22,31 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
       "@/*": [
         "./*"
       ],
       "@/components/*": [
-        "./src/components/*"
+        "./components/*"
       ],
       "@/contexts/*": [
-        "./src/contexts/*"
+        "./contexts/*"
       ],
       "@/service/*": [
-        "./src/service/*"
+        "./service/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/hooks/*": [
+        "./hooks/*"
       ]
     }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
     "**/*.tsx",
+    "**/*.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"

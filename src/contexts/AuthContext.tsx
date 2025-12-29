@@ -1,8 +1,9 @@
 'use client'
 
 import React, {createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo} from 'react'
+import {useSession} from 'next-auth/react'
 
-export type UserRole = 'user' | 'mentor' | 'admin'
+export type UserRole = 'user' | 'student' | 'mentor' | 'admin'
 
 export interface User {
     email: string
@@ -13,7 +14,7 @@ export interface User {
 
 interface AuthContextType {
     user: User | null
-    login: (email: string, name: string, role?: UserRole) => void
+    login: (email: string, name: string, role?: UserRole, avatar?: string) => void
     logout: () => void
     isAuthenticated: boolean
     hasRole: (roles: UserRole | UserRole[]) => boolean
@@ -25,28 +26,64 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({children}: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [authReady, setAuthReady] = useState(false)
+    const {data: session, status} = useSession()
 
-    // read saved user on mount
+    // Sync with NextAuth session
     useEffect(() => {
-        try {
-            const saved = localStorage.getItem('user')
-            if (saved) {
-                const parsed: User = JSON.parse(saved)
-                setUser(parsed)
-            }
-        } catch (e) {
-            console.error('Error reading saved user from localStorage', e)
-        } finally {
-            // mark auth as ready regardless
-            setAuthReady(true)
-        }
-    }, [])
+        if (status === 'loading') return
 
-    const login = useCallback((email: string, name: string, role: UserRole = 'user') => {
-        const userData: User = {email, name, role}
+        if (session?.user && status === 'authenticated') {
+            // Normalize role to lowercase for consistency
+            let role = (session.user.role as string)?.toLowerCase() as UserRole || 'user'
+            // Map 'STUDENT' to 'student'
+            if (role === 'STUDENT') role = 'student'
+            
+            const userData: User = {
+                email: session.user.email || '',
+                name: session.user.name || session.user.email || 'Người dùng',
+                role: role,
+                avatar: session.user.image || undefined,
+            }
+            setUser(userData)
+            try {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('user', JSON.stringify(userData))
+                }
+            } catch (e) {
+                console.error('Failed to save user to localStorage', e)
+            }
+            setAuthReady(true)
+        } else if (status === 'unauthenticated') {
+            // Try loading from localStorage
+            try {
+                const saved = typeof window !== 'undefined' ? localStorage.getItem('user') : null
+                if (saved) {
+                    const parsed: any = JSON.parse(saved)
+                    // Normalize role
+                    let role = (parsed.role || 'user') as string
+                    if (role === 'STUDENT') role = 'student'
+                    const mapped: User = {
+                        email: parsed.email,
+                        name: parsed.name || parsed.full_name || parsed.email,
+                        role: role.toLowerCase() as UserRole,
+                        avatar: parsed.avatar_url || parsed.avatar,
+                    }
+                    setUser(mapped)
+                }
+            } catch (e) {
+                console.error('Error reading saved user from localStorage', e)
+            } finally {
+                setAuthReady(true)
+            }
+        }
+    }, [session, status])
+
+    const login = useCallback((email: string, name: string, role: UserRole = 'user', avatar?: string) => {
+        const normalizedRole = (role || 'user') as UserRole
+        const userData: User = {email, name, role: normalizedRole, avatar}
         setUser(userData)
         try {
-            localStorage.setItem('user', JSON.stringify(userData))
+            if (typeof window !== 'undefined') localStorage.setItem('user', JSON.stringify(userData))
         } catch (e) {
             console.error('Failed to save user to localStorage', e)
         }
@@ -55,7 +92,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
     const logout = useCallback(() => {
         setUser(null)
         try {
-            localStorage.removeItem('user')
+            if (typeof window !== 'undefined') localStorage.removeItem('user')
         } catch (e) {
             console.error('Failed to remove user from localStorage', e)
         }
@@ -87,6 +124,11 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
 export function useAuth() {
     const context = useContext(AuthContext)
-    if (!context) throw new Error('useAuth must be used within an AuthProvider')
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider')
+    }
     return context
 }
+
+// Alias để sử dụng trong hooks
+export const useAuthContext = useAuth

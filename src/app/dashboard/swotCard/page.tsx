@@ -121,6 +121,7 @@ export default function SwotCardPage() {
             academic: 85,
             language: 75,
             skills: 80,
+            leadership: 55,
             extracurricular: 65
         }
     });
@@ -128,14 +129,16 @@ export default function SwotCardPage() {
     // Prepare chart data format
     const chartData = swotData?.scores ? [
         {subject: 'Học thuật', A: swotData.scores.academic || 0, fullMark: 100},
-        {subject: 'Hoạt động', A: swotData.scores.extracurricular || 0, fullMark: 100},
         {subject: 'Kỹ năng', A: swotData.scores.skills || 0, fullMark: 100},
         {subject: 'Ngoại ngữ', A: swotData.scores.language || 0, fullMark: 100},
+        {subject: 'Lãnh đạo', A: swotData.scores.leadership || 0, fullMark: 100},
+        {subject: 'Hoạt động', A: swotData.scores.extracurricular || 0, fullMark: 100},
     ] : [
-        {subject: 'Học thuật', A: 80, fullMark: 100},
-        {subject: 'Hoạt động', A: 60, fullMark: 100},
         {subject: 'Kỹ năng', A: 70, fullMark: 100},
         {subject: 'Ngoại ngữ', A: 65, fullMark: 100},
+        {subject: 'Kỹ năng', A: 70, fullMark: 100},
+        {subject: 'Lãnh đạo', A: 50, fullMark: 100},
+        {subject: 'Hoạt động', A: 60, fullMark: 100},
     ];
 
     return (

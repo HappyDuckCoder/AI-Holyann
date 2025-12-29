@@ -2,23 +2,27 @@
 import Image from 'next/image'
 import {useState} from 'react'
 import Link from 'next/link'
-import {UserRole} from '@/contexts/AuthContext'
+import {useAuth} from '@/hooks/useAuth'
+import {LoginData} from '@/lib/types/auth.types'
 
-interface LoginProps {
-    onLogin: (email: string, name: string, role: UserRole) => void
-}
-
-export default function Login({onLogin}: LoginProps) {
-    const [loginData, setLoginData] = useState({
+export default function Login() {
+    const {login: loginUser, loading, error} = useAuth()
+    const [loginData, setLoginData] = useState<LoginData>({
         email: '',
         password: '',
-        role: 'user' as UserRole
     })
+    const [errorMessage, setErrorMessage] = useState('')
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
-        const name = loginData.email.split('@')[0]
-        onLogin(loginData.email, name, loginData.role)
+        setErrorMessage('')
+        
+        // Gọi API đăng nhập (useAuth hook sẽ tự động redirect)
+        const result = await loginUser(loginData)
+        
+        if (!result.success) {
+            setErrorMessage(result.message || 'Đăng nhập thất bại')
+        }
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -65,6 +69,14 @@ export default function Login({onLogin}: LoginProps) {
                         <p className="text-muted-foreground">Chào mừng bạn quay trở lại!</p>
                     </div>
 
+                    {/* Error Message */}
+                    {(errorMessage || error) && (
+                        <div
+                            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-4">
+                            {errorMessage || error}
+                        </div>
+                    )}
+
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div>
                             <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-2">
@@ -104,29 +116,12 @@ export default function Login({onLogin}: LoginProps) {
                             />
                         </div>
 
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-semibold text-foreground mb-2">
-                                Loại tài khoản
-                            </label>
-                            <select
-                                id="role"
-                                name="role"
-                                value={loginData.role}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
-                                required
-                            >
-                                <option value="user">Học viên</option>
-                                <option value="mentor">Mentor</option>
-                                <option value="admin">Quản trị viên</option>
-                            </select>
-                        </div>
-
                         <button
                             type="submit"
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-heading font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all duration-200"
+                            className="w-full bg-primary hover:bg-primary/90 text-white font-heading font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={loading}
                         >
-                            Đăng Nhập
+                            {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
                         </button>
                     </form>
 
