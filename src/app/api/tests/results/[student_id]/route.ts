@@ -43,43 +43,49 @@ export async function GET(
                 all_completed: allCompleted
             },
             results: {
-                mbti: mbtiCompleted ? {
-                    result_type: mbti!.result_type,
+                mbti: mbtiCompleted && mbti ? {
+                    result_type: mbti.result_type || null,
                     scores: {
-                        E: mbti!.score_e, I: mbti!.score_i,
-                        S: mbti!.score_s, N: mbti!.score_n,
-                        T: mbti!.score_t, F: mbti!.score_f,
-                        J: mbti!.score_j, P: mbti!.score_p
+                        E: mbti.score_e ?? 0, I: mbti.score_i ?? 0,
+                        S: mbti.score_s ?? 0, N: mbti.score_n ?? 0,
+                        T: mbti.score_t ?? 0, F: mbti.score_f ?? 0,
+                        J: mbti.score_j ?? 0, P: mbti.score_p ?? 0
                     },
-                    completed_at: mbti!.completed_at
+                    completed_at: mbti.completed_at || null
                 } : null,
-                riasec: riasecCompleted ? {
-                    result_code: riasec!.result_code,
+                riasec: riasecCompleted && riasec ? {
+                    result_code: riasec.result_code || null,
                     scores: {
-                        R: riasec!.score_realistic,
-                        I: riasec!.score_investigative,
-                        A: riasec!.score_artistic,
-                        S: riasec!.score_social,
-                        E: riasec!.score_enterprising,
-                        C: riasec!.score_conventional
+                        R: riasec.score_realistic ?? 0,
+                        I: riasec.score_investigative ?? 0,
+                        A: riasec.score_artistic ?? 0,
+                        S: riasec.score_social ?? 0,
+                        E: riasec.score_enterprising ?? 0,
+                        C: riasec.score_conventional ?? 0
                     },
-                    top_3: riasec!.top_3_types,
-                    completed_at: riasec!.completed_at
+                    top_3: riasec.top_3_types || null,
+                    completed_at: riasec.completed_at || null
                 } : null,
-                grit: gritCompleted ? {
-                    total_score: grit!.total_score,
-                    level: grit!.level,
-                    description: grit!.description,
-                    completed_at: grit!.completed_at
+                grit: gritCompleted && grit ? {
+                    total_score: grit.total_score ?? 0,
+                    passion_score: grit.passion_score ?? 0,
+                    perseverance_score: grit.perseverance_score ?? 0,
+                    level: grit.level || null,
+                    description: grit.description || null,
+                    completed_at: grit.completed_at || null
                 } : null
             }
         });
 
     } catch (error) {
-        console.error('Error getting results:', error);
+        console.error('❌ [Results API] Error getting results:', error);
+        console.error('❌ [Results API] Error details:', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
+        });
         return NextResponse.json({
             success: false,
-            error: 'Internal server error'
+            error: error instanceof Error ? error.message : 'Internal server error'
         }, {status: 500});
     }
 }

@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         // Xác thực token
         const payload = JWTService.verifyToken(token)
         if (!payload) {
+            console.error('❌ [Session] Token verification failed');
             return NextResponse.json(
                 {
                     success: false,
@@ -34,13 +35,27 @@ export async function GET(request: NextRequest) {
             )
         }
 
+        console.log('✅ [Session] Token verified, userId:', payload.userId);
+
         // Lấy thông tin user từ database
         const user = await DatabaseService.findUserById(payload.userId)
+
+        console.log('🔍 [Session] User lookup result:', {
+            found: !!user,
+            userId: payload.userId,
+            userEmail: user?.email
+        });
+
         if (!user) {
+            console.error('❌ [Session] User not found in database:', payload.userId);
             return NextResponse.json(
                 {
                     success: false,
-                    message: 'Người dùng không tồn tại'
+                    message: 'Người dùng không tồn tại',
+                    debug: {
+                        userId: payload.userId,
+                        timestamp: new Date().toISOString()
+                    }
                 },
                 {status: 404}
             )

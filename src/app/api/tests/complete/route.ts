@@ -136,28 +136,54 @@ async function completeAllTests(student_id: string) {
         data: {assessments_completed: true}
     });
 
-    // Gọi AI API để lấy career recommendations (nếu có)
+    // Kiểm tra xem đã có career recommendations chưa
+    const existingMatches = await prisma.career_matches.findMany({
+        where: {student_id},
+        orderBy: {match_percentage: 'desc'}
+    });
+
     let careerRecommendations = [];
-    try {
-        const aiResponse = await callAICareerAssessment(mbtiTest.answers, riasecTest.answers, gritTest.answers);
-        if (aiResponse.success && aiResponse.recommendations) {
-            // Xóa career_matches cũ
-            await prisma.career_matches.deleteMany({where: {student_id}});
 
-            // Lưu career_matches mới
-            const careerMatches = aiResponse.recommendations.map((rec: any) => ({
-                student_id,
-                job_title: rec.title || rec.job_title,
-                match_percentage: rec.match_score || rec.match_percentage,
-                reasoning: rec.description || rec.reasoning
-            }));
+    if (existingMatches.length > 0) {
+        // Đã có recommendations rồi, chỉ trả về từ database
+        console.log(`✅ [Career] Student ${student_id} already has ${existingMatches.length} career recommendations`);
+        careerRecommendations = existingMatches.map(match => ({
+            title: match.job_title,
+            match_score: match.match_percentage,
+            description: match.reasoning,
+            riasec_code: null,
+            riasec_scores: null
+        }));
+    } else {
+        // Chưa có recommendations, gọi AI API lần đầu tiên
+        console.log(`🔄 [Career] Generating career recommendations for student ${student_id} (first time)...`);
+        
+        try {
+            const aiResponse = await callAICareerAssessment(mbtiTest.answers, riasecTest.answers, gritTest.answers);
+            
+            if (aiResponse.success && aiResponse.recommendations) {
+                console.log(`✅ [Career] AI returned ${aiResponse.recommendations.length} recommendations`);
+                
+                // Lưu career_matches vào database (lần đầu tiên và duy nhất)
+                const careerMatches = aiResponse.recommendations.map((rec: any) => ({
+                    id: crypto.randomUUID(),
+                    student_id,
+                    job_title: rec.title || rec.job_title,
+                    match_percentage: rec.match_score || rec.match_percentage,
+                    reasoning: rec.description || rec.reasoning
+                }));
 
-            await prisma.career_matches.createMany({data: careerMatches});
-            careerRecommendations = aiResponse.recommendations;
+                await prisma.career_matches.createMany({data: careerMatches});
+                console.log(`💾 [Career] Saved ${careerMatches.length} recommendations to database`);
+                
+                careerRecommendations = aiResponse.recommendations;
+            } else {
+                console.warn('⚠️ [Career] AI API returned no recommendations');
+            }
+        } catch (error) {
+            console.error('❌ [Career] Error calling AI API:', error);
+            // Không fail nếu AI API không available
         }
-    } catch (error) {
-        console.error('Error calling AI API:', error);
-        // Không fail nếu AI API không available
     }
 
     return {
@@ -168,7 +194,8 @@ async function completeAllTests(student_id: string) {
             riasec: riasecResult,
             grit: gritResult
         },
-        recommendations: careerRecommendations
+        recommendations: careerRecommendations,
+        is_cached: existingMatches.length > 0 // Cho biết data từ cache hay mới
     };
 }
 

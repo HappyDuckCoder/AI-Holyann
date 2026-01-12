@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 
 interface CareerRecommendation {
     name: string
@@ -38,10 +38,48 @@ interface CareerAssessmentResultsProps {
 
 function CareerAssessmentResults({studentId, onClose}: CareerAssessmentResultsProps) {
     const [loading, setLoading] = useState(false)
+    const [checkingCache, setCheckingCache] = useState(true)
     const [assessment, setAssessment] = useState<CareerAssessment | null>(null)
     const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([])
     const [error, setError] = useState<string | null>(null)
     const [showDetails, setShowDetails] = useState(false)
+
+    // Kiểm tra xem đã có career recommendations trong DB chưa
+    useEffect(() => {
+        const loadCachedRecommendations = async () => {
+            try {
+                console.log('🔍 Checking for cached career recommendations...')
+                const response = await fetch(`/api/tests/career/${studentId}`)
+                const data = await response.json()
+
+                if (data.success && data.recommendations && data.recommendations.length > 0) {
+                    console.log('✅ Found cached recommendations:', data.recommendations.length)
+                    // Transform DB data to component format
+                    const formattedRecs = data.recommendations.map((rec: any) => ({
+                        name: rec.job_title,
+                        category: '',
+                        matchReason: rec.reasoning || '',
+                        careerPaths: [],
+                        requiredSkills: [],
+                        matchPercentage: Math.round(rec.match_percentage),
+                        riasecCode: rec.riasecCode,
+                        riasecScores: rec.riasecScores
+                    }))
+                    setRecommendations(formattedRecs)
+                } else {
+                    console.log('ℹ️ No cached recommendations found')
+                }
+            } catch (error) {
+                console.error('❌ Error loading cached recommendations:', error)
+            } finally {
+                setCheckingCache(false)
+            }
+        }
+
+        if (studentId) {
+            loadCachedRecommendations()
+        }
+    }, [studentId])
 
     const handleGetRecommendations = async () => {
         setLoading(true)
@@ -137,7 +175,7 @@ function CareerAssessmentResults({studentId, onClose}: CareerAssessmentResultsPr
         return code.split('').map(c => descriptions[c] || c).join(' + ')
     }
 
-    if (!recommendations.length && !loading && !error) {
+    if (!recommendations.length && !loading && !error && !checkingCache) {
         return (
             <div
                 className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 mt-8">
@@ -171,6 +209,18 @@ function CareerAssessmentResults({studentId, onClose}: CareerAssessmentResultsPr
                             'Xem đề xuất nghề nghiệp'
                         )}
                     </button>
+                </div>
+            </div>
+        )
+    }
+
+    // Show loading state while checking cache
+    if (checkingCache) {
+        return (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mt-8">
+                <div className="flex items-center justify-center space-x-3">
+                    <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-gray-600 dark:text-gray-400">Đang tải đề xuất nghề nghiệp...</span>
                 </div>
             </div>
         )

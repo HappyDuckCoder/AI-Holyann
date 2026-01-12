@@ -135,28 +135,68 @@ export class DatabaseService {
             };
             console.log('📦 [DatabaseService] Insert data:', insertData);
 
-            // 1. Ghi vào Supabase
-            const {data: supabaseUser, error: supabaseError} = await supabaseAdmin
-                .from('users')
-                .insert(insertData)
-                .select()
-                .single();
+            let createdUser: User | null = null;
 
-            if (supabaseError) {
-                throw new Error(`Supabase insert failed: ${supabaseError.message}${supabaseError.code ? ` (code: ${supabaseError.code})` : ''}`);
+            // 1. Thử ghi vào Supabase trước
+            try {
+                const {data: supabaseUser, error: supabaseError} = await supabaseAdmin
+                    .from('users')
+                    .insert(insertData)
+                    .select()
+                    .single();
+
+                if (supabaseError) {
+                    // Nếu lỗi permission (code 42501), fallback sang Prisma
+                    if (supabaseError.code === '42501' || supabaseError.message.includes('permission denied')) {
+                        console.warn('⚠️ [DatabaseService] Supabase permission denied, falling back to Prisma...');
+                        throw new Error('FALLBACK_TO_PRISMA');
+                    }
+                    throw new Error(`Supabase insert failed: ${supabaseError.message}${supabaseError.code ? ` (code: ${supabaseError.code})` : ''}`);
+                }
+
+                console.log('✅ [DatabaseService] User created in Supabase:', supabaseUser?.id);
+                createdUser = supabaseUser as User;
+
+                // 2. Đồng bộ vào Local Database (Prisma) với retry
+                await this.syncToLocalDB(insertData);
+
+            } catch (supabaseError: any) {
+                // Fallback: Tạo user bằng Prisma nếu Supabase fail
+                if (supabaseError.message === 'FALLBACK_TO_PRISMA' ||
+                    supabaseError.message.includes('permission denied')) {
+
+                    console.log('🔄 [DatabaseService] Using Prisma as primary database...');
+
+                    try {
+                        const prismaUser = await prisma.users.create({
+                            data: insertData
+                        });
+
+                        console.log('✅ [DatabaseService] User created in Local DB (Prisma):', prismaUser.id);
+                        createdUser = prismaUser as User;
+
+                        // Thử sync ngược lên Supabase (best effort)
+                        try {
+                            await supabase.from('users').insert(insertData);
+                            console.log('✅ [DatabaseService] Synced to Supabase (best effort)');
+                        } catch (syncError) {
+                            console.warn('⚠️ [DatabaseService] Could not sync to Supabase, continuing with Prisma only');
+                        }
+                    } catch (prismaError: any) {
+                        console.error('❌ [DatabaseService] Prisma insert also failed:', prismaError.message);
+                        throw new Error('Không thể tạo tài khoản. Vui lòng kiểm tra kết nối database.');
+                    }
+                } else {
+                    throw supabaseError;
+                }
             }
 
-            console.log('✅ [DatabaseService] User created in Supabase:', supabaseUser?.id);
-
-            // 2. Đồng bộ vào Local Database (Prisma) với retry
-            await this.syncToLocalDB(insertData);
-
             // 3. Nếu là STUDENT, tạo hồ sơ student
-            if (insertData.role === 'STUDENT') {
+            if (insertData.role === 'STUDENT' && createdUser) {
                 await this.createStudentProfile(userId);
             }
 
-            return supabaseUser as User;
+            return createdUser;
         } catch (error: any) {
             console.error('❌ [DatabaseService] Exception in createUser:', {
                 message: error.message,
@@ -295,6 +335,8 @@ export class DatabaseService {
      */
     static async findUserById(id: string): Promise<User | null> {
         try {
+            console.log('🔍 [DatabaseService] Finding user by ID:', id);
+
             // 1. Thử tìm trong Local DB trước
             try {
                 const localUser = await prisma.users.findFirst({
@@ -308,11 +350,13 @@ export class DatabaseService {
                     console.log('✅ [DatabaseService] Found user by ID in Local DB:', localUser.id)
                     return localUser as User
                 }
+                console.log('⚠️ [DatabaseService] User not found in Local DB by ID:', id);
             } catch (prismaError: any) {
                 console.warn('⚠️ [DatabaseService] Local DB query failed, trying Supabase:', prismaError.message)
             }
 
             // 2. Fallback về Supabase
+            console.log('🔄 [DatabaseService] Trying Supabase for user ID:', id);
             const {data: user, error} = await supabase
                 .from('users')
                 .select('*')
@@ -321,11 +365,14 @@ export class DatabaseService {
                 .single()
 
             if (error) {
+                console.error('❌ [DatabaseService] Supabase error:', error.message);
+                console.log('🔄 [DatabaseService] User not found in either database, ID:', id);
                 return null
             }
 
             // Đồng bộ user từ Supabase vào Local DB nếu tìm thấy
             if (user) {
+                console.log('✅ [DatabaseService] Found user in Supabase:', user.id);
                 try {
                     await prisma.users.upsert({
                         where: {id: user.id},
@@ -362,7 +409,7 @@ export class DatabaseService {
 
             return user as User
         } catch (error) {
-            console.error('Error in findUserById:', error)
+            console.error('❌ [DatabaseService] Exception in findUserById:', error)
             return null
         }
     }

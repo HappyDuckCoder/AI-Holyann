@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server'
-import {supabaseAdmin} from '@/lib/supabase'
+import {prisma} from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
     try {
@@ -14,14 +14,13 @@ export async function POST(request: NextRequest) {
 
         console.log('🔍 Creating student profile for user_id:', user_id)
 
-        // Check if student already exists
-        const {data: existingStudent, error: checkError} = await supabaseAdmin
-            .from('students')
-            .select('user_id')
-            .eq('user_id', user_id)
-            .single()
+        // Check if student already exists using Prisma
+        const existingStudent = await prisma.students.findUnique({
+            where: {user_id}
+        })
 
         if (existingStudent) {
+            console.log('✅ Student profile already exists')
             return NextResponse.json({
                 success: true,
                 message: 'Student profile already exists',
@@ -29,24 +28,14 @@ export async function POST(request: NextRequest) {
             })
         }
 
-        // Create new student profile
-        const {data: newStudent, error: createError} = await supabaseAdmin
-            .from('students')
-            .insert({
+        // Create new student profile using Prisma (bypasses RLS)
+        const newStudent = await prisma.students.create({
+            data: {
                 user_id: user_id,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            })
-            .select()
-            .single()
-
-        if (createError) {
-            console.error('❌ Error creating student:', createError)
-            return NextResponse.json({
-                success: false,
-                error: 'Failed to create student profile: ' + createError.message
-            }, {status: 500})
-        }
+                created_at: new Date(),
+                updated_at: new Date()
+            }
+        })
 
         console.log('✅ Student profile created:', newStudent)
 
@@ -56,11 +45,11 @@ export async function POST(request: NextRequest) {
             student_id: user_id
         })
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('❌ Error in create-student API:', error)
         return NextResponse.json({
             success: false,
-            error: error.message || 'Internal server error'
+            error: error instanceof Error ? error.message : 'Internal server error'
         }, {status: 500})
     }
 }

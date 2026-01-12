@@ -129,6 +129,24 @@ export interface RIASECQuestion {
 
 export interface GritQuestion {
     id: number;
-
     text: string;
     component: GritComponent;
+}
+
+// Test Result interface
+export interface TestResult {
+    type: TestType;
+    scores: Record<string, number>;
+    rawLabel: string;
+    description: string;
+}
+
+// Major Recommendation interface
+export interface MajorRecommendation {
+    name: string;
+    category: string;
+    matchReason: string;
+    careerPaths: string[];
+    requiredSkills: string[];
+    matchPercentage?: number;
+}

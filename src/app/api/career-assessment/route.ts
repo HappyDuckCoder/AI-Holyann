@@ -1,4 +1,9 @@
 import {NextRequest, NextResponse} from 'next/server'
+import http from 'http'
+
+// Force Node.js runtime to allow localhost connections
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // Types for external API
 interface ExternalCareerAssessmentRequest {
@@ -92,28 +97,73 @@ export async function POST(request: NextRequest) {
             riasec_count: Object.keys(externalRequest.riasec_answers).length
         })
 
-        // Get AI API URL from environment variable
-        const aiApiUrl = process.env.AI_API_URL || 'http://127.0.0.1:8000/hoexapp/api/career-assessment/'
-        console.log('🤖 [Career Assessment] AI API URL:', aiApiUrl)
+        // Call Django API using native http module
+        const djangoHost = '127.0.0.1'
+        const djangoPort = 8000
+        const djangoPath = '/hoexapp/api/career-assessment/'
+        
+        console.log(`🤖 [Career Assessment] Calling Django at http://${djangoHost}:${djangoPort}${djangoPath}`)
 
-        // Call external career assessment API
-        const externalResponse = await fetch(aiApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(externalRequest)
-        })
+        let externalResult: ExternalCareerAssessmentResponse;
+        try {
+            externalResult = await new Promise((resolve, reject) => {
+                const postData = JSON.stringify(externalRequest)
+                
+                const options = {
+                    hostname: djangoHost,
+                    port: djangoPort,
+                    path: djangoPath,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': Buffer.byteLength(postData)
+                    },
+                    timeout: 30000 // 30 seconds
+                }
 
-        if (!externalResponse.ok) {
-            console.error('❌ [Career Assessment] External API error:', externalResponse.status)
+                const req = http.request(options, (res) => {
+                    let data = ''
+                    
+                    res.on('data', (chunk) => {
+                        data += chunk
+                    })
+                    
+                    res.on('end', () => {
+                        console.log(`✅ [Career Assessment] Django response status: ${res.statusCode}`)
+                        
+                        if (res.statusCode === 200) {
+                            try {
+                                resolve(JSON.parse(data))
+                            } catch (e) {
+                                reject(new Error(`Failed to parse response: ${data}`))
+                            }
+                        } else {
+                            reject(new Error(`Django API error: ${res.statusCode} - ${data}`))
+                        }
+                    })
+                })
+
+                req.on('error', (error) => {
+                    console.error('❌ [Career Assessment] HTTP request error:', error)
+                    reject(error)
+                })
+
+                req.on('timeout', () => {
+                    req.destroy()
+                    reject(new Error('Request timeout'))
+                })
+
+                req.write(postData)
+                req.end()
+            })
+        } catch (error) {
+            console.error('❌ [Career Assessment] Failed to call Django:', error)
             return NextResponse.json({
                 success: false,
-                error: 'External career assessment service unavailable'
+                error: 'Cannot connect to AI server. Make sure Django server is running at http://127.0.0.1:8000',
+                details: error instanceof Error ? error.message : String(error)
             }, {status: 503})
         }
-
-        const externalResult: ExternalCareerAssessmentResponse = await externalResponse.json()
 
         if (!externalResult.success) {
             return NextResponse.json({
@@ -299,25 +349,40 @@ function transformGritAnswers(answers: any): Record<string, number> {
 // Transform RIASEC answers from our format to external API format
 function transformRIASECAnswers(answers: any): Record<string, number> {
     // External API expects object with keys "1"-"48", values 1-5
+    // Database stores 1-5 scale directly, so we just pass it through
     const transformed: Record<string, number> = {}
 
     if (typeof answers === 'object' && answers !== null) {
         for (let i = 1; i <= 48; i++) {
             const key = i.toString()
             const value = answers[i] || answers[key]
-            // Convert boolean to 1-5 scale: true/1 -> 4, false/0 -> 2
-            if (typeof value === 'boolean') {
-                transformed[key] = value ? 4 : 2
-            } else {
-                transformed[key] = Math.max(1, Math.min(5, Number(value) || 2))
+            
+            // If value is a number (1-5 scale from database), use it directly
+            if (typeof value === 'number') {
+                transformed[key] = Math.max(1, Math.min(5, value))
+            }
+            // If somehow it's boolean (legacy), convert: true -> 5, false -> 1
+            else if (typeof value === 'boolean') {
+                transformed[key] = value ? 5 : 1
+            }
+            // Fallback: neutral answer
+            else {
+                transformed[key] = 3
             }
         }
     } else {
         // Fallback: neutral answers
         for (let i = 1; i <= 48; i++) {
-            transformed[i.toString()] = 2
+            transformed[i.toString()] = 3
         }
     }
+
+    console.log('🔄 [RIASEC Transform] Sample answers:', {
+        1: transformed['1'],
+        10: transformed['10'],
+        20: transformed['20'],
+        48: transformed['48']
+    })
 
     return transformed
 }

@@ -64,7 +64,11 @@ export function useTestProgress(studentId?: string | null) {
                     completedTests.push('GRIT');
                     results['GRIT'] = {
                         type: 'GRIT',
-                        scores: {Grit: data.results.grit.total_score},
+                        scores: {
+                            Grit: data.results.grit.total_score,
+                            'Kiên trì': data.results.grit.perseverance_score,
+                            'Đam mê': data.results.grit.passion_score
+                        },
                         rawLabel: data.results.grit.level,
                         description: data.results.grit.description || ''
                     };

@@ -6,6 +6,7 @@ import {TEST_DESCRIPTIONS} from '@/constants';
 
 interface TestSelectionProps {
     onStartTest: (type: TestType) => void;
+    onViewResult: (type: TestType) => void;
     completedTests?: TestType[];
     testResults?: Partial<Record<TestType, TestResult>>;
     onViewRecommendations?: () => void;
@@ -13,6 +14,7 @@ interface TestSelectionProps {
 
 const TestSelection: React.FC<TestSelectionProps> = ({
                                                          onStartTest,
+                                                         onViewResult,
                                                          completedTests = [],
                                                          testResults = {},
                                                          onViewRecommendations
@@ -44,33 +46,6 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                 </div>
             </div>
 
-            {/* Banner khi hoàn thành tất cả */}
-            {allCompleted && (
-                <div
-                    className="mb-6 p-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl text-white shadow-lg">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-white/20 rounded-xl">
-                                <Trophy className="w-8 h-8"/>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold">🎉 Chúc mừng!</h3>
-                                <p className="text-green-100">Bạn đã hoàn thành tất cả các bài test khám phá bản
-                                    thân</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={onViewRecommendations}
-                            className="flex items-center gap-2 px-6 py-3 bg-white text-green-700 rounded-xl font-bold hover:bg-green-50 transition-colors shadow-md"
-                        >
-                            <Sparkles className="w-5 h-5"/>
-                            Xem đề xuất ngành nghề
-                            <ArrowRight className="w-5 h-5"/>
-                        </button>
-                    </div>
-                </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <TestCard
                     title={TEST_DESCRIPTIONS.MBTI.title}
@@ -78,6 +53,7 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                     colorClass={TEST_DESCRIPTIONS.MBTI.color}
                     iconType="MBTI"
                     onClick={() => onStartTest('MBTI')}
+                    onViewResult={() => onViewResult('MBTI')}
                     isCompleted={completedTests.includes('MBTI')}
                     result={testResults['MBTI']}
                 />
@@ -87,6 +63,7 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                     colorClass={TEST_DESCRIPTIONS.GRIT.color}
                     iconType="GRIT"
                     onClick={() => onStartTest('GRIT')}
+                    onViewResult={() => onViewResult('GRIT')}
                     isCompleted={completedTests.includes('GRIT')}
                     result={testResults['GRIT']}
                 />
@@ -96,6 +73,7 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                     colorClass={TEST_DESCRIPTIONS.RIASEC.color}
                     iconType="RIASEC"
                     onClick={() => onStartTest('RIASEC')}
+                    onViewResult={() => onViewResult('RIASEC')}
                     isCompleted={completedTests.includes('RIASEC')}
                     result={testResults['RIASEC']}
                 />

@@ -5,6 +5,7 @@ import {supabaseAdmin} from '@/lib/supabase';
 import {MBTI_QUESTIONS_SORTED} from '@/data/mbti-questions';
 import {RIASEC_QUESTIONS_V2} from '@/data/riasec-questions';
 import {GRIT_QUESTIONS_SORTED} from '@/data/grit-questions';
+import {randomUUID} from 'crypto';
 
 // ===========================================
 // POST /api/tests - Bắt đầu test mới hoặc lấy test đang dở
@@ -14,8 +15,11 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const {student_id, test_type} = body;
 
+        console.log('📝 [API /tests] POST request:', {student_id, test_type});
+
         // Validation
         if (!student_id || !test_type) {
+            console.error('❌ [API /tests] Missing required fields:', {student_id, test_type});
             return NextResponse.json({
                 success: false,
                 error: 'Missing student_id or test_type'
@@ -131,6 +135,7 @@ export async function POST(request: NextRequest) {
             case 'mbti':
                 test = await prisma.mbti_tests.create({
                     data: {
+                        id: randomUUID(),
                         student_id,
                         status: 'IN_PROGRESS',
                         current_step: 0,
@@ -142,6 +147,7 @@ export async function POST(request: NextRequest) {
             case 'riasec':
                 test = await prisma.riasec_tests.create({
                     data: {
+                        id: randomUUID(),
                         student_id,
                         status: 'IN_PROGRESS',
                         current_step: 0,
@@ -153,6 +159,7 @@ export async function POST(request: NextRequest) {
             case 'grit':
                 test = await prisma.grit_tests.create({
                     data: {
+                        id: randomUUID(),
                         student_id,
                         status: 'IN_PROGRESS',
                         current_step: 0,
@@ -171,11 +178,13 @@ export async function POST(request: NextRequest) {
             questions
         }, {status: 201});
 
-    } catch (error) {
-        console.error('Error starting test:', error);
+    } catch (error: any) {
+        console.error('❌ Error starting test:', error);
+        console.error('❌ Error stack:', error?.stack);
         return NextResponse.json({
             success: false,
-            error: 'Internal server error'
+            error: error?.message || 'Internal server error',
+            details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
         }, {status: 500});
     }
 }

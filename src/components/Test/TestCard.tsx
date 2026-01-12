@@ -8,6 +8,7 @@ interface TestCardProps {
     colorClass: string;
     iconType: 'MBTI' | 'RIASEC' | 'GRIT';
     onClick: () => void;
+    onViewResult?: () => void;
     isCompleted?: boolean;
     result?: TestResult;
 }
@@ -18,6 +19,7 @@ const TestCard: React.FC<TestCardProps> = ({
                                                colorClass,
                                                iconType,
                                                onClick,
+                                               onViewResult,
                                                isCompleted,
                                                result
                                            }) => {
@@ -69,14 +71,14 @@ const TestCard: React.FC<TestCardProps> = ({
 
             <div className="mt-auto">
                 <button
-                    onClick={onClick}
+                    onClick={isCompleted && onViewResult ? onViewResult : onClick}
                     className={`w-full py-2.5 px-4 font-medium rounded-lg border transition-colors flex items-center justify-center gap-2 group ${
                         isCompleted
-                            ? 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200'
+                            ? 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
                             : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200'
                     }`}
                 >
-                    {isCompleted ? 'Xem lại / Làm lại' : 'Làm bài test'}
+                    {isCompleted ? 'Xem kết quả' : 'Làm bài test'}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform"/>
                 </button>
             </div>
