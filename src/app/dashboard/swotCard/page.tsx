@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useState} from 'react';
+import { toast } from 'sonner';
 import AuthHeader from '@/components/dashboard/AuthHeader';
 import {useRouter} from 'next/navigation';
 import {SwotData, StudentProfile} from '@/components/types';
@@ -37,6 +38,10 @@ export default function SwotCardPage() {
 
     const handleAnalysis = async () => {
         setLoading(true);
+        toast.info('Đang phân tích SWOT', {
+            description: 'AI đang phân tích hồ sơ của bạn để tạo báo cáo SWOT...',
+        });
+        
         try {
             const response = await fetch('/api/swot', {
                 method: 'POST',
@@ -55,7 +60,9 @@ export default function SwotCardPage() {
                     // Use mock data instead
                     setSwotData(getMockSwotData());
                     setAnalyzed(true);
-                    alert('⚠️ API Gemini đã đạt giới hạn miễn phí. Đang sử dụng dữ liệu mẫu để demo.');
+                    toast.warning('API đã đạt giới hạn', {
+                        description: 'Đang sử dụng dữ liệu mẫu để demo. Kết quả vẫn có thể tham khảo.',
+                    });
                     return;
                 }
 
@@ -65,13 +72,20 @@ export default function SwotCardPage() {
             const data: SwotData = await response.json();
             setSwotData(data);
             setAnalyzed(true);
+            
+            toast.success('Phân tích SWOT hoàn tất', {
+                description: 'Đã tạo báo cáo phân tích SWOT chi tiết cho hồ sơ của bạn',
+            });
         } catch (error) {
             console.error("Analysis failed", error);
 
             // Fallback to mock data for any error
             setSwotData(getMockSwotData());
             setAnalyzed(true);
-            alert(`⚠️ Không thể kết nối API. Đang sử dụng dữ liệu mẫu để demo.\n\nLý do: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`);
+            
+            toast.warning('Không thể kết nối API', {
+                description: `Đang sử dụng dữ liệu mẫu để demo. ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
+            });
         } finally {
             setLoading(false);
         }

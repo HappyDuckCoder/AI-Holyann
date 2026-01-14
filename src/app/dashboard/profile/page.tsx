@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useState, useEffect, useMemo} from 'react';
+import { toast } from 'sonner';
 import {ProfilePage} from '@/components/dashboard/Profile/ProfilePage';
 import AcademicInfoModal from '@/components/AcademicInfoModal';
 import ProfileAnalysisModal from '@/components/ProfileAnalysisModal';
@@ -196,13 +197,19 @@ export default function ProfilePageWrapper() {
 
             if (response.ok) {
                 setProfile(updatedProfile);
-                alert('Cập nhật thông tin thành công!');
+                toast.success('Cập nhật thông tin thành công', {
+                    description: 'Thông tin hồ sơ của bạn đã được lưu',
+                });
             } else {
-                alert('Có lỗi xảy ra khi cập nhật thông tin');
+                toast.error('Cập nhật thông tin thất bại', {
+                    description: 'Vui lòng kiểm tra lại thông tin và thử lại',
+                });
             }
         } catch (error) {
             console.error('Error saving profile:', error);
-            alert('Có lỗi xảy ra khi cập nhật thông tin');
+            toast.error('Có lỗi xảy ra khi cập nhật thông tin', {
+                description: 'Vui lòng thử lại sau hoặc liên hệ hỗ trợ',
+            });
         }
     };
 
@@ -222,13 +229,19 @@ export default function ProfilePageWrapper() {
             if (response.ok) {
                 const result = await response.json();
                 console.log('Document uploaded:', result);
-                alert('Tải tài liệu thành công!');
+                toast.success('Tải tài liệu thành công', {
+                    description: 'Tài liệu của bạn đã được tải lên và lưu',
+                });
             } else {
-                alert('Có lỗi xảy ra khi tải tài liệu');
+                toast.error('Tải tài liệu thất bại', {
+                    description: 'Vui lòng kiểm tra file và thử lại',
+                });
             }
         } catch (error) {
             console.error('Error uploading document:', error);
-            alert('Có lỗi xảy ra khi tải tài liệu');
+            toast.error('Có lỗi xảy ra khi tải tài liệu', {
+                description: 'Vui lòng thử lại sau hoặc liên hệ hỗ trợ',
+            });
         }
     };
 
@@ -240,13 +253,19 @@ export default function ProfilePageWrapper() {
     const handleAnalyzeProfile = async () => {
         const studentId = getStudentId();
         if (!studentId) {
-            alert('Không tìm thấy thông tin học sinh');
+            toast.error('Không tìm thấy thông tin học sinh', {
+                description: 'Vui lòng đăng nhập lại để tiếp tục',
+            });
             return;
         }
 
         setIsAnalysisModalOpen(true);
         setAnalysisLoading(true);
         setAnalysisResult(null);
+        
+        toast.info('Đang phân tích hồ sơ', {
+            description: 'AI đang phân tích hồ sơ của bạn. Vui lòng đợi trong giây lát...',
+        });
 
         try {
             const response = await fetch(`/api/students/${studentId}/analyze-profile`, {
@@ -260,14 +279,23 @@ export default function ProfilePageWrapper() {
                     error: data.error || 'Có lỗi xảy ra khi phân tích hồ sơ',
                     details: data.details,
                 });
+                toast.error('Phân tích hồ sơ thất bại', {
+                    description: data.error || 'Vui lòng thử lại sau',
+                });
             } else {
                 setAnalysisResult(data);
+                toast.success('Phân tích hồ sơ hoàn tất', {
+                    description: 'Đã tạo báo cáo phân tích chi tiết cho hồ sơ của bạn',
+                });
             }
         } catch (error: any) {
             console.error('Error analyzing profile:', error);
             setAnalysisResult({
                 error: 'Có lỗi xảy ra khi kết nối đến server phân tích',
                 details: error.message,
+            });
+            toast.error('Không thể kết nối đến server', {
+                description: 'Vui lòng kiểm tra kết nối mạng và thử lại',
             });
         } finally {
             setAnalysisLoading(false);

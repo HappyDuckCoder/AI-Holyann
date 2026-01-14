@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useEffect, useMemo, useState} from 'react';
+import { toast } from 'sonner';
 import AuthHeader from '@/components/dashboard/AuthHeader';
 import TestSelection from '@/components/Test/TestSelection';
 import TestView from '@/components/Test/TestView';
@@ -135,7 +136,9 @@ export default function TestsPage() {
     const handleStartTest = async (type: TestType) => {
         const studentId = getStudentId()
         if (!studentId) {
-            alert('Không tìm thấy thông tin user. Vui lòng đăng nhập lại.')
+            toast.error('Không tìm thấy thông tin người dùng', {
+                description: 'Vui lòng đăng nhập lại để tiếp tục',
+            });
             return
         }
 
@@ -151,7 +154,9 @@ export default function TestsPage() {
             if (!res.ok) {
                 const errorText = await res.text()
                 console.error('API Error:', res.status, errorText)
-                alert(`Lỗi server (${res.status}): ${errorText}`)
+                toast.error('Không thể bắt đầu bài test', {
+                    description: `Lỗi server (${res.status}). Vui lòng thử lại sau.`,
+                });
                 return
             }
 
@@ -160,7 +165,9 @@ export default function TestsPage() {
 
             if (!data.success) {
                 console.error('Test creation failed:', data.error)
-                alert(data.error || 'Không thể bắt đầu bài test')
+                toast.error('Không thể bắt đầu bài test', {
+                    description: data.error || 'Đã xảy ra lỗi không xác định',
+                });
                 return
             }
 
@@ -168,10 +175,16 @@ export default function TestsPage() {
             setCurrentQuestions(data.questions || getQuestionsForTest(type))
             setCurrentTestType(type)
             setViewState('test')
+            
+            toast.success('Bắt đầu bài test thành công', {
+                description: `Bạn đã bắt đầu làm bài test ${type}. Chúc bạn làm bài tốt!`,
+            });
 
         } catch (e) {
             console.error('Start test failed', e)
-            alert('Không thể bắt đầu bài test. Kiểm tra kết nối.')
+            toast.error('Không thể bắt đầu bài test', {
+                description: 'Vui lòng kiểm tra kết nối mạng và thử lại',
+            });
         }
     }
 
@@ -219,10 +232,16 @@ export default function TestsPage() {
 
         if (!response.ok || !data.success) {
             console.error('❌ [Submit] Failed:', data.error)
+            toast.error('Nộp bài test thất bại', {
+                description: data.error || 'Đã xảy ra lỗi khi nộp bài. Vui lòng thử lại.',
+            });
             throw new Error(data.error || 'Failed to submit test')
         }
 
         console.log('✅ [Submit] Success:', data.result)
+        toast.success('Nộp bài test thành công', {
+            description: 'Đáp án của bạn đã được lưu. Đang xử lý kết quả...',
+        });
         return data.result
     }
 
@@ -338,6 +357,10 @@ export default function TestsPage() {
             // For MBTI, call AI model to predict and save result
             if (currentTestType === 'MBTI') {
                 console.log('🤖 [MBTI] Calling AI model for prediction...')
+                toast.info('Đang phân tích kết quả MBTI bằng AI', {
+                    description: 'Vui lòng đợi trong giây lát...',
+                });
+                
                 const aiResponse = await fetch('/api/ai/predict-mbti', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -366,8 +389,15 @@ export default function TestsPage() {
                         rawLabel: aiData.result.personality_type,
                         description: typeInfo.description
                     })
+                    
+                    toast.success('Phân tích MBTI hoàn tất', {
+                        description: `Loại tính cách của bạn: ${aiData.result.personality_type}`,
+                    });
                 } else {
                     console.warn('⚠️ AI prediction failed, calculating locally')
+                    toast.warning('AI phân tích không khả dụng', {
+                        description: 'Đang tính toán kết quả bằng phương pháp thay thế',
+                    });
                     const localResult = calculateMBTIResult(answers)
                     setTestResult(localResult)
                     saveTestResult('MBTI', localResult)
@@ -433,21 +463,34 @@ export default function TestsPage() {
             // Nếu đã đủ 3 bài, gọi complete all để lấy career recs và cập nhật DB
             if (newAllCompleted) {
                 try {
+                    toast.info('Đang tạo gợi ý nghề nghiệp', {
+                        description: 'AI đang phân tích kết quả của bạn để đưa ra gợi ý phù hợp...',
+                    });
+                    
                     await fetch('/api/tests/complete', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({student_id: studentId})
                     })
                     await fetchCareerRecommendations(studentId)
+                    
+                    toast.success('Hoàn thành tất cả bài test!', {
+                        description: 'Bạn đã hoàn thành tất cả 3 bài test. Xem gợi ý nghề nghiệp của bạn bên dưới.',
+                    });
                 } catch (e) {
                     console.error('Complete all tests error', e)
+                    toast.error('Lỗi khi tạo gợi ý nghề nghiệp', {
+                        description: 'Vui lòng thử lại sau hoặc liên hệ hỗ trợ',
+                    });
                 }
             } else {
                 setCareerRecs([])
             }
         } catch (error) {
             console.error('❌ Test submission error:', error)
-            alert('Có lỗi xảy ra khi nộp bài test. Vui lòng thử lại.')
+            toast.error('Có lỗi xảy ra khi nộp bài test', {
+                description: 'Vui lòng thử lại sau. Nếu vấn đề vẫn tiếp tục, hãy liên hệ hỗ trợ.',
+            });
         }
     }
 
@@ -466,9 +509,22 @@ export default function TestsPage() {
                 }))
                 setCareerRecs(recs)
                 setRecommendations(recs)
+                
+                if (recs.length > 0) {
+                    toast.success('Đã tạo gợi ý nghề nghiệp', {
+                        description: `Tìm thấy ${recs.length} nghề nghiệp phù hợp với bạn`,
+                    });
+                }
+            } else {
+                toast.warning('Chưa có gợi ý nghề nghiệp', {
+                    description: 'Vui lòng hoàn thành tất cả các bài test để nhận gợi ý',
+                });
             }
         } catch (e) {
             console.error('Fetch career recs error', e)
+            toast.error('Không thể tải gợi ý nghề nghiệp', {
+                description: 'Vui lòng thử lại sau',
+            });
         }
     }
 
@@ -501,9 +557,14 @@ export default function TestsPage() {
             setTestResult(result);
             setCurrentTestType(type);
             setViewState('result');
+            toast.success('Đã tải kết quả', {
+                description: `Đang hiển thị kết quả bài test ${type}`,
+            });
         } else {
             console.warn('No saved result found for', type);
-            alert('Không tìm thấy kết quả bài test này.');
+            toast.error('Không tìm thấy kết quả', {
+                description: `Chưa có kết quả cho bài test ${type}. Vui lòng làm bài test trước.`,
+            });
         }
     };
 
