@@ -1,5 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {prisma} from '@/lib/prisma';
+import type {CareerAssessmentOutput} from '@/lib/schemas/career-assessment.schema';
 
 // ===========================================
 // DELETE /api/tests/career/[student_id]/reset - Xóa và tạo lại career recommendations
@@ -10,8 +11,6 @@ export async function DELETE(
 ) {
     try {
         const {student_id} = await params;
-
-        console.log(`🔄 [Career Reset] Resetting career recommendations for student ${student_id}...`);
 
         // Kiểm tra student tồn tại
         const student = await prisma.students.findUnique({
@@ -38,8 +37,6 @@ export async function DELETE(
             where: {student_id}
         });
 
-        console.log(`🗑️ [Career Reset] Deleted ${deleteResult.count} old recommendations`);
-
         // Lấy test results
         const [mbtiTest, riasecTest, gritTest] = await Promise.all([
             prisma.mbti_tests.findUnique({where: {student_id}}),
@@ -55,9 +52,7 @@ export async function DELETE(
         }
 
         // Gọi AI API để tạo recommendations mới
-        console.log(`🤖 [Career Reset] Calling AI API to generate new recommendations...`);
-
-        let careerRecommendations = [];
+        let careerRecommendations: any[] = [];
         try {
             const aiResponse = await callAICareerAssessment(
                 mbtiTest.answers,
@@ -65,24 +60,43 @@ export async function DELETE(
                 gritTest.answers
             );
 
-            if (aiResponse.success && aiResponse.recommendations) {
-                console.log(`✅ [Career Reset] AI returned ${aiResponse.recommendations.length} recommendations`);
+            // Type guard: kiểm tra success và recommendations tồn tại
+            if (aiResponse.success && 'recommendations' in aiResponse && Array.isArray(aiResponse.recommendations) && aiResponse.recommendations.length > 0) {
+                // Tạo map từ job title -> job_field (nhóm ngành) từ career_groups
+                const jobFieldMap = new Map<string, string>()
+                if ('career_groups' in aiResponse && aiResponse.career_groups) {
+                    for (const [groupName, groupRecs] of Object.entries(aiResponse.career_groups)) {
+                        for (const rec of groupRecs as any[]) {
+                            jobFieldMap.set(rec.title || rec.name, groupName)
+                        }
+                    }
+                }
 
-                // Lưu career_matches mới
+                // Lưu career_matches mới với job_field (group name từ career_groups)
                 const careerMatches = aiResponse.recommendations.map((rec: any) => ({
                     id: crypto.randomUUID(),
                     student_id,
                     job_title: rec.title || rec.job_title,
                     match_percentage: rec.match_score || rec.match_percentage,
-                    reasoning: rec.description || rec.reasoning
+                    reasoning: rec.description || rec.reasoning,
+                    job_field: jobFieldMap.get(rec.title || rec.job_title) || null // Group name từ career_groups
                 }));
 
-                await prisma.career_matches.createMany({data: careerMatches});
-                console.log(`💾 [Career Reset] Saved ${careerMatches.length} new recommendations`);
+                try {
+                    await prisma.career_matches.createMany({data: careerMatches});
+                } catch (dbError: any) {
+                    // Nếu lỗi do column job_field không tồn tại, thử lưu lại không có job_field
+                    const errorMessage = dbError.message || String(dbError);
+                    if (errorMessage.includes('job_field') || errorMessage.includes('does not exist')) {
+                        const careerMatchesWithoutJobField = careerMatches.map(({ job_field, ...rest }) => rest);
+                        await prisma.career_matches.createMany({data: careerMatchesWithoutJobField});
+                    } else {
+                        throw dbError;
+                    }
+                }
 
                 careerRecommendations = aiResponse.recommendations;
             } else {
-                console.warn('⚠️ [Career Reset] AI API returned no recommendations');
                 return NextResponse.json({
                     success: false,
                     error: 'AI API returned no recommendations'
@@ -119,7 +133,11 @@ export async function DELETE(
 // ===========================================
 // Call AI Career Assessment API
 // ===========================================
-async function callAICareerAssessment(mbti_answers: unknown, riasec_answers: unknown, grit_answers: unknown) {
+async function callAICareerAssessment(
+    mbti_answers: unknown, 
+    riasec_answers: unknown, 
+    grit_answers: unknown
+): Promise<CareerAssessmentOutput | {success: false, error: string}> {
     try {
         const { callCareerAssessment } = await import('@/lib/ai-api-client');
         

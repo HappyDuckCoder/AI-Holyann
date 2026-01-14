@@ -100,17 +100,24 @@ export async function callProfileAnalysis(payload: any) {
   });
 }
 
+import type {
+  CareerAssessmentInput,
+  CareerAssessmentOutput,
+  MBTIInput,
+  MBTIOutput,
+  GritInput,
+  GritOutput,
+  RIASECInput,
+  RIASECOutput,
+} from "./schemas/career-assessment.schema";
+
 /**
  * Feature 2: Career Assessment (Combined)
  */
-export async function callCareerAssessment(payload: {
-  mbti_answers: number[];
-  grit_answers: Record<string, number>;
-  riasec_answers: Record<string, number>;
-  top_n?: number;
-  min_match_score?: number;
-}) {
-  return callAIAPI("/hoexapp/api/career-assessment/", {
+export async function callCareerAssessment(
+  payload: CareerAssessmentInput
+): Promise<CareerAssessmentOutput> {
+  return callAIAPI<CareerAssessmentOutput>("/hoexapp/api/career-assessment/", {
     method: "POST",
     body: payload,
   });
@@ -119,30 +126,39 @@ export async function callCareerAssessment(payload: {
 /**
  * Feature 2: MBTI Assessment Only
  */
-export async function callMBTIAssessment(answers: number[]) {
-  return callAIAPI("/hoexapp/api/mbti/", {
+export async function callMBTIAssessment(
+  answers: number[]
+): Promise<MBTIOutput> {
+  const payload: MBTIInput = { answers };
+  return callAIAPI<MBTIOutput>("/hoexapp/api/mbti/", {
     method: "POST",
-    body: { answers },
+    body: payload,
   });
 }
 
 /**
  * Feature 2: GRIT Scale Assessment Only
  */
-export async function callGritAssessment(answers: Record<string, number>) {
-  return callAIAPI("/hoexapp/api/grit-scale/", {
+export async function callGritAssessment(
+  answers: Record<string, number>
+): Promise<GritOutput> {
+  const payload: GritInput = { answers };
+  return callAIAPI<GritOutput>("/hoexapp/api/grit-scale/", {
     method: "POST",
-    body: { answers },
+    body: payload,
   });
 }
 
 /**
  * Feature 2: RIASEC Assessment Only
  */
-export async function callRIASECAssessment(answers: Record<string, number>) {
-  return callAIAPI("/hoexapp/api/riasec/", {
+export async function callRIASECAssessment(
+  answers: Record<string, number>
+): Promise<RIASECOutput> {
+  const payload: RIASECInput = { answers };
+  return callAIAPI<RIASECOutput>("/hoexapp/api/riasec/", {
     method: "POST",
-    body: { answers },
+    body: payload,
   });
 }
 

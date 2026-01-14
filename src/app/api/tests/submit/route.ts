@@ -54,7 +54,16 @@ export async function POST(request: NextRequest) {
         }
 
         if (!result || !result.success) {
-            return NextResponse.json(result, {status: 400});
+            // Return appropriate status code based on error type
+            const statusCode = result?.details?.includes('kết nối') || result?.error?.includes('kết nối') 
+                ? 503 // Service Unavailable for connection errors
+                : 400; // Bad Request for validation errors
+            
+            return NextResponse.json({
+                success: false,
+                error: result.error || 'Test submission failed',
+                details: result.details
+            }, {status: statusCode});
         }
 
         console.log('✅ [Submit Test] Test completed successfully:', test_type);
@@ -104,39 +113,79 @@ async function submitMBTITest(test_id: string, student_id: string, answers: Reco
         answersArray.push(answers[i] || 0);
     }
 
-    // Note: We don't calculate MBTI result here anymore
-    // The accurate MBTI type will be predicted by AI model in career-assessment API
-    // We only store the answers for later AI processing
+    // Call MBTI API from server-ai to get accurate prediction
+    console.log('🤖 [MBTI] Calling MBTI API from server-ai...');
+    
+    try {
+        const { callMBTIAssessment } = await import('@/lib/ai-api-client');
+        const aiResult = await callMBTIAssessment(answersArray);
 
-    // Update database - save answers only, result will come from AI
-    await prisma.mbti_tests.update({
-        where: {id: test_id},
-        data: {
-            answers: answersArray,
-            status: 'COMPLETED',
-            result_type: null, // Will be updated by AI model
-            score_e: null,
-            score_i: null,
-            score_s: null,
-            score_n: null,
-            score_t: null,
-            score_f: null,
-            score_j: null,
-            score_p: null,
-            current_step: 60,
-            updated_at: new Date()
+        if (!aiResult.success || !aiResult.mbti) {
+            throw new Error('Invalid response from MBTI API');
         }
-    });
 
-    console.log('✅ [MBTI] Answers saved, waiting for AI prediction');
+        const mbtiResult = aiResult.mbti;
+        const dimensions = mbtiResult.dimension_scores;
 
-    return {
-        success: true,
-        data: {
-            message: 'Answers saved successfully. MBTI result will be calculated by AI.',
-            answers_count: answersArray.length
-        }
-    };
+        // Convert probabilities (0-1) to percentages (0-100) and round
+        const detailedScores = {
+            E: Math.round((dimensions.E || 0) * 100),
+            I: Math.round((dimensions.I || 0) * 100),
+            S: Math.round((dimensions.S || 0) * 100),
+            N: Math.round((dimensions.N || 0) * 100),
+            T: Math.round((dimensions.T || 0) * 100),
+            F: Math.round((dimensions.F || 0) * 100),
+            J: Math.round((dimensions.J || 0) * 100),
+            P: Math.round((dimensions.P || 0) * 100)
+        };
+
+        // Update database with AI prediction and scores
+        await prisma.mbti_tests.update({
+            where: {id: test_id},
+            data: {
+                answers: answersArray,
+                status: 'COMPLETED',
+                result_type: mbtiResult.personality_type,
+                score_e: detailedScores.E,
+                score_i: detailedScores.I,
+                score_s: detailedScores.S,
+                score_n: detailedScores.N,
+                score_t: detailedScores.T,
+                score_f: detailedScores.F,
+                score_j: detailedScores.J,
+                score_p: detailedScores.P,
+                current_step: 60,
+                completed_at: new Date(),
+                updated_at: new Date()
+            }
+        });
+
+        console.log('✅ [MBTI] AI prediction saved:', {
+            type: mbtiResult.personality_type,
+            confidence: mbtiResult.confidence,
+            scores: detailedScores
+        });
+
+        return {
+            success: true,
+            data: {
+                result_type: mbtiResult.personality_type,
+                scores: detailedScores,
+                dimension_scores: dimensions,
+                confidence: mbtiResult.confidence
+            }
+        };
+
+    } catch (error: any) {
+        console.error('❌ [MBTI] AI API error:', error);
+        
+        // If AI API fails, return error - don't save incomplete data
+        return {
+            success: false,
+            error: 'Không thể kết nối đến server AI để dự đoán MBTI. Vui lòng kiểm tra kết nối và thử lại.',
+            details: error.message || 'Unknown error'
+        };
+    }
 }
 
 // ===========================================
@@ -168,115 +217,70 @@ async function submitRIASECTest(test_id: string, student_id: string, answers: Re
         answersObject[i.toString()] = answers[i] || 1;
     }
 
-    // Call AI Server for accurate RIASEC calculation
-    console.log('🔄 [RIASEC] Calling AI server for calculation...');
+    // Call RIASEC API from server-ai to get accurate calculation
+    console.log('🤖 [RIASEC] Calling RIASEC API from server-ai...');
     
     try {
-        const aiResponse = await fetch('http://localhost:8000/hoexapp/api/riasec-result/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                riasec_answers: answers
-            })
+        const { callRIASECAssessment } = await import('@/lib/ai-api-client');
+        const aiResult = await callRIASECAssessment(answersObject);
+
+        if (!aiResult.success || !aiResult.riasec) {
+            throw new Error('Invalid response from RIASEC API');
+        }
+
+        const riasecResult = aiResult.riasec;
+
+        console.log('✅ [RIASEC] AI calculation successful:', {
+            code: riasecResult.code,
+            scores: riasecResult.scores
         });
 
-        if (aiResponse.ok) {
-            const aiResult = await aiResponse.json();
-            
-            if (aiResult.success) {
-                console.log('✅ [RIASEC] AI calculation successful:', {
-                    code: aiResult.riasec.code,
-                    scores: aiResult.riasec.scores
-                });
-
-                // Update database with AI results (raw scores 8-40)
-                await prisma.riasec_tests.update({
-                    where: {id: test_id},
-                    data: {
-                        answers: answersObject,
-                        status: 'COMPLETED',
-                        result_code: aiResult.riasec.code,
-                        score_realistic: aiResult.riasec.scores.Realistic,
-                        score_investigative: aiResult.riasec.scores.Investigative,
-                        score_artistic: aiResult.riasec.scores.Artistic,
-                        score_social: aiResult.riasec.scores.Social,
-                        score_enterprising: aiResult.riasec.scores.Enterprising,
-                        score_conventional: aiResult.riasec.scores.Conventional,
-                        top_3_types: aiResult.riasec.top3.map(([category, _]: [string, number]) => category),
-                        current_step: 48,
-                        updated_at: new Date()
-                    }
-                });
-
-                return {
-                    success: true,
-                    data: {
-                        result_code: aiResult.riasec.code,
-                        scores: aiResult.riasec.scores,
-                        top_3: aiResult.riasec.top3.map(([category, score]: [string, number]) => ({
-                            category,
-                            score,
-                            info: {
-                                name: category,
-                                name_vi: category
-                            }
-                        }))
-                    }
-                };
+        // Update database with AI results
+        await prisma.riasec_tests.update({
+            where: {id: test_id},
+            data: {
+                answers: answersObject,
+                status: 'COMPLETED',
+                result_code: riasecResult.code,
+                score_realistic: riasecResult.scores.Realistic,
+                score_investigative: riasecResult.scores.Investigative,
+                score_artistic: riasecResult.scores.Artistic,
+                score_social: riasecResult.scores.Social,
+                score_enterprising: riasecResult.scores.Enterprising,
+                score_conventional: riasecResult.scores.Conventional,
+                top_3_types: riasecResult.top3.map(([category, _]: [string, number]) => category),
+                current_step: 48,
+                completed_at: new Date(),
+                updated_at: new Date()
             }
-        }
+        });
+
+        return {
+            success: true,
+            data: {
+                result_code: riasecResult.code,
+                scores: riasecResult.scores,
+                top_3: riasecResult.top3.map(([category, score]: [string, number]) => ({
+                    category,
+                    score,
+                    info: {
+                        name: category,
+                        name_vi: category
+                    }
+                }))
+            }
+        };
+
+    } catch (error: any) {
+        console.error('❌ [RIASEC] AI API error:', error);
         
-        console.warn('⚠️ [RIASEC] AI server failed, using local fallback calculation');
-    } catch (error) {
-        console.error('❌ [RIASEC] AI server error:', error);
-        console.log('🔄 [RIASEC] Using local fallback calculation');
+        // If AI API fails, return error - don't save incomplete data
+        return {
+            success: false,
+            error: 'Không thể kết nối đến server AI để tính toán RIASEC. Vui lòng kiểm tra kết nối và thử lại.',
+            details: error.message || 'Unknown error'
+        };
     }
-
-    // Fallback: Calculate results locally using boolean conversion
-    const booleanAnswers: Record<number, boolean> = {};
-    for (let i = 1; i <= 48; i++) {
-        booleanAnswers[i] = (answers[i] || 1) >= 4;
-    }
-
-    const calculatedResult = calculateRIASECResult(booleanAnswers);
-
-    console.log('📊 [RIASEC] Local calculation:', {
-        result_code: calculatedResult.hollandCode,
-        scores: calculatedResult.scores,
-        percentages: calculatedResult.percentages
-    });
-
-    // Update database with local calculation (percentages 0-100)
-    await prisma.riasec_tests.update({
-        where: {id: test_id},
-        data: {
-            answers: answersObject,
-            status: 'COMPLETED',
-            result_code: calculatedResult.hollandCode,
-            score_realistic: calculatedResult.percentages.R,
-            score_investigative: calculatedResult.percentages.I,
-            score_artistic: calculatedResult.percentages.A,
-            score_social: calculatedResult.percentages.S,
-            score_enterprising: calculatedResult.percentages.E,
-            score_conventional: calculatedResult.percentages.C,
-            top_3_types: calculatedResult.topThree.map(t => t.category),
-            current_step: 48,
-            updated_at: new Date()
-        }
-    });
-
-    console.log('✅ [RIASEC] Calculated result (fallback):', calculatedResult.hollandCode);
-
-    return {
-        success: true,
-        data: {
-            result_code: calculatedResult.hollandCode,
-            scores: calculatedResult.percentages,
-            top_3: calculatedResult.topThree
-        }
-    };
 }
 
 // ===========================================
