@@ -1,17 +1,17 @@
 /**
  * AI API Client Utility
- * 
+ *
  * Centralized client for calling Django AI server endpoints
  * Uses AI_API_URL from environment variables
  */
 
-const AI_API_BASE = process.env.AI_API_URL || 'http://127.0.0.1:8000';
+const AI_API_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
 
 // Ensure base URL doesn't have trailing slash
 const getBaseUrl = () => {
-  const base = AI_API_BASE.replace(/\/+$/, '');
+  const base = AI_API_BASE.replace(/\/+$/, "");
   // If AI_API_URL is just IP:port, add http://
-  if (!base.startsWith('http://') && !base.startsWith('https://')) {
+  if (!base.startsWith("http://") && !base.startsWith("https://")) {
     return `http://${base}`;
   }
   return base;
@@ -25,36 +25,36 @@ const BASE_URL = getBaseUrl();
 export async function callAIAPI<T = any>(
   endpoint: string,
   options: {
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    method?: "GET" | "POST" | "PUT" | "DELETE";
     body?: any;
     headers?: Record<string, string>;
   } = {}
 ): Promise<T> {
-  const { method = 'POST', body, headers = {} } = options;
+  const { method = "POST", body, headers = {} } = options;
 
   // Ensure endpoint starts with /
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const url = `${BASE_URL}${path}`;
 
   const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...headers,
   };
 
   const fetchOptions: RequestInit = {
     method,
     headers: requestHeaders,
-    cache: 'no-store', // Disable caching for AI API calls
+    cache: "no-store", // Disable caching for AI API calls
   };
 
-  if (body && method !== 'GET') {
+  if (body && method !== "GET") {
     fetchOptions.body = JSON.stringify(body);
   }
 
   try {
     console.log(`🤖 [AI API] ${method} ${url}`);
     if (body) {
-      console.log(`📤 [AI API] Request body:`, JSON.stringify(body).substring(0, 200));
+      console.log(`📤 [AI API] Request body:`, JSON.stringify(body));
     }
 
     const response = await fetch(url, fetchOptions);
@@ -63,14 +63,18 @@ export async function callAIAPI<T = any>(
       const errorText = await response.text();
       let errorData: any;
       try {
-        errorData = errorText ? JSON.parse(errorText) : { error: 'Unknown error' };
+        errorData = errorText
+          ? JSON.parse(errorText)
+          : { error: "Unknown error" };
       } catch {
-        errorData = { error: errorText || 'Unknown error' };
+        errorData = { error: errorText || "Unknown error" };
       }
 
       console.error(`❌ [AI API] Error ${response.status}:`, errorData);
       throw new Error(
-        errorData.error || errorData.message || `AI API returned ${response.status}`
+        errorData.error ||
+          errorData.message ||
+          `AI API returned ${response.status}`
       );
     }
 
@@ -82,7 +86,7 @@ export async function callAIAPI<T = any>(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Failed to call AI API');
+    throw new Error("Failed to call AI API");
   }
 }
 
@@ -90,8 +94,8 @@ export async function callAIAPI<T = any>(
  * Feature 1: Profile Analysis
  */
 export async function callProfileAnalysis(payload: any) {
-  return callAIAPI('/hoexapp/api/profile-analysis/', {
-    method: 'POST',
+  return callAIAPI("/hoexapp/api/profile-analysis/", {
+    method: "POST",
     body: payload,
   });
 }
@@ -106,8 +110,8 @@ export async function callCareerAssessment(payload: {
   top_n?: number;
   min_match_score?: number;
 }) {
-  return callAIAPI('/hoexapp/api/career-assessment/', {
-    method: 'POST',
+  return callAIAPI("/hoexapp/api/career-assessment/", {
+    method: "POST",
     body: payload,
   });
 }
@@ -116,8 +120,8 @@ export async function callCareerAssessment(payload: {
  * Feature 2: MBTI Assessment Only
  */
 export async function callMBTIAssessment(answers: number[]) {
-  return callAIAPI('/hoexapp/api/mbti/', {
-    method: 'POST',
+  return callAIAPI("/hoexapp/api/mbti/", {
+    method: "POST",
     body: { answers },
   });
 }
@@ -126,8 +130,8 @@ export async function callMBTIAssessment(answers: number[]) {
  * Feature 2: GRIT Scale Assessment Only
  */
 export async function callGritAssessment(answers: Record<string, number>) {
-  return callAIAPI('/hoexapp/api/grit-scale/', {
-    method: 'POST',
+  return callAIAPI("/hoexapp/api/grit-scale/", {
+    method: "POST",
     body: { answers },
   });
 }
@@ -136,8 +140,8 @@ export async function callGritAssessment(answers: Record<string, number>) {
  * Feature 2: RIASEC Assessment Only
  */
 export async function callRIASECAssessment(answers: Record<string, number>) {
-  return callAIAPI('/hoexapp/api/riasec/', {
-    method: 'POST',
+  return callAIAPI("/hoexapp/api/riasec/", {
+    method: "POST",
     body: { answers },
   });
 }
@@ -153,8 +157,8 @@ export async function callUniversityRecommendation(payload: {
   duration_months?: number;
   start_date?: string;
 }) {
-  return callAIAPI('/hoexapp/api/university-recommendation/', {
-    method: 'POST',
+  return callAIAPI("/hoexapp/api/university-recommendation/", {
+    method: "POST",
     body: payload,
   });
 }

@@ -1,5 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
+import {
+  Feature1InputPayload,
+  Feature1OutputData,
+  Feature1APIResponse,
+  mapAnalysisToDatabase,
+  isValidFeature1OutputData,
+  normalizeFeature1OutputData,
+  type SubjectScore,
+  type AcademicAward,
+  type LanguageCertificate,
+  type StandardizedTest,
+  type ExtracurricularAction,
+  type NonAcademicAward,
+  type PersonalProject,
+  type Skill,
+} from "@/lib/schemas/profile-analysis.schema";
 
 // Helper functions to map Vietnamese values to valid enum values
 function mapRole(role: string | null | undefined): string {
@@ -209,56 +226,82 @@ export async function POST(
       },
     });
 
-    if (!studentData || !studentData.student_backgrounds) {
+    if (!studentData) {
       return NextResponse.json(
-        { error: "Không tìm thấy dữ liệu học sinh" },
+        { error: "Không tìm thấy thông tin học sinh" },
         { status: 404 }
       );
     }
 
+    // Cho phép phân tích chỉ với GPA, không cần đầy đủ background
     const background = studentData.student_backgrounds;
     const academicProfile = studentData.student_academic_profiles;
 
-    // 2. Map dữ liệu database sang format Feature 1 yêu cầu
-    const feature1Payload = {
+    // Kiểm tra có GPA không (tối thiểu cần có GPA)
+    const hasGPA = (() => {
+      const gpaDetails = academicProfile?.gpa_transcript_details as
+        | Record<string, string | number>
+        | null
+        | undefined;
+      if (!gpaDetails) return false;
+      return !!(
+        gpaDetails.grade12 ||
+        gpaDetails.grade11 ||
+        gpaDetails.grade10 ||
+        gpaDetails.grade9
+      );
+    })();
+
+    if (!hasGPA) {
+      return NextResponse.json(
+        {
+          error:
+            "Vui lòng cập nhật thông tin GPA để sử dụng tính năng phân tích AI",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 2. Map dữ liệu database sang format Feature 1 yêu cầu (theo POSTMAN format)
+    const feature1Payload: Feature1InputPayload = {
       academic: {
         // GPA từ transcript (priority: grade 12 -> 11 -> 10 -> 9)
         gpa: (() => {
-          const gpaDetails = academicProfile?.gpa_transcript_details as any;
-          if (gpaDetails?.grade12) return parseFloat(gpaDetails.grade12);
-          if (gpaDetails?.grade11) return parseFloat(gpaDetails.grade11);
-          if (gpaDetails?.grade10) return parseFloat(gpaDetails.grade10);
-          if (gpaDetails?.grade9) return parseFloat(gpaDetails.grade9);
+          const gpaDetails = academicProfile?.gpa_transcript_details as
+            | Record<string, string | number>
+            | null
+            | undefined;
+          if (!gpaDetails) return 0;
+          if (gpaDetails.grade12)
+            return parseFloat(String(gpaDetails.grade12)) || 0;
+          if (gpaDetails.grade11)
+            return parseFloat(String(gpaDetails.grade11)) || 0;
+          if (gpaDetails.grade10)
+            return parseFloat(String(gpaDetails.grade10)) || 0;
+          if (gpaDetails.grade9)
+            return parseFloat(String(gpaDetails.grade9)) || 0;
           return 0;
         })(),
-        gpa_scale: 10.0, // Thang điểm 10
 
-        // Subject scores
-        subject_scores: (background.subject_scores || []).map((s: any) => ({
-          subject: s.subject,
-          score: s.score,
-          year: s.year,
-          semester: s.semester,
-        })),
+        // Subject scores (optional - có thể rỗng)
+        subject_scores: (background?.subject_scores || []).map(
+          (s): SubjectScore => ({
+            subject: s.subject || "",
+            score: s.score || 0,
+            year: s.year || null,
+            semester: s.semester ? String(s.semester) : null,
+          })
+        ),
 
-        // Academic awards
-        academic_awards: (background.academic_awards || []).map((a: any) => ({
-          award_name: a.award_name,
-          year: a.year,
-          rank: a.rank,
-          region: a.region,
-          category: a.category,
-          impact: a.impact,
-        })),
-
-        // Research experiences
-        research_experiences: (background.research_experiences || []).map(
-          (r: any) => ({
-            topic: r.project_title,
-            role: r.role,
-            duration_months: r.duration_months,
-            description: r.description,
-            achievements: r.achievements,
+        // Academic awards (optional - có thể rỗng)
+        academic_awards: (background?.academic_awards || []).map(
+          (a): AcademicAward => ({
+            award_name: a.award_name || "",
+            year: a.year || null,
+            rank: a.rank || null,
+            region: a.region || null,
+            category: a.category || null,
+            impact: a.description || null,
           })
         ),
       },
@@ -266,112 +309,247 @@ export async function POST(
       language_and_standardized: {
         // Languages from academic profile
         languages: (() => {
-          if (
-            !academicProfile ||
-            !Array.isArray(academicProfile.english_certificates)
-          ) {
+          if (!academicProfile || !academicProfile.english_certificates) {
             return [];
           }
-          return academicProfile.english_certificates.map((l: any) => ({
-            language_name: l.type,
-            score: l.score,
-          }));
+          const certs = academicProfile.english_certificates;
+          if (!Array.isArray(certs)) {
+            return [];
+          }
+          return certs
+            .filter(
+              (l) => l !== null && typeof l === "object" && !Array.isArray(l)
+            )
+            .map((l) => {
+              const cert = l as Record<string, unknown>;
+              return {
+                language_name: (cert.type as string) || "",
+                score: String(cert.score || ""),
+              } as LanguageCertificate;
+            });
         })(),
 
         // Standardized tests
         standardized_tests: (() => {
-          if (
-            !academicProfile ||
-            !Array.isArray(academicProfile.standardized_tests)
-          ) {
+          if (!academicProfile || !academicProfile.standardized_tests) {
             return [];
           }
-          return academicProfile.standardized_tests.map((t: any) => ({
-            test_name: t.type,
-            score: t.score,
-          }));
+          const tests = academicProfile.standardized_tests;
+          if (!Array.isArray(tests)) {
+            return [];
+          }
+          return tests
+            .filter(
+              (t) => t !== null && typeof t === "object" && !Array.isArray(t)
+            )
+            .map((t) => {
+              const test = t as Record<string, unknown>;
+              return {
+                test_name: (test.type as string) || "",
+                score: String(test.score || ""),
+              } as StandardizedTest;
+            });
         })(),
       },
 
       action: {
-        // Combine all extracurriculars into 'actions' array
+        // Combine all extracurriculars into 'actions' array (optional - có thể rỗng)
+        // Chỉ gửi các field cần thiết theo POSTMAN format: action_name, role, scale, region
         actions: [
-          ...(background.academic_extracurriculars || []).map((e: any) => ({
-            action_name: e.activity_name,
-            role: mapRole(e.role),
-            scale: e.scale || 10,
-            region: mapRegion(e.region),
-            duration_months: e.duration_months,
-            description: e.description,
-            achievements: e.achievements,
-          })),
-          ...(background.non_academic_extracurriculars || []).map((e: any) => ({
-            action_name: e.activity_name,
-            role: mapRole(e.role),
-            scale: e.scale || 10,
-            region: mapRegion(e.region),
-            duration_months: e.duration_months,
-            description: e.description,
-            achievements: e.achievements,
-          })),
+          ...(background?.academic_extracurriculars ?? []).map(
+            (e): ExtracurricularAction => ({
+              action_name: e.activity_name || "",
+              role: mapRole(e.role),
+              scale: e.scale || 10,
+              region: mapRegion(e.region),
+            })
+          ),
+          ...(background?.non_academic_extracurriculars ?? []).map(
+            (e): ExtracurricularAction => ({
+              action_name: e.activity_name || "",
+              role: mapRole(e.role),
+              scale: e.scale || 10,
+              region: mapRegion(e.region),
+            })
+          ),
         ],
       },
 
-      // non_academic_awards must be an array directly
-      non_academic_awards: (background.non_academic_awards || []).map(
-        (a: any) => ({
-          award_name: a.award_name,
+      // non_academic_awards must be an array directly (optional - có thể rỗng)
+      non_academic_awards: (background?.non_academic_awards ?? []).map(
+        (a): NonAcademicAward => ({
+          award_name: a.award_name || "",
           category: mapNonAcademicCategory(a.category),
-          year: a.year,
-          rank: a.rank,
+          year: a.year || null,
+          rank: a.rank || null,
           region: mapRegion(a.region),
         })
       ),
 
-      // personal_projects must be an array directly
-      personal_projects: (background.personal_projects || []).map((p: any) => ({
-        project_name: p.project_name,
-        topic: mapProjectTopic(p.topic),
-        description: p.description,
-        duration_months: p.duration_months,
-        impact: p.impact,
-      })),
+      // personal_projects must be an array directly (optional - có thể rỗng)
+      // Bao gồm cả research_experiences được map vào personal_projects với topic: "Research"
+      personal_projects: [
+        ...(background?.personal_projects ?? []).map(
+          (p): PersonalProject => ({
+            project_name: p.project_name || "",
+            topic: mapProjectTopic(p.topic),
+            description: p.description || null,
+            duration_months: p.duration_months || null,
+            impact: p.impact || null,
+          })
+        ),
+        // Map research_experiences vào personal_projects với topic: "Research"
+        ...(background?.research_experiences ?? []).map(
+          (r): PersonalProject => {
+            // Calculate duration_months from start_date and end_date
+            let durationMonths: number | null = null;
+            if (r.start_date && r.end_date) {
+              const start = new Date(r.start_date);
+              const end = new Date(r.end_date);
+              const diffTime = Math.abs(end.getTime() - start.getTime());
+              const diffMonths = Math.ceil(
+                diffTime / (1000 * 60 * 60 * 24 * 30)
+              );
+              durationMonths = diffMonths;
+            }
+
+            return {
+              project_name: r.project_title || "",
+              topic: "Research",
+              description: r.description || null,
+              duration_months: durationMonths,
+              impact: r.findings || null,
+            };
+          }
+        ),
+      ],
 
       skill: {
-        skills: (studentData.student_skills || []).map((s: any) => ({
-          skill_name: s.skill_name,
-          proficiency: mapProficiency(s.proficiency),
-          category: s.category,
-        })),
+        skills: (studentData.student_skills || []).map(
+          (s): Skill => ({
+            skill_name: s.skill_name || "",
+            proficiency: mapProficiency(s.proficiency),
+            category: s.category || null,
+          })
+        ),
       },
     };
 
     // 3. Call AI API using centralized client
     const { callProfileAnalysis } = await import("@/lib/ai-api-client");
 
-    let analysisResult;
+    let rawResponse: unknown;
     try {
-      analysisResult = await callProfileAnalysis(feature1Payload);
-    } catch (error: any) {
+      rawResponse = await callProfileAnalysis(feature1Payload);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       return NextResponse.json(
         {
           error: "Lỗi khi gọi API phân tích",
-          details: error.message || "Unknown error",
+          details: errorMessage,
         },
         { status: 500 }
       );
     }
 
+    // 4. Handle response format - API có thể trả về trực tiếp Feature1OutputData hoặc có wrapper
+    let outputData: Feature1OutputData | null = null;
+    let validationWarnings: string[] | undefined;
+
+    // Kiểm tra xem có phải là Feature1OutputData trực tiếp không
+    if (isValidFeature1OutputData(rawResponse)) {
+      outputData = rawResponse;
+    } else if (
+      rawResponse &&
+      typeof rawResponse === "object" &&
+      "data" in rawResponse
+    ) {
+      // Có wrapper với success/data
+      const wrappedResponse = rawResponse as Feature1APIResponse;
+      if (!wrappedResponse.success || !wrappedResponse.data) {
+        return NextResponse.json(
+          {
+            error: "Phân tích không thành công",
+            details: wrappedResponse.error || "Không có dữ liệu trả về",
+            validation_warnings: wrappedResponse.validation_warnings,
+          },
+          { status: 500 }
+        );
+      }
+      outputData = wrappedResponse.data;
+      validationWarnings = wrappedResponse.validation_warnings;
+    } else {
+      // Thử normalize
+      const normalized = normalizeFeature1OutputData(rawResponse);
+      if (!normalized) {
+        console.error("❌ Invalid output data structure:", rawResponse);
+        return NextResponse.json(
+          {
+            error: "Dữ liệu phân tích không hợp lệ",
+            details: "Cấu trúc dữ liệu trả về không đúng định dạng",
+          },
+          { status: 500 }
+        );
+      }
+      outputData = normalized;
+      console.warn("⚠️ Output data was normalized due to validation issues");
+    }
+
+    if (!outputData) {
+      return NextResponse.json(
+        {
+          error: "Không thể xử lý dữ liệu phân tích",
+          details: "Dữ liệu trả về không hợp lệ",
+        },
+        { status: 500 }
+      );
+    }
+
+    // 6. Save analysis result to database
+    try {
+      const dbInput = mapAnalysisToDatabase(
+        studentIdStr,
+        feature1Payload,
+        outputData
+      );
+
+      await prisma.profile_analyses.create({
+        data: {
+          id: randomUUID(),
+          student_id: studentIdStr,
+          analysis_date: dbInput.analysis_date,
+          academic_data: JSON.parse(JSON.stringify(dbInput.academic_data)),
+          extracurricular_data: JSON.parse(
+            JSON.stringify(dbInput.extracurricular_data)
+          ),
+          skill_data: JSON.parse(JSON.stringify(dbInput.skill_data)),
+          overall_score: dbInput.overall_score,
+          academic_score: dbInput.academic_score,
+          extracurricular_score: dbInput.extracurricular_score,
+          summary: dbInput.summary,
+          swot_data: JSON.parse(JSON.stringify(dbInput.swot_data)),
+        },
+      });
+
+      console.log("✅ Profile analysis saved to database");
+    } catch (dbError) {
+      console.error("❌ Error saving analysis to database:", dbError);
+      // Continue even if DB save fails - still return the analysis result
+    }
+
     return NextResponse.json({
       success: true,
-      data: analysisResult,
+      data: outputData,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error in analyze-profile API:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         error: "Lỗi server khi phân tích hồ sơ",
-        details: error.message,
+        details: errorMessage,
       },
       { status: 500 }
     );
