@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import {
     CheckSquare,
@@ -17,7 +17,8 @@ import {
     Clock,
     Calendar,
     Loader2,
-    Sparkles
+    Sparkles,
+    RefreshCw
 } from 'lucide-react';
 import {Task, Stage, StudentProfile} from '@/components/types';
 import ProgressBar from './ProgressBar';
@@ -228,8 +229,109 @@ const ChecklistPage: React.FC = () => {
     const [scanningCV, setScanningCV] = useState(false);
     const [scannedProfile, setScannedProfile] = useState<StudentProfile | null>(null);
     const [cvScanError, setCvScanError] = useState<string>('');
+    const [loadingProgress, setLoadingProgress] = useState(true);
 
     const router = useRouter();
+
+    // Fetch progress from API
+    const fetchProgress = useCallback(async () => {
+        try {
+            setLoadingProgress(true);
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                console.log('No auth token found');
+                setLoadingProgress(false);
+                return;
+            }
+
+            const response = await fetch('/api/checklist/progress', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Failed to fetch progress:', response.status);
+                setLoadingProgress(false);
+                return;
+            }
+
+            const result = await response.json();
+
+            if (result.success && result.progress) {
+                const {progress} = result;
+
+                // Update tasks based on real progress
+                setTasks(prev => prev.map(task => {
+                    let isCompleted = task.isCompleted;
+                    let isLocked = false;
+
+                    // Map task IDs to progress fields
+                    switch(task.id) {
+                        case '1-3': // MBTI test
+                            isCompleted = progress.mbtiCompleted;
+                            isLocked = progress.mbtiCompleted; // Lock if completed from DB
+                            break;
+                        case '1-4': // Grit test
+                            isCompleted = progress.gritCompleted;
+                            isLocked = progress.gritCompleted; // Lock if completed from DB
+                            break;
+                        case '1-5': // RIASEC test
+                            isCompleted = progress.riasecCompleted;
+                            isLocked = progress.riasecCompleted; // Lock if completed from DB
+                            break;
+                        case '2-1': // Transcript
+                            isCompleted = progress.transcriptUploaded;
+                            isLocked = progress.transcriptUploaded;
+                            break;
+                        case '2-2': // English certificate
+                            isCompleted = progress.englishCertUploaded;
+                            isLocked = progress.englishCertUploaded;
+                            break;
+                        case '2-3': // Skills
+                            isCompleted = progress.skillsUpdated;
+                            isLocked = progress.skillsUpdated;
+                            break;
+                        case '2-9': // SAT/ACT
+                            isCompleted = progress.standardizedTestUploaded;
+                            isLocked = progress.standardizedTestUploaded;
+                            break;
+                        case '2-10': // Leadership activities
+                            isCompleted = progress.leadershipActivities;
+                            isLocked = progress.leadershipActivities;
+                            break;
+                    }
+
+                    return {...task, isCompleted, isLocked};
+                }));
+
+                console.log('✅ Progress loaded:', progress);
+            }
+
+        } catch (error) {
+            console.error('Error fetching progress:', error);
+        } finally {
+            setLoadingProgress(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchProgress();
+
+        // Auto-refresh when user returns to the page
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                console.log('📍 Page visible again, refreshing progress...');
+                fetchProgress();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [fetchProgress]);
 
     const currentStageTasks = useMemo(() =>
             tasks.filter(t => t.stageId === activeStageId),
@@ -251,9 +353,13 @@ const ChecklistPage: React.FC = () => {
     }, [stages, calculateProgress]);
 
     const handleToggleTask = (taskId: string) => {
-        setTasks(prev => prev.map(t =>
-            t.id === taskId ? {...t, isCompleted: !t.isCompleted} : t
-        ));
+        setTasks(prev => prev.map(t => {
+            // Don't toggle if task is locked (completed from database)
+            if (t.id === taskId && !t.isLocked) {
+                return {...t, isCompleted: !t.isCompleted};
+            }
+            return t;
+        }));
     };
 
     const handleToggleExpand = (taskId: string) => {
@@ -344,11 +450,29 @@ const ChecklistPage: React.FC = () => {
     return (
         <div className="w-full max-w-7xl mx-auto p-4 md:p-8">
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Checklist Hồ sơ</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">Quản lý các đầu việc cần làm để hoàn thiện hồ sơ du
-                    học của bạn.</p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Checklist Hồ sơ</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">Quản lý các đầu việc cần làm để hoàn thiện hồ sơ du học của bạn.</p>
+                    </div>
+                    <button
+                        onClick={fetchProgress}
+                        disabled={loadingProgress}
+                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Tải lại tiến độ từ database"
+                    >
+                        <RefreshCw size={16} className={loadingProgress ? 'animate-spin' : ''} />
+                        <span className="hidden sm:inline">Làm mới</span>
+                    </button>
+                </div>
             </div>
 
+            {loadingProgress ? (
+                <div className="flex items-center justify-center py-20">
+                    <Loader2 className="animate-spin text-blue-600" size={40} />
+                    <span className="ml-3 text-gray-600 dark:text-gray-400">Đang tải tiến độ...</span>
+                </div>
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-1">
                     <StageNavigation
@@ -432,13 +556,23 @@ const ChecklistPage: React.FC = () => {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleToggleTask(task.id);
+                                                                    if (!task.isLocked) {
+                                                                        handleToggleTask(task.id);
+                                                                    }
                                                                 }}
-                                                                disabled={task.id === '1-2' && !task.uploadedFile}
-                                                                title={task.id === '1-2' && !task.uploadedFile ? 'Vui lòng upload CV trước để hoàn thành task này' : ''}
+                                                                disabled={task.isLocked || (task.id === '1-2' && !task.uploadedFile)}
+                                                                title={
+                                                                    task.isLocked
+                                                                        ? '✅ Đã xác nhận từ database - không thể thay đổi thủ công'
+                                                                        : task.id === '1-2' && !task.uploadedFile
+                                                                            ? 'Vui lòng upload CV trước để hoàn thành task này'
+                                                                            : ''
+                                                                }
                                                                 className={`flex-shrink-0 transition-all duration-300 transform ${
                                                                     task.isCompleted
-                                                                        ? 'text-blue-600 scale-100 rotate-0'
+                                                                        ? task.isLocked
+                                                                            ? 'text-green-600 scale-100 rotate-0 cursor-not-allowed'
+                                                                            : 'text-blue-600 scale-100 rotate-0'
                                                                         : task.id === '1-2' && !task.uploadedFile
                                                                             ? 'text-gray-200 cursor-not-allowed'
                                                                             : 'text-gray-300 group-hover:text-blue-500 hover:scale-110'
@@ -446,7 +580,9 @@ const ChecklistPage: React.FC = () => {
                                                             >
                                                                 {task.isCompleted ? (
                                                                     <CheckSquare size={24}
-                                                                                 className="fill-blue-50 transition-all duration-300 ease-out"/>
+                                                                                 className={`transition-all duration-300 ease-out ${
+                                                                                     task.isLocked ? 'fill-green-50' : 'fill-blue-50'
+                                                                                 }`}/>
                                                                 ) : (
                                                                     <Square size={24}/>
                                                                 )}
@@ -458,6 +594,14 @@ const ChecklistPage: React.FC = () => {
                                                                 }`}>
                                                                 {task.title}
                                                             </span>
+                                                            {task.isLocked && task.isCompleted && (
+                                                                <span
+                                                                    className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                                                                    title="Task này đã được xác nhận từ database">
+                                                                    <CheckSquare size={12}/>
+                                                                    Đã xác nhận
+                                                                </span>
+                                                            )}
                                                             {task.linkTo && !task.isCompleted && (
                                                                 <span
                                                                     className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
@@ -675,13 +819,26 @@ const ChecklistPage: React.FC = () => {
                                                                     )}
                                                                     {task.isCompleted && (
                                                                         <div
-                                                                            className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                                                                            className={`p-4 ${
+                                                                                task.isLocked 
+                                                                                    ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+                                                                                    : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                                                                            } rounded-xl`}>
                                                                             <div className="flex items-center gap-2">
                                                                                 <CheckSquare size={18}
                                                                                              className="text-green-600"/>
                                                                                 <span
-                                                                                    className="text-sm font-bold text-green-700 dark:text-green-300">Bạn đã hoàn thành bài test này!</span>
+                                                                                    className="text-sm font-bold text-green-700 dark:text-green-300">
+                                                                                    {task.isLocked
+                                                                                        ? '✅ Bài test đã hoàn thành và được xác nhận từ database!'
+                                                                                        : 'Bạn đã hoàn thành bài test này!'}
+                                                                                </span>
                                                                             </div>
+                                                                            {task.isLocked && (
+                                                                                <p className="text-xs text-green-600 dark:text-green-400 mt-2 ml-6">
+                                                                                    Tiến độ này được đồng bộ tự động từ hệ thống. Không thể thay đổi thủ công.
+                                                                                </p>
+                                                                            )}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -768,6 +925,7 @@ const ChecklistPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+            )}
         </div>
     );
 };

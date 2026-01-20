@@ -2,7 +2,6 @@
 import {useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {RegisterData, LoginData, AuthResponse} from '@/lib/types/auth.types'
-import {AuthProvider} from '@/contexts/AuthContext'
 import {useAuthContext} from '@/contexts/AuthContext'
 
 interface UseAuthOptions {
@@ -90,7 +89,15 @@ export function useAuth(options: UseAuthOptions = {}) {
                 )
 
                 if (!skipRedirect) {
-                    router.push('/dashboard')
+                    // Redirect based on user role
+                    const userRole = result.user.role?.toUpperCase();
+                    if (userRole === 'MENTOR') {
+                        router.push('/dashboard/mentor');
+                    } else if (userRole === 'ADMIN') {
+                        router.push('/dashboard/admin');
+                    } else {
+                        router.push('/dashboard');
+                    }
                 }
             }
 
@@ -156,7 +163,15 @@ export function useAuth(options: UseAuthOptions = {}) {
                 )
 
                 if (!skipRedirect) {
-                    router.push('/dashboard')
+                    // Redirect based on user role
+                    const userRole = result.user.role?.toUpperCase();
+                    if (userRole === 'MENTOR') {
+                        router.push('/dashboard/mentor');
+                    } else if (userRole === 'ADMIN') {
+                        router.push('/dashboard/admin');
+                    } else {
+                        router.push('/dashboard');
+                    }
                 }
             }
 
@@ -176,13 +191,26 @@ export function useAuth(options: UseAuthOptions = {}) {
     /**
      * Đăng xuất
      */
-    const logout = () => {
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user')
-        localStorage.removeItem('session')
-        // ✅ Cập nhật AuthContext ngay lập tức
-        authContext.logout()
-        router.push('/login')
+    const logout = async () => {
+        try {
+            // Gọi API logout để xóa cookie trên server
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+        } catch (error) {
+            console.error('❌ Error calling logout API:', error)
+        } finally {
+            // Luôn xóa thông tin local dù API có lỗi hay không
+            localStorage.removeItem('auth_token')
+            localStorage.removeItem('user')
+            localStorage.removeItem('session')
+            // ✅ Cập nhật AuthContext ngay lập tức
+            authContext.logout()
+            router.push('/login')
+        }
     }
 
     /**

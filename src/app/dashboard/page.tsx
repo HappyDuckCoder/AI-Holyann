@@ -1,5 +1,6 @@
 "use client";
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useRouter} from 'next/navigation';
 import AuthHeader from '@/components/dashboard/AuthHeader';
 import DashboardComponent from '@/components/dashboard/Dashboard';
 import RoleGuard from '@/components/auth/RoleGuard';
@@ -7,6 +8,19 @@ import {useAuth} from '@/contexts/AuthContext';
 
 export default function DashboardPage() {
     const {user} = useAuth();
+    const router = useRouter();
+
+    // Auto-redirect mentor and admin to their respective dashboards
+    useEffect(() => {
+        if (user?.role) {
+            const role = user.role.toLowerCase();
+            if (role === 'mentor') {
+                router.replace('/dashboard/mentor');
+            } else if (role === 'admin') {
+                router.replace('/dashboard/admin');
+            }
+        }
+    }, [user, router]);
 
     return (
         <RoleGuard allowedRoles={['user', 'student', 'mentor', 'admin']}>

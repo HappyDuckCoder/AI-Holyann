@@ -2,12 +2,28 @@
 
 import Link from 'next/link'
 import {useAuth} from '@/contexts/AuthContext'
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import {usePathname} from 'next/navigation'
 
 export default function AuthHeader() {
     const {user, logout, isAuthenticated} = useAuth()
     const pathname = usePathname()
+
+    // Get dashboard URL based on user role
+    const dashboardUrl = useMemo(() => {
+        const role = user?.role?.toLowerCase();
+        if (role === 'mentor') return '/dashboard/mentor';
+        if (role === 'admin') return '/dashboard/admin';
+        return '/dashboard';
+    }, [user?.role]);
+
+    // Get chat URL based on user role
+    const chatUrl = useMemo(() => {
+        const role = user?.role?.toLowerCase();
+        if (role === 'mentor') return '/dashboard/mentor/chat';
+        if (role === 'admin') return '/dashboard/admin/chat';
+        return '/dashboard/chat';
+    }, [user?.role]);
 
     // Determine initial theme safely on first render
     const getInitialDark = () => {
@@ -51,7 +67,7 @@ export default function AuthHeader() {
 
             {/* 1. LOGO KHU VỰC */}
             <div className="flex items-center gap-3">
-                <Link href="/dashboard" className="flex items-center gap-3 group">
+                <Link href={dashboardUrl} className="flex items-center gap-3 group">
                     <div
                         className="relative w-10 h-10 md:w-12 md:h-12 bg-primary-foreground/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
                         {/* Logo Icon */}
@@ -75,11 +91,11 @@ export default function AuthHeader() {
             {/* 2. NAVIGATION */}
             <nav className="hidden md:flex items-center gap-8">
                 {[
-                    {name: 'DASHBOARD', href: '/dashboard'},
+                    {name: 'DASHBOARD', href: dashboardUrl},
                     {name: 'HỒ SƠ', href: '/dashboard/profile'},
                     {name: 'CHECKLIST', href: '/checklist'},
                     {name: 'MỤC TIÊU', href: '/dashboard/profile/schools'},
-                    {name: 'TRAO ĐỔI', href: '/dashboard/chat'},
+                    {name: 'TRAO ĐỔI', href: chatUrl},
                     {name: 'CÀI ĐẶT', href: '/settings'},
                 ].map((item) => (
                     <Link

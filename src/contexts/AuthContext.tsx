@@ -6,6 +6,7 @@ import {useSession} from 'next-auth/react'
 export type UserRole = 'user' | 'student' | 'mentor' | 'admin'
 
 export interface User {
+    id: string
     email: string
     name: string
     role: UserRole
@@ -14,6 +15,7 @@ export interface User {
 
 interface AuthContextType {
     user: User | null
+    token: string | null
     login: (email: string, name: string, role?: UserRole, avatar?: string) => void
     logout: () => void
     isAuthenticated: boolean
@@ -25,6 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({children}: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
+    const [token, setToken] = useState<string | null>(null)
     const [authReady, setAuthReady] = useState(false)
     const {data: session, status} = useSession()
 
@@ -41,12 +44,20 @@ export function AuthProvider({children}: { children: ReactNode }) {
                 : 'user'
 
             const userData: User = {
+                id: (session.user as any).id || '',
                 email: session.user.email || '',
                 name: session.user.name || session.user.email || 'Người dùng',
                 role: role,
                 avatar: session.user.image || undefined,
             }
             setUser(userData)
+
+            // Get token from localStorage or session
+            const savedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+            if (savedToken) {
+                setToken(savedToken)
+            }
+
             try {
                 if (typeof window !== 'undefined') {
                     localStorage.setItem('user', JSON.stringify(userData))
@@ -59,18 +70,24 @@ export function AuthProvider({children}: { children: ReactNode }) {
             // Try loading from localStorage
             try {
                 const saved = typeof window !== 'undefined' ? localStorage.getItem('user') : null
+                const savedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
                 if (saved) {
                     const parsed: any = JSON.parse(saved)
                     // Normalize role
                     let role = (parsed.role || 'user') as string
                     if (role === 'STUDENT') role = 'student'
                     const mapped: User = {
+                        id: parsed.id || parsed.user_id || '',
                         email: parsed.email,
                         name: parsed.name || parsed.full_name || parsed.email,
                         role: role.toLowerCase() as UserRole,
                         avatar: parsed.avatar_url || parsed.avatar,
                     }
                     setUser(mapped)
+                    if (savedToken) {
+                        setToken(savedToken)
+                    }
                 }
             } catch (e) {
                 console.error('Error reading saved user from localStorage', e)
@@ -91,12 +108,33 @@ export function AuthProvider({children}: { children: ReactNode }) {
         }
     }, [])
 
-    const logout = useCallback(() => {
-        setUser(null)
+    const logout = useCallback(async () => {
         try {
-            if (typeof window !== 'undefined') localStorage.removeItem('user')
-        } catch (e) {
-            console.error('Failed to remove user from localStorage', e)
+            // Gọi API logout để xóa cookie trên server
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+
+            if (!response.ok) {
+                console.warn('⚠️ Logout API failed, but continuing with local cleanup')
+            }
+        } catch (error) {
+            console.error('❌ Error calling logout API:', error)
+        } finally {
+            // Luôn xóa thông tin local dù API có lỗi hay không
+            setUser(null)
+            try {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('user')
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('session')
+                }
+            } catch (e) {
+                console.error('Failed to remove user from localStorage', e)
+            }
         }
     }, [])
 
