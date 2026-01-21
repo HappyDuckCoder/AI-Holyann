@@ -1,0 +1,76 @@
+(node:10296) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+⨯ ./src/lib/services/jwt.service.ts:4:8
+Ecmascript file had an error
+[0m [90m 2 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m jwt [36mfrom[39m [32m'jsonwebtoken'[39m
+ [90m   |[39m        [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mconst[39m [33mJWT_SECRET[39m [33m=[39m process[33m.[39menv[33m.[39m[33mJWT_SECRET[39m [33m||[39m [32m'your-secret-key'[39m[0m
+
+the name `jwt` is defined multiple times
+
+Import trace:
+  App Route:
+    ./src/lib/services/jwt.service.ts
+    ./src/app/api/auth/session/route.ts
+
+
+⨯ ./src/lib/services/jwt.service.ts:4:8
+Ecmascript file had an error
+[0m [90m 2 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m jwt [36mfrom[39m [32m'jsonwebtoken'[39m
+ [90m   |[39m        [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mconst[39m [33mJWT_SECRET[39m [33m=[39m process[33m.[39menv[33m.[39m[33mJWT_SECRET[39m [33m||[39m [32m'your-secret-key'[39m[0m
+
+the name `jwt` is defined multiple times
+
+Import trace:
+  App Route:
+    ./src/lib/services/jwt.service.ts
+    ./src/lib/services/auth.service.ts
+    ./src/app/api/auth/[...nextauth]/route.ts
+
+
+⨯ ./src/lib/services/jwt.service.ts:4:8
+Ecmascript file had an error
+[0m [90m 2 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m jwt [36mfrom[39m [32m'jsonwebtoken'[39m
+ [90m   |[39m        [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mconst[39m [33mJWT_SECRET[39m [33m=[39m process[33m.[39menv[33m.[39m[33mJWT_SECRET[39m [33m||[39m [32m'your-secret-key'[39m[0m
+
+the name `jwt` is defined multiple times
+
+Import trace:
+  App Route:
+    ./src/lib/services/jwt.service.ts
+    ./src/app/api/auth/session/route.ts
+
+
+⨯ ./src/lib/services/jwt.service.ts:4:8
+Ecmascript file had an error
+[0m [90m 2 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m jwt [36mfrom[39m [32m'jsonwebtoken'[39m
+ [90m   |[39m        [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m {[33mUserRole[39m} [36mfrom[39m [32m'../types/auth.types.js'[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mconst[39m [33mJWT_SECRET[39m [33m=[39m process[33m.[39menv[33m.[39m[33mJWT_SECRET[39m [33m||[39m [32m'your-secret-key'[39m[0m
+
+the name `jwt` is defined multiple times
+
+Import trace:
+  App Route:
+    ./src/lib/services/jwt.service.ts
+    ./src/lib/services/auth.service.ts
+    ./src/app/api/auth/[...nextauth]/route.ts
+
+

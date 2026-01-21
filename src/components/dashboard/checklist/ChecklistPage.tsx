@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import {
     CheckSquare,
@@ -17,7 +17,8 @@ import {
     Clock,
     Calendar,
     Loader2,
-    Sparkles
+    Sparkles,
+    RefreshCw
 } from 'lucide-react';
 import {Task, Stage, StudentProfile} from '@/components/types';
 import ProgressBar from './ProgressBar';
@@ -228,8 +229,109 @@ const ChecklistPage: React.FC = () => {
     const [scanningCV, setScanningCV] = useState(false);
     const [scannedProfile, setScannedProfile] = useState<StudentProfile | null>(null);
     const [cvScanError, setCvScanError] = useState<string>('');
+    const [loadingProgress, setLoadingProgress] = useState(true);
 
     const router = useRouter();
+
+    // Fetch progress from API
+    const fetchProgress = useCallback(async () => {
+        try {
+            setLoadingProgress(true);
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                console.log('No auth token found');
+                setLoadingProgress(false);
+                return;
+            }
+
+            const response = await fetch('/api/checklist/progress', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Failed to fetch progress:', response.status);
+                setLoadingProgress(false);
+                return;
+            }
+
+            const result = await response.json();
+
+            if (result.success && result.progress) {
+                const {progress} = result;
+
+                // Update tasks based on real progress
+                setTasks(prev => prev.map(task => {
+                    let isCompleted = task.isCompleted;
+                    let isLocked = false;
+
+                    // Map task IDs to progress fields
+                    switch(task.id) {
+                        case '1-3': // MBTI test
+                            isCompleted = progress.mbtiCompleted;
+                            isLocked = progress.mbtiCompleted; // Lock if completed from DB
+                            break;
+                        case '1-4': // Grit test
+                            isCompleted = progress.gritCompleted;
+                            isLocked = progress.gritCompleted; // Lock if completed from DB
+                            break;
+                        case '1-5': // RIASEC test
+                            isCompleted = progress.riasecCompleted;
+                            isLocked = progress.riasecCompleted; // Lock if completed from DB
+                            break;
+                        case '2-1': // Transcript
+                            isCompleted = progress.transcriptUploaded;
+                            isLocked = progress.transcriptUploaded;
+                            break;
+                        case '2-2': // English certificate
+                            isCompleted = progress.englishCertUploaded;
+                            isLocked = progress.englishCertUploaded;
+                            break;
+                        case '2-3': // Skills
+                            isCompleted = progress.skillsUpdated;
+                            isLocked = progress.skillsUpdated;
+                            break;
+                        case '2-9': // SAT/ACT
+                            isCompleted = progress.standardizedTestUploaded;
+                            isLocked = progress.standardizedTestUploaded;
+                            break;
+                        case '2-10': // Leadership activities
+                            isCompleted = progress.leadershipActivities;
+                            isLocked = progress.leadershipActivities;
+                            break;
+                    }
+
+                    return {...task, isCompleted, isLocked};
+                }));
+
+                console.log('✅ Progress loaded:', progress);
+            }
+
+        } catch (error) {
+            console.error('Error fetching progress:', error);
+        } finally {
+            setLoadingProgress(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchProgress();
+
+        // Auto-refresh when user returns to the page
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                console.log('📍 Page visible again, refreshing progress...');
+                fetchProgress();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [fetchProgress]);
 
     const currentStageTasks = useMemo(() =>
             tasks.filter(t => t.stageId === activeStageId),
@@ -251,9 +353,13 @@ const ChecklistPage: React.FC = () => {
     }, [stages, calculateProgress]);
 
     const handleToggleTask = (taskId: string) => {
-        setTasks(prev => prev.map(t =>
-            t.id === taskId ? {...t, isCompleted: !t.isCompleted} : t
-        ));
+        setTasks(prev => prev.map(t => {
+            // Don't toggle if task is locked (completed from database)
+            if (t.id === taskId && !t.isLocked) {
+                return {...t, isCompleted: !t.isCompleted};
+            }
+            return t;
+        }));
     };
 
     const handleToggleExpand = (taskId: string) => {
@@ -345,10 +451,16 @@ const ChecklistPage: React.FC = () => {
         <div className="w-full max-w-7xl mx-auto p-4 md:p-8">
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Checklist Hồ sơ</h1>
-                <p className="text-gray-500 dark:text-slate-400 mt-1">Quản lý các đầu việc cần làm để hoàn thiện hồ sơ du
+                <p className="text-gray-500 dark:text-gray-400 mt-1">Quản lý các đầu việc cần làm để hoàn thiện hồ sơ du
                     học của bạn.</p>
             </div>
 
+            {loadingProgress ? (
+                <div className="flex items-center justify-center py-20">
+                    <Loader2 className="animate-spin text-blue-600" size={40} />
+                    <span className="ml-3 text-gray-600 dark:text-gray-400">Đang tải tiến độ...</span>
+                </div>
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-1">
                     <StageNavigation
@@ -374,7 +486,7 @@ const ChecklistPage: React.FC = () => {
                                         <h2 className="text-xl font-bold text-gray-800 dark:text-white">
                                             Giai đoạn {activeStageId}: {stages[activeStageId - 1].name}
                                         </h2>
-                                        <p className="text-sm text-gray-500 dark:text-slate-400 hidden md:block">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 hidden md:block">
                                             {stages[activeStageId - 1].description}
                                         </p>
                                     </div>
@@ -392,7 +504,7 @@ const ChecklistPage: React.FC = () => {
                                 {!canAdvance && isNextStageAlreadyUnlocked && (
                                     <button
                                         onClick={() => setActiveStageId(activeStageId + 1)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-lg transition-all font-medium text-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all font-medium text-sm"
                                     >
                                         Đến Giai đoạn {activeStageId + 1} <ArrowRight size={16}/>
                                     </button>
@@ -401,12 +513,12 @@ const ChecklistPage: React.FC = () => {
                             <ProgressBar percentage={currentProgress}/>
                         </div>
 
-                        <div className="p-6 bg-gray-50/30 dark:bg-slate-900/30 min-h-[400px]">
+                        <div className="p-6 bg-gray-50/30 dark:bg-gray-900/30 min-h-[400px]">
                             {orderedCategories.filter(cat => tasksByCategory[cat]).map((category) => (
                                 <div key={category} className="mb-8 last:mb-0">
                                     {category !== 'Chung' && (
-                                        <h3 className="text-sm font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3 ml-1 flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-slate-600"></span>
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 ml-1 flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                                             {category}
                                         </h3>
                                     )}
@@ -420,11 +532,11 @@ const ChecklistPage: React.FC = () => {
                                             return (
                                                 <div
                                                     key={task.id}
-                                                                                    className={`group bg-white dark:bg-slate-800 border rounded-xl transition-all duration-300 cursor-pointer ${
+                                                    className={`group bg-white dark:bg-gray-800 border rounded-xl transition-all duration-300 cursor-pointer ${
                                                         task.isCompleted
-                                                            ? 'border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50'
-                                                            : `border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-lg ${isExpanded ? 'ring-1 ring-blue-300 dark:ring-blue-600 shadow-md' : 'hover:-translate-y-0.5'}`
-                                                    } ${task.linkTo && !task.isCompleted ? 'hover:border-purple-400 dark:hover:border-purple-500 hover:ring-1 hover:ring-purple-200 dark:hover:ring-purple-800' : ''}`}
+                                                            ? 'border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
+                                                            : `border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-lg ${isExpanded ? 'ring-1 ring-blue-300 shadow-md' : 'hover:-translate-y-0.5'}`
+                                                    } ${task.linkTo && !task.isCompleted ? 'hover:border-purple-400 hover:ring-1 hover:ring-purple-200' : ''}`}
                                                     onClick={() => handleTaskClick(task)}
                                                 >
                                                     <div className="flex items-center justify-between p-4">
@@ -432,13 +544,21 @@ const ChecklistPage: React.FC = () => {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleToggleTask(task.id);
+                                                                    if (!task.isLocked) {
+                                                                        handleToggleTask(task.id);
+                                                                    }
                                                                 }}
-                                                                disabled={task.id === '1-2' && !task.uploadedFile}
-                                                                title={task.id === '1-2' && !task.uploadedFile ? 'Vui lòng upload CV trước để hoàn thành task này' : ''}
+                                                                disabled={task.isLocked || (task.id === '1-2' && !task.uploadedFile)}
+                                                                title={
+                                                                    task.isLocked
+                                                                        ? '✅ Đã xác nhận từ database - không thể thay đổi thủ công'
+                                                                        : task.id === '1-2' && !task.uploadedFile
+                                                                            ? 'Vui lòng upload CV trước để hoàn thành task này'
+                                                                            : ''
+                                                                }
                                                                 className={`flex-shrink-0 transition-all duration-300 transform ${
                                                                     task.isCompleted
-                                                                        ? 'text-blue-600 dark:text-blue-400 scale-100 rotate-0'
+                                                                        ? 'text-blue-600 scale-100 rotate-0'
                                                                         : task.id === '1-2' && !task.uploadedFile
                                                                             ? 'text-gray-200 dark:text-slate-600 cursor-not-allowed'
                                                                             : 'text-gray-300 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 hover:scale-110'
@@ -446,7 +566,9 @@ const ChecklistPage: React.FC = () => {
                                                             >
                                                                 {task.isCompleted ? (
                                                                     <CheckSquare size={24}
-                                                                                 className="fill-blue-50 transition-all duration-300 ease-out"/>
+                                                                                 className={`transition-all duration-300 ease-out ${
+                                                                                     task.isLocked ? 'fill-green-50' : 'fill-blue-50'
+                                                                                 }`}/>
                                                                 ) : (
                                                                     <Square size={24}/>
                                                                 )}
@@ -458,6 +580,14 @@ const ChecklistPage: React.FC = () => {
                                                                 }`}>
                                                                 {task.title}
                                                             </span>
+                                                            {task.isLocked && task.isCompleted && (
+                                                                <span
+                                                                    className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                                                                    title="Task này đã được xác nhận từ database">
+                                                                    <CheckSquare size={12}/>
+                                                                    Đã xác nhận
+                                                                </span>
+                                                            )}
                                                             {task.linkTo && !task.isCompleted && (
                                                                 <span
                                                                     className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
@@ -484,17 +614,17 @@ const ChecklistPage: React.FC = () => {
                                                         className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
                                                         <div className="px-4 pb-6 md:px-6 md:pl-14 pt-0 space-y-5">
                                                             <div
-                                                                className="flex flex-wrap items-center gap-y-2 gap-x-6 pb-4 border-b border-gray-100 dark:border-slate-700">
+                                                                className="flex flex-wrap items-center gap-y-2 gap-x-6 pb-4 border-b border-gray-100 dark:border-gray-700">
                                                                 <div
-                                                                    className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
-                                                                    <Calendar size={16} className="text-gray-400 dark:text-slate-500"/>
+                                                                    className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                                    <Calendar size={16} className="text-gray-400"/>
                                                                     <span>Hạn chót: <span
-                                                                        className="font-semibold text-gray-800 dark:text-slate-200">{task.deadline}</span></span>
+                                                                        className="font-semibold text-gray-800 dark:text-gray-200">{task.deadline}</span></span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <div
                                                                         className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ring-1 ring-inset ${
-                                                                            task.isCompleted ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 ring-green-200 dark:ring-green-800' : deadlineStatus.color
+                                                                            task.isCompleted ? 'bg-green-50 text-green-700 ring-green-200' : deadlineStatus.color
                                                                         }`}>
                                                                         {task.isCompleted ? <CheckSquare size={12}/> :
                                                                             <Clock size={12}/>}
@@ -507,7 +637,7 @@ const ChecklistPage: React.FC = () => {
                                                                 <div>
                                                                     {task.id === '1-2' && !task.uploadedFile && !scanningCV && (
                                                                         <div
-                                                                            className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 dark:border-blue-400 rounded">
+                                                                            className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded">
                                                                             <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
                                                                                 ℹ️ Task này sẽ hoàn thành ngay khi bạn
                                                                                 upload CV. AI sẽ tự động scan để trích
@@ -517,73 +647,73 @@ const ChecklistPage: React.FC = () => {
                                                                     )}
                                                                     {scanningCV && task.id === '1-2' ? (
                                                                         <div
-                                                                            className="flex items-center justify-center p-8 bg-gradient-to-r from-purple-50 dark:from-purple-900/30 to-blue-50 dark:to-blue-900/30 border-2 border-purple-200 dark:border-purple-800 rounded-xl">
+                                                                            className="flex items-center justify-center p-8 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-xl">
                                                                             <div
                                                                                 className="flex flex-col items-center gap-4">
                                                                                 <Loader2
-                                                                                    className="w-10 h-10 text-purple-600 dark:text-purple-400 animate-spin"/>
+                                                                                    className="w-10 h-10 text-purple-600 animate-spin"/>
                                                                                 <div className="text-center">
-                                                                                    <p className="text-base font-bold text-purple-700 dark:text-purple-300">AI
+                                                                                    <p className="text-base font-bold text-purple-700">AI
                                                                                         đang scan CV của bạn...</p>
-                                                                                    <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">Vui
+                                                                                    <p className="text-sm text-gray-600 mt-1">Vui
                                                                                         lòng đợi trong giây lát</p>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                     ) : task.uploadedFile ? (
                                                                         <div
-                                                                            className="p-4 bg-gradient-to-r from-green-50 dark:from-green-900/30 to-emerald-50 dark:to-emerald-900/30 border-2 border-green-200 dark:border-green-800 rounded-xl">
+                                                                            className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl">
                                                                             <div
                                                                                 className="flex items-center gap-3 mb-3">
                                                                                 <div
-                                                                                    className="p-2 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-800 shadow-sm text-green-600 dark:text-green-400">
+                                                                                    className="p-2 bg-white rounded-lg border border-green-200 shadow-sm text-green-600">
                                                                                     <FileText size={20}/>
                                                                                 </div>
                                                                                 <div className="flex-1">
                                                                                     <span
-                                                                                        className="text-sm font-bold text-gray-800 dark:text-slate-200 block">{task.uploadedFile}</span>
+                                                                                        className="text-sm font-bold text-gray-800 block">{task.uploadedFile}</span>
                                                                                     <span
-                                                                                        className="text-xs text-gray-500 dark:text-slate-400">CV đã được AI xử lý thành công</span>
+                                                                                        className="text-xs text-gray-500">CV đã được AI xử lý thành công</span>
                                                                                 </div>
                                                                             </div>
                                                                             {scannedProfile && task.id === '1-2' && (
                                                                                 <div
-                                                                                    className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-green-100 dark:border-green-800">
-                                                                                    <p className="text-xs font-bold text-green-700 dark:text-green-300 mb-2">✨
+                                                                                    className="bg-white rounded-lg p-4 border border-green-100">
+                                                                                    <p className="text-xs font-bold text-green-700 mb-2">✨
                                                                                         Thông tin đã trích xuất:</p>
                                                                                     <div
                                                                                         className="grid grid-cols-2 gap-2 text-xs">
                                                                                         <div><span
-                                                                                            className="text-gray-500 dark:text-slate-400">Họ tên:</span>
+                                                                                            className="text-gray-500">Họ tên:</span>
                                                                                             <span
-                                                                                                className="font-semibold dark:text-slate-200"> {scannedProfile.name}</span>
+                                                                                                className="font-semibold"> {scannedProfile.name}</span>
                                                                                         </div>
                                                                                         <div><span
-                                                                                            className="text-gray-500 dark:text-slate-400">Email:</span>
+                                                                                            className="text-gray-500">Email:</span>
                                                                                             <span
-                                                                                                className="font-semibold dark:text-slate-200"> {scannedProfile.email}</span>
+                                                                                                className="font-semibold"> {scannedProfile.email}</span>
                                                                                         </div>
                                                                                         <div><span
-                                                                                            className="text-gray-500 dark:text-slate-400">GPA:</span>
+                                                                                            className="text-gray-500">GPA:</span>
                                                                                             <span
-                                                                                                className="font-semibold dark:text-slate-200"> {scannedProfile.gpa}/{scannedProfile.gpaScale}</span>
+                                                                                                className="font-semibold"> {scannedProfile.gpa}/{scannedProfile.gpaScale}</span>
                                                                                         </div>
                                                                                         <div><span
-                                                                                            className="text-gray-500 dark:text-slate-400">Tiếng Anh:</span>
+                                                                                            className="text-gray-500">Tiếng Anh:</span>
                                                                                             <span
-                                                                                                className="font-semibold dark:text-slate-200"> {scannedProfile.englishLevel}</span>
+                                                                                                className="font-semibold"> {scannedProfile.englishLevel}</span>
                                                                                         </div>
                                                                                         <div
                                                                                             className="col-span-2"><span
-                                                                                            className="text-gray-500 dark:text-slate-400">Hoạt động ngoại khóa:</span>
+                                                                                            className="text-gray-500">Hoạt động ngoại khóa:</span>
                                                                                             <span
-                                                                                                className="font-semibold dark:text-slate-200"> {scannedProfile.extracurriculars.length} hoạt động</span>
+                                                                                                className="font-semibold"> {scannedProfile.extracurriculars.length} hoạt động</span>
                                                                                         </div>
                                                                                         <div
                                                                                             className="col-span-2"><span
-                                                                                            className="text-gray-500 dark:text-slate-400">Thành tích:</span>
+                                                                                            className="text-gray-500">Thành tích:</span>
                                                                                             <span
-                                                                                                className="font-semibold dark:text-slate-200"> {scannedProfile.achievements.length} thành tích</span>
+                                                                                                className="font-semibold"> {scannedProfile.achievements.length} thành tích</span>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -591,7 +721,7 @@ const ChecklistPage: React.FC = () => {
                                                                         </div>
                                                                     ) : (
                                                                         <label htmlFor={`cv-upload-${task.id}`}
-                                                                               className="relative border-2 border-dashed border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-blue-500 rounded-xl p-6 transition-colors cursor-pointer group/upload block">
+                                                                               className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 rounded-xl p-6 transition-colors cursor-pointer group/upload block">
                                                                             <input
                                                                                 id={`cv-upload-${task.id}`}
                                                                                 type="file"
@@ -603,14 +733,14 @@ const ChecklistPage: React.FC = () => {
                                                                             <div
                                                                                 className="flex flex-col items-center justify-center text-center gap-2">
                                                                                 <div
-                                                                                    className="p-3 bg-white dark:bg-slate-700 rounded-full shadow-sm text-gray-400 dark:text-slate-500 group-hover/upload:text-blue-500 dark:group-hover/upload:text-blue-400 transition-colors">
+                                                                                    className="p-3 bg-white dark:bg-gray-700 rounded-full shadow-sm text-gray-400 group-hover/upload:text-blue-500 transition-colors">
                                                                                     <UploadCloud size={24}/>
                                                                                 </div>
                                                                                 <div>
-                                                                                    <p className="text-sm font-medium text-gray-600 dark:text-slate-300 group-hover/upload:text-blue-700 dark:group-hover/upload:text-blue-400">
+                                                                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300 group-hover/upload:text-blue-700">
                                                                                         {task.id === '1-2' ? 'Upload CV - AI sẽ tự động scan' : 'Upload file'}
                                                                                     </p>
-                                                                                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">PDF,
+                                                                                    <p className="text-xs text-gray-400 mt-1">PDF,
                                                                                         DOCX, TXT lên tới 10MB</p>
                                                                                 </div>
                                                                             </div>
@@ -618,25 +748,25 @@ const ChecklistPage: React.FC = () => {
                                                                     )}
                                                                     {cvScanError && (
                                                                         <div
-                                                                            className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-                                                                            <p className="text-xs text-red-700 dark:text-red-300">{cvScanError}</p>
+                                                                            className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                                            <p className="text-xs text-red-700">{cvScanError}</p>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             )}
 
                                                             {task.category === 'Tài liệu cần thiết' && task.feedback && (
-                                                                    <div className="mt-2">
+                                                                <div className="mt-2">
                                                                     <div className="flex items-center gap-2 mb-2">
                                                                         <MessageSquare size={16}
-                                                                                       className="text-orange-500 dark:text-orange-400"/>
+                                                                                       className="text-orange-500"/>
                                                                         <span
-                                                                            className="text-sm font-bold text-gray-700 dark:text-slate-300">Nhận xét từ người hướng dẫn</span>
+                                                                            className="text-sm font-bold text-gray-700 dark:text-gray-300">Nhận xét từ người hướng dẫn</span>
                                                                     </div>
                                                                     <div
                                                                         className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 rounded-xl p-4 relative">
                                                                         <div
-                                                                            className="text-sm text-gray-800 dark:text-slate-200 leading-relaxed">
+                                                                            className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
                                                                             {task.feedback}
                                                                         </div>
                                                                     </div>
@@ -675,13 +805,26 @@ const ChecklistPage: React.FC = () => {
                                                                     )}
                                                                     {task.isCompleted && (
                                                                         <div
-                                                                            className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                                                                            className={`p-4 ${
+                                                                                task.isLocked 
+                                                                                    ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+                                                                                    : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                                                                            } rounded-xl`}>
                                                                             <div className="flex items-center gap-2">
                                                                                 <CheckSquare size={18}
                                                                                              className="text-green-600 dark:text-green-400"/>
                                                                                 <span
-                                                                                    className="text-sm font-bold text-green-700 dark:text-green-300">Bạn đã hoàn thành bài test này!</span>
+                                                                                    className="text-sm font-bold text-green-700 dark:text-green-300">
+                                                                                    {task.isLocked
+                                                                                        ? '✅ Bài test đã hoàn thành và được xác nhận từ database!'
+                                                                                        : 'Bạn đã hoàn thành bài test này!'}
+                                                                                </span>
                                                                             </div>
+                                                                            {task.isLocked && (
+                                                                                <p className="text-xs text-green-600 dark:text-green-400 mt-2 ml-6">
+                                                                                    Tiến độ này được đồng bộ tự động từ hệ thống. Không thể thay đổi thủ công.
+                                                                                </p>
+                                                                            )}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -768,6 +911,7 @@ const ChecklistPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+            )}
         </div>
     );
 };

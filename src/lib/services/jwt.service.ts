@@ -1,5 +1,6 @@
+
 import jwt from 'jsonwebtoken'
-import {UserRole} from '@/lib/types/auth.types'
+import {UserRole} from '../types/auth.types.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = '7d'

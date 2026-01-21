@@ -6,7 +6,7 @@ import RoleGuard from '@/components/auth/RoleGuard';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 
-export default function ChatDashboard() {
+export default function MentorChatDashboard() {
     const { data: session, status } = useSession();
 
     if (status === 'loading') {
@@ -22,7 +22,7 @@ export default function ChatDashboard() {
     }
 
     return (
-        <RoleGuard allowedRoles={['student', 'mentor', 'admin']}>
+        <RoleGuard allowedRoles={['mentor', 'admin']}>
             <div className="h-screen flex flex-col bg-white text-gray-900">
                 <AuthHeader />
                 <div className="flex-1 overflow-hidden bg-gray-50">
@@ -32,4 +32,3 @@ export default function ChatDashboard() {
         </RoleGuard>
     );
 }
-

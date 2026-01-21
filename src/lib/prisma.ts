@@ -5,18 +5,23 @@ const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
 function createPrismaClient() {
     try {
-        const connectionString = process.env.DATABASE_URL
+        // Sử dụng DIRECT_URL cho server actions để tránh pooling timeout
+        // DATABASE_URL cho edge/serverless với pooling
+        const directUrl = process.env.DIRECT_URL;
+        const poolingUrl = process.env.DATABASE_URL;
 
-        if (!connectionString) {
-            console.warn('⚠️ DATABASE_URL not found, using default configuration')
+        const connectionUrl = directUrl || poolingUrl;
+
+        if (!connectionUrl) {
+            console.warn('⚠️ DATABASE_URL/DIRECT_URL not found, using default configuration')
         }
 
-        // Simple Prisma Client without adapter (more stable)
+        // Use direct connection for better transaction support
         return new PrismaClient({
             log: [], // Disable all Prisma logs (no query, no error, no warn)
             datasources: {
                 db: {
-                    url: connectionString || process.env.DATABASE_URL
+                    url: connectionUrl
                 }
             }
         })

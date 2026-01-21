@@ -74,6 +74,7 @@ export interface Task {
     uploadedFile?: string;     // Name of the uploaded file (if any)
     feedback?: string;         // Mentor feedback
     linkTo?: string;           // Link to navigate when task is clicked (for test tasks)
+    isLocked?: boolean;        // Task is locked (completed from database, cannot be manually changed)
 }
 
 export interface Stage {

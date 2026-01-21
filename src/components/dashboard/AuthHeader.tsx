@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import {useAuth} from '@/contexts/AuthContext'
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useMemo} from 'react'
 import {usePathname} from 'next/navigation'
 import {Menu, X} from 'lucide-react'
 
@@ -10,6 +10,22 @@ export default function AuthHeader() {
     const {user, logout, isAuthenticated} = useAuth()
     const pathname = usePathname()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+    // Get dashboard URL based on user role
+    const dashboardUrl = useMemo(() => {
+        const role = user?.role?.toLowerCase();
+        if (role === 'mentor') return '/dashboard/mentor';
+        if (role === 'admin') return '/dashboard/admin';
+        return '/dashboard';
+    }, [user?.role]);
+
+    // Get chat URL based on user role
+    const chatUrl = useMemo(() => {
+        const role = user?.role?.toLowerCase();
+        if (role === 'mentor') return '/dashboard/mentor/chat';
+        if (role === 'admin') return '/dashboard/admin/chat';
+        return '/dashboard/chat';
+    }, [user?.role]);
 
     // Determine initial theme safely on first render
     const getInitialDark = () => {
@@ -57,15 +73,17 @@ export default function AuthHeader() {
     ]
 
     return (
-        <header className="bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md sticky top-0 z-50 transition-colors duration-300">
-            <div className="px-4 sm:px-6 md:px-8 py-3 sm:py-4 flex justify-between items-center">
-                {/* 1. LOGO KHU VỰC */}
-                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                    <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setMobileMenuOpen(false)}>
-                        <div className="relative w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-primary-foreground/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
-                            {/* Logo Icon */}
-                            <i className="fas fa-paper-plane text-accent text-sm sm:text-lg md:text-xl transform -rotate-12 group-hover:scale-110 transition-transform"></i>
-                        </div>
+        <header
+            className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 shadow-md flex justify-between items-center sticky top-0 z-50 transition-colors duration-300">
+
+            {/* 1. LOGO KHU VỰC */}
+            <div className="flex items-center gap-3">
+                <Link href="/dashboard" className="flex items-center gap-3 group">
+                    <div
+                        className="relative w-10 h-10 md:w-12 md:h-12 bg-primary-foreground/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
+                        {/* Logo Icon */}
+                        <i className="fas fa-paper-plane text-accent text-lg md:text-xl transform -rotate-12 group-hover:scale-110 transition-transform"></i>
+                    </div>
 
                         {/* Typography Logo */}
                         <div className="flex flex-col justify-center leading-none">
@@ -79,25 +97,32 @@ export default function AuthHeader() {
                     </Link>
                 </div>
 
-                {/* 2. NAVIGATION - Desktop */}
-                <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`
-                                font-heading text-xs xl:text-sm font-semibold tracking-wide transition-all duration-300 relative py-1
-                                ${pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard')
-                                ? 'text-primary-foreground after:w-full'
-                                : 'text-primary-foreground/80 hover:text-primary-foreground after:w-0 hover:after:w-full'
-                            }
-                                after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-accent after:transition-all after:duration-300
-                            `}
-                        >
-                            {item.name}
-                        </Link>
-                    ))}
-                </nav>
+            {/* 2. NAVIGATION */}
+            <nav className="hidden md:flex items-center gap-8">
+                {[
+                    {name: 'DASHBOARD', href: '/dashboard'},
+                    {name: 'HỒ SƠ', href: '/dashboard/profile'},
+                    {name: 'CHECKLIST', href: '/checklist'},
+                    {name: 'MỤC TIÊU', href: '/dashboard/profile/schools'},
+                    {name: 'TRAO ĐỔI', href: '/dashboard/chat'},
+                    {name: 'CÀI ĐẶT', href: '/settings'},
+                ].map((item) => (
+                    <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`
+                            font-heading text-sm font-semibold tracking-wide transition-all duration-300 relative py-1
+                            ${pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard')
+                            ? 'text-primary-foreground after:w-full'
+                            : 'text-primary-foreground/80 hover:text-primary-foreground after:w-0 hover:after:w-full'
+                        }
+                            after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-accent after:transition-all after:duration-300
+                        `}
+                    >
+                        {item.name}
+                    </Link>
+                ))}
+            </nav>
 
                 {/* 3. USER ACTION & THEME TOGGLE */}
                 <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
@@ -191,7 +216,7 @@ export default function AuthHeader() {
                                 {item.name}
                             </Link>
                         ))}
-                        
+
                         {isAuthenticated && (
                             <div className="mt-2 pt-2 border-t border-primary-foreground/20">
                                 <div className="px-4 py-2 flex items-center gap-3">

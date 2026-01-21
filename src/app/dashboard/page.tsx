@@ -1,12 +1,12 @@
 "use client";
-import React from "react";
-import AuthHeader from "@/components/dashboard/AuthHeader";
-import DashboardComponent from "@/components/dashboard/Dashboard";
-import RoleGuard from "@/components/auth/RoleGuard";
-import { useAuth } from "@/contexts/AuthContext";
+import React from 'react';
+import AuthHeader from '@/components/dashboard/AuthHeader';
+import DashboardComponent from '@/components/dashboard/Dashboard';
+import RoleGuard from '@/components/auth/RoleGuard';
+import {useAuth} from '@/contexts/AuthContext';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+    const {user} = useAuth();
 
   return (
     <RoleGuard allowedRoles={["user", "student", "mentor", "admin"]}>
@@ -24,3 +24,4 @@ export default function DashboardPage() {
     </RoleGuard>
   );
 }
+
