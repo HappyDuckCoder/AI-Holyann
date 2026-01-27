@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
                 grit_tests: true,
                 mbti_tests: true,
                 riasec_tests: true,
-                student_backgrounds: {
+                background: {
                     include: {
                         academic_awards: true,
                         academic_extracurriculars: true,
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
                         subject_scores: true,
                     }
                 },
-                student_academic_profiles: true,
+                academic_profile: true,
             }
         })
 
@@ -71,33 +71,33 @@ export async function GET(request: NextRequest) {
             riasecCompleted: student.riasec_tests?.status === 'COMPLETED',
 
             // Task 2-1: Transcript (kiểm tra có subject_scores không)
-            transcriptUploaded: student.student_backgrounds?.subject_scores &&
-                               student.student_backgrounds.subject_scores.length > 0,
+            transcriptUploaded: student.background?.subject_scores &&
+                               student.background.subject_scores.length > 0,
 
             // Task 2-2: English certificates
-            englishCertUploaded: student.student_academic_profiles?.english_certificates &&
-                                Object.keys(student.student_academic_profiles.english_certificates as object).length > 0,
+            englishCertUploaded: student.academic_profile?.english_certificates &&
+                                Object.keys(student.academic_profile.english_certificates as object).length > 0,
 
             // Task 2-3: Skills (có extracurriculars hoặc awards)
-            skillsUpdated: (student.student_backgrounds?.academic_extracurriculars?.length || 0) > 0 ||
-                          (student.student_backgrounds?.non_academic_extracurriculars?.length || 0) > 0,
+            skillsUpdated: (student.background?.academic_extracurriculars?.length || 0) > 0 ||
+                          (student.background?.non_academic_extracurriculars?.length || 0) > 0,
 
             // Task 2-9: SAT/ACT (kiểm tra standardized_tests)
-            standardizedTestUploaded: student.student_academic_profiles?.standardized_tests &&
-                                     Object.keys(student.student_academic_profiles.standardized_tests as object).length > 0,
+            standardizedTestUploaded: student.academic_profile?.standardized_tests &&
+                                     Object.keys(student.academic_profile.standardized_tests as object).length > 0,
 
             // Task 2-10: Extracurricular activities (vai trò lãnh đạo)
-            leadershipActivities: (student.student_backgrounds?.academic_extracurriculars?.length || 0) > 0 ||
-                                 (student.student_backgrounds?.non_academic_extracurriculars?.length || 0) > 0,
+            leadershipActivities: (student.background?.academic_extracurriculars?.length || 0) > 0 ||
+                                 (student.background?.non_academic_extracurriculars?.length || 0) > 0,
 
             // Thống kê tổng quan
             stats: {
-                totalAwards: (student.student_backgrounds?.academic_awards?.length || 0) +
-                            (student.student_backgrounds?.non_academic_awards?.length || 0),
-                totalExtracurriculars: (student.student_backgrounds?.academic_extracurriculars?.length || 0) +
-                                      (student.student_backgrounds?.non_academic_extracurriculars?.length || 0),
-                totalResearch: student.student_backgrounds?.research_experiences?.length || 0,
-                totalWorkExp: student.student_backgrounds?.work_experiences?.length || 0,
+                totalAwards: (student.background?.academic_awards?.length || 0) +
+                            (student.background?.non_academic_awards?.length || 0),
+                totalExtracurriculars: (student.background?.academic_extracurriculars?.length || 0) +
+                                      (student.background?.non_academic_extracurriculars?.length || 0),
+                totalResearch: student.background?.research_experiences?.length || 0,
+                totalWorkExp: student.background?.work_experiences?.length || 0,
             }
         }
 

@@ -2,6 +2,7 @@
 
 import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
+import {useSession} from 'next-auth/react';
 import {
     CheckSquare,
     Square,
@@ -39,6 +40,7 @@ const getDaysRemaining = (deadline: string) => {
 };
 
 const ChecklistPage: React.FC = () => {
+    const { data: session } = useSession();
     const [stages, setStages] = useState<Stage[]>([
         {id: 1, name: 'KHỞI ĐỘNG', description: 'Làm quen với HOEX, thiết lập hồ sơ & mục tiêu.', isUnlocked: true},
         {
@@ -237,7 +239,7 @@ const ChecklistPage: React.FC = () => {
     const fetchProgress = useCallback(async () => {
         try {
             setLoadingProgress(true);
-            const token = localStorage.getItem('auth_token');
+            const token = session?.accessToken;
             if (!token) {
                 console.log('No auth token found');
                 setLoadingProgress(false);

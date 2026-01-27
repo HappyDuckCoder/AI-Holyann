@@ -4,12 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useAuth } from "@/hooks/useAuth";
 import { LoginData } from "@/lib/types/auth.types";
 
 export default function Login() {
   const router = useRouter();
-  const { login: loginUser, loading, error } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [loginData, setLoginData] = useState<LoginData>({
     email: "",
@@ -21,9 +20,27 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
+    setIsLoading(true);
 
-    // useAuth hook sẽ tự động cập nhật AuthContext và redirect
-    await loginUser(loginData);
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: loginData.email,
+        password: loginData.password,
+      });
+
+      if (result?.error) {
+        setErrorMessage("Email hoặc mật khẩu không chính xác");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setErrorMessage("Đã xảy ra lỗi trong quá trình đăng nhập");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,9 +109,9 @@ export default function Login() {
           </div>
 
           {/* Error Message */}
-          {(errorMessage || error) && (
+          {errorMessage && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-4">
-              {errorMessage || error}
+              {errorMessage}
             </div>
           )}
 
@@ -115,7 +132,7 @@ export default function Login() {
                 className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
                 placeholder="name@example.com"
                 required
-                disabled={loading}
+                disabled={isLoading}
               />
             </div>
 
@@ -135,7 +152,7 @@ export default function Login() {
                 className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
                 placeholder="••••••••"
                 required
-                disabled={loading}
+                disabled={isLoading}
               />
             </div>
 
@@ -159,10 +176,10 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isLoading}
               className="w-full bg-primary hover:bg-primary/90 text-white font-heading font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Đang xử lý..." : "Đăng Nhập"}
+              {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
             </button>
           </form>
 
@@ -181,7 +198,7 @@ export default function Login() {
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              disabled={loading}
+              disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-border rounded-xl hover:bg-muted transition-colors dark:text-white group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg

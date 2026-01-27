@@ -1,5 +1,5 @@
 import React from 'react';
-import {ArrowRight, Brain, Briefcase, Activity, CheckCircle2, RotateCcw} from 'lucide-react';
+import {ArrowRight, Brain, Briefcase, Activity, CheckCircle2} from 'lucide-react';
 import {TestResult} from '../types';
 
 interface TestCardProps {
@@ -9,7 +9,6 @@ interface TestCardProps {
     iconType: 'MBTI' | 'RIASEC' | 'GRIT';
     onClick: () => void;
     onViewResult?: () => void;
-    onReset?: () => void;
     isCompleted?: boolean;
     result?: TestResult;
 }
@@ -21,7 +20,6 @@ const TestCard: React.FC<TestCardProps> = ({
                                                iconType,
                                                onClick,
                                                onViewResult,
-                                               onReset,
                                                isCompleted,
                                                result
                                            }) => {
@@ -71,7 +69,7 @@ const TestCard: React.FC<TestCardProps> = ({
                 </div>
             )}
 
-            <div className="mt-auto space-y-2">
+            <div className="mt-auto">
                 <button
                     onClick={isCompleted && onViewResult ? onViewResult : onClick}
                     className={`w-full py-2.5 px-4 font-medium rounded-lg border transition-colors flex items-center justify-center gap-2 group ${
@@ -84,7 +82,8 @@ const TestCard: React.FC<TestCardProps> = ({
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform"/>
                 </button>
                 
-                {isCompleted && onReset && (
+                {/* Không cho phép làm lại test sau khi hoàn thành */}
+                {/* {isCompleted && onReset && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -95,7 +94,7 @@ const TestCard: React.FC<TestCardProps> = ({
                         <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300"/>
                         Làm lại
                     </button>
-                )}
+                )} */}
             </div>
         </div>
     );

@@ -208,7 +208,7 @@ export async function POST(
     const studentData = await prisma.students.findUnique({
       where: { user_id: studentIdStr },
       include: {
-        student_backgrounds: {
+        background: {
           include: {
             academic_awards: true,
             non_academic_awards: true,
@@ -220,8 +220,8 @@ export async function POST(
             personal_projects: true,
           },
         },
-        student_academic_profiles: true,
-        student_parents: true,
+        academic_profile: true,
+        parents: true,
         student_skills: true,
       },
     });
@@ -234,8 +234,8 @@ export async function POST(
     }
 
     // Cho phép phân tích chỉ với GPA, không cần đầy đủ background
-    const background = studentData.student_backgrounds;
-    const academicProfile = studentData.student_academic_profiles;
+    const background = studentData.background;
+    const academicProfile = studentData.academic_profile;
 
     // Kiểm tra có GPA không (tối thiểu cần có GPA)
     const hasGPA = (() => {

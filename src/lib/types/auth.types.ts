@@ -37,6 +37,15 @@ export interface AuthResponse {
         role: UserRole
         avatar_url?: string
     }
+    student?: {
+        user_id: string
+        current_school?: string | null
+        current_grade?: string | null
+        intended_major?: string | null
+        target_country?: string | null
+        date_of_birth?: Date | null
+        current_address?: string | null
+    }
     token?: string
 }
 

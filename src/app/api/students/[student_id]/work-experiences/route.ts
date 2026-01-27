@@ -28,8 +28,6 @@ export async function GET(
             { error: 'Lỗi khi lấy kinh nghiệm làm việc' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -74,8 +72,6 @@ export async function POST(
             { error: 'Lỗi khi tạo kinh nghiệm làm việc' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -97,8 +93,6 @@ export async function DELETE(
             { error: 'Lỗi khi xóa kinh nghiệm làm việc' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -133,7 +127,5 @@ export async function PATCH(request: NextRequest) {
             { error: 'Lỗi khi cập nhật kinh nghiệm làm việc' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

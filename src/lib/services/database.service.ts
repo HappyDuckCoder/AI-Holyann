@@ -427,6 +427,76 @@ export class DatabaseService {
     }
 
     /**
+     * Tìm student theo user_id
+     */
+    static async findStudentByUserId(userId: string): Promise<any | null> {
+        try {
+            console.log('🔍 [DatabaseService] Finding student for user_id:', userId);
+
+            // Try Local DB first
+            try {
+                const localStudent = await prisma.students.findUnique({
+                    where: { user_id: userId }
+                });
+
+                if (localStudent) {
+                    console.log('✅ [DatabaseService] Found student in Local DB');
+                    return localStudent;
+                }
+            } catch (prismaError: any) {
+                console.warn('⚠️ [DatabaseService] Local DB query failed, trying Supabase:', prismaError.message);
+            }
+
+            // Fallback to Supabase
+            const { data: student, error } = await supabase
+                .from('students')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
+
+            if (error) {
+                console.log('ℹ️ [DatabaseService] No student record found for user:', userId);
+                return null;
+            }
+
+            // Sync to Local DB if found
+            if (student) {
+                console.log('✅ [DatabaseService] Found student in Supabase');
+                try {
+                    await prisma.students.upsert({
+                        where: { user_id: student.user_id },
+                        update: {
+                            current_school: student.current_school,
+                            current_grade: student.current_grade,
+                            intended_major: student.intended_major,
+                            target_country: student.target_country,
+                            date_of_birth: student.date_of_birth,
+                            current_address: student.current_address
+                        },
+                        create: {
+                            user_id: student.user_id,
+                            current_school: student.current_school,
+                            current_grade: student.current_grade,
+                            intended_major: student.intended_major,
+                            target_country: student.target_country,
+                            date_of_birth: student.date_of_birth,
+                            current_address: student.current_address
+                        }
+                    });
+                    console.log('✅ [DatabaseService] Synced student from Supabase to Local DB');
+                } catch (syncError) {
+                    console.warn('⚠️ [DatabaseService] Could not sync student to Local DB');
+                }
+            }
+
+            return student;
+        } catch (error) {
+            console.error('❌ [DatabaseService] Exception in findStudentByUserId:', error);
+            return null;
+        }
+    }
+
+    /**
      * Cập nhật thông tin user
      */
     static async updateUser(id: string, updates: Partial<User>): Promise<User | null> {

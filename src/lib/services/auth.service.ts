@@ -17,13 +17,25 @@ export class AuthService {
                 }
             }
 
-            // Tạo user mới
+            // Tạo user mới (sẽ tự động tạo student record nếu role = STUDENT)
             const user = await DatabaseService.createUser(data)
             if (!user) {
                 return {
                     success: false,
                     message: 'Không thể tạo tài khoản'
                 }
+            }
+
+            // Fetch student data nếu user là STUDENT
+            let studentData = null;
+            if (user.role === 'STUDENT') {
+                // Wait a bit for student creation to complete
+                await new Promise(resolve => setTimeout(resolve, 500));
+                studentData = await DatabaseService.findStudentByUserId(user.id);
+                console.log('📋 [Auth] Student data created:', {
+                    hasStudent: !!studentData,
+                    userId: user.id
+                });
             }
 
             // Tạo JWT token
@@ -43,6 +55,15 @@ export class AuthService {
                     role: user.role,
                     avatar_url: user.avatar_url
                 },
+                student: studentData ? {
+                    user_id: studentData.user_id,
+                    current_school: studentData.current_school,
+                    current_grade: studentData.current_grade,
+                    intended_major: studentData.intended_major,
+                    target_country: studentData.target_country,
+                    date_of_birth: studentData.date_of_birth,
+                    current_address: studentData.current_address
+                } : undefined,
                 token
             }
         } catch (error: any) {
@@ -96,6 +117,16 @@ export class AuthService {
                 }
             }
 
+            // Fetch student data nếu user là STUDENT
+            let studentData = null;
+            if (user.role === 'STUDENT') {
+                studentData = await DatabaseService.findStudentByUserId(user.id);
+                console.log('📋 [Auth] Student data fetched:', {
+                    hasStudent: !!studentData,
+                    userId: user.id
+                });
+            }
+
             // Tạo JWT token
             const token = JWTService.generateToken({
                 userId: user.id,
@@ -113,6 +144,15 @@ export class AuthService {
                     role: user.role,
                     avatar_url: user.avatar_url
                 },
+                student: studentData ? {
+                    user_id: studentData.user_id,
+                    current_school: studentData.current_school,
+                    current_grade: studentData.current_grade,
+                    intended_major: studentData.intended_major,
+                    target_country: studentData.target_country,
+                    date_of_birth: studentData.date_of_birth,
+                    current_address: studentData.current_address
+                } : undefined,
                 token
             }
         } catch (error) {

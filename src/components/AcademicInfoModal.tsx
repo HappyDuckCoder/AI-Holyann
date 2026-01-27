@@ -21,9 +21,99 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    // Track which tabs have been modified
+    const [modifiedTabs, setModifiedTabs] = useState<Set<string>>(new Set());
+
+    // Helper to mark tab as modified
+    const markTabModified = (tab: string) => {
+        setModifiedTabs(prev => new Set(prev).add(tab));
+    };
+
+    // Wrapper functions that auto-track modifications
+    const updateBasicInfo = (updates: Partial<typeof basicInfo>) => {
+        setBasicInfo(prev => ({...prev, ...updates}));
+        markTabModified('basic');
+    };
+
+    const updateGpaData = (updates: Partial<typeof gpaData>) => {
+        setGpaData(prev => ({...prev, ...updates}));
+        markTabModified('academic');
+    };
+
+    const updateEnglishCerts = (certs: typeof englishCerts) => {
+        setEnglishCerts(certs);
+        markTabModified('academic');
+    };
+
+    const updateStandardizedTests = (tests: typeof standardizedTests) => {
+        setStandardizedTests(tests);
+        markTabModified('academic');
+    };
+
+    const updateSubjectScores = (scores: typeof subjectScores) => {
+        setSubjectScores(scores);
+        markTabModified('academic');
+    };
+
+    const updateIntendedMajor = (major: string) => {
+        setIntendedMajor(major);
+        markTabModified('basic');
+    };
+
+    const updateStudentGoals = (goals: Partial<typeof studentGoals>) => {
+        setStudentGoals(prev => ({...prev, ...goals}));
+        markTabModified('basic');
+    };
+
+    const updateAcademicAwards = (awards: typeof academicAwards) => {
+        setAcademicAwards(awards);
+        markTabModified('profile');
+    };
+
+    const updateNonAcademicAwards = (awards: typeof nonAcademicAwards) => {
+        setNonAcademicAwards(awards);
+        markTabModified('profile');
+    };
+
+    const updateAcademicActivities = (activities: typeof academicActivities) => {
+        setAcademicActivities(activities);
+        markTabModified('profile');
+    };
+
+    const updateNonAcademicActivities = (activities: typeof nonAcademicActivities) => {
+        setNonAcademicActivities(activities);
+        markTabModified('profile');
+    };
+
+    const updateWorkExperiences = (experiences: typeof workExperiences) => {
+        setWorkExperiences(experiences);
+        markTabModified('profile');
+    };
+
+    const updateResearchExperiences = (experiences: typeof researchExperiences) => {
+        setResearchExperiences(experiences);
+        markTabModified('profile');
+    };
+
+    const updatePersonalProjects = (projects: typeof personalProjects) => {
+        setPersonalProjects(projects);
+        markTabModified('profile');
+    };
+
+    const updateSkills = (skillsList: typeof skills) => {
+        setSkills(skillsList);
+        markTabModified('profile');
+    };
+
+    const updateParentsInfo = (parents: typeof parentsInfo) => {
+        setParentsInfo(parents);
+        markTabModified('parents');
+    };
+
     // Basic Info State
     const [basicInfo, setBasicInfo] = useState({
         full_name: '',
+        date_of_birth: '',
         current_school: '',
         current_grade: '',
         current_address: '',
@@ -67,6 +157,22 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
     // Parents Info State
     const [parentsInfo, setParentsInfo] = useState<any[]>([{ full_name: '', relationship: '', phone_number: '', email: '' }]);
 
+    // Helper function to format date to YYYY-MM-DD
+    const formatDateForInput = (dateValue: any) => {
+        if (!dateValue) return '';
+        try {
+            const date = new Date(dateValue);
+            if (isNaN(date.getTime())) return '';
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        } catch {
+            return '';
+        }
+    };
+
     // Fetch student data when modal opens
     useEffect(() => {
         const fetchStudentData = async () => {
@@ -83,8 +189,10 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                 const data = await response.json();
                 
                 // Populate Basic Info
+                const dobValue = data.basicInfo?.date_of_birth || data.studentInfo?.date_of_birth;
                 setBasicInfo({
                     full_name: data.basicInfo?.full_name || '',
+                    date_of_birth: formatDateForInput(dobValue),
                     current_school: data.studentInfo?.current_school || '',
                     current_grade: data.studentInfo?.current_grade || '',
                     current_address: data.basicInfo?.current_address || '',
@@ -113,11 +221,11 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                 }
 
                 // Populate Intended Major
-                setIntendedMajor(data.studentInfo?.intended_major || '');
+                updateIntendedMajor(data.studentInfo?.intended_major || '');
 
                 // Populate Academic Awards
                 if (data.background?.academic_awards?.length > 0) {
-                    setAcademicAwards(data.background.academic_awards.map((a: any) => ({
+                    updateAcademicAwards(data.background.academic_awards.map((a: any) => ({
                         ...a,
                         award_name: a.award_name || '',
                         issuing_organization: a.issuing_organization || '',
@@ -133,7 +241,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate Non-Academic Awards
                 if (data.background?.non_academic_awards?.length > 0) {
-                    setNonAcademicAwards(data.background.non_academic_awards.map((a: any) => ({
+                    updateNonAcademicAwards(data.background.non_academic_awards.map((a: any) => ({
                         ...a,
                         award_name: a.award_name || '',
                         category: a.category || '',
@@ -149,7 +257,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate Academic Activities
                 if (data.background?.academic_extracurriculars?.length > 0) {
-                    setAcademicActivities(data.background.academic_extracurriculars.map((a: any) => ({
+                    updateAcademicActivities(data.background.academic_extracurriculars.map((a: any) => ({
                         ...a,
                         activity_name: a.activity_name || '',
                         organization: a.organization || '',
@@ -164,7 +272,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate Non-Academic Activities
                 if (data.background?.non_academic_extracurriculars?.length > 0) {
-                    setNonAcademicActivities(data.background.non_academic_extracurriculars.map((a: any) => ({
+                    updateNonAcademicActivities(data.background.non_academic_extracurriculars.map((a: any) => ({
                         ...a,
                         activity_name: a.activity_name || '',
                         organization: a.organization || '',
@@ -179,7 +287,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate Work Experiences
                 if (data.background?.work_experiences?.length > 0) {
-                    setWorkExperiences(data.background.work_experiences.map((w: any) => ({
+                    updateWorkExperiences(data.background.work_experiences.map((w: any) => ({
                         ...w,
                         company_name: w.company_name || '',
                         job_title: w.job_title || '',
@@ -191,7 +299,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate Research Experiences
                 if (data.background?.research_experiences?.length > 0) {
-                    setResearchExperiences(data.background.research_experiences.map((r: any) => ({
+                    updateResearchExperiences(data.background.research_experiences.map((r: any) => ({
                         ...r,
                         project_title: r.project_title || '',
                         institution: r.institution || '',
@@ -203,7 +311,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                 }
 
                 // Populate Student Goals
-                setStudentGoals({
+                updateStudentGoals({
                     target_country: data.studentInfo?.target_country || '',
                     yearly_budget: data.studentInfo?.yearly_budget || '',
                     personal_desire: data.studentInfo?.personal_desire || ''
@@ -211,7 +319,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate Parents Info
                 if (data.parents?.length > 0) {
-                    setParentsInfo(data.parents.map((p: any) => ({
+                    updateParentsInfo(data.parents.map((p: any) => ({
                         ...p,
                         full_name: p.full_name || '',
                         relationship: p.relationship || '',
@@ -233,7 +341,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate NEW: Personal Projects
                 if (data.background?.personal_projects?.length > 0) {
-                    setPersonalProjects(data.background.personal_projects.map((p: any) => ({
+                    updatePersonalProjects(data.background.personal_projects.map((p: any) => ({
                         ...p,
                         project_name: p.project_name || '',
                         topic: p.topic || '',
@@ -245,7 +353,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                 // Populate NEW: Skills
                 if (data.skills?.length > 0) {
-                    setSkills(data.skills.map((s: any) => ({
+                    updateSkills(data.skills.map((s: any) => ({
                         ...s,
                         skill_name: s.skill_name || '',
                         proficiency: s.proficiency || '',
@@ -264,132 +372,144 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
         fetchStudentData();
     }, [studentId]);
 
-    const handleSaveAll = async () => {
-        setSaving(true);
-        toast.info('Đang lưu thông tin hồ sơ', {
-            description: 'Vui lòng đợi trong giây lát...',
-        });
-        
-        try {
-            // Save Basic Info & Goals
-            await fetch(`/api/students/${studentId}/profile`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    basicInfo,
-                    studentInfo: {
-                        ...studentGoals,
-                        intended_major: intendedMajor
-                    }
-                })
+    // Save functions for each tab
+    const saveBasicInfo = async () => {
+        // Validate phone number
+        if (basicInfo.phone_number && basicInfo.phone_number.length !== 10) {
+            toast.error('Số điện thoại không hợp lệ', {
+                description: 'Số điện thoại của học viên cần đủ 10 số',
             });
+            throw new Error('Invalid phone number');
+        }
 
-            // Save Academic Profile
-            await fetch(`/api/students/${studentId}/academic`, {
+        await fetch(`/api/students/${studentId}/profile`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                basicInfo,
+                studentInfo: {
+                    ...studentGoals,
+                    intended_major: intendedMajor
+                }
+            })
+        });
+    };
+
+    const saveAcademicInfo = async () => {
+        // Clean up english certs: filter out __CUSTOM__ placeholder
+        const cleanedEnglishCerts = englishCerts
+            .filter(c => c.type && c.type !== '__CUSTOM__')
+            .map(c => ({
+                ...c,
+                // If type was custom input, keep the actual value
+                type: c.type
+            }));
+
+        await fetch(`/api/students/${studentId}/academic`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gpa_transcript_details: gpaData,
+                english_certificates: cleanedEnglishCerts,
+                standardized_tests: standardizedTests.filter(t => t.type)
+            })
+        });
+
+        // Save subject scores
+        await fetch(`/api/students/${studentId}/subject-scores`, { method: 'DELETE' });
+        for (const score of subjectScores.filter(s => s.subject && s.score)) {
+            await fetch(`/api/students/${studentId}/subject-scores`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    gpa_transcript_details: gpaData,
-                    english_certificates: englishCerts.filter(c => c.type),
-                    standardized_tests: standardizedTests.filter(t => t.type)
+                    subject: score.subject,
+                    score: score.score,
+                    year: score.year || null,
+                    semester: score.semester || null
                 })
             });
+        }
+    };
 
-            // STRATEGY: DELETE ALL old data, then INSERT all current data (no duplicates)
-            
-            // 1. Delete all existing data
-            const deleteResults = await Promise.all([
-                fetch(`/api/students/${studentId}/academic-awards`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/non-academic-awards`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/academic-extracurriculars`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/non-academic-extracurriculars`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/work-experiences`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/research-experiences`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/parents`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/subject-scores`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/personal-projects`, { method: 'DELETE' }),
-                fetch(`/api/students/${studentId}/skills`, { method: 'DELETE' })
-            ]);
+    const saveProfileInfo = async () => {
+        // Delete old profile data
+        await Promise.all([
+            fetch(`/api/students/${studentId}/academic-awards`, { method: 'DELETE' }),
+            fetch(`/api/students/${studentId}/non-academic-awards`, { method: 'DELETE' }),
+            fetch(`/api/students/${studentId}/academic-extracurriculars`, { method: 'DELETE' }),
+            fetch(`/api/students/${studentId}/non-academic-extracurriculars`, { method: 'DELETE' }),
+            fetch(`/api/students/${studentId}/work-experiences`, { method: 'DELETE' }),
+            fetch(`/api/students/${studentId}/research-experiences`, { method: 'DELETE' }),
+            fetch(`/api/students/${studentId}/personal-projects`, { method: 'DELETE' }),
+            fetch(`/api/students/${studentId}/skills`, { method: 'DELETE' })
+        ]);
 
-            // Check for delete errors
-            const failedDeletes = deleteResults.filter(r => !r.ok);
-            if (failedDeletes.length > 0) {
-                console.error('Some delete operations failed:', failedDeletes);
-                // Continue anyway - data will be replaced
-            }
+        // Insert new profile data
+        const insertPromises = [];
 
-            // 2. Insert all current data from form
-            for (const award of academicAwards.filter(a => a.award_name)) {
-                await fetch(`/api/students/${studentId}/academic-awards`, {
+        for (const award of academicAwards.filter(a => a.award_name)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/academic-awards`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(award)
-                });
-            }
+                })
+            );
+        }
 
-            for (const award of nonAcademicAwards.filter(a => a.award_name)) {
-                await fetch(`/api/students/${studentId}/non-academic-awards`, {
+        for (const award of nonAcademicAwards.filter(a => a.award_name)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/non-academic-awards`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(award)
-                });
-            }
+                })
+            );
+        }
 
-            for (const activity of academicActivities.filter(a => a.activity_name)) {
-                await fetch(`/api/students/${studentId}/academic-extracurriculars`, {
+        for (const activity of academicActivities.filter(a => a.activity_name)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/academic-extracurriculars`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(activity)
-                });
-            }
+                })
+            );
+        }
 
-            for (const activity of nonAcademicActivities.filter(a => a.activity_name)) {
-                await fetch(`/api/students/${studentId}/non-academic-extracurriculars`, {
+        for (const activity of nonAcademicActivities.filter(a => a.activity_name)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/non-academic-extracurriculars`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(activity)
-                });
-            }
+                })
+            );
+        }
 
-            for (const work of workExperiences.filter(w => w.company_name)) {
-                await fetch(`/api/students/${studentId}/work-experiences`, {
+        for (const work of workExperiences.filter(w => w.company_name)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/work-experiences`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(work)
-                });
-            }
+                })
+            );
+        }
 
-            for (const research of researchExperiences.filter(r => r.project_title)) {
-                await fetch(`/api/students/${studentId}/research-experiences`, {
+        for (const research of researchExperiences.filter(r => r.project_title)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/research-experiences`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(research)
-                });
-            }
+                })
+            );
+        }
 
-            for (const parent of parentsInfo.filter(p => p.full_name)) {
-                await fetch(`/api/students/${studentId}/parents`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(parent)
-                });
-            }
-
-            for (const score of subjectScores.filter(s => s.subject && s.score)) {
-                await fetch(`/api/students/${studentId}/subject-scores`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        subject: score.subject,
-                        score: score.score,
-                        year: score.year || null,
-                        semester: score.semester || null
-                    })
-                });
-            }
-
-            for (const project of personalProjects.filter(p => p.project_name)) {
-                await fetch(`/api/students/${studentId}/personal-projects`, {
+        for (const project of personalProjects.filter(p => p.project_name)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/personal-projects`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -399,11 +519,13 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         duration_months: project.duration_months || null,
                         impact: project.impact || null
                     })
-                });
-            }
+                })
+            );
+        }
 
-            for (const skill of skills.filter(s => s.skill_name)) {
-                await fetch(`/api/students/${studentId}/skills`, {
+        for (const skill of skills.filter(s => s.skill_name)) {
+            insertPromises.push(
+                fetch(`/api/students/${studentId}/skills`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -411,14 +533,74 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         proficiency: skill.proficiency || null,
                         category: skill.category || null
                     })
-                });
+                })
+            );
+        }
+
+        await Promise.all(insertPromises);
+    };
+
+    const saveParentsInfo = async () => {
+        // Validate parent phone numbers
+        const invalidParentPhone = parentsInfo.find(
+            (parent) => parent.phone_number && parent.phone_number.length !== 10
+        );
+        if (invalidParentPhone) {
+            toast.error('Số điện thoại không hợp lệ', {
+                description: 'Số điện thoại của phụ huynh cần đủ 10 số',
+            });
+            throw new Error('Invalid parent phone number');
+        }
+
+        await fetch(`/api/students/${studentId}/parents`, { method: 'DELETE' });
+
+        for (const parent of parentsInfo.filter(p => p.full_name)) {
+            await fetch(`/api/students/${studentId}/parents`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parent)
+            });
+        }
+    };
+
+    const handleSaveAll = async () => {
+        setSaving(true);
+
+        const tabsToSave = modifiedTabs.size > 0 ? Array.from(modifiedTabs) : ['basic', 'academic', 'profile', 'parents'];
+
+        toast.info('Đang lưu thông tin', {
+            description: `Đang cập nhật ${tabsToSave.length} phần thông tin...`,
+        });
+
+        try {
+            const savePromises = [];
+
+            if (tabsToSave.includes('basic')) {
+                savePromises.push(saveBasicInfo());
             }
 
+            if (tabsToSave.includes('academic')) {
+                savePromises.push(saveAcademicInfo());
+            }
+
+            if (tabsToSave.includes('profile')) {
+                savePromises.push(saveProfileInfo());
+            }
+
+            if (tabsToSave.includes('parents')) {
+                savePromises.push(saveParentsInfo());
+            }
+
+            await Promise.all(savePromises);
+
             toast.success('Lưu thông tin thành công', {
-                description: 'Tất cả thông tin hồ sơ đã được cập nhật',
+                description: `Đã cập nhật ${tabsToSave.length} phần thông tin`,
             });
             
-            // Delay reload để người dùng thấy toast
+            // Reset modified tabs
+            setModifiedTabs(new Set());
+
+            // Delay reload
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
@@ -469,16 +651,32 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     />
                                 </div>
                                 <div>
+                                    <Label className="text-sm font-medium">Ngày sinh</Label>
+                                    <Input
+                                        type="date"
+                                        value={basicInfo.date_of_birth}
+                                        onChange={(e) => updateBasicInfo({ date_of_birth: e.target.value })}
+                                        placeholder="Chọn ngày sinh"
+                                        className="mt-1"
+                                        max={new Date().toISOString().split('T')[0]} // Prevent future dates
+                                    />
+                                    {basicInfo.date_of_birth && (
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Định dạng: {new Date(basicInfo.date_of_birth).toLocaleDateString('vi-VN')}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
                                     <Label className="text-sm font-medium">Lớp - Trường đang theo học</Label>
                                     <div className="grid grid-cols-2 gap-2 mt-1">
                                         <Input 
                                             value={basicInfo.current_grade}
-                                            onChange={(e) => setBasicInfo({...basicInfo, current_grade: e.target.value})}
+                                            onChange={(e) => updateBasicInfo({ current_grade: e.target.value })}
                                             placeholder="VD: 12"
                                         />
                                         <Input 
                                             value={basicInfo.current_school}
-                                            onChange={(e) => setBasicInfo({...basicInfo, current_school: e.target.value})}
+                                            onChange={(e) => updateBasicInfo({ current_school: e.target.value })}
                                             placeholder="Tên trường"
                                         />
                                     </div>
@@ -487,7 +685,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Label className="text-sm font-medium">Nơi ở hiện tại</Label>
                                     <Input 
                                         value={basicInfo.current_address}
-                                        onChange={(e) => setBasicInfo({...basicInfo, current_address: e.target.value})}
+                                        onChange={(e) => updateBasicInfo({ current_address: e.target.value })}
                                         placeholder="Địa chỉ"
                                         className="mt-1"
                                     />
@@ -495,11 +693,23 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <div>
                                     <Label className="text-sm font-medium">Số điện thoại</Label>
                                     <Input 
+                                        type="tel"
                                         value={basicInfo.phone_number}
-                                        onChange={(e) => setBasicInfo({...basicInfo, phone_number: e.target.value})}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/\D/g, '');
+                                            if (value.length <= 10) {
+                                                updateBasicInfo({ phone_number: value });
+                                            }
+                                        }}
                                         placeholder="0XXXXXXXXX"
                                         className="mt-1"
+                                        maxLength={10}
                                     />
+                                    {basicInfo.phone_number && basicInfo.phone_number.length < 10 && (
+                                        <p className="text-xs text-orange-500 mt-1">
+                                            Số điện thoại cần đủ 10 số ({basicInfo.phone_number.length}/10)
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <Label className="text-sm font-medium">Email cá nhân</Label>
@@ -515,7 +725,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Label className="text-sm font-medium">Năng khiếu</Label>
                                     <Input 
                                         value={basicInfo.talents}
-                                        onChange={(e) => setBasicInfo({...basicInfo, talents: e.target.value})}
+                                        onChange={(e) => updateBasicInfo({ talents: e.target.value })}
                                         placeholder="VD: Toán học, Vẽ, ..."
                                         className="mt-1"
                                     />
@@ -524,7 +734,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Label className="text-sm font-medium">Sở thích</Label>
                                     <Textarea 
                                         value={basicInfo.hobbies}
-                                        onChange={(e) => setBasicInfo({...basicInfo, hobbies: e.target.value})}
+                                        onChange={(e) => updateBasicInfo({ hobbies: e.target.value })}
                                         placeholder="Mô tả sở thích của bạn..."
                                         className="mt-1"
                                         rows={3}
@@ -547,8 +757,14 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             type="number" 
                                             step="0.01"
                                             max="10"
+                                            min="0"
                                             value={gpaData[grade as keyof typeof gpaData]}
-                                            onChange={(e) => setGpaData({...gpaData, [grade]: e.target.value})}
+                                            onChange={(e) => {
+                                                const value = parseFloat(e.target.value);
+                                                if (e.target.value === '' || (!isNaN(value) && value >= 0 && value <= 10)) {
+                                                    updateGpaData({ [grade]: e.target.value });
+                                                }
+                                            }}
                                             placeholder="0.00"
                                             className="mt-1"
                                         />
@@ -560,11 +776,11 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         {/* Chứng chỉ Tiếng Anh */}
                         <div className="bg-purple-50 border-l-4 border-purple-600 p-6 rounded-lg">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-purple-900 text-lg">CHỨNG CHỈ TIẾNG ANH (IELTS, DET, TOEFL,...)</h3>
+                                <h3 className="font-bold text-purple-900 text-lg">CHỨNG CHỈ NGOẠI NGỮ (IELTS, DET, JLPT,HSK...)</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setEnglishCerts([...englishCerts, { type: '', score: '', date: '' }])}
+                                    onClick={() => updateEnglishCerts([...englishCerts, { type: '', score: '', date: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -572,27 +788,61 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                             </div>
                             {englishCerts.map((cert, index) => (
                                 <div key={index} className="grid grid-cols-4 gap-3 mb-3 items-end">
-                                    <div>
-                                        <Label className="text-sm">Loại chứng chỉ</Label>
-                                        <Select 
-                                            value={cert.type}
-                                            onValueChange={(value) => {
-                                                const newCerts = [...englishCerts];
-                                                newCerts[index].type = value;
-                                                setEnglishCerts(newCerts);
-                                            }}
-                                        >
-                                            <SelectTrigger className="mt-1">
-                                                <SelectValue placeholder="Chọn" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="IELTS">IELTS</SelectItem>
-                                                <SelectItem value="TOEFL">TOEFL</SelectItem>
-                                                <SelectItem value="DET">DET (Duolingo)</SelectItem>
-                                                <SelectItem value="TOEIC">TOEIC</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+              <div>
+                <Label className="text-sm">Loại chứng chỉ</Label>
+                {cert.type === '__CUSTOM__' || (cert.type && !['IELTS', 'DET', 'TOEIC', 'HSK', 'TOPIK', 'JLPT', ''].includes(cert.type)) ? (
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      value={cert.type === '__CUSTOM__' ? '' : cert.type}
+                      onChange={(e) => {
+                        const newCerts = [...englishCerts];
+                        newCerts[index].type = e.target.value || '__CUSTOM__';
+                        updateEnglishCerts(newCerts);
+                      }}
+                      placeholder="Nhập loại chứng chỉ"
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        const newCerts = [...englishCerts];
+                        newCerts[index].type = '';
+                        updateEnglishCerts(newCerts);
+                      }}
+                      title="Quay lại dropdown"
+                    >
+                      ↩
+                    </Button>
+                  </div>
+                ) : (
+                  <Select
+                    value={cert.type}
+                    onValueChange={(value) => {
+                      const newCerts = [...englishCerts];
+                      if (value === 'other') {
+                        newCerts[index].type = '__CUSTOM__';
+                      } else {
+                        newCerts[index].type = value;
+                      }
+                      updateEnglishCerts(newCerts);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Chọn" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="IELTS">IELTS</SelectItem>
+                      <SelectItem value="DET">DET (Duolingo)</SelectItem>
+                      <SelectItem value="TOEIC">TOEIC</SelectItem>
+                      <SelectItem value="HSK">HSK (Tiếng Trung)</SelectItem>
+                      <SelectItem value="TOPIK">TOPIK (Tiếng Hàn)</SelectItem>
+                      <SelectItem value="JLPT">JLPT (Tiếng Nhật)</SelectItem>
+                      <SelectItem value="other">Khác...</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
                                     <div>
                                         <Label className="text-sm">Điểm số</Label>
                                         <Input 
@@ -601,7 +851,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newCerts = [...englishCerts];
                                                 newCerts[index].score = e.target.value;
-                                                setEnglishCerts(newCerts);
+                                                updateEnglishCerts(newCerts);
                                             }}
                                             className="mt-1"
                                         />
@@ -614,7 +864,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newCerts = [...englishCerts];
                                                 newCerts[index].date = e.target.value;
-                                                setEnglishCerts(newCerts);
+                                                updateEnglishCerts(newCerts);
                                             }}
                                             className="mt-1"
                                         />
@@ -622,7 +872,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Button 
                                         size="sm" 
                                         variant="ghost"
-                                        onClick={() => setEnglishCerts(englishCerts.filter((_, i) => i !== index))}
+                                        onClick={() => updateEnglishCerts(englishCerts.filter((_, i) => i !== index))}
                                     >
                                         <Trash2 className="w-4 h-4 text-red-500" />
                                     </Button>
@@ -637,7 +887,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setStandardizedTests([...standardizedTests, { type: '', score: '', date: '' }])}
+                                    onClick={() => updateStandardizedTests([...standardizedTests, { type: '', score: '', date: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -652,7 +902,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onValueChange={(value) => {
                                                 const newTests = [...standardizedTests];
                                                 newTests[index].type = value;
-                                                setStandardizedTests(newTests);
+                                                updateStandardizedTests(newTests);
                                             }}
                                         >
                                             <SelectTrigger className="mt-1">
@@ -674,7 +924,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newTests = [...standardizedTests];
                                                 newTests[index].score = e.target.value;
-                                                setStandardizedTests(newTests);
+                                                updateStandardizedTests(newTests);
                                             }}
                                             className="mt-1"
                                         />
@@ -687,7 +937,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newTests = [...standardizedTests];
                                                 newTests[index].date = e.target.value;
-                                                setStandardizedTests(newTests);
+                                                updateStandardizedTests(newTests);
                                             }}
                                             className="mt-1"
                                         />
@@ -695,7 +945,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Button 
                                         size="sm" 
                                         variant="ghost"
-                                        onClick={() => setStandardizedTests(standardizedTests.filter((_, i) => i !== index))}
+                                        onClick={() => updateStandardizedTests(standardizedTests.filter((_, i) => i !== index))}
                                     >
                                         <Trash2 className="w-4 h-4 text-red-500" />
                                     </Button>
@@ -710,7 +960,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setSubjectScores([...subjectScores, { subject: '', score: '', year: '', semester: '' }])}
+                                    onClick={() => updateSubjectScores([...subjectScores, { subject: '', score: '', year: '', semester: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -725,7 +975,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newScores = [...subjectScores];
                                                 newScores[index].subject = e.target.value;
-                                                setSubjectScores(newScores);
+                                                updateSubjectScores(newScores);
                                             }}
                                             placeholder="VD: Toán, Vật Lý"
                                             className="mt-1"
@@ -741,7 +991,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newScores = [...subjectScores];
                                                 newScores[index].score = e.target.value;
-                                                setSubjectScores(newScores);
+                                                updateSubjectScores(newScores);
                                             }}
                                             placeholder="0.0"
                                             className="mt-1"
@@ -755,7 +1005,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newScores = [...subjectScores];
                                                 newScores[index].year = e.target.value;
-                                                setSubjectScores(newScores);
+                                                updateSubjectScores(newScores);
                                             }}
                                             placeholder="2024"
                                             className="mt-1"
@@ -768,7 +1018,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onValueChange={(value) => {
                                                 const newScores = [...subjectScores];
                                                 newScores[index].semester = value;
-                                                setSubjectScores(newScores);
+                                                updateSubjectScores(newScores);
                                             }}
                                         >
                                             <SelectTrigger className="mt-1">
@@ -783,7 +1033,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Button 
                                         size="sm" 
                                         variant="ghost"
-                                        onClick={() => setSubjectScores(subjectScores.filter((_, i) => i !== index))}
+                                        onClick={() => updateSubjectScores(subjectScores.filter((_, i) => i !== index))}
                                     >
                                         <Trash2 className="w-4 h-4 text-red-500" />
                                     </Button>
@@ -796,7 +1046,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                             <h3 className="font-bold text-orange-900 mb-4 text-lg">NGÀNH DỰ ĐỊNH HỌC</h3>
                             <Textarea 
                                 value={intendedMajor}
-                                onChange={(e) => setIntendedMajor(e.target.value)}
+                                onChange={(e) => updateIntendedMajor(e.target.value)}
                                 placeholder="Nhập ngành học bạn dự định theo đuổi..."
                                 rows={3}
                             />
@@ -812,7 +1062,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setAcademicAwards([...academicAwards, { award_name: '', issuing_organization: '', award_level: '', award_date: '', description: '', category: '', year: '', rank: '', region: '' }])}
+                                    onClick={() => updateAcademicAwards([...academicAwards, { award_name: '', issuing_organization: '', award_level: '', award_date: '', description: '', category: '', year: '', rank: '', region: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -828,7 +1078,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].award_name = e.target.value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                                 placeholder="VD: Học sinh giỏi Toán"
                                                 className="mt-1"
@@ -841,7 +1091,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].issuing_organization = e.target.value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                                 placeholder="VD: Sở GD&ĐT"
                                                 className="mt-1"
@@ -854,7 +1104,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].category = value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -874,7 +1124,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].region = value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -897,7 +1147,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].rank = e.target.value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                                 placeholder="VD: 1, 2, 3"
                                                 className="mt-1"
@@ -911,7 +1161,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].year = e.target.value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                                 placeholder="2024"
                                                 className="mt-1"
@@ -924,7 +1174,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].award_level = value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -947,7 +1197,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...academicAwards];
                                                     newAwards[index].award_date = e.target.value;
-                                                    setAcademicAwards(newAwards);
+                                                    updateAcademicAwards(newAwards);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -960,7 +1210,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newAwards = [...academicAwards];
                                                         newAwards[index].description = e.target.value;
-                                                        setAcademicAwards(newAwards);
+                                                        updateAcademicAwards(newAwards);
                                                     }}
                                                     placeholder="Mô tả chi tiết..."
                                                     className="mt-1"
@@ -970,7 +1220,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost"
-                                                onClick={() => setAcademicAwards(academicAwards.filter((_, i) => i !== index))}
+                                                onClick={() => updateAcademicAwards(academicAwards.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -988,7 +1238,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setNonAcademicAwards([...nonAcademicAwards, { award_name: '', category: '', issuing_organization: '', award_level: '', award_date: '', description: '', year: '', rank: '', region: '' }])}
+                                    onClick={() => updateNonAcademicAwards([...nonAcademicAwards, { award_name: '', category: '', issuing_organization: '', award_level: '', award_date: '', description: '', year: '', rank: '', region: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1004,7 +1254,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...nonAcademicAwards];
                                                     newAwards[index].award_name = e.target.value;
-                                                    setNonAcademicAwards(newAwards);
+                                                    updateNonAcademicAwards(newAwards);
                                                 }}
                                                 placeholder="VD: Giải nhất bóng đá"
                                                 className="mt-1"
@@ -1017,7 +1267,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newAwards = [...nonAcademicAwards];
                                                     newAwards[index].category = value;
-                                                    setNonAcademicAwards(newAwards);
+                                                    updateNonAcademicAwards(newAwards);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -1036,7 +1286,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...nonAcademicAwards];
                                                     newAwards[index].issuing_organization = e.target.value;
-                                                    setNonAcademicAwards(newAwards);
+                                                    updateNonAcademicAwards(newAwards);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1049,7 +1299,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newAwards = [...nonAcademicAwards];
                                                     newAwards[index].award_date = e.target.value;
-                                                    setNonAcademicAwards(newAwards);
+                                                    updateNonAcademicAwards(newAwards);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1062,7 +1312,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newAwards = [...nonAcademicAwards];
                                                         newAwards[index].description = e.target.value;
-                                                        setNonAcademicAwards(newAwards);
+                                                        updateNonAcademicAwards(newAwards);
                                                     }}
                                                     className="mt-1"
                                                     rows={2}
@@ -1071,7 +1321,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost"
-                                                onClick={() => setNonAcademicAwards(nonAcademicAwards.filter((_, i) => i !== index))}
+                                                onClick={() => updateNonAcademicAwards(nonAcademicAwards.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -1089,7 +1339,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setAcademicActivities([...academicActivities, { activity_name: '', organization: '', role: '', start_date: '', end_date: '', description: '', scale: '', region: '' }])}
+                                    onClick={() => updateAcademicActivities([...academicActivities, { activity_name: '', organization: '', role: '', start_date: '', end_date: '', description: '', scale: '', region: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1105,7 +1355,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newActivities = [...academicActivities];
                                                     newActivities[index].activity_name = e.target.value;
-                                                    setAcademicActivities(newActivities);
+                                                    updateAcademicActivities(newActivities);
                                                 }}
                                                 placeholder="VD: CLB Toán học"
                                                 className="mt-1"
@@ -1118,7 +1368,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newActivities = [...academicActivities];
                                                     newActivities[index].organization = e.target.value;
-                                                    setAcademicActivities(newActivities);
+                                                    updateAcademicActivities(newActivities);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1130,7 +1380,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newActivities = [...academicActivities];
                                                     newActivities[index].role = value;
-                                                    setAcademicActivities(newActivities);
+                                                    updateAcademicActivities(newActivities);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -1153,7 +1403,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newActivities = [...academicActivities];
                                                         newActivities[index].start_date = e.target.value;
-                                                        setAcademicActivities(newActivities);
+                                                        updateAcademicActivities(newActivities);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1166,7 +1416,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newActivities = [...academicActivities];
                                                         newActivities[index].end_date = e.target.value;
-                                                        setAcademicActivities(newActivities);
+                                                        updateAcademicActivities(newActivities);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1180,7 +1430,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newActivities = [...academicActivities];
                                                         newActivities[index].description = e.target.value;
-                                                        setAcademicActivities(newActivities);
+                                                        updateAcademicActivities(newActivities);
                                                     }}
                                                     className="mt-1"
                                                     rows={2}
@@ -1189,7 +1439,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost"
-                                                onClick={() => setAcademicActivities(academicActivities.filter((_, i) => i !== index))}
+                                                onClick={() => updateAcademicActivities(academicActivities.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -1207,7 +1457,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setNonAcademicActivities([...nonAcademicActivities, { activity_name: '', organization: '', role: '', start_date: '', end_date: '', description: '', scale: '', region: '' }])}
+                                    onClick={() => updateNonAcademicActivities([...nonAcademicActivities, { activity_name: '', organization: '', role: '', start_date: '', end_date: '', description: '', scale: '', region: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1223,7 +1473,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newActivities = [...nonAcademicActivities];
                                                     newActivities[index].activity_name = e.target.value;
-                                                    setNonAcademicActivities(newActivities);
+                                                    updateNonAcademicActivities(newActivities);
                                                 }}
                                                 placeholder="VD: Thiện nguyện"
                                                 className="mt-1"
@@ -1236,7 +1486,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newActivities = [...nonAcademicActivities];
                                                     newActivities[index].organization = e.target.value;
-                                                    setNonAcademicActivities(newActivities);
+                                                    updateNonAcademicActivities(newActivities);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1248,7 +1498,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newActivities = [...nonAcademicActivities];
                                                     newActivities[index].role = value;
-                                                    setNonAcademicActivities(newActivities);
+                                                    updateNonAcademicActivities(newActivities);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -1271,7 +1521,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newActivities = [...nonAcademicActivities];
                                                         newActivities[index].start_date = e.target.value;
-                                                        setNonAcademicActivities(newActivities);
+                                                        updateNonAcademicActivities(newActivities);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1284,7 +1534,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newActivities = [...nonAcademicActivities];
                                                         newActivities[index].end_date = e.target.value;
-                                                        setNonAcademicActivities(newActivities);
+                                                        updateNonAcademicActivities(newActivities);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1298,7 +1548,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newActivities = [...nonAcademicActivities];
                                                         newActivities[index].description = e.target.value;
-                                                        setNonAcademicActivities(newActivities);
+                                                        updateNonAcademicActivities(newActivities);
                                                     }}
                                                     className="mt-1"
                                                     rows={2}
@@ -1307,7 +1557,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost"
-                                                onClick={() => setNonAcademicActivities(nonAcademicActivities.filter((_, i) => i !== index))}
+                                                onClick={() => updateNonAcademicActivities(nonAcademicActivities.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -1325,7 +1575,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setWorkExperiences([...workExperiences, { company_name: '', job_title: '', start_date: '', end_date: '', description: '' }])}
+                                    onClick={() => updateWorkExperiences([...workExperiences, { company_name: '', job_title: '', start_date: '', end_date: '', description: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1341,7 +1591,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newWorks = [...workExperiences];
                                                     newWorks[index].company_name = e.target.value;
-                                                    setWorkExperiences(newWorks);
+                                                    updateWorkExperiences(newWorks);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1353,7 +1603,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newWorks = [...workExperiences];
                                                     newWorks[index].job_title = e.target.value;
-                                                    setWorkExperiences(newWorks);
+                                                    updateWorkExperiences(newWorks);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1367,7 +1617,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newWorks = [...workExperiences];
                                                         newWorks[index].start_date = e.target.value;
-                                                        setWorkExperiences(newWorks);
+                                                        updateWorkExperiences(newWorks);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1380,7 +1630,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newWorks = [...workExperiences];
                                                         newWorks[index].end_date = e.target.value;
-                                                        setWorkExperiences(newWorks);
+                                                        updateWorkExperiences(newWorks);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1394,7 +1644,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newWorks = [...workExperiences];
                                                         newWorks[index].description = e.target.value;
-                                                        setWorkExperiences(newWorks);
+                                                        updateWorkExperiences(newWorks);
                                                     }}
                                                     className="mt-1"
                                                     rows={2}
@@ -1403,7 +1653,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost"
-                                                onClick={() => setWorkExperiences(workExperiences.filter((_, i) => i !== index))}
+                                                onClick={() => updateWorkExperiences(workExperiences.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -1421,7 +1671,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setResearchExperiences([...researchExperiences, { project_title: '', institution: '', role: '', start_date: '', end_date: '', description: '' }])}
+                                    onClick={() => updateResearchExperiences([...researchExperiences, { project_title: '', institution: '', role: '', start_date: '', end_date: '', description: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1437,7 +1687,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newResearches = [...researchExperiences];
                                                     newResearches[index].project_title = e.target.value;
-                                                    setResearchExperiences(newResearches);
+                                                    updateResearchExperiences(newResearches);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1449,7 +1699,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newResearches = [...researchExperiences];
                                                     newResearches[index].institution = e.target.value;
-                                                    setResearchExperiences(newResearches);
+                                                    updateResearchExperiences(newResearches);
                                                 }}
                                                 className="mt-1"
                                             />
@@ -1461,7 +1711,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newResearches = [...researchExperiences];
                                                     newResearches[index].role = e.target.value;
-                                                    setResearchExperiences(newResearches);
+                                                    updateResearchExperiences(newResearches);
                                                 }}
                                                 placeholder="VD: Trưởng nhóm"
                                                 className="mt-1"
@@ -1476,7 +1726,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newResearches = [...researchExperiences];
                                                         newResearches[index].start_date = e.target.value;
-                                                        setResearchExperiences(newResearches);
+                                                        updateResearchExperiences(newResearches);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1489,7 +1739,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newResearches = [...researchExperiences];
                                                         newResearches[index].end_date = e.target.value;
-                                                        setResearchExperiences(newResearches);
+                                                        updateResearchExperiences(newResearches);
                                                     }}
                                                     className="mt-1"
                                                 />
@@ -1503,7 +1753,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newResearches = [...researchExperiences];
                                                         newResearches[index].description = e.target.value;
-                                                        setResearchExperiences(newResearches);
+                                                        updateResearchExperiences(newResearches);
                                                     }}
                                                     className="mt-1"
                                                     rows={2}
@@ -1512,7 +1762,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost"
-                                                onClick={() => setResearchExperiences(researchExperiences.filter((_, i) => i !== index))}
+                                                onClick={() => updateResearchExperiences(researchExperiences.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -1530,7 +1780,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setPersonalProjects([...personalProjects, { project_name: '', topic: '', description: '', duration_months: '', impact: '' }])}
+                                    onClick={() => updatePersonalProjects([...personalProjects, { project_name: '', topic: '', description: '', duration_months: '', impact: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1546,7 +1796,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newProjects = [...personalProjects];
                                                     newProjects[index].project_name = e.target.value;
-                                                    setPersonalProjects(newProjects);
+                                                    updatePersonalProjects(newProjects);
                                                 }}
                                                 placeholder="VD: Ứng dụng quản lý thư viện"
                                                 className="mt-1"
@@ -1559,7 +1809,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newProjects = [...personalProjects];
                                                     newProjects[index].topic = value;
-                                                    setPersonalProjects(newProjects);
+                                                    updatePersonalProjects(newProjects);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -1582,7 +1832,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newProjects = [...personalProjects];
                                                     newProjects[index].duration_months = e.target.value;
-                                                    setPersonalProjects(newProjects);
+                                                    updatePersonalProjects(newProjects);
                                                 }}
                                                 placeholder="VD: 6"
                                                 className="mt-1"
@@ -1595,7 +1845,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newProjects = [...personalProjects];
                                                     newProjects[index].impact = e.target.value;
-                                                    setPersonalProjects(newProjects);
+                                                    updatePersonalProjects(newProjects);
                                                 }}
                                                 placeholder="VD: 500+ users"
                                                 className="mt-1"
@@ -1609,7 +1859,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newProjects = [...personalProjects];
                                                         newProjects[index].description = e.target.value;
-                                                        setPersonalProjects(newProjects);
+                                                        updatePersonalProjects(newProjects);
                                                     }}
                                                     placeholder="Mô tả chi tiết về dự án..."
                                                     className="mt-1"
@@ -1619,7 +1869,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             <Button 
                                                 size="sm" 
                                                 variant="ghost"
-                                                onClick={() => setPersonalProjects(personalProjects.filter((_, i) => i !== index))}
+                                                onClick={() => updatePersonalProjects(personalProjects.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -1637,7 +1887,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setSkills([...skills, { skill_name: '', proficiency: '', category: '' }])}
+                                    onClick={() => updateSkills([...skills, { skill_name: '', proficiency: '', category: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1652,7 +1902,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onChange={(e) => {
                                                 const newSkills = [...skills];
                                                 newSkills[index].skill_name = e.target.value;
-                                                setSkills(newSkills);
+                                                updateSkills(newSkills);
                                             }}
                                             placeholder="VD: Python Programming"
                                             className="mt-1"
@@ -1665,7 +1915,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onValueChange={(value) => {
                                                 const newSkills = [...skills];
                                                 newSkills[index].proficiency = value;
-                                                setSkills(newSkills);
+                                                updateSkills(newSkills);
                                             }}
                                         >
                                             <SelectTrigger className="mt-1">
@@ -1686,7 +1936,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                             onValueChange={(value) => {
                                                 const newSkills = [...skills];
                                                 newSkills[index].category = value;
-                                                setSkills(newSkills);
+                                                updateSkills(newSkills);
                                             }}
                                         >
                                             <SelectTrigger className="mt-1">
@@ -1701,7 +1951,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Button 
                                         size="sm" 
                                         variant="ghost"
-                                        onClick={() => setSkills(skills.filter((_, i) => i !== index))}
+                                        onClick={() => updateSkills(skills.filter((_, i) => i !== index))}
                                     >
                                         <Trash2 className="w-4 h-4 text-red-500" />
                                     </Button>
@@ -1717,7 +1967,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Label className="text-sm">Quốc gia dự định du học</Label>
                                     <Input 
                                         value={studentGoals.target_country}
-                                        onChange={(e) => setStudentGoals({...studentGoals, target_country: e.target.value})}
+                                        onChange={(e) => updateStudentGoals({...studentGoals, target_country: e.target.value})}
                                         placeholder="VD: Hoa Kỳ, Anh, Úc..."
                                         className="mt-1"
                                     />
@@ -1726,7 +1976,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Label className="text-sm">Ngân sách gia đình trong vòng 1 năm</Label>
                                     <Input 
                                         value={studentGoals.yearly_budget}
-                                        onChange={(e) => setStudentGoals({...studentGoals, yearly_budget: e.target.value})}
+                                        onChange={(e) => updateStudentGoals({...studentGoals, yearly_budget: e.target.value})}
                                         placeholder="VD: 30,000 USD"
                                         className="mt-1"
                                     />
@@ -1735,7 +1985,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                     <Label className="text-sm">Mong muốn cá nhân</Label>
                                     <Textarea 
                                         value={studentGoals.personal_desire}
-                                        onChange={(e) => setStudentGoals({...studentGoals, personal_desire: e.target.value})}
+                                        onChange={(e) => updateStudentGoals({...studentGoals, personal_desire: e.target.value})}
                                         placeholder="Mô tả mong muốn và mục tiêu cá nhân..."
                                         className="mt-1"
                                         rows={3}
@@ -1753,7 +2003,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => setParentsInfo([...parentsInfo, { full_name: '', relationship: '', phone_number: '', email: '' }])}
+                                    onClick={() => updateParentsInfo([...parentsInfo, { full_name: '', relationship: '', phone_number: '', email: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
@@ -1769,7 +2019,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onChange={(e) => {
                                                     const newParents = [...parentsInfo];
                                                     newParents[index].full_name = e.target.value;
-                                                    setParentsInfo(newParents);
+                                                    updateParentsInfo(newParents);
                                                 }}
                                                 placeholder="Nhập họ tên đầy đủ"
                                                 className="mt-1"
@@ -1782,7 +2032,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onValueChange={(value) => {
                                                     const newParents = [...parentsInfo];
                                                     newParents[index].relationship = value;
-                                                    setParentsInfo(newParents);
+                                                    updateParentsInfo(newParents);
                                                 }}
                                             >
                                                 <SelectTrigger className="mt-1">
@@ -1798,15 +2048,25 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         <div>
                                             <Label className="text-sm font-medium">Số điện thoại của phụ huynh/người giám hộ</Label>
                                             <Input 
+                                                type="tel"
                                                 value={parent.phone_number}
                                                 onChange={(e) => {
-                                                    const newParents = [...parentsInfo];
-                                                    newParents[index].phone_number = e.target.value;
-                                                    setParentsInfo(newParents);
+                                                    const value = e.target.value.replace(/\D/g, ''); // Chỉ cho phép số
+                                                    if (value.length <= 10) {
+                                                        const newParents = [...parentsInfo];
+                                                        newParents[index].phone_number = value;
+                                                        updateParentsInfo(newParents);
+                                                    }
                                                 }}
                                                 placeholder="0XXXXXXXXX"
                                                 className="mt-1"
+                                                maxLength={10}
                                             />
+                                            {parent.phone_number && parent.phone_number.length < 10 && (
+                                                <p className="text-xs text-orange-500 mt-1">
+                                                    Số điện thoại cần đủ 10 số ({parent.phone_number.length}/10)
+                                                </p>
+                                            )}
                                         </div>
                                         <div>
                                             <Label className="text-sm font-medium">Email của phụ huynh/người giám hộ</Label>
@@ -1817,14 +2077,14 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     onChange={(e) => {
                                                         const newParents = [...parentsInfo];
                                                         newParents[index].email = e.target.value;
-                                                        setParentsInfo(newParents);
+                                                        updateParentsInfo(newParents);
                                                     }}
                                                     placeholder="email@example.com"
                                                 />
                                                 <Button 
                                                     size="sm" 
                                                     variant="ghost"
-                                                    onClick={() => setParentsInfo(parentsInfo.filter((_, i) => i !== index))}
+                                                    onClick={() => updateParentsInfo(parentsInfo.filter((_, i) => i !== index))}
                                                 >
                                                     <Trash2 className="w-4 h-4 text-red-500" />
                                                 </Button>

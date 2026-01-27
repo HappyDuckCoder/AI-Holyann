@@ -10,456 +10,18 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model academic_awards {
-  id                   String              @id @db.Uuid
-  background_id        String              @db.Uuid
-  award_name           String              @db.VarChar(255)
-  issuing_organization String?             @db.VarChar(255)
-  award_level          String?             @db.VarChar(100)
-  award_date           DateTime?           @db.Date
-  description          String?
-  certificate_url      String?
-  created_at           DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at           DateTime?           @default(now()) @db.Timestamp(6)
-  category             String?             @db.VarChar(50)
-  year                 Int?
-  rank                 Int?
-  region               String?             @db.VarChar(50)
-  created_at           DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at           DateTime?           @default(now()) @db.Timestamp(6)
-  student_backgrounds  student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+// ==================== 1. ENUMS (ĐỊNH NGHĨA DỮ LIỆU) ====================
 
-  @@index([background_id])
+enum UserRole {
+  STUDENT
+  MENTOR
+  ADMIN
 }
 
-model academic_extracurriculars {
-  id                  String              @id @db.Uuid
-  background_id       String              @db.Uuid
-  activity_name       String              @db.VarChar(255)
-  organization        String?             @db.VarChar(255)
-  role                String?             @db.VarChar(100)
-  start_date          DateTime?           @db.Date
-  end_date            DateTime?           @db.Date
-  hours_per_week      Int?
-  weeks_per_year      Int?
-  description         String?
-  achievements        String?
-  related_to_major    Boolean?            @default(true)
-  scale               Int?
-  region              String?             @db.VarChar(50)
-  created_at          DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?           @default(now()) @db.Timestamp(6)
-  region              String?             @db.VarChar(50)
-  scale               Int?
-  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
-
-  @@index([background_id])
-}
-
-model career_matches {
-  id               String   @id @db.Uuid
-  student_id       String   @db.Uuid
-  job_title        String   @db.VarChar(255)
-  job_field        String?  @map("job-field") @db.VarChar(255)
-  match_percentage Float
-  reasoning        String?
-  created_at       DateTime @default(now()) @db.Timestamp(6)
-  job_field        String?  @map("job-field") @db.VarChar(255)
-  students         students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-
-  @@index([student_id])
-}
-
-model grit_tests {
-  id                 String     @id @db.Uuid
-  student_id         String     @unique @db.Uuid
-  status             TestStatus @default(IN_PROGRESS)
-  current_step       Int        @default(0)
-  answers            Json       @default("{}")
-  total_score        Float?
-  level              String?    @db.VarChar(50)
-  description        String?
-  completed_at       DateTime?  @db.Timestamp(6)
-  updated_at         DateTime?  @default(now()) @db.Timestamp(6)
-  passion_score      Float?
-  perseverance_score Float?
-  students           students   @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-}
-
-model mbti_tests {
-  id           String     @id @db.Uuid
-  student_id   String     @unique @db.Uuid
-  status       TestStatus @default(IN_PROGRESS)
-  current_step Int        @default(0)
-  answers      Json       @default("[]")
-  result_type  String?    @db.VarChar(10)
-  score_e      Float?
-  score_i      Float?
-  score_s      Float?
-  score_n      Float?
-  score_t      Float?
-  score_f      Float?
-  score_j      Float?
-  score_p      Float?
-  completed_at DateTime?  @db.Timestamp(6)
-  updated_at   DateTime?  @default(now()) @db.Timestamp(6)
-  students     students   @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-}
-
-model non_academic_awards {
-  id                   String              @id @db.Uuid
-  background_id        String              @db.Uuid
-  award_name           String              @db.VarChar(255)
-  category             String?             @db.VarChar(100)
-  issuing_organization String?             @db.VarChar(255)
-  award_level          String?             @db.VarChar(100)
-  award_date           DateTime?           @db.Date
-  description          String?
-  certificate_url      String?
-  year                 Int?
-  rank                 Int?
-  region               String?             @db.VarChar(50)
-  created_at           DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at           DateTime?           @default(now()) @db.Timestamp(6)
-  student_backgrounds  student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
-
-  @@index([background_id])
-}
-
-model non_academic_extracurriculars {
-  id                  String              @id @db.Uuid
-  background_id       String              @db.Uuid
-  activity_name       String              @db.VarChar(255)
-  category            String?             @db.VarChar(100)
-  organization        String?             @db.VarChar(255)
-  role                String?             @db.VarChar(100)
-  start_date          DateTime?           @db.Date
-  end_date            DateTime?           @db.Date
-  hours_per_week      Int?
-  weeks_per_year      Int?
-  description         String?
-  achievements        String?
-  impact              String?
-  scale               Int?
-  region              String?             @db.VarChar(50)
-  created_at          DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?           @default(now()) @db.Timestamp(6)
-  region              String?             @db.VarChar(50)
-  scale               Int?
-  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
-
-  @@index([background_id])
-}
-
-model profile_analyses {
-  id                    String    @id @db.Uuid
-  student_id            String    @db.Uuid
-  analysis_date         DateTime  @default(now()) @db.Timestamp(6)
-  academic_data         Json      @default("{}")
-  extracurricular_data  Json      @default("{}")
-  skill_data            Json      @default("{}")
-  overall_score         Float?
-  academic_score        Float?
-  extracurricular_score Float?
-  summary               String?
-  swot_data             Json?     @default("{}")
-  created_at            DateTime? @default(now()) @db.Timestamp(6)
-  students              students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-
-  @@index([student_id])
-}
-
-model research_experiences {
-  id                  String              @id @db.Uuid
-  background_id       String              @db.Uuid
-  project_title       String              @db.VarChar(255)
-  institution         String?             @db.VarChar(255)
-  supervisor_name     String?             @db.VarChar(150)
-  role                String?             @db.VarChar(100)
-  start_date          DateTime?           @db.Date
-  end_date            DateTime?           @db.Date
-  is_current          Boolean?            @default(false)
-  research_field      String?             @db.VarChar(255)
-  description         String?
-  methodologies       String?
-  findings            String?
-  publication_url     String?
-  created_at          DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?           @default(now()) @db.Timestamp(6)
-  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
-
-  @@index([background_id])
-}
-
-model riasec_tests {
-  id                  String     @id @db.Uuid
-  student_id          String     @unique @db.Uuid
-  status              TestStatus @default(IN_PROGRESS)
-  current_step        Int        @default(0)
-  answers             Json       @default("{}")
-  result_code         String?    @db.VarChar(10)
-  score_realistic     Float?
-  score_investigative Float?
-  score_artistic      Float?
-  score_social        Float?
-  score_enterprising  Float?
-  score_conventional  Float?
-  top_3_types         Json?      @default("[]")
-  completed_at        DateTime?  @db.Timestamp(6)
-  updated_at          DateTime?  @default(now()) @db.Timestamp(6)
-  students            students   @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-}
-
-model student_academic_profiles {
-  student_id             String    @id @db.Uuid
-  gpa_transcript_details Json?     @default("{}")
-  english_certificates   Json?     @default("{}")
-  standardized_tests     Json?     @default("{}")
-  updated_at             DateTime? @default(now()) @db.Timestamp(6)
-  students               students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-}
-
-model student_applications {
-  id             String            @id @db.Uuid
-  user_id        String?           @db.Uuid
-  university_id  Int?
-  category       SchoolCategory    @default(MATCH)
-  status         ApplicationStatus @default(RESEARCHING)
-  personal_notes String?
-  created_at     DateTime?         @default(now()) @db.Timestamp(6)
-  updated_at     DateTime?         @default(now()) @db.Timestamp(6)
-  universities   universities?     @relation(fields: [university_id], references: [id], onDelete: Cascade)
-  users          users?            @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, university_id])
-}
-
-model student_backgrounds {
-  student_id                    String                          @id @db.Uuid
-  created_at                    DateTime?                       @default(now()) @db.Timestamp(6)
-  updated_at                    DateTime?                       @default(now()) @db.Timestamp(6)
-  academic_awards               academic_awards[]
-  academic_extracurriculars     academic_extracurriculars[]
-  non_academic_awards           non_academic_awards[]
-  non_academic_extracurriculars non_academic_extracurriculars[]
-  personal_projects             personal_projects[]
-  research_experiences          research_experiences[]
-  students                      students                        @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  subject_scores                subject_scores[]
-  work_experiences              work_experiences[]
-}
-
-model student_parents {
-  id           String    @id @db.Uuid
-  student_id   String?   @db.Uuid
-  full_name    String    @db.VarChar(100)
-  relationship String?   @db.VarChar(50)
-  phone_number String?   @db.VarChar(20)
-  email        String?   @db.VarChar(255)
-  job_title    String?   @db.VarChar(150)
-  created_at   DateTime? @default(now()) @db.Timestamp(6)
-  students     students? @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-}
-
-model students {
-  user_id                   String                     @id @db.Uuid
-  current_school            String?                    @db.VarChar(255)
-  current_grade             String?                    @db.VarChar(50)
-  current_address           String?
-  date_of_birth             DateTime?                  @db.Date
-  talents                   String?
-  hobbies                   String?
-  target_country            String?                    @db.VarChar(100)
-  intended_major            String?                    @db.VarChar(255)
-  yearly_budget             Decimal?                   @db.Decimal(15, 2)
-  personal_desire           String?
-  created_at                DateTime?                  @default(now()) @db.Timestamp(6)
-  updated_at                DateTime?                  @default(now()) @db.Timestamp(6)
-  assessments_completed     Boolean?                   @default(false)
-  date_of_birth             DateTime?                  @db.Date
-  career_matches            career_matches[]
-  grit_tests                grit_tests?
-  mbti_tests                mbti_tests?
-  profile_analyses          profile_analyses[]
-  riasec_tests              riasec_tests?
-  student_academic_profiles student_academic_profiles?
-  student_backgrounds       student_backgrounds?
-  student_match_school      student_match_school[]
-  student_parents           student_parents[]
-  student_skills            student_skills[]
-  users                     users                      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-}
-
-model universities {
-  id                   Int                    @id @default(autoincrement())
-  name                 String                 @db.VarChar(255)
-  country              String?                @db.VarChar(100)
-  state                String?                @db.VarChar(100)
-  current_ranking      Int?
-  website_url          String?
-  logo_url             String?
-  ai_matching_data     Json?                  @default("{}")
-  essay_requirements   String?
-  scholarship_info     Json?                  @default("{}")
-  student_applications student_applications[]
-  student_match_school student_match_school[]
-}
-
-model faculty {
-  id            String     @id @db.Uuid
-  university_id String     @db.Uuid
-  name          String     @db.VarChar(255)
-  description   String?
-  type          String?    @db.VarChar(100)
-  url_web       String?    @db.VarChar(500)
-  created_at    DateTime?  @default(now()) @db.Timestamp(6)
-  updated_at    DateTime?  @default(now()) @db.Timestamp(6)
-  university    university @relation(fields: [university_id], references: [id], onDelete: Cascade)
-
-  @@index([university_id])
-}
-
-model scholarship {
-  id              String     @id @db.Uuid
-  universities_id String     @db.Uuid
-  name            String     @db.VarChar(255)
-  description     String?
-  deadline        DateTime?  @db.Timestamp(6)
-  url_web         String?    @db.VarChar(500)
-  created_at      DateTime?  @default(now()) @db.Timestamp(6)
-  updated_at      DateTime?  @default(now()) @db.Timestamp(6)
-  university      university @relation(fields: [universities_id], references: [id], onDelete: Cascade)
-
-  @@index([universities_id])
-}
-
-model student_match_school {
-  id            String     @id @db.Uuid
-  student_id    String     @db.Uuid
-  university_id String     @db.Uuid
-  ai_matching   String     @db.VarChar(50)
-  match_score   Decimal?   @db.Decimal(5, 2)
-  match_reason  String?
-  created_at    DateTime?  @default(now()) @db.Timestamp(6)
-  updated_at    DateTime?  @default(now()) @db.Timestamp(6)
-  students      students   @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  university    university @relation(fields: [university_id], references: [id], onDelete: Cascade)
-
-  @@unique([student_id, university_id], map: "student_match_school_student_university_key")
-  @@index([ai_matching])
-  @@index([student_id])
-  @@index([university_id])
-}
-
-// Legacy checklist tables - keep to preserve existing data
-model checklist_stages {
-  id                    Int                     @id @default(autoincrement())
-  name                  String                  @db.VarChar(100)
-  description           String?
-  order_index           Int                     @unique
-  is_default            Boolean                 @default(true)
-  created_at            DateTime                @default(now()) @db.Timestamp(6)
-  updated_at            DateTime                @default(now()) @db.Timestamp(6)
-  checklist_tasks       checklist_tasks[]
-  user_checklist_stages user_checklist_stages[]
-}
-
-model checklist_tasks {
-  id                    String                 @id @db.Uuid
-  stage_id              Int
-  title                 String                 @db.VarChar(500)
-  description           String?
-  category              String?                @db.VarChar(100)
-  default_deadline_days Int?
-  requires_file         Boolean                @default(false)
-  link_to               String?                @db.VarChar(200)
-  feedback              String?
-  order_index           Int
-  is_active             Boolean                @default(true)
-  created_at            DateTime               @default(now()) @db.Timestamp(6)
-  updated_at            DateTime               @default(now()) @db.Timestamp(6)
-  checklist_stages      checklist_stages       @relation(fields: [stage_id], references: [id], onDelete: Cascade)
-  user_checklist_tasks  user_checklist_tasks[]
-
-  @@index([stage_id])
-}
-
-model users {
-  id                   String                 @id @db.Uuid
-  full_name            String                 @db.VarChar(100)
-  email                String                 @unique @db.VarChar(255)
-  password_hash        String?                @db.VarChar(255)
-  phone_number         String?                @db.VarChar(20)
-  role                 UserRole               @default(STUDENT)
-  auth_provider        String?                @default("LOCAL") @db.VarChar(50)
-  auth_provider_id     String?                @db.VarChar(255)
-  avatar_url           String?
-  is_active            Boolean?               @default(true)
-  created_at           DateTime?              @default(now()) @db.Timestamp(6)
-  student_applications student_applications[]
-  students             students?
-}
-
-model work_experiences {
-  id                  String              @id @db.Uuid
-  background_id       String              @db.Uuid
-  company_name        String              @db.VarChar(255)
-  job_title           String              @db.VarChar(150)
-  employment_type     String?             @db.VarChar(50)
-  location            String?             @db.VarChar(255)
-  start_date          DateTime?           @db.Date
-  end_date            DateTime?           @db.Date
-  is_current          Boolean?            @default(false)
-  responsibilities    String?
-  achievements        String?
-  skills_gained       String?
-  created_at          DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?           @default(now()) @db.Timestamp(6)
-  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
-
-  @@index([background_id])
-}
-
-model subject_scores {
-  id                  String              @id @db.Uuid
-  background_id       String              @db.Uuid
-  subject             String              @db.VarChar(100)
-  score               Float
-  year                Int?
-  semester            Int?
-  created_at          DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?           @default(now()) @db.Timestamp(6)
-  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
-
-  @@index([background_id])
-}
-
-model personal_projects {
-  id                  String              @id @db.Uuid
-  background_id       String              @db.Uuid
-  project_name        String              @db.VarChar(255)
-  topic               String?             @db.VarChar(100)
-  description         String?
-  duration_months     Int?
-  impact              String?
-  created_at          DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at          DateTime?           @default(now()) @db.Timestamp(6)
-  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
-
-  @@index([background_id])
-}
-
-model student_skills {
-  id          String    @id @db.Uuid
-  student_id  String    @db.Uuid
-  skill_name  String    @db.VarChar(150)
-  proficiency String?   @db.VarChar(50)
-  category    String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-  students    students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-
-  @@index([student_id])
+enum SchoolCategory {
+  REACH
+  MATCH
+  SAFETY
 }
 
 enum ApplicationStatus {
@@ -471,22 +33,10 @@ enum ApplicationStatus {
   WAITLISTED
 }
 
-enum SchoolCategory {
-  REACH
-  MATCH
-  SAFETY
-}
-
 enum TestStatus {
   NOT_STARTED
   IN_PROGRESS
   COMPLETED
-}
-
-enum UserRole {
-  STUDENT
-  MENTOR
-  ADMIN
 }
 
 enum RoomType {
@@ -507,24 +57,621 @@ enum RoomStatus {
 }
 
 enum MentorType {
-  AS
-  ACS
-  ARD
+  AS // Admissions Strategist
+  ACS // Academic Content Specialist
+  ARD // Activity & Research Development
 }
 
-// ===== LIVE CHAT SYSTEM MODELS =====
+enum AssignmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// ==================== 2. CORE USER & AUTH ====================
+
+model users {
+  id               String    @id @default(uuid()) @db.Uuid
+  full_name        String    @db.VarChar(100)
+  email            String    @unique @db.VarChar(255)
+  password_hash    String?   @db.VarChar(255)
+  phone_number     String?   @db.VarChar(20)
+  role             UserRole  @default(STUDENT)
+  auth_provider    String?   @default("LOCAL") @db.VarChar(50)
+  auth_provider_id String?   @db.VarChar(255)
+  avatar_url       String?
+  is_active        Boolean?  @default(true)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  // --- RELATIONS ---
+
+  // 1. Học sinh (1-1)
+  students students?
+
+  // 2. Mentor (1-1)
+  mentor_profile mentors?
+
+  // 3. Ứng tuyển & Chat
+  student_applications student_applications[]
+  chat_rooms           chat_rooms[]           @relation("StudentChatRooms") // Phòng chat của học sinh
+  chat_participants    chat_participants[]
+  chat_messages        chat_messages[]
+
+  // 4. Assignments (Gán Mentor)
+  // Danh sách các task/job mà user này (với tư cách là Mentor) được gán
+  assigned_mentorships mentor_assignments[] @relation("MentorUser")
+}
+
+// ==================== 3. MENTOR SYSTEM ====================
+
+model mentors {
+  user_id String @id @db.Uuid
+  user    users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  // --- THÔNG TIN CHUYÊN MÔN ---
+  specialization MentorType // AS, ACS, hoặc ARD - MỖI MENTOR CHỈ CÓ 1 VAI TRÒ
+  bio            String?    @db.Text
+  linkedin_url   String?    @db.VarChar(255)
+  website_url    String?    @db.VarChar(255)
+
+  // --- HỌC VẤN & CÔNG VIỆC ---
+  university_name     String? @db.VarChar(255)
+  degree              String? @db.VarChar(100)
+  major               String? @db.VarChar(100)
+  graduation_year     Int?
+  current_company     String? @db.VarChar(150)
+  current_job_title   String? @db.VarChar(150)
+  years_of_experience Int?    @default(0)
+
+  // --- THÀNH TÍCH & KỸ NĂNG ---
+  expertises               Json? @default("[]") // ["Review Essay", "Scholarship Hunter"]
+  outstanding_achievements Json? @default("[]") // [{title: "Chevening", year: 2020}]
+
+  // --- QUẢN TRỊ ---
+  is_accepting_students Boolean? @default(true)
+  max_students          Int?     @default(5)
+  rating                Float?   @default(5.0)
+
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  // Relation ngược về bảng gán
+  assignments mentor_assignments[]
+}
+
+model mentor_assignments {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Học sinh được gán
+  student_id String   @db.Uuid
+  student    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  // Mentor được gán (FIX LỖI TẠI ĐÂY)
+  // Chúng ta dùng map: "..." để đặt tên riêng cho Constraint trong Database
+  mentor_id String @db.Uuid
+
+  // Relation 1: Link tới bảng mentors
+  mentor mentors @relation(fields: [mentor_id], references: [user_id], onDelete: Cascade, map: "mentor_assignments_mentor_profile_fkey")
+
+  // Relation 2: Link tới bảng users (để lấy tên/avatar nhanh)
+  mentor_user users @relation("MentorUser", fields: [mentor_id], references: [id], onDelete: Cascade, map: "mentor_assignments_mentor_user_fkey")
+
+  // Vai trò gán (AS/ACS/ARD)
+  type   MentorType
+  status AssignmentStatus @default(ACTIVE)
+
+  assigned_at DateTime @default(now()) @db.Timestamp(6)
+
+  // Đảm bảo 1 học sinh không có 2 mentor cùng loại
+  @@unique([student_id, type])
+  @@index([student_id])
+  @@index([mentor_id])
+}
+
+// ==================== 4. STUDENT PROFILE SYSTEM ====================
+
+model students {
+  user_id String @id @db.Uuid
+  users   users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  // --- THÔNG TIN CÁ NHÂN ---
+  current_school  String?   @db.VarChar(255)
+  current_grade   String?   @db.VarChar(50)
+  current_address String?
+  date_of_birth   DateTime? @db.Date
+  talents         String?
+  hobbies         String?
+  target_country  String?   @db.VarChar(100)
+  intended_major  String?   @db.VarChar(255)
+  yearly_budget   Decimal?  @db.Decimal(15, 2)
+  personal_desire String?
+
+  // Cờ trạng thái
+  assessments_completed Boolean? @default(false)
+
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  // --- RELATIONS ---
+  // 1. Hồ sơ chi tiết
+  academic_profile student_academic_profiles?
+  background       student_backgrounds?
+  parents          student_parents[]
+  student_skills   student_skills[]
+
+  // 2. Các bài Test & AI Analysis
+  profile_analyses profile_analyses[]
+  mbti_tests       mbti_tests?
+  riasec_tests     riasec_tests?
+  grit_tests       grit_tests?
+  career_matches   career_matches[]
+
+  // 3. Chọn trường & Mentor
+  student_match_school student_match_school[]
+  mentors              mentor_assignments[] // Danh sách mentor của học sinh này
+}
+
+// ==================== 5. BACKGROUND & ACADEMIC DETAILS ====================
+
+model student_academic_profiles {
+  student_id             String    @id @db.Uuid
+  student                students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  gpa_transcript_details Json?     @default("{}")
+  english_certificates   Json?     @default("{}")
+  standardized_tests     Json?     @default("{}")
+  updated_at             DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model student_backgrounds {
+  student_id String   @id @db.Uuid
+  student    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  // Relations đến các bảng chi tiết hoạt động
+  academic_awards               academic_awards[]
+  academic_extracurriculars     academic_extracurriculars[]
+  non_academic_awards           non_academic_awards[]
+  non_academic_extracurriculars non_academic_extracurriculars[]
+  personal_projects             personal_projects[]
+  research_experiences          research_experiences[]
+  work_experiences              work_experiences[]
+  subject_scores                subject_scores[]
+
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model academic_awards {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  award_name           String    @db.VarChar(255)
+  issuing_organization String?   @db.VarChar(255)
+  award_level          String?   @db.VarChar(100)
+  award_date           DateTime? @db.Date
+  description          String?
+  certificate_url      String?
+  category             String?   @db.VarChar(50)
+  year                 Int?
+  rank                 Int?
+  region               String?   @db.VarChar(50)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  updated_at           DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model academic_extracurriculars {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  activity_name    String    @db.VarChar(255)
+  organization     String?   @db.VarChar(255)
+  role             String?   @db.VarChar(100)
+  start_date       DateTime? @db.Date
+  end_date         DateTime? @db.Date
+  hours_per_week   Int?
+  weeks_per_year   Int?
+  description      String?
+  achievements     String?
+  related_to_major Boolean?  @default(true)
+  scale            Int?
+  region           String?   @db.VarChar(50)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model non_academic_awards {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  award_name           String    @db.VarChar(255)
+  category             String?   @db.VarChar(100)
+  issuing_organization String?   @db.VarChar(255)
+  award_level          String?   @db.VarChar(100)
+  award_date           DateTime? @db.Date
+  description          String?
+  certificate_url      String?
+  year                 Int?
+  rank                 Int?
+  region               String?   @db.VarChar(50)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  updated_at           DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model non_academic_extracurriculars {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  activity_name  String    @db.VarChar(255)
+  category       String?   @db.VarChar(100)
+  organization   String?   @db.VarChar(255)
+  role           String?   @db.VarChar(100)
+  start_date     DateTime? @db.Date
+  end_date       DateTime? @db.Date
+  hours_per_week Int?
+  weeks_per_year Int?
+  description    String?
+  achievements   String?
+  impact         String?
+  scale          Int?
+  region         String?   @db.VarChar(50)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at     DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model research_experiences {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  project_title   String    @db.VarChar(255)
+  institution     String?   @db.VarChar(255)
+  supervisor_name String?   @db.VarChar(150)
+  role            String?   @db.VarChar(100)
+  start_date      DateTime? @db.Date
+  end_date        DateTime? @db.Date
+  is_current      Boolean?  @default(false)
+  research_field  String?   @db.VarChar(255)
+  description     String?
+  methodologies   String?
+  findings        String?
+  publication_url String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model work_experiences {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  company_name     String    @db.VarChar(255)
+  job_title        String    @db.VarChar(150)
+  employment_type  String?   @db.VarChar(50)
+  location         String?   @db.VarChar(255)
+  start_date       DateTime? @db.Date
+  end_date         DateTime? @db.Date
+  is_current       Boolean?  @default(false)
+  responsibilities String?
+  achievements     String?
+  skills_gained    String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model personal_projects {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  project_name    String    @db.VarChar(255)
+  topic           String?   @db.VarChar(100)
+  description     String?
+  duration_months Int?
+  impact          String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model subject_scores {
+  id                  String              @id @db.Uuid
+  background_id       String              @db.Uuid
+  student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
+
+  subject    String    @db.VarChar(100)
+  score      Float
+  year       Int?
+  semester   Int?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([background_id])
+}
+
+model student_skills {
+  id         String   @id @db.Uuid
+  student_id String   @db.Uuid
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  skill_name  String    @db.VarChar(150)
+  proficiency String?   @db.VarChar(50)
+  category    String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([student_id])
+}
+
+model student_parents {
+  id         String    @id @db.Uuid
+  student_id String?   @db.Uuid
+  students   students? @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  full_name    String    @db.VarChar(100)
+  relationship String?   @db.VarChar(50)
+  phone_number String?   @db.VarChar(20)
+  email        String?   @db.VarChar(255)
+  job_title    String?   @db.VarChar(150)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+// ==================== 6. TESTS & CAREER MATCHES ====================
+
+model mbti_tests {
+  id         String   @id @default(uuid()) @db.Uuid
+  student_id String   @unique @db.Uuid
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  status       TestStatus @default(IN_PROGRESS)
+  current_step Int        @default(0)
+  answers      Json       @default("[]")
+  result_type  String?    @db.VarChar(10)
+
+  score_e Float?
+  score_i Float?
+  score_s Float?
+  score_n Float?
+  score_t Float?
+  score_f Float?
+  score_j Float?
+  score_p Float?
+
+  completed_at DateTime? @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model riasec_tests {
+  id         String   @id @default(uuid()) @db.Uuid
+  student_id String   @unique @db.Uuid
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  status       TestStatus @default(IN_PROGRESS)
+  current_step Int        @default(0)
+  answers      Json       @default("{}")
+  result_code  String?    @db.VarChar(10)
+
+  score_realistic     Float?
+  score_investigative Float?
+  score_artistic      Float?
+  score_social        Float?
+  score_enterprising  Float?
+  score_conventional  Float?
+
+  top_3_types  Json?     @default("[]")
+  completed_at DateTime? @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model grit_tests {
+  id         String   @id @default(uuid()) @db.Uuid
+  student_id String   @unique @db.Uuid
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  status       TestStatus @default(IN_PROGRESS)
+  current_step Int        @default(0)
+  answers      Json       @default("{}")
+  total_score  Float?
+
+  passion_score      Float?
+  perseverance_score Float?
+
+  level       String? @db.VarChar(50)
+  description String? @db.Text
+
+  completed_at DateTime? @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model career_matches {
+  id         String   @id @default(uuid()) @db.Uuid
+  student_id String   @db.Uuid
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  job_title        String   @db.VarChar(255)
+  job_field        String?  @map("job-field") @db.VarChar(255)
+  match_percentage Float
+  reasoning        String?
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([student_id])
+}
+
+model profile_analyses {
+  id         String   @id @default(uuid()) @db.Uuid
+  student_id String   @db.Uuid
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  analysis_date        DateTime @default(now()) @db.Timestamp(6)
+  academic_data        Json     @default("{}")
+  extracurricular_data Json     @default("{}")
+  skill_data           Json     @default("{}")
+
+  overall_score         Float?
+  academic_score        Float?
+  extracurricular_score Float?
+
+  summary    String?
+  swot_data  Json?     @default("{}")
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([student_id])
+}
+
+// ==================== 7. UNIVERSITIES & APPLICATIONS ====================
+
+model universities {
+  id                 Int     @id @default(autoincrement())
+  name               String  @db.VarChar(255)
+  country            String? @db.VarChar(100)
+  state              String? @db.VarChar(100)
+  current_ranking    Int?
+  website_url        String?
+  logo_url           String?
+  ai_matching_data   Json?   @default("{}")
+  essay_requirements String?
+  scholarship_info   Json?   @default("{}")
+
+  faculty              faculty[]
+  scholarship          scholarship[]
+  student_applications student_applications[]
+  student_match_school student_match_school[]
+}
+
+model faculty {
+  id            String       @id @default(uuid()) @db.Uuid
+  university_id Int
+  universities  universities @relation(fields: [university_id], references: [id], onDelete: Cascade)
+
+  name        String    @db.VarChar(255)
+  description String?
+  type        String?   @db.VarChar(100)
+  url_web     String?   @db.VarChar(500)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([university_id])
+}
+
+model scholarship {
+  id              String       @id @default(uuid()) @db.Uuid
+  universities_id Int
+  universities    universities @relation(fields: [universities_id], references: [id], onDelete: Cascade)
+
+  name        String    @db.VarChar(255)
+  description String?
+  deadline    DateTime? @db.Timestamp(6)
+  url_web     String?   @db.VarChar(500)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([universities_id])
+}
+
+model student_applications {
+  id      String  @id @default(uuid()) @db.Uuid
+  user_id String? @db.Uuid
+  users   users?  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  university_id Int?
+  universities  universities? @relation(fields: [university_id], references: [id], onDelete: Cascade)
+
+  category       SchoolCategory    @default(MATCH)
+  status         ApplicationStatus @default(RESEARCHING)
+  personal_notes String?
+  created_at     DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at     DateTime?         @default(now()) @db.Timestamp(6)
+
+  @@unique([user_id, university_id])
+}
+
+model student_match_school {
+  id         String   @id @default(uuid()) @db.Uuid
+  student_id String   @db.Uuid
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  university_id Int
+  universities  universities @relation(fields: [university_id], references: [id], onDelete: Cascade)
+
+  ai_matching  String    @db.VarChar(50)
+  match_score  Decimal?  @db.Decimal(5, 2)
+  match_reason String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([student_id, university_id], map: "student_match_school_student_university_key")
+  @@index([ai_matching])
+  @@index([student_id])
+  @@index([university_id])
+}
+
+// ==================== 8. CHECKLISTS (Legacy) ====================
+
+model checklist_stages {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(100)
+  description     String?
+  order_index     Int               @unique
+  is_default      Boolean           @default(true)
+  created_at      DateTime          @default(now()) @db.Timestamp(6)
+  updated_at      DateTime          @default(now()) @db.Timestamp(6)
+  checklist_tasks checklist_tasks[]
+}
+
+model checklist_tasks {
+  id               String           @id @default(uuid()) @db.Uuid
+  stage_id         Int
+  checklist_stages checklist_stages @relation(fields: [stage_id], references: [id], onDelete: Cascade)
+
+  title                 String   @db.VarChar(500)
+  description           String?
+  category              String?  @db.VarChar(100)
+  default_deadline_days Int?
+  requires_file         Boolean  @default(false)
+  link_to               String?  @db.VarChar(200)
+  feedback              String?
+  order_index           Int
+  is_active             Boolean  @default(true)
+  created_at            DateTime @default(now()) @db.Timestamp(6)
+  updated_at            DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([stage_id])
+}
+
+// ==================== 9. LIVE CHAT SYSTEM ====================
 
 model chat_rooms {
-  id           String              @id @default(uuid()) @db.Uuid
-  name         String              @db.VarChar(255)
-  type         RoomType
-  status       RoomStatus          @default(ACTIVE)
-  student_id   String              @db.Uuid
-  mentor_type  MentorType?
-  created_at   DateTime            @default(now()) @db.Timestamp(6)
-  updated_at   DateTime            @default(now()) @db.Timestamp(6)
-  deleted_at   DateTime?           @db.Timestamp(6)
-  users        users               @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  id     String     @id @default(uuid()) @db.Uuid
+  name   String     @db.VarChar(255)
+  type   RoomType
+  status RoomStatus @default(ACTIVE)
+
+  // Link đến học sinh (Chủ phòng chat)
+  student_id String @db.Uuid
+  users      users  @relation("StudentChatRooms", fields: [student_id], references: [id], onDelete: Cascade)
+
+  // Optional: Loại Mentor nếu là phòng Private (để dễ filter)
+  mentor_type MentorType?
+
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at DateTime? @db.Timestamp(6)
+
   participants chat_participants[]
   messages     chat_messages[]
 
@@ -534,15 +681,18 @@ model chat_rooms {
 }
 
 model chat_participants {
-  id           String     @id @default(uuid()) @db.Uuid
-  room_id      String     @db.Uuid
-  user_id      String     @db.Uuid
-  last_read_at DateTime?  @db.Timestamp(6)
-  joined_at    DateTime   @default(now()) @db.Timestamp(6)
-  left_at      DateTime?  @db.Timestamp(6)
-  is_active    Boolean    @default(true)
-  chat_rooms   chat_rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
-  users        users      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id String @id @default(uuid()) @db.Uuid
+
+  room_id    String     @db.Uuid
+  chat_rooms chat_rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
+  user_id String @db.Uuid
+  users   users  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  last_read_at DateTime? @db.Timestamp(6)
+  joined_at    DateTime  @default(now()) @db.Timestamp(6)
+  left_at      DateTime? @db.Timestamp(6)
+  is_active    Boolean   @default(true)
 
   @@unique([room_id, user_id])
   @@index([user_id])
@@ -550,17 +700,22 @@ model chat_participants {
 }
 
 model chat_messages {
-  id          String             @id @default(uuid()) @db.Uuid
-  room_id     String             @db.Uuid
-  sender_id   String             @db.Uuid
-  content     String?
-  type        MessageType        @default(TEXT)
-  created_at  DateTime           @default(now()) @db.Timestamp(6)
-  updated_at  DateTime           @default(now()) @db.Timestamp(6)
-  deleted_at  DateTime?          @db.Timestamp(6)
-  is_edited   Boolean            @default(false)
-  chat_rooms  chat_rooms         @relation(fields: [room_id], references: [id], onDelete: Cascade)
-  users       users              @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  id String @id @default(uuid()) @db.Uuid
+
+  room_id    String     @db.Uuid
+  chat_rooms chat_rooms @relation(fields: [room_id], references: [id], onDelete: Cascade)
+
+  sender_id String @db.Uuid
+  users     users  @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+
+  content String?
+  type    MessageType @default(TEXT)
+
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @db.Timestamp(6)
+  deleted_at DateTime? @db.Timestamp(6)
+  is_edited  Boolean   @default(false)
+
   attachments chat_attachments[]
 
   @@index([room_id])
@@ -569,39 +724,18 @@ model chat_messages {
 }
 
 model chat_attachments {
-  id            String        @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
+
   message_id    String        @db.Uuid
+  chat_messages chat_messages @relation(fields: [message_id], references: [id], onDelete: Cascade)
+
   file_url      String
-  file_name     String        @db.VarChar(255)
-  file_type     String        @db.VarChar(100)
+  file_name     String   @db.VarChar(255)
+  file_type     String   @db.VarChar(100)
   file_size     BigInt?
   thumbnail_url String?
-  created_at    DateTime      @default(now()) @db.Timestamp(6)
-  chat_messages chat_messages @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  created_at    DateTime @default(now()) @db.Timestamp(6)
 
   @@index([message_id])
   @@index([file_type])
-}
-
-model mentor_assignments {
-  id            String    @id @default(uuid()) @db.Uuid
-  student_id    String    @db.Uuid
-  mentor_as_id  String?   @db.Uuid
-  mentor_acs_id String?   @db.Uuid
-  mentor_ard_id String?   @db.Uuid
-  assigned_at   DateTime  @default(now()) @db.Timestamp(6)
-  expires_at    DateTime? @db.Timestamp(6)
-  is_active     Boolean   @default(true)
-  created_by    String    @db.Uuid
-  users_student users     @relation("StudentAssignments", fields: [student_id], references: [id], onDelete: Cascade)
-  users_as      users?    @relation("MentorASAssignments", fields: [mentor_as_id], references: [id], onDelete: SetNull)
-  users_acs     users?    @relation("MentorACSAssignments", fields: [mentor_acs_id], references: [id], onDelete: SetNull)
-  users_ard     users?    @relation("MentorARDAssignments", fields: [mentor_ard_id], references: [id], onDelete: SetNull)
-  users_creator users     @relation("CreatedAssignments", fields: [created_by], references: [id])
-
-  @@unique([student_id, is_active])
-  @@index([student_id])
-  @@index([mentor_as_id])
-  @@index([mentor_acs_id])
-  @@index([mentor_ard_id])
 }

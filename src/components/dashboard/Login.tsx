@@ -2,26 +2,48 @@
 import Image from 'next/image'
 import {useState} from 'react'
 import Link from 'next/link'
-import {useAuth} from '@/hooks/useAuth'
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import {LoginData} from '@/lib/types/auth.types'
 
 export default function Login() {
-    const {login: loginUser, loading, error} = useAuth()
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    // const {login: loginUser, loading, error} = useAuth()
+
     const [loginData, setLoginData] = useState<LoginData>({
         email: '',
         password: '',
     })
     const [errorMessage, setErrorMessage] = useState('')
 
+    // Fallback loading state for UI compatibility
+    const loading = isLoading;
+    const error = errorMessage;
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setErrorMessage('')
-        
-        // Gọi API đăng nhập (useAuth hook sẽ tự động redirect)
-        const result = await loginUser(loginData)
-        
-        if (!result.success) {
-            setErrorMessage(result.message || 'Đăng nhập thất bại')
+        setIsLoading(true);
+
+         try {
+            const result = await signIn("credentials", {
+                redirect: false,
+                email: loginData.email,
+                password: loginData.password,
+            });
+
+            if (result?.error) {
+                setErrorMessage("Email hoặc mật khẩu không chính xác");
+            } else {
+                router.push("/dashboard");
+                router.refresh();
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            setErrorMessage("Đã xảy ra lỗi trong quá trình đăng nhập");
+        } finally {
+            setIsLoading(false);
         }
     }
 

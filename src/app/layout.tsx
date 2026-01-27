@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AuthProvider as OldAuthProvider } from "../contexts/AuthContext";
 import AuthProvider from "@/components/auth/AuthProvider";
+import NextAuthErrorBoundary from "@/components/auth/NextAuthErrorBoundary";
 import { ToasterProvider } from "@/components/ToasterProvider";
 import "./globals.css";
 
@@ -134,7 +134,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased font-display`}
       >
         <AuthProvider>
-          <OldAuthProvider>{children}</OldAuthProvider>
+          <NextAuthErrorBoundary>
+            {children}
+          </NextAuthErrorBoundary>
         </AuthProvider>
         <ToasterProvider />
       </body>

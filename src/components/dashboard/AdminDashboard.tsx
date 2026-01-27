@@ -1,11 +1,12 @@
 "use client"
-import {useAuth} from '@/contexts/AuthContext'
+import {useAuthSession} from '@/hooks/useAuthSession'
 import {useState} from 'react'
+import UserManagement from '@/components/admin/UserManagement'
 
 type TabKey = 'overview' | 'users' | 'mentors' | 'system'
 
 export default function AdminDashboard() {
-    const {user} = useAuth()
+    const {user} = useAuthSession()
     const [activeTab, setActiveTab] = useState<TabKey>('overview')
 
     const tabs: { key: TabKey; label: string; icon: string }[] = [
@@ -108,30 +109,35 @@ export default function AdminDashboard() {
             </div>
 
             <main className="flex-1 p-8">
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {stats.map((stat, index) => (
-                        <div key={index} className="card-holyann">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <div className="text-sm text-muted-foreground mb-1">{stat.label}</div>
-                                    <div className="text-3xl font-bold text-primary">{stat.value}</div>
-                                    <div
-                                        className={`text-xs mt-2 ${stat.trend.startsWith('+') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                        <i className={`fas fa-arrow-${stat.trend.startsWith('+') ? 'up' : 'down'} mr-1`}></i>
-                                        {stat.trend} so với tháng trước
+                {/* Show UserManagement when users tab is active */}
+                {activeTab === 'users' ? (
+                    <UserManagement />
+                ) : (
+                    <>
+                        {/* Statistics Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            {stats.map((stat, index) => (
+                                <div key={index} className="card-holyann">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <div className="text-sm text-muted-foreground mb-1">{stat.label}</div>
+                                            <div className="text-3xl font-bold text-primary">{stat.value}</div>
+                                            <div
+                                                className={`text-xs mt-2 ${stat.trend.startsWith('+') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                                <i className={`fas fa-arrow-${stat.trend.startsWith('+') ? 'up' : 'down'} mr-1`}></i>
+                                                {stat.trend} so với tháng trước
+                                            </div>
+                                        </div>
+                                        <div
+                                            className={`w-16 h-16 rounded-full bg-${stat.color}-100 dark:bg-${stat.color}-900/30 flex items-center justify-center`}>
+                                            <i className={`fas ${stat.icon} text-2xl text-${stat.color}-600 dark:text-${stat.color}-400`}></i>
+                                        </div>
                                     </div>
                                 </div>
-                                <div
-                                    className={`w-16 h-16 rounded-full bg-${stat.color}-100 dark:bg-${stat.color}-900/30 flex items-center justify-center`}>
-                                    <i className={`fas ${stat.icon} text-2xl text-${stat.color}-600 dark:text-${stat.color}-400`}></i>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                     {/* Recent Users */}
                     <div className="lg:col-span-2 card-holyann">
@@ -259,6 +265,8 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+                    </>
+                )}
             </main>
 
             <footer

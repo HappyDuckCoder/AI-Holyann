@@ -6,7 +6,7 @@ import {
     Phone, Video, MoreVertical, Users, Star, GraduationCap,
     CheckCheck, X, Sparkles, TrendingUp, Clock
 } from 'lucide-react';
-import {useAuth} from '@/contexts/AuthContext';
+import {useAuthSession} from '@/hooks/useAuthSession';
 
 // Types
 interface Student {
@@ -18,163 +18,12 @@ interface Student {
     avatar: string;
     isOnline: boolean;
     lastSeen?: string;
-    progress: number; // Overall application progress
 }
 
-interface Message {
-    id: string;
-    senderId: string;
-    senderName: string;
-    senderAvatar: string;
-    content: string;
-    timestamp: Date;
-    isRead: boolean;
-    isMine: boolean;
-}
-
-interface Conversation {
-    id: string;
-    student: Student;
-    lastMessage: string;
-    lastMessageTime: Date;
-    unreadCount: number;
-    messages: Message[];
-}
-
-// Mock Data - Students
-const STUDENTS: Student[] = [
-    {
-        id: 'student-1',
-        name: 'Nguyễn Văn An',
-        email: 'nguyenvanan@email.com',
-        grade: 'Lớp 12',
-        targetCountry: 'Mỹ',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop',
-        isOnline: true,
-        progress: 75
-    },
-    {
-        id: 'student-2',
-        name: 'Trần Thị Bình',
-        email: 'tranthib@email.com',
-        grade: 'Lớp 12',
-        targetCountry: 'Mỹ',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-        isOnline: true,
-        progress: 60
-    },
-    {
-        id: 'student-3',
-        name: 'Lê Hoàng Cường',
-        email: 'lehcuong@email.com',
-        grade: 'Lớp 11',
-        targetCountry: 'Canada',
-        avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&h=150&fit=crop',
-        isOnline: false,
-        lastSeen: '1 giờ trước',
-        progress: 45
-    },
-    {
-        id: 'student-4',
-        name: 'Phạm Thu Dung',
-        email: 'phamtd@email.com',
-        grade: 'Lớp 12',
-        targetCountry: 'Úc',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
-        isOnline: true,
-        progress: 90
-    }
-];
-
-// Mock Messages
-const generateMockMessages = (studentId: string, studentName: string, studentAvatar: string, mentorName: string): Message[] => {
-    const now = new Date();
-    return [
-        {
-            id: `${studentId}-1`,
-            senderId: studentId,
-            senderName: studentName,
-            senderAvatar: studentAvatar,
-            content: 'Chào thầy/cô! Em muốn hỏi về chiến lược chọn trường cho mùa apply năm nay ạ.',
-            timestamp: new Date(now.getTime() - 3600000 * 2),
-            isRead: true,
-            isMine: false
-        },
-        {
-            id: `${studentId}-2`,
-            senderId: 'mentor',
-            senderName: mentorName,
-            senderAvatar: '/images/avatars/mentor.jpg',
-            content: 'Chào em! Thầy/cô đã xem qua hồ sơ của em. Với GPA hiện tại và kết quả SAT, em có thể cân nhắc các trường như Purdue, UIUC, UW-Madison.',
-            timestamp: new Date(now.getTime() - 3600000 * 1.5),
-            isRead: true,
-            isMine: true
-        },
-        {
-            id: `${studentId}-3`,
-            senderId: studentId,
-            senderName: studentName,
-            senderAvatar: studentAvatar,
-            content: 'Dạ em cảm ơn thầy/cô ạ. Em cũng muốn hỏi về deadline nộp hồ sơ cho Early Action.',
-            timestamp: new Date(now.getTime() - 3600000),
-            isRead: true,
-            isMine: false
-        },
-        {
-            id: `${studentId}-4`,
-            senderId: 'mentor',
-            senderName: mentorName,
-            senderAvatar: '/images/avatars/mentor.jpg',
-            content: 'Early Action thường có deadline 1/11. Em cần chuẩn bị đầy đủ hồ sơ trước 15/10 để có thời gian review nhé.',
-            timestamp: new Date(now.getTime() - 1800000),
-            isRead: false,
-            isMine: true
-        }
-    ];
-};
-
-// Mock Conversations
-const createMockConversations = (mentorName: string): Conversation[] => {
-    return STUDENTS.map((student, index) => ({
-        id: `conv-${student.id}`,
-        student,
-        lastMessage: index === 0
-            ? 'Early Action thường có deadline 1/11...'
-            : index === 1
-            ? 'Bài luận của em đã được review xong, em check email nhé!'
-            : index === 2
-            ? 'Em cần hoàn thành bài test RIASEC trước nhé.'
-            : 'Chúc mừng em! Hồ sơ em đã hoàn thiện 90%.',
-        lastMessageTime: new Date(Date.now() - (index * 3600000 + 900000)),
-        unreadCount: index === 0 ? 1 : index === 2 ? 2 : 0,
-        messages: generateMockMessages(student.id, student.name, student.avatar, mentorName)
-    }));
-};
-
-// Format time helper
-const formatTime = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return 'Vừa xong';
-    if (minutes < 60) return `${minutes} phút`;
-    if (hours < 24) return `${hours} giờ`;
-    if (days < 7) return `${days} ngày`;
-    return date.toLocaleDateString('vi-VN');
-};
-
-const formatMessageTime = (date: Date) => {
-    return date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
-};
-
-// Main Component
 export default function MentorChatPage() {
-    const {user} = useAuth();
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+    const {user} = useAuthSession();
+    const [conversations, setConversations] = useState<Student[]>([]);
+    const [selectedConversation, setSelectedConversation] = useState<Student | null>(null);
     const [messageInput, setMessageInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [showMobileInfo, setShowMobileInfo] = useState(false);

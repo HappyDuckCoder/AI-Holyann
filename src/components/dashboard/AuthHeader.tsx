@@ -1,15 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import {useAuth} from '@/contexts/AuthContext'
+import {useAuthSession} from '@/hooks/useAuthSession'
+import {signOut} from 'next-auth/react'
 import {useState, useEffect, useMemo} from 'react'
 import {usePathname} from 'next/navigation'
 import {Menu, X} from 'lucide-react'
 
 export default function AuthHeader() {
-    const {user, logout, isAuthenticated} = useAuth()
+    const {user, isAuthenticated} = useAuthSession()
+    const logout = () => signOut({ callbackUrl: '/login' })
     const pathname = usePathname()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [mounted, setMounted] = useState(false);
 
     // Get dashboard URL based on user role
     const dashboardUrl = useMemo(() => {
@@ -72,6 +75,10 @@ export default function AuthHeader() {
         {name: 'CÀI ĐẶT', href: '/settings'},
     ]
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     return (
         <header
             className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 shadow-md flex justify-between items-center sticky top-0 z-50 transition-colors duration-300">
@@ -130,9 +137,9 @@ export default function AuthHeader() {
                     <button
                         onClick={toggleTheme}
                         className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-all border border-primary-foreground/10 hover:border-accent group flex-shrink-0"
-                        title={isDarkMode ? "Chuyển sang chế độ Sáng" : "Chuyển sang chế độ Tối"}
+                        title={mounted && isDarkMode ? "Chuyển sang chế độ Sáng" : "Chuyển sang chế độ Tối"}
                     >
-                        {isDarkMode ? (
+                        {mounted && isDarkMode ? (
                             <i className="fas fa-sun text-accent text-sm sm:text-base md:text-lg group-hover:rotate-90 transition-transform"></i>
                         ) : (
                             <i className="fas fa-moon text-primary-foreground text-sm sm:text-base md:text-lg group-hover:-rotate-12 transition-transform"></i>
@@ -194,7 +201,6 @@ export default function AuthHeader() {
                         )}
                     </button>
                 </div>
-            </div>
 
             {/* Mobile Menu */}
             {mobileMenuOpen && (

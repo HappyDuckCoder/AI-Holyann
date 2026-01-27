@@ -64,47 +64,8 @@ export default function TestsPage() {
       return sessionUserId as string;
     }
 
-    // 2. Thử lấy từ localStorage session (cho local auth)
-    if (typeof window !== "undefined") {
-      try {
-        const localSession = localStorage.getItem("session");
-        if (localSession) {
-          const parsed = JSON.parse(localSession);
-          const localUserId = parsed.user?.id || parsed.user?.user_id;
-          if (localUserId) {
-            console.log(
-              "✅ Got student ID from localStorage session:",
-              localUserId
-            );
-            return localUserId as string;
-          }
-        }
-      } catch (e) {
-        console.warn("Could not parse session from localStorage:", e);
-      }
-
-      // 3. Fallback: thử lấy từ localStorage user (legacy)
-      try {
-        const saved = localStorage.getItem("user");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const legacyUserId = parsed.id || parsed.user_id;
-          if (legacyUserId) {
-            console.log(
-              "✅ Got student ID from localStorage user (legacy):",
-              legacyUserId
-            );
-            return legacyUserId as string;
-          }
-        }
-      } catch (e) {
-        console.warn("Could not parse user from localStorage:", e);
-      }
-    }
-
-    console.warn("❌ Could not find student ID from any source");
     return null;
-  }, [session]);
+  }, [session?.user]);
 
   // Student profile should be created automatically during registration
   // No need to create it here - if missing, it's a data sync issue that should be fixed at the source
@@ -131,6 +92,15 @@ export default function TestsPage() {
       toast.error("Không tìm thấy thông tin người dùng", {
         description: "Vui lòng đăng nhập lại để tiếp tục",
       });
+      return;
+    }
+
+    // Check if test is already completed - prevent retaking
+    if (progress.completedTests.includes(type)) {
+      toast.info("Bài test đã hoàn thành", {
+        description: "Bạn chỉ có thể xem kết quả, không thể làm lại bài test này.",
+      });
+      handleViewResult(type);
       return;
     }
 
@@ -601,6 +571,8 @@ export default function TestsPage() {
     }
   };
 
+  // Reset test functionality disabled - users cannot retake tests after completion
+  /*
   const handleResetTest = async (type: TestType) => {
     const studentId = getStudentId();
     if (!studentId) {
@@ -648,6 +620,7 @@ export default function TestsPage() {
       });
     }
   };
+  */
 
   // Loading state khi chưa load xong từ localStorage
   if (!isLoaded) {
@@ -673,7 +646,6 @@ export default function TestsPage() {
               <TestSelection
                 onStartTest={handleStartTest}
                 onViewResult={handleViewResult}
-                onResetTest={handleResetTest}
                 completedTests={progress.completedTests}
                 testResults={progress.results}
                 onViewRecommendations={handleViewAllRecommendations}

@@ -21,8 +21,6 @@ export async function GET(
             { error: 'Lỗi khi lấy thông tin phụ huynh' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -56,8 +54,6 @@ export async function POST(
             { error: 'Lỗi khi tạo thông tin phụ huynh' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -87,8 +83,6 @@ export async function PATCH(request: NextRequest) {
             { error: 'Lỗi khi cập nhật thông tin phụ huynh' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -113,7 +107,5 @@ export async function DELETE(
             { error: 'Lỗi khi xóa thông tin phụ huynh' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

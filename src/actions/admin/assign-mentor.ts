@@ -1,0 +1,466 @@
+'use server'
+
+import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
+
+/**
+ * Server Action: Admin gán Mentor cho Học viên
+ *
+ * Business Logic:
+ * 1. Kiểm tra mentor có đúng specialization
+ * 2. Tạo/Update assignment
+ * 3. Tạo private chat room
+ * 4. Nếu đủ 3 mentors → Tạo group chat
+ *
+ * @param studentId - UUID của học viên
+ * @param mentorId - UUID của mentor
+ * @param mentorType - Loại mentor: AS, ACS, hoặc ARD
+ * @returns Promise<{success: boolean, message: string, data?: any}>
+ */
+export async function assignMentorToStudent(
+    studentId: string,
+    mentorId: string,
+    mentorType: 'AS' | 'ACS' | 'ARD'
+) {
+    try {
+        // Validate inputs
+        if (!studentId || !mentorId || !mentorType) {
+            return {
+                success: false,
+                message: 'Thiếu thông tin bắt buộc (studentId, mentorId, mentorType)'
+            }
+        }
+
+        if (!['AS', 'ACS', 'ARD'].includes(mentorType)) {
+            return {
+                success: false,
+                message: 'Loại mentor không hợp lệ. Chỉ chấp nhận: AS, ACS, ARD'
+            }
+        }
+
+        // Execute trong transaction
+        const result = await prisma.$transaction(async (tx) => {
+            // ============================================
+            // BƯỚC 1: KIỂM TRA MENTOR SPECIALIZATION
+            // ============================================
+            const mentor = await tx.mentors.findUnique({
+                where: { user_id: mentorId },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            full_name: true,
+                            email: true
+                        }
+                    }
+                }
+            })
+
+            if (!mentor) {
+                throw new Error('Mentor không tồn tại trong hệ thống')
+            }
+
+            // Kiểm tra specialization có khớp với type được gán
+            if (mentor.specialization !== mentorType) {
+                throw new Error(
+                    `Mentor ${mentor.user.full_name} có chuyên môn ${mentor.specialization}, ` +
+                    `không thể gán vào vị trí ${mentorType}`
+                )
+            }
+
+            // Kiểm tra student tồn tại
+            const student = await tx.students.findUnique({
+                where: { user_id: studentId },
+                include: {
+                    users: {
+                        select: {
+                            id: true,
+                            full_name: true,
+                            email: true
+                        }
+                    }
+                }
+            })
+
+            if (!student) {
+                throw new Error('Học viên không tồn tại trong hệ thống')
+            }
+
+            // ============================================
+            // BƯỚC 2: TẠO/UPDATE ASSIGNMENT
+            // ============================================
+
+            // Kiểm tra assignment hiện tại
+            const existingAssignment = await tx.mentor_assignments.findUnique({
+                where: {
+                    student_id_type: {
+                        student_id: studentId,
+                        type: mentorType
+                    }
+                },
+                include: {
+                    mentor: {
+                        include: {
+                            user: true
+                        }
+                    }
+                }
+            })
+
+            let assignment
+            let isUpdate = false
+
+            if (existingAssignment) {
+                // Nếu đã có assignment cho type này, update
+                if (existingAssignment.mentor_id === mentorId) {
+                    throw new Error(
+                        `Học viên ${student.users.full_name} đã được gán ` +
+                        `mentor ${mentor.user.full_name} cho vị trí ${mentorType}`
+                    )
+                }
+
+                // Update mentor mới
+                assignment = await tx.mentor_assignments.update({
+                    where: {
+                        student_id_type: {
+                            student_id: studentId,
+                            type: mentorType
+                        }
+                    },
+                    data: {
+                        mentor_id: mentorId,
+                        status: 'ACTIVE',
+                        assigned_at: new Date()
+                    }
+                })
+                isUpdate = true
+            } else {
+                // Tạo assignment mới
+                assignment = await tx.mentor_assignments.create({
+                    data: {
+                        student_id: studentId,
+                        mentor_id: mentorId,
+                        type: mentorType,
+                        status: 'ACTIVE'
+                    }
+                })
+            }
+
+            // ============================================
+            // BƯỚC 3: SIDE EFFECT 1 - TẠO PRIVATE CHAT
+            // ============================================
+
+            // Kiểm tra xem đã có private chat giữa student và mentor này chưa
+            const existingPrivateChat = await tx.chat_rooms.findFirst({
+                where: {
+                    student_id: studentId,
+                    type: 'PRIVATE',
+                    participants: {
+                        some: {
+                            user_id: mentorId
+                        }
+                    }
+                }
+            })
+
+            let privateChatRoom
+            if (!existingPrivateChat) {
+                // Tạo private chat room mới
+                const mentorTypeLabel = {
+                    AS: 'Admissions Strategist',
+                    ACS: 'Academic Content Specialist',
+                    ARD: 'Activity & Research Development'
+                }[mentorType]
+
+                privateChatRoom = await tx.chat_rooms.create({
+                    data: {
+                        name: `Trao đổi riêng: ${mentor.user.full_name} - ${mentorTypeLabel}`,
+                        type: 'PRIVATE',
+                        status: 'ACTIVE',
+                        student_id: studentId,
+                        mentor_type: mentorType
+                    }
+                })
+
+                // Tạo 2 participants
+                await tx.chat_participants.createMany({
+                    data: [
+                        {
+                            room_id: privateChatRoom.id,
+                            user_id: studentId,
+                            is_active: true
+                        },
+                        {
+                            room_id: privateChatRoom.id,
+                            user_id: mentorId,
+                            is_active: true
+                        }
+                    ]
+                })
+
+                // Tạo tin nhắn welcome
+                await tx.chat_messages.create({
+                    data: {
+                        room_id: privateChatRoom.id,
+                        sender_id: mentorId,
+                        content: `Chào ${student.users.full_name}! Tôi là ${mentor.user.full_name}, ` +
+                                `mentor ${mentorTypeLabel} của bạn. Rất vui được hỗ trợ bạn trong hành trình du học!`,
+                        type: 'TEXT'
+                    }
+                })
+            }
+
+            // ============================================
+            // BƯỚC 4: SIDE EFFECT 2 - TẠO GROUP CHAT (NẾU ĐỦ 3 MENTORS)
+            // ============================================
+
+            // Lấy tất cả assignments hiện tại của student
+            const allAssignments = await tx.mentor_assignments.findMany({
+                where: {
+                    student_id: studentId,
+                    status: 'ACTIVE'
+                },
+                include: {
+                    mentor: {
+                        include: {
+                            user: true
+                        }
+                    }
+                }
+            })
+
+            // Kiểm tra có đủ 3 mentors với 3 types khác nhau
+            const assignedTypes = new Set(allAssignments.map(a => a.type))
+            const hasFullTeam = assignedTypes.has('AS') &&
+                               assignedTypes.has('ACS') &&
+                               assignedTypes.has('ARD')
+
+            let groupChatRoom = null
+            if (hasFullTeam) {
+                // Kiểm tra xem đã có group chat chưa
+                const existingGroupChat = await tx.chat_rooms.findFirst({
+                    where: {
+                        student_id: studentId,
+                        type: 'GROUP',
+                        name: {
+                            contains: 'Nhóm hỗ trợ học tập'
+                        }
+                    }
+                })
+
+                if (!existingGroupChat) {
+                    // Tạo group chat room
+                    groupChatRoom = await tx.chat_rooms.create({
+                        data: {
+                            name: `Nhóm hỗ trợ học tập (Full Team) - ${student.users.full_name}`,
+                            type: 'GROUP',
+                            status: 'ACTIVE',
+                            student_id: studentId
+                        }
+                    })
+
+                    // Lấy mentor IDs
+                    const asMentor = allAssignments.find(a => a.type === 'AS')
+                    const acsMentor = allAssignments.find(a => a.type === 'ACS')
+                    const ardMentor = allAssignments.find(a => a.type === 'ARD')
+
+                    // Tạo 4 participants (student + 3 mentors)
+                    await tx.chat_participants.createMany({
+                        data: [
+                            {
+                                room_id: groupChatRoom.id,
+                                user_id: studentId,
+                                is_active: true
+                            },
+                            {
+                                room_id: groupChatRoom.id,
+                                user_id: asMentor!.mentor_id,
+                                is_active: true
+                            },
+                            {
+                                room_id: groupChatRoom.id,
+                                user_id: acsMentor!.mentor_id,
+                                is_active: true
+                            },
+                            {
+                                room_id: groupChatRoom.id,
+                                user_id: ardMentor!.mentor_id,
+                                is_active: true
+                            }
+                        ]
+                    })
+
+                    // Tạo tin nhắn welcome cho group
+                    await tx.chat_messages.create({
+                        data: {
+                            room_id: groupChatRoom.id,
+                            sender_id: asMentor!.mentor_id,
+                            content: `🎉 Chào mừng ${student.users.full_name} đến với nhóm hỗ trợ đầy đủ!\n\n` +
+                                    `Đội ngũ mentors của bạn:\n` +
+                                    `🔵 AS: ${asMentor!.mentor.user.full_name}\n` +
+                                    `🟢 ACS: ${acsMentor!.mentor.user.full_name}\n` +
+                                    `🟣 ARD: ${ardMentor!.mentor.user.full_name}\n\n` +
+                                    `Chúng tôi sẽ đồng hành cùng bạn trong suốt hành trình du học!`,
+                            type: 'TEXT'
+                        }
+                    })
+                }
+            }
+
+            return {
+                assignment,
+                privateChatRoom,
+                groupChatRoom,
+                hasFullTeam,
+                isUpdate,
+                mentor,
+                student
+            }
+        })
+
+        // Revalidate các paths liên quan (safe for non-Next.js context)
+        try {
+            revalidatePath('/dashboard/admin')
+            revalidatePath('/dashboard/student')
+            revalidatePath(`/dashboard/student/${studentId}`)
+            revalidatePath('/dashboard/chat')
+        } catch (error) {
+            // Ignore revalidation errors in non-Next.js context (e.g., tests)
+        }
+
+        // Return success response
+        return {
+            success: true,
+            message: result.isUpdate
+                ? `Đã cập nhật mentor ${result.mentor.user.full_name} (${mentorType}) cho học viên ${result.student.users.full_name}`
+                : `Đã gán mentor ${result.mentor.user.full_name} (${mentorType}) cho học viên ${result.student.users.full_name}`,
+            data: {
+                assignmentId: result.assignment.id,
+                privateChatCreated: !!result.privateChatRoom,
+                groupChatCreated: !!result.groupChatRoom,
+                hasFullTeam: result.hasFullTeam,
+                mentorType: mentorType,
+                mentorName: result.mentor.user.full_name,
+                studentName: result.student.users.full_name
+            }
+        }
+
+    } catch (error: any) {
+        console.error('Error in assignMentorToStudent:', error)
+
+        return {
+            success: false,
+            message: error.message || 'Có lỗi xảy ra khi gán mentor',
+            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }
+    }
+}
+
+/**
+ * Server Action: Lấy danh sách assignments của student
+ */
+export async function getStudentAssignments(studentId: string) {
+    try {
+        const assignments = await prisma.mentor_assignments.findMany({
+            where: {
+                student_id: studentId,
+                status: 'ACTIVE'
+            },
+            include: {
+                mentor: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                full_name: true,
+                                email: true,
+                                avatar_url: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                assigned_at: 'desc'
+            }
+        })
+
+        return {
+            success: true,
+            data: assignments
+        }
+    } catch (error: any) {
+        return {
+            success: false,
+            message: 'Có lỗi khi lấy danh sách assignments',
+            error: error.message
+        }
+    }
+}
+
+/**
+ * Server Action: Hủy assignment
+ */
+export async function unassignMentor(
+    studentId: string,
+    mentorType: 'AS' | 'ACS' | 'ARD'
+) {
+    try {
+        await prisma.$transaction(async (tx) => {
+            // Update status thành CANCELLED
+            await tx.mentor_assignments.updateMany({
+                where: {
+                    student_id: studentId,
+                    type: mentorType,
+                    status: 'ACTIVE'
+                },
+                data: {
+                    status: 'CANCELLED'
+                }
+            })
+
+            // Đóng private chat room nếu có
+            const assignment = await tx.mentor_assignments.findFirst({
+                where: {
+                    student_id: studentId,
+                    type: mentorType
+                }
+            })
+
+            if (assignment) {
+                await tx.chat_rooms.updateMany({
+                    where: {
+                        student_id: studentId,
+                        type: 'PRIVATE',
+                        participants: {
+                            some: {
+                                user_id: assignment.mentor_id
+                            }
+                        }
+                    },
+                    data: {
+                        status: 'CLOSED'
+                    }
+                })
+            }
+        })
+
+        try {
+            revalidatePath('/dashboard/admin')
+            revalidatePath('/dashboard/student')
+        } catch (error) {
+            // Ignore revalidation errors
+        }
+
+        return {
+            success: true,
+            message: 'Đã hủy gán mentor thành công'
+        }
+    } catch (error: any) {
+        return {
+            success: false,
+            message: 'Có lỗi khi hủy gán mentor',
+            error: error.message
+        }
+    }
+}

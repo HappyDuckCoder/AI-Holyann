@@ -28,8 +28,6 @@ export async function GET(
             { error: 'Lỗi khi lấy hoạt động ngoại khóa học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -75,8 +73,6 @@ export async function POST(
             { error: 'Lỗi khi tạo hoạt động ngoại khóa học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -99,8 +95,6 @@ export async function DELETE(
             { error: 'Lỗi khi xóa hoạt động ngoại khóa học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -136,7 +130,5 @@ export async function PATCH(request: NextRequest) {
             { error: 'Lỗi khi cập nhật hoạt động ngoại khóa học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

@@ -95,6 +95,36 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
         <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-5 sm:p-6 space-y-6">
+            {/* Personal Information Section */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                Thông tin cá nhân
+              </h4>
+              <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="dob"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Ngày sinh
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="date"
+                      name="dob"
+                      id="dob"
+                      required
+                      value={formData.dob}
+                      onChange={handleChange}
+                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2 border"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4"></div>
+
             {/* Academic Stats Section */}
             <div>
               <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">

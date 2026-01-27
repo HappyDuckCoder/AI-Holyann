@@ -6,7 +6,19 @@ declare module 'next-auth' {
         accessToken?: string
         role?: string
         id?: string
+        email?: string
+        name?: string
         full_name?: string
+        image?: string
+        student?: {
+            user_id: string
+            current_school?: string | null
+            current_grade?: string | null
+            intended_major?: string | null
+            target_country?: string | null
+            date_of_birth?: Date | null
+            current_address?: string | null
+        } | null  // ✅ Allow null
     }
 
     interface Session {
@@ -20,6 +32,15 @@ declare module 'next-auth' {
             user_id?: string  // Alias for compatibility
             full_name?: string
         }
+        student?: {
+            user_id: string
+            current_school?: string | null
+            current_grade?: string | null
+            intended_major?: string | null
+            target_country?: string | null
+            date_of_birth?: Date | null
+            current_address?: string | null
+        }
     }
 }
 
@@ -28,7 +49,19 @@ declare module 'next-auth/jwt' {
         accessToken?: string
         role?: string
         id?: string
+        email?: string
+        name?: string
         full_name?: string
+        picture?: string
+        student?: {
+            user_id: string
+            current_school?: string | null
+            current_grade?: string | null
+            intended_major?: string | null
+            target_country?: string | null
+            date_of_birth?: Date | null
+            current_address?: string | null
+        }
     }
 }
 

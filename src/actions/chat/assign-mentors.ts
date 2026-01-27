@@ -102,7 +102,7 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       // 5. Tạo phòng Group
       const groupRoom = await tx.chat_rooms.create({
         data: {
-          name: `${student.full_name} - Team Mentors`,
+          name: `${student.full_name} - Group Mentor`,
           type: RoomType.GROUP,
           student_id: studentId,
           participants: {

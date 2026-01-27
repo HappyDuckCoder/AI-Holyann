@@ -8,13 +8,15 @@ export async function GET(
     try {
         const { student_id } = await params;
 
-        // Lấy thông tin từ users và students
+        console.log('📋 [API] Fetching profile for student_id:', student_id);
+
+        // Lấy thông tin từ users
         const user = await prisma.users.findUnique({
             where: { id: student_id },
             include: {
                 students: {
                     include: {
-                        student_backgrounds: {
+                        background: {
                             include: {
                                 academic_awards: true,
                                 academic_extracurriculars: true,
@@ -26,8 +28,8 @@ export async function GET(
                                 personal_projects: true,
                             }
                         },
-                        student_academic_profiles: true,
-                        student_parents: true,
+                        academic_profile: true,
+                        parents: true,
                         student_skills: true,
                     }
                 }
@@ -35,10 +37,55 @@ export async function GET(
         });
 
         if (!user) {
+            console.error('❌ [API] User not found:', student_id);
             return NextResponse.json(
-                { error: 'Không tìm thấy học sinh' },
+                { error: 'Không tìm thấy người dùng' },
                 { status: 404 }
             );
+        }
+
+        console.log('✅ [API] User found:', {
+            id: user.id,
+            email: user.email,
+            hasStudentRecord: !!user.students
+        });
+
+        // Nếu chưa có student record, tự động tạo
+        if (!user.students) {
+            console.log('⚠️ [API] No student record found, creating one...');
+
+            try {
+                const newStudent = await prisma.students.create({
+                    data: {
+                        user_id: student_id,
+                        // Các trường khác để null/default
+                    },
+                    include: {
+                        background: {
+                            include: {
+                                academic_awards: true,
+                                academic_extracurriculars: true,
+                                non_academic_awards: true,
+                                non_academic_extracurriculars: true,
+                                research_experiences: true,
+                                work_experiences: true,
+                                subject_scores: true,
+                                personal_projects: true,
+                            }
+                        },
+                        academic_profile: true,
+                        parents: true,
+                        student_skills: true,
+                    }
+                });
+
+                // Update user object with new student record
+                user.students = newStudent;
+                console.log('✅ [API] Student record created:', newStudent.user_id);
+            } catch (createError) {
+                console.error('❌ [API] Failed to create student record:', createError);
+                // Continue with user data only
+            }
         }
 
         // Kiểm tra thông tin cơ bản đã đủ chưa
@@ -50,14 +97,14 @@ export async function GET(
         );
 
         // Kiểm tra thông tin học thuật đã đủ chưa
-        const academicProfile = user.students?.student_academic_profiles;
+        const academicProfile = user.students?.academic_profile;
         const hasAcademicInfo = !!(
             academicProfile?.gpa_transcript_details ||
             academicProfile?.english_certificates ||
             academicProfile?.standardized_tests
         );
 
-        const background = user.students?.student_backgrounds;
+        const background = user.students?.background;
         const hasExtracurriculars = !!(
             background?.academic_extracurriculars?.length ||
             background?.non_academic_extracurriculars?.length ||
@@ -69,36 +116,46 @@ export async function GET(
 
         const response = {
             basicInfo: {
-                full_name: user.full_name,
-                email: user.email,
-                phone_number: user.phone_number,
-                date_of_birth: user.students?.date_of_birth,
-                current_address: user.students?.current_address,
-                avatar_url: user.avatar_url,
+                full_name: user.full_name || null,
+                email: user.email || null,
+                phone_number: user.phone_number || null,
+                date_of_birth: user.students?.date_of_birth
+                    ? new Date(user.students.date_of_birth).toISOString().split('T')[0]
+                    : null,
+                current_address: user.students?.current_address || null,
+                avatar_url: user.avatar_url || null,
                 status: basicInfoComplete ? 'Hoàn tất' : 'Cần bổ sung'
             },
             studentInfo: {
-                current_school: user.students?.current_school,
-                current_grade: user.students?.current_grade,
-                intended_major: user.students?.intended_major,
-                target_country: user.students?.target_country,
-                yearly_budget: user.students?.yearly_budget,
-                talents: user.students?.talents,
-                hobbies: user.students?.hobbies,
-                personal_desire: user.students?.personal_desire,
+                current_school: user.students?.current_school || null,
+                current_grade: user.students?.current_grade || null,
+                intended_major: user.students?.intended_major || null,
+                target_country: user.students?.target_country || null,
+                yearly_budget: user.students?.yearly_budget ? user.students.yearly_budget.toString() : null,
+                talents: user.students?.talents || null,
+                hobbies: user.students?.hobbies || null,
+                personal_desire: user.students?.personal_desire || null,
             },
             academicProfile: academicProfile || null,
             background: background || null,
-            parents: user.students?.student_parents || [],
+            parents: user.students?.parents || [],
             status: {
                 basicInfoComplete,
                 hasAcademicInfo,
                 hasExtracurriculars,
                 overallStatus: (basicInfoComplete && hasAcademicInfo && hasExtracurriculars) 
                     ? 'Hoàn tất' 
-                    : 'Cần bổ sung'
+                    : 'Cần bổ sung',
+                isNewStudent: !user.students || (!hasAcademicInfo && !hasExtracurriculars)
             }
         };
+
+        console.log('📤 [API] Returning profile data:', {
+            hasBasicInfo: basicInfoComplete,
+            hasAcademicInfo,
+            hasExtracurriculars,
+            isNewStudent: response.status.isNewStudent
+        });
 
         return NextResponse.json(response);
     } catch (error) {
@@ -107,8 +164,6 @@ export async function GET(
             { error: 'Lỗi khi lấy thông tin học sinh' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -143,6 +198,7 @@ export async function PATCH(
             if (basicInfo.current_address) studentBasicUpdate.current_address = basicInfo.current_address;
             if (basicInfo.talents) studentBasicUpdate.talents = basicInfo.talents;
             if (basicInfo.hobbies) studentBasicUpdate.hobbies = basicInfo.hobbies;
+            if (basicInfo.date_of_birth) studentBasicUpdate.date_of_birth = new Date(basicInfo.date_of_birth);
 
             if (Object.keys(studentBasicUpdate).length > 0) {
                 await prisma.students.update({
@@ -194,7 +250,5 @@ export async function PATCH(
             { error: 'Lỗi khi cập nhật thông tin' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

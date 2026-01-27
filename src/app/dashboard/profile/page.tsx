@@ -7,10 +7,10 @@ import AcademicInfoModal from "@/components/AcademicInfoModal";
 import ProfileAnalysisModal from "@/components/ProfileAnalysisModal";
 import AuthHeader from "@/components/dashboard/AuthHeader";
 import { StudentProfile } from "@/components/types";
-import { useSession } from "next-auth/react";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 export default function ProfilePageWrapper() {
-  const { data: session } = useSession();
+  const { session, isLoading: sessionLoading, isAuthenticated } = useAuthSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
@@ -18,34 +18,41 @@ export default function ProfilePageWrapper() {
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [isNewStudent, setIsNewStudent] = useState(false);
 
   // Get student ID from session - memoized to prevent unnecessary recalculations
   const studentId = useMemo(() => {
-    // Try NextAuth session first
+    console.log('🔍 [Profile] Checking for student ID...', {
+      hasSession: !!session,
+      sessionUser: session?.user,
+      sessionKeys: session ? Object.keys(session) : [],
+      userKeys: session?.user ? Object.keys(session.user) : [],
+      isLoading: sessionLoading,
+      isAuthenticated
+    });
+
+    // Priority 1: Try NextAuth session first
     const sessionUserId =
-      (session?.user as any)?.id || (session?.user as any)?.user_id;
+      (session?.user as any)?.id ||
+      (session?.user as any)?.user_id ||
+      (session?.user as any)?.sub;
+
     if (sessionUserId) {
+      console.log('✅ [Profile] Found student ID from NextAuth:', sessionUserId);
       return sessionUserId as string;
     }
 
-    // Try localStorage session (for local auth) - only in browser
-    if (typeof window !== "undefined") {
-      try {
-        const localSession = localStorage.getItem("session");
-        if (localSession) {
-          const parsed = JSON.parse(localSession);
-          const localUserId = parsed?.user_id || parsed?.userId || parsed?.id;
-          if (localUserId) {
-            return localUserId;
-          }
-        }
-      } catch (e) {
-        console.warn("Could not parse session from localStorage:", e);
-      }
+    // If we have email but no id, mark for email-based fetch
+    const userEmail = session?.user?.email;
+    if (userEmail && !sessionUserId) {
+      console.warn('⚠️ [Profile] Have email but no user ID, will fetch by email:', userEmail);
+      return `email:${userEmail}`;
     }
 
+    console.warn('⚠️ [Profile] No student ID found');
+    console.warn('⚠️ [Profile] No student ID found');
     return null;
-  }, [session?.user]);
+  }, [session?.user, sessionLoading, isAuthenticated]);
 
   // Get student ID from session (for use in handlers)
   const getStudentId = (): string | null => {
@@ -54,37 +61,97 @@ export default function ProfilePageWrapper() {
 
   // Fetch profile data from API
   useEffect(() => {
-    // Skip if session is still loading
-    if (session === undefined) {
+    // Skip if session is still loading (only for NextAuth)
+    if (sessionLoading && !studentId) {
+      console.log('⏳ [Profile] Session still loading...');
+      return;
+    }
+
+    // For Custom Auth, we don't need NextAuth authentication
+    // Check if we have studentId from ANY source (NextAuth or Custom Auth)
+    const hasAuth = isAuthenticated || studentId;
+
+    if (!hasAuth) {
+      console.warn('⚠️ [Profile] No authentication found');
+      setError("Vui lòng đăng nhập để xem hồ sơ.");
+      setLoading(false);
       return;
     }
 
     // Skip if no studentId
     if (!studentId) {
+      console.error('❌ [Profile] No student ID found', {
+        session,
+      });
       setError("Không tìm thấy thông tin học sinh. Vui lòng đăng nhập lại.");
       setLoading(false);
       return;
     }
 
     // Skip if already loaded
-    if (profile && !loading) {
-      return;
-    }
+    // if (profile && !loading) {
+    //   return;
+    // }
 
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/students/${studentId}/profile`);
+        console.log('📡 [Profile] Fetching profile for student ID:', studentId);
+
+        // Check if studentId is an email marker
+        let actualStudentId = studentId;
+        if (studentId.startsWith('email:')) {
+          const email = studentId.substring(6);
+          console.log('🔍 [Profile] Need to fetch user by email first:', email);
+
+          // Fetch user by email to get the actual ID
+          const userResponse = await fetch(`/api/users/by-email?email=${encodeURIComponent(email)}`);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            actualStudentId = userData.id;
+            console.log('✅ [Profile] Got user ID from email:', actualStudentId);
+          } else {
+            throw new Error('Không thể tìm thấy người dùng với email này');
+          }
+        }
+
+        const response = await fetch(`/api/students/${actualStudentId}/profile`);
+
+        console.log('📊 [Profile] API Response:', {
+          status: response.status,
+          ok: response.ok,
+          url: response.url
+        });
 
         if (!response.ok) {
-          throw new Error("Không thể tải thông tin học sinh");
+          const text = await response.text();
+          console.error('❌ [Profile] API Error Response Text:', text);
+          let errorData;
+          try {
+            errorData = JSON.parse(text);
+          } catch (e) {
+            console.error('❌ [Profile] Failed to decode JWT token:', e);
+            errorData = { error: 'Unknown error', raw: text };
+          }
+          console.error('❌ [Profile] API Error Data:', errorData);
+          throw new Error(errorData.error || "Không thể tải thông tin học sinh");
         }
 
         const data = await response.json();
+        console.log('✅ [Profile] Data received:', data);
+
+        // Check if this is a new student (just created)
+        const isNewStudent = data.status?.isNewStudent;
+        if (isNewStudent) {
+          console.log('🆕 [Profile] New student detected - showing empty profile');
+          setIsNewStudent(true);
+        } else {
+          setIsNewStudent(false);
+        }
 
         // Map API data to StudentProfile interface
         const mappedProfile: StudentProfile = {
-          id: studentId.substring(0, 8).toUpperCase(),
+          id: actualStudentId.substring(0, 8).toUpperCase(),
           name: data.basicInfo.full_name || "Chưa cập nhật",
           email: data.basicInfo.email || "Chưa cập nhật",
           phone: data.basicInfo.phone_number || "Chưa cập nhật",
@@ -172,7 +239,7 @@ export default function ProfilePageWrapper() {
     };
 
     fetchProfile();
-  }, [studentId]);
+  }, [studentId, sessionLoading, isAuthenticated]);
 
   const handleEditClick = () => {
     setIsModalOpen(true);
@@ -319,13 +386,16 @@ export default function ProfilePageWrapper() {
   };
 
   // Loading state
-  if (loading) {
+  if (loading || sessionLoading) {
     return (
       <>
         <AuthHeader />
         <main className="min-h-screen bg-white dark:bg-slate-900">
-          <div className="flex justify-center items-center h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex flex-col justify-center items-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              {sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
+            </p>
           </div>
         </main>
       </>
@@ -338,16 +408,29 @@ export default function ProfilePageWrapper() {
       <>
         <AuthHeader />
         <main className="min-h-screen bg-white dark:bg-slate-900">
-          <div className="flex flex-col justify-center items-center h-screen">
-            <div className="text-red-600 text-xl mb-4">
-              {error || "Không tìm thấy thông tin học sinh"}
+          <div className="flex flex-col justify-center items-center h-screen px-4">
+            <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+              <div className="text-red-600 dark:text-red-400 text-xl font-semibold mb-2">
+                ⚠️ Lỗi tải dữ liệu
+              </div>
+              <div className="text-red-700 dark:text-red-300 mb-4">
+                {error || "Không tìm thấy thông tin học sinh"}
+              </div>
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-xs text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded">
+                  <strong>Debug Info:</strong><br/>
+                  Student ID: {studentId || 'null'}<br/>
+                  Session: {session ? 'exists' : 'null'}<br/>
+                  Authenticated: {isAuthenticated ? 'yes' : 'no'}
+                </div>
+              )}
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Tải lại trang
+              </button>
             </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Tải lại trang
-            </button>
           </div>
         </main>
       </>
@@ -358,6 +441,39 @@ export default function ProfilePageWrapper() {
     <>
       <AuthHeader />
       <main className="min-h-screen bg-white dark:bg-gray-900">
+        {/* Welcome Banner for New Students */}
+        {isNewStudent && (
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold mb-2">
+                    🎉 Chào mừng bạn đến với Holyann Explore!
+                  </h2>
+                  <p className="text-blue-100 mb-4">
+                    Hồ sơ của bạn đang trống. Hãy bắt đầu xây dựng hồ sơ du học của bạn bằng cách điền thông tin cơ bản, thành tích học tập và hoạt động ngoại khóa.
+                  </p>
+                  <button
+                    onClick={handleEditClick}
+                    className="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-md hover:bg-blue-50 transition-colors"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Bắt đầu xây dựng hồ sơ
+                  </button>
+                </div>
+                <div className="hidden lg:block">
+                  <svg className="w-32 h-32 opacity-20" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <ProfilePage
           profile={profile}
           onEditClick={handleEditClick}

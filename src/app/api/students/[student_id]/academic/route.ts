@@ -32,11 +32,9 @@ export async function POST(
     } catch (error) {
         console.error('❌ Error saving academic profile:', error);
         return NextResponse.json(
-            { error: 'Lỗi khi lưu thông tin học thuật' },
+            { error: 'Lỗi khi cập nhật thông tin học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -58,7 +56,5 @@ export async function GET(
             { error: 'Lỗi khi lấy thông tin học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

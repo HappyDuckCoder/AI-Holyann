@@ -4,14 +4,12 @@ import {useState} from 'react'
 import Link from 'next/link'
 import {useRouter} from 'next/navigation'
 import {signIn} from 'next-auth/react'
-import {useAuth} from '@/hooks/useAuth'
 import {RegisterData} from '@/lib/types/auth.types'
 
 export default function Register() {
     const router = useRouter()
-    // ✅ Sử dụng skipRedirect: true để tùy chỉnh redirect sau đăng ký
-    const {register: registerUser, loading, error} = useAuth({skipRedirect: true})
 
+    const [isLoading, setIsLoading] = useState(false)
     const [registerData, setRegisterData] = useState<RegisterData>({
         full_name: '',
         email: '',
@@ -20,29 +18,50 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [errorMessage, setErrorMessage] = useState('')
 
+    // Fallback loading state for UI compatibility
+    const loading = isLoading;
+    const error = errorMessage;
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
         setErrorMessage('')
+        setIsLoading(true)
 
         // Validation
         if (registerData.password !== confirmPassword) {
             setErrorMessage('Mật khẩu không khớp!')
+            setIsLoading(false)
             return
         }
 
         if (registerData.password.length < 6) {
             setErrorMessage('Mật khẩu phải có ít nhất 6 ký tự!')
+            setIsLoading(false)
             return
         }
 
-        // Gọi API đăng ký
-        const result = await registerUser(registerData)
+        try {
+            // Gọi API đăng ký
+            const response = await fetch('/api/custom-auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(registerData),
+            })
 
-        if (result.success) {
-            // ✅ Chuyển hướng sang trang đăng nhập thay vì dashboard
-            router.push('/login')
-        } else {
-            setErrorMessage(result.message || 'Đăng ký thất bại')
+            const result = await response.json()
+
+            if (response.ok && result.success) {
+                // ✅ Chuyển hướng sang trang đăng nhập thay vì dashboard
+                router.push('/login')
+            } else {
+                setErrorMessage(result.message || 'Đăng ký thất bại')
+            }
+        } catch (err: any) {
+             setErrorMessage(err.message || 'Có lỗi xảy ra, vui lòng thử lại sau')
+        } finally {
+             setIsLoading(false)
         }
     }
 

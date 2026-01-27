@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthSession } from '@/hooks/useAuthSession';
 
 export interface Conversation {
     id: string;
@@ -37,7 +37,8 @@ export interface Message {
 }
 
 export function useChatAPI() {
-    const { token } = useAuth();
+    const { session } = useAuthSession();
+    const token = session?.accessToken;
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

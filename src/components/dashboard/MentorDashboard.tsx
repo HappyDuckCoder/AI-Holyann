@@ -1,8 +1,8 @@
 "use client"
-import {useAuth} from '@/contexts/AuthContext'
+import {useAuthSession} from '@/hooks/useAuthSession'
 
 export default function MentorDashboard() {
-    const {user} = useAuth()
+    const {user} = useAuthSession()
 
     const students = [
         {id: 1, name: 'Nguyễn Văn A', email: 'nguyenvana@email.com', progress: 75, status: 'active'},

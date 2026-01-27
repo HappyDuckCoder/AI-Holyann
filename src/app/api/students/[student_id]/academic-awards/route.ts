@@ -29,8 +29,6 @@ export async function GET(
             { error: 'Lỗi khi lấy giải thưởng học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -73,8 +71,6 @@ export async function POST(
             { error: 'Lỗi khi tạo giải thưởng học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -97,8 +93,6 @@ export async function DELETE(
             { error: 'Lỗi khi xóa giải thưởng học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }
 
@@ -130,7 +124,5 @@ export async function PATCH(request: NextRequest) {
             { error: 'Lỗi khi cập nhật giải thưởng học thuật' },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

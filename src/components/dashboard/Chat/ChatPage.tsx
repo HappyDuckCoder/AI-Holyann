@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
+import { Menu, MoreVertical } from "lucide-react";
 import { Conversation, Message } from "./types";
 import { CONVERSATIONS } from "./data";
-import { ConversationList } from "./ConversationList";
-import { ChatHeader } from "./ChatHeader";
-import { MessagesList } from "./MessagesList";
-import { MessageInput } from "./MessageInput";
-import { MentorInfo } from "./MentorInfo";
+import { ChatSidebar } from "./ChatSidebar";
+import { ChatWindow } from "./ChatWindow";
+import { ChatInfoPanel } from "./ChatInfoPanel";
+import { Button } from "@/components/ui/button";
 
 // Main Component
 export const ChatPage: React.FC = () => {
@@ -19,8 +19,6 @@ export const ChatPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileInfo, setShowMobileInfo] = useState(false);
   const [showMobileConversations, setShowMobileConversations] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = () => {
     if (!messageInput.trim()) {
@@ -50,14 +48,6 @@ export const ChatPage: React.FC = () => {
       toast.success("Gửi tin nhắn thành công", {
         description: "Tin nhắn của bạn đã được gửi đi",
       });
-
-      // Force scroll to bottom after sending message
-      setTimeout(() => {
-        if (messagesContainerRef.current) {
-          messagesContainerRef.current.scrollTop =
-            messagesContainerRef.current.scrollHeight;
-        }
-      }, 50);
     } catch (error) {
       // Show error notification
       toast.error("Gửi tin nhắn thất bại", {
@@ -80,57 +70,54 @@ export const ChatPage: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] md:h-[calc(100vh-theme(spacing.16))] bg-gray-50 dark:bg-slate-900 flex overflow-hidden relative">
-      {/* ========== LEFT SIDEBAR - Conversation List ========== */}
-      <ConversationList
-        conversations={conversations}
-        selectedConversationId={selectedConversation.id}
-        searchQuery={searchQuery}
-        onSelectConversation={handleSelectConversation}
-        onSearchChange={setSearchQuery}
-        showMobile={showMobileConversations}
-        onCloseMobile={() => setShowMobileConversations(false)}
-      />
-
-      {/* Mobile Overlay */}
+    <div className="h-[calc(100vh-4rem)] md:h-[calc(100vh-theme(spacing.16))] bg-gray-100 dark:bg-slate-950 flex overflow-hidden relative">
+      {/* Mobile Overlays */}
       {showMobileConversations && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setShowMobileConversations(false)}
         />
       )}
+      {showMobileInfo && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setShowMobileInfo(false)}
+        />
+      )}
 
-      {/* ========== MAIN CHAT AREA ========== */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-slate-800 min-h-0 w-full md:w-auto">
-        <ChatHeader
+      {/* ========== 3-COLUMN LAYOUT ========== */}
+      <div className="flex w-full h-full">
+        {/* LEFT COLUMN - Conversation List (25%) */}
+        <ChatSidebar
+          conversations={conversations}
+          selectedConversationId={selectedConversation.id}
+          searchQuery={searchQuery}
+          onSelectConversation={handleSelectConversation}
+          onSearchChange={setSearchQuery}
+          showMobile={showMobileConversations}
+          onCloseMobile={() => setShowMobileConversations(false)}
+        />
+
+        {/* MIDDLE COLUMN - Chat Window (Flex-1) */}
+        <ChatWindow
           mentor={selectedConversation.mentor}
-          onToggleMobileInfo={() => setShowMobileInfo(!showMobileInfo)}
-          onToggleMobileConversations={() =>
-            setShowMobileConversations(!showMobileConversations)
-          }
-        />
-
-        <MessagesList
           messages={selectedConversation.messages}
-          messagesEndRef={messagesEndRef}
-          messagesContainerRef={messagesContainerRef}
-          conversationId={selectedConversation.id}
-        />
-
-        <MessageInput
           messageInput={messageInput}
-          onInputChange={setMessageInput}
+          onMessageInputChange={setMessageInput}
           onSendMessage={handleSendMessage}
           onKeyPress={handleKeyPress}
+          conversationId={selectedConversation.id}
+          onToggleMobileInfo={() => setShowMobileInfo(!showMobileInfo)}
+          onToggleMobileConversations={() => setShowMobileConversations(!showMobileConversations)}
+        />
+
+        {/* RIGHT COLUMN - Mentor Info Panel (25%) */}
+        <ChatInfoPanel
+          mentor={selectedConversation.mentor}
+          showMobile={showMobileInfo}
+          onCloseMobile={() => setShowMobileInfo(false)}
         />
       </div>
-
-      {/* ========== RIGHT SIDEBAR - Mentor Info ========== */}
-      <MentorInfo
-        mentor={selectedConversation.mentor}
-        showMobileInfo={showMobileInfo}
-        onCloseMobileInfo={() => setShowMobileInfo(false)}
-      />
     </div>
   );
 };

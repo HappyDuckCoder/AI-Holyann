@@ -1,7 +1,10 @@
 "use client"
 import {useEffect, useRef} from 'react'
 import {useRouter, usePathname} from 'next/navigation'
-import {useAuth, UserRole} from '@/contexts/AuthContext'
+import {useAuthSession} from '@/hooks/useAuthSession'
+import {signOut} from 'next-auth/react'
+
+export type UserRole = 'STUDENT' | 'MENTOR' | 'ADMIN' | 'student' | 'mentor' | 'admin' | string;
 
 interface RoleGuardProps {
     children: React.ReactNode
@@ -10,16 +13,33 @@ interface RoleGuardProps {
 }
 
 export default function RoleGuard({children, allowedRoles, redirectTo = '/login'}: RoleGuardProps) {
-    const {user, isAuthenticated, hasRole, authReady, logout} = useAuth()
+    const {user, isAuthenticated, isLoading} = useAuthSession()
+    const authReady = !isLoading
+    const hasRole = (roles: UserRole[]) => {
+        if (!user || !user.role) return false
+        return roles.includes(user.role) || roles.includes(user.role.toLowerCase())
+    }
+    const { logout } = { logout: () => signOut({ callbackUrl: '/login' }) }
     const router = useRouter()
     const pathname = usePathname()
     const isRedirecting = useRef(false)
 
     useEffect(() => {
+        console.log('🛡️ [RoleGuard] Auth Check:', {
+            authReady,
+            isAuthenticated,
+            user,
+            userRole: user?.role,
+            allowedRoles,
+            pathname,
+            hasRole: hasRole(allowedRoles)
+        });
+
         if (!authReady) return // wait until auth status is known
         if (isRedirecting.current) return // avoid triggering multiple redirects
 
         if (!isAuthenticated) {
+            console.log('❌ [RoleGuard] Not authenticated, redirecting to:', redirectTo);
             if (pathname !== redirectTo) {
                 isRedirecting.current = true
                 router.replace(redirectTo)
@@ -91,8 +111,7 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
                         này.</p>
                     <div className="flex justify-center gap-4">
                         <button onClick={() => {
-                            logout();
-                            router.replace('/login')
+                            signOut({ callbackUrl: '/login' });
                         }} className="px-4 py-2 bg-destructive text-white rounded-lg">Đăng xuất
                         </button>
                         <button onClick={() => router.replace('/dashboard')}

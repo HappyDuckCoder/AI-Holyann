@@ -5,12 +5,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, MoreVertical, CheckCheck } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthSession } from '@/hooks/useAuthSession';
 import { useSocket } from '@/hooks/useSocket';
 import { useChatAPI, Conversation, Message } from '@/hooks/useChatAPI';
 
 export default function RealChatPageExample() {
-    const { user } = useAuth();
+    const { user } = useAuthSession();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // State
