@@ -1,7 +1,7 @@
 "use client"
 import RoleGuard from '@/components/auth/RoleGuard'
-import MentorDashboard from '@/components/dashboard/MentorDashboard'
-import AuthHeader from '@/components/dashboard/AuthHeader'
+import MentorDashboard from '@/components/mentor/dashboard/MentorDashboard'
+import AuthHeader from '@/components/auth/AuthHeader'
 
 export default function MentorPage() {
     return (

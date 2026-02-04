@@ -1,7 +1,7 @@
 'use client';
 
-import ChatContainer from '@/components/chat/ChatContainer';
-import AuthHeader from '@/components/dashboard/AuthHeader';
+import ChatContainer from '@/components/chat/_legacy/ChatContainer';
+import AuthHeader from '@/components/auth/AuthHeader';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';

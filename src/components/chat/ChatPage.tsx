@@ -7,7 +7,7 @@ import { useChatRooms } from "@/hooks/useChatRooms";
 import { useChat } from "@/hooks/useChat";
 import { Conversation, Message, Mentor } from "./types";
 import { ConversationList } from "./ConversationList";
-import { ChatHeader } from "./ChatHeader";
+import ChatHeader from "./ChatHeader";
 import { MessagesList } from "./MessagesList";
 import { MessageInput } from "./MessageInput";
 import { MentorInfo } from "./MentorInfo";

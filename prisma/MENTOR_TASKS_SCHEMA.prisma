@@ -1,0 +1,58 @@
+// ==================== MENTOR TASKS SCHEMA ====================
+// Add this to your prisma/schema.prisma file
+
+// 1. Add the TaskStatus enum at the top with other enums
+enum TaskStatus {
+  PENDING
+  IN_REVIEW
+  COMPLETED
+}
+
+// 2. Add this model with other models
+model mentor_tasks {
+  id          String     @id @default(uuid()) @db.Uuid
+  student_id  String     @db.Uuid
+  mentor_id   String     @db.Uuid
+  
+  // Task details
+  task_name   String     @db.VarChar(255)
+  description String?    @db.Text
+  deadline    DateTime?  @db.Timestamp(6)
+  status      TaskStatus @default(PENDING)
+  
+  // Metadata
+  created_at  DateTime   @default(now()) @db.Timestamp(6)
+  updated_at  DateTime   @updatedAt @db.Timestamp(6)
+  
+  // Relations
+  student     students   @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  mentor      mentors    @relation(fields: [mentor_id], references: [user_id], onDelete: Cascade)
+  
+  // Indexes
+  @@index([student_id])
+  @@index([mentor_id])
+  @@index([status])
+  @@index([deadline])
+}
+
+// 3. Update the students model to include tasks relation
+model students {
+  // ... existing fields ...
+  
+  // Add this line to the relations section
+  mentor_tasks mentor_tasks[]
+}
+
+// 4. Update the mentors model to include tasks relation
+model mentors {
+  // ... existing fields ...
+  
+  // Add this line to the relations section
+  mentor_tasks mentor_tasks[]
+}
+
+// ==================== AFTER ADDING TO SCHEMA ====================
+// Run these commands:
+// 1. npx prisma format
+// 2. npx prisma migrate dev --name add_mentor_tasks
+// 3. npx prisma generate

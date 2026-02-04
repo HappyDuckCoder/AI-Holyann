@@ -21,13 +21,16 @@ export function useTestProgress(studentId?: string | null) {
     // Load progress from database on mount or when studentId changes
     useEffect(() => {
         const loadProgressFromDB = async () => {
-            if (!studentId) {
+            // Don't load if studentId is not valid
+            if (!studentId || studentId === 'undefined' || studentId === 'null' || studentId.trim() === '') {
+                console.log('⏭️ Skipping test progress load - no valid studentId yet');
                 setIsLoaded(true);
                 return;
             }
 
             try {
-                const res = await fetch(`/api/tests/results/${studentId}`);
+                console.log('📊 Loading test progress for student:', studentId);
+                const res = await fetch(`/api/tests/results?student_id=${studentId}`);
                 const data = await res.json();
 
                 if (!data.success) {

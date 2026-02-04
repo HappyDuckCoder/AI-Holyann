@@ -17,9 +17,14 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log('🔐 [NextAuth] Starting authorization...');
+
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          console.error('❌ [NextAuth] Missing credentials');
+          throw new Error('Email và mật khẩu không được để trống');
         }
+
+        console.log('📧 [NextAuth] Attempting login for:', credentials.email);
 
         try {
           const result = await AuthService.login({
@@ -27,9 +32,18 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password
           });
 
+          console.log('📊 [NextAuth] Login result:', {
+            success: result.success,
+            hasUser: !!result.user,
+            message: result.message
+          });
+
           if (!result.success || !result.user) {
-            return null;
+            console.error('❌ [NextAuth] Login failed:', result.message);
+            throw new Error(result.message || 'Đăng nhập thất bại');
           }
+
+          console.log('✅ [NextAuth] Login successful for user:', result.user.id);
 
           return {
             id: result.user.id,
@@ -41,7 +55,8 @@ export const authOptions: NextAuthOptions = {
             student: result.student || null
           };
         } catch (error: any) {
-          return null;
+          console.error('❌ [NextAuth] Authorization error:', error);
+          throw new Error(error.message || 'Đã xảy ra lỗi khi đăng nhập');
         }
       }
     }),
@@ -55,7 +70,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.role = user.role;
-        token.student = user.student;
+        token.student = user.student || undefined;
         if (account?.provider === 'google') {
           token.accessToken = account.access_token;
         } else if (user.accessToken) {
@@ -66,16 +81,18 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub as string;
-        session.user.role = token.role as string;
-        session.user.student = token.student;
-        session.accessToken = token.accessToken as string;
+        (session.user as any).id = token.sub as string;
+        (session.user as any).role = token.role as string;
+        (session.user as any).student = token.student;
+        (session as any).accessToken = token.accessToken as string;
       }
       return session;
     }
   },
   pages: {
-    signIn: '/auth/login',
+    signIn: '/login',
+    error: '/login', // Redirect to login page on error
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development', // Enable debug in development
 }

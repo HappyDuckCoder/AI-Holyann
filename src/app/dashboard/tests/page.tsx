@@ -2,11 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import AuthHeader from "@/components/dashboard/AuthHeader";
+import AuthHeader from "@/components/auth/AuthHeader";
 import TestSelection from "@/components/Test/TestSelection";
 import TestView from "@/components/Test/TestView";
 import ResultView from "@/components/Test/ResultView";
-import CareerAssessmentResults from "@/components/CareerAssessmentResults";
+import CareerAssessmentResults from "@/components/student/assessments/CareerAssessmentResults";
 import {
   TestType,
   Question,
@@ -171,7 +171,8 @@ export default function TestsPage() {
 
   const submitAnswersToApi = async (
     answers: Record<number, string | number | boolean>,
-    testType: TestType
+    testType: TestType,
+    results?: any
   ) => {
     if (!currentTestId) return;
     const studentId = getStudentId();
@@ -184,6 +185,7 @@ export default function TestsPage() {
       test_id: currentTestId,
       test_type: testType,
       count: Object.keys(answers).length,
+      results: results
     });
 
     // Gửi TẤT CẢ đáp án trong 1 API call duy nhất
@@ -195,6 +197,7 @@ export default function TestsPage() {
         student_id: studentId,
         test_type: testType.toLowerCase(),
         answers: answers, // Gửi toàn bộ object
+        results: results, // Gửi kèm kết quả đã tính toán
       }),
     });
 
@@ -331,98 +334,59 @@ export default function TestsPage() {
     }
 
     try {
-      // Gửi đáp án và nhận kết quả ngay từ API submit
-      // API submit sẽ gọi MBTI API từ server-ai và lưu scores vào DB
-      toast.info("Đang phân tích kết quả bằng AI...", {
+      toast.info("Đang xử lý kết quả...", {
         description: "Vui lòng đợi trong giây lát...",
       });
 
-      const apiResult = await submitAnswersToApi(answers, currentTestType);
+      // 1. Calculate Results Locally
+      let calculatedResult: TestResult | null = null;
+      let apiSubmissionData: any = {};
 
-      // For MBTI, API submit đã gọi MBTI API và lưu scores vào DB
-      if (currentTestType === "MBTI") {
-        if (apiResult && apiResult.result_type && apiResult.scores) {
-          console.log(
-            "✅ [MBTI] AI prediction received from submit API:",
-            apiResult.result_type
-          );
-
-          const typeInfo = MBTI_TYPE_DESCRIPTIONS[apiResult.result_type] || {
-            title: apiResult.result_type,
-            description: "Đang cập nhật mô tả...",
+      if (currentTestType === 'GRIT') {
+          calculatedResult = calculateGritResult(answers);
+          apiSubmissionData = {
+              passion_score: calculatedResult.scores['Đam mê'] || calculatedResult.scores['Passion'],
+              perseverance_score: calculatedResult.scores['Kiên trì'] || calculatedResult.scores['Perseverance'],
+              overall_grit_score: calculatedResult.scores['Grit'],
+              level: calculatedResult.rawLabel
           };
-
-          setTestResult({
-            type: "MBTI",
-            scores: apiResult.scores,
-            rawLabel: apiResult.result_type,
-            description: typeInfo.description,
-          });
-          saveTestResult("MBTI", {
-            type: "MBTI",
-            scores: apiResult.scores,
-            rawLabel: apiResult.result_type,
-            description: typeInfo.description,
-          });
-
-          toast.success("Phân tích MBTI hoàn tất", {
-            description: `Loại tính cách của bạn: ${apiResult.result_type}`,
-          });
-        } else {
-          // API submit failed - don't use fallback, show error
-          throw new Error(
-            apiResult?.error ||
-              "Không thể phân tích MBTI. Vui lòng thử lại sau."
-          );
-        }
-      }
-      // For other tests, use API result or local calculation
-      else {
-        let computedResult: TestResult | null = null;
-
-        if (apiResult) {
-          if (currentTestType === "RIASEC" && apiResult.result_code) {
-            computedResult = {
-              type: "RIASEC",
-              scores: apiResult.scores || {},
-              rawLabel: apiResult.result_code,
-              description: "",
-            };
-          } else if (
-            currentTestType === "GRIT" &&
-            apiResult.total_score !== undefined
-          ) {
-            computedResult = {
-              type: "GRIT",
+      } else if (currentTestType === 'RIASEC') {
+          calculatedResult = calculateRIASECResult(answers);
+          apiSubmissionData = {
+              code: calculatedResult.rawLabel,
+              scores: calculatedResult.scores
+          };
+      } else if (currentTestType === 'MBTI') {
+          calculatedResult = calculateMBTIResult(answers);
+          apiSubmissionData = {
+              type: calculatedResult.rawLabel,
               scores: {
-                Grit: apiResult.total_score,
-                "Đam mê": apiResult.passion_score || 0,
-                "Kiên trì": apiResult.perseverance_score || 0,
-              },
-              rawLabel: apiResult.level,
-              description: apiResult.description || "",
-            };
-          }
-        }
-
-        // Fall back local calc nếu API không trả về kết quả
-        if (!computedResult) {
-          console.warn("⚠️ API did not return result, calculating locally");
-          switch (currentTestType) {
-            case "RIASEC":
-              computedResult = calculateRIASECResult(answers);
-              break;
-            case "GRIT":
-              computedResult = calculateGritResult(answers);
-              break;
-          }
-        }
-
-        if (computedResult) {
-          setTestResult(computedResult);
-          saveTestResult(currentTestType, computedResult);
-        }
+                  'E/I': { E: calculatedResult.scores['E'], I: calculatedResult.scores['I'] },
+                  'S/N': { S: calculatedResult.scores['S'], N: calculatedResult.scores['N'] },
+                  'T/F': { T: calculatedResult.scores['T'], F: calculatedResult.scores['F'] },
+                  'J/P': { J: calculatedResult.scores['J'], P: calculatedResult.scores['P'] },
+              }
+          };
       }
+
+      if (!calculatedResult) {
+          throw new Error("Không thể tính toán kết quả.");
+      }
+
+      // 2. Submit Answers AND Results to API
+      await submitAnswersToApi(answers, currentTestType, apiSubmissionData);
+
+      // 3. Update UI
+      setTestResult(calculatedResult);
+      saveTestResult(currentTestType, calculatedResult);
+
+      // Clear storage
+      localStorage.removeItem(`test_answers_${currentTestType}`);
+      localStorage.removeItem(`test_progress_${currentTestType}`);
+
+      toast.success(`Hoàn thành bài test ${currentTestType}`, {
+        description: `Kết quả: ${calculatedResult.rawLabel}`,
+      });
 
       // Cập nhật remainingTests & allCompleted tạm thời
       const allTests: TestType[] = ["MBTI", "GRIT", "RIASEC"];

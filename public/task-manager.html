@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager - CRUD Operations</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-info:hover {
+            background: #2563eb;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+            display: block;
+        }
+        .error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            display: block;
+        }
+        .tasks-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .task-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+        .task-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        .task-title {
+            font-weight: bold;
+            color: #1f2937;
+            font-size: 16px;
+            flex: 1;
+        }
+        .task-stage {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .task-desc {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .task-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Task Manager - CRUD Operations</h1>
+        <p class="subtitle">Quản lý tasks cho Checklist Page</p>
+
+        <!-- CREATE SECTION -->
+        <div class="section">
+            <h2>➕ Tạo Task Mới</h2>
+            <form id="createForm">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Stage ID *</label>
+                        <select id="stageId" required>
+                            <option value="">Chọn stage...</option>
+                            <option value="1">Stage 1 - Chuẩn bị hồ sơ</option>
+                            <option value="2">Stage 2 - Nộp đơn</option>
+                            <option value="3">Stage 3 - Sau khi được nhận</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Order Index (tự động nếu bỏ trống)</label>
+                        <input type="number" id="orderIndex" placeholder="1, 2, 3...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tiêu đề Task *</label>
+                    <input type="text" id="title" placeholder="VD: Cập nhật hồ sơ cá nhân" required>
+                </div>
+                <div class="form-group">
+                    <label>Mô tả</label>
+                    <textarea id="description" placeholder="Mô tả chi tiết về task này..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Link To (optional)</label>
+                    <input type="text" id="linkTo" placeholder="/dashboard/profile hoặc để trống">
+                </div>
+                <button type="submit" class="btn-primary">
+                    ➕ Tạo Task
+                </button>
+            </form>
+        </div>
+
+        <!-- READ SECTION -->
+        <div class="section">
+            <h2>📋 Danh sách Tasks</h2>
+            <button onclick="loadTasks()" class="btn-info">🔄 Tải lại danh sách</button>
+            <div id="tasksList"></div>
+        </div>
+
+        <!-- RESULT -->
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = '/api/tasks';
+        const resultDiv = document.getElementById('result');
+        const tasksListDiv = document.getElementById('tasksList');
+
+        function showResult(message, isSuccess) {
+            resultDiv.textContent = message;
+            resultDiv.className = isSuccess ? 'success' : 'error';
+            resultDiv.style.display = 'block';
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // CREATE
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                stage_id: document.getElementById('stageId').value,
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value || null,
+                link_to: document.getElementById('linkTo').value || null,
+                order_index: document.getElementById('orderIndex').value || null,
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`✅ ${result.message}`, true);
+                    document.getElementById('createForm').reset();
+                    loadTasks();
+                } else {
+                    showResult(`❌ Lỗi: ${result.error}`, false);
+                }
+            } catch (error) {
+                showResult(`❌ Lỗi kết nối: ${error.message}`, false);
+            }
+        });
+
+        // READ
+        async function loadTasks() {
+            tasksListDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Đang tải...</p></div>';
+
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        tasksListDiv.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">Chưa có task nào. Hãy tạo task đầu tiên!</p>';
+                        return;
+                    }
+
+                    let html = '<div class="tasks-list">';
+                    result.data.forEach(task => {
+                        html += `
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <div class="task-title">${task.title}</div>
+                                    <div class="task-stage">Stage ${task.stage_id}</div>
+                                </div>
+                                ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
+                                <div class="task-meta">
+                                    <span>📍 Order: ${task.order_index}</span>
+                                    <span>🔗 ${task.link_to || 'No link'}</span>
+                                    <span>⚡ Required: ${task.is_required ? 'Yes' : 'No'}</span>
+                                </div>
+                                <div class="task-actions">
+                                    <button class="btn-success" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${(task.description || '').replace(/'/g, "\\'")}')">
+                                        ✏️ Sửa
+                                    </button>
+                                    <button class="btn-danger" onclick="deleteTask('${task.id}', '${task.title.replace(/'/g, "\\'")}')">
+                                        🗑️ Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    html += `<p style="text-align: center; color: #6b7280; margin-top: 20px; font-size: 14px;">Tổng: ${result.count} tasks</p>`;
+                    tasksListDiv.innerHTML = html;
+                } else {
+                    tasksListDiv.innerHTML = `<p style="color: #ef4444;">❌ ${result.error}</p>`;
+                }
+            } catch (error) {
+                tasksListDiv.innerHTML = `<p style="color: #ef4444;">❌ Lỗi: ${error.message}</p>`;
+            }
+        }
+
+        // UPDATE
+        function editTask(id, title, description) {
+            const newTitle = prompt('Nhập tiêu đề mới:', title);
+            if (newTitle === null) return;
+
+            const newDesc = prompt('Nhập mô tả mới:', description);
+            if (newDesc === null) return;
+
+            updateTask(id, { title: newTitle, description: newDesc });
+        }
+
+        async function updateTask(id, data) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, ...data }),
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`✅ ${result.message}`, true);
+                    loadTasks();
+                } else {
+                    showResult(`❌ Lỗi: ${result.error}`, false);
+                }
+            } catch (error) {
+                showResult(`❌ Lỗi: ${error.message}`, false);
+            }
+        }
+
+        // DELETE
+        async function deleteTask(id, title) {
+            if (!confirm(`Bạn có chắc muốn xóa task: "${title}"?`)) return;
+
+            try {
+                const response = await fetch(`${API_URL}?id=${id}`, {
+                    method: 'DELETE',
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`✅ ${result.message}`, true);
+                    loadTasks();
+                } else {
+                    showResult(`❌ Lỗi: ${result.error}`, false);
+                }
+            } catch (error) {
+                showResult(`❌ Lỗi: ${error.message}`, false);
+            }
+        }
+
+        // Load tasks on page load
+        window.addEventListener('load', loadTasks);
+    </script>
+</body>
+</html>

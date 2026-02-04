@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import StudentProfile from '@/components/StudentProfile';
+import StudentProfile from '@/components/student/profile/StudentProfile';
 
 export default function StudentProfilePage() {
     const params = useParams();

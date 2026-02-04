@@ -75,6 +75,19 @@ export interface Task {
     feedback?: string;         // Mentor feedback
     linkTo?: string;           // Link to navigate when task is clicked (for test tasks)
     isLocked?: boolean;        // Task is locked (completed from database, cannot be manually changed)
+    status?: string;           // PENDING, IN_PROGRESS, SUBMITTED, COMPLETED, NEEDS_REVISION
+    mentorNote?: string;       // Mentor's note for revision
+    completedAt?: Date;        // Timestamp when the task was completed
+
+    // Database progress information
+    progress?: {
+        status: 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED' | 'NEEDS_REVISION';
+        submission_url?: string;
+        mentor_note?: string;
+        completed_at?: Date;
+        created_at?: Date;
+        updated_at?: Date;
+    };
 }
 
 export interface Stage {

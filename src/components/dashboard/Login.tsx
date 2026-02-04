@@ -36,7 +36,17 @@ export default function Login() {
             if (result?.error) {
                 setErrorMessage("Email hoặc mật khẩu không chính xác");
             } else {
-                router.push("/dashboard");
+                // Fetch session to get user role
+                const sessionResponse = await fetch('/api/auth/session');
+                const session = await sessionResponse.json();
+                const role = session?.user?.role?.toUpperCase();
+                
+                // Redirect based on role
+                let redirectUrl = '/student/dashboard';
+                if (role === 'ADMIN') redirectUrl = '/admin/dashboard';
+                else if (role === 'MENTOR') redirectUrl = '/mentor/dashboard';
+                
+                router.push(redirectUrl);
                 router.refresh();
             }
         } catch (error) {

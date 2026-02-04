@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import ChatRoomList from '@/components/chat/ChatRoomList';
-import ChatMessageBox from '@/components/chat/ChatMessageBox';
-import ChatSidebar from '@/components/chat/ChatSidebar';
+import ChatRoomList from './ChatRoomList';
+import ChatMessageBox from './ChatMessageBox';
+import ChatSidebar from './ChatSidebar';
 import { Info } from 'lucide-react';
 
 interface ChatContainerProps {

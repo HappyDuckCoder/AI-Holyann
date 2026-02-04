@@ -3,6 +3,7 @@ import {useEffect, useRef} from 'react'
 import {useRouter, usePathname} from 'next/navigation'
 import {useAuthSession} from '@/hooks/useAuthSession'
 import {signOut} from 'next-auth/react'
+import { getRoleDashboardPath } from '@/lib/utils/role-paths'
 
 export type UserRole = 'STUDENT' | 'MENTOR' | 'ADMIN' | 'student' | 'mentor' | 'admin' | string;
 
@@ -50,19 +51,7 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
 
         if (!hasRole(allowedRoles)) {
             // Redirect based on user role
-            let target = '/dashboard'
-            switch (user?.role) {
-                case 'admin':
-                    target = '/dashboard/admin'
-                    break
-                case 'mentor':
-                    target = '/dashboard/mentor'
-                    break
-                case 'user':
-                default:
-                    target = '/dashboard'
-                    break
-            }
+            const target = getRoleDashboardPath(user?.role);
             if (pathname !== target) {
                 isRedirecting.current = true
                 router.replace(target)
@@ -114,7 +103,7 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
                             signOut({ callbackUrl: '/login' });
                         }} className="px-4 py-2 bg-destructive text-white rounded-lg">Đăng xuất
                         </button>
-                        <button onClick={() => router.replace('/dashboard')}
+                        <button onClick={() => router.replace('/student/dashboard')}
                                 className="px-4 py-2 bg-primary text-white rounded-lg">Về Dashboard
                         </button>
                     </div>
