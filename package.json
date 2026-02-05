@@ -21,6 +21,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@cyntler/react-doc-viewer": "^1.17.1",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-brands-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",

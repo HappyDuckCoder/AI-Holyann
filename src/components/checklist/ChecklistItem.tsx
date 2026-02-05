@@ -7,8 +7,8 @@ import {
     Clock,
     CheckSquare,
     AlertCircle,
-    FileText,
-    Calendar
+    Calendar,
+    AlertTriangle
 } from 'lucide-react'
 import FileUpload from '@/components/ui/file-upload'
 import { submitTaskWithFile } from '@/actions/checklist'
@@ -116,7 +116,13 @@ export default function ChecklistItem({
                 }
             case 'NEEDS_REVISION':
                 return {
-                    icon: <AlertCircle size={20} className="text-red-600" />,
+                    icon: (
+                        <div className="relative">
+                            <div className="w-5 h-5 rounded-full border-2 border-red-500 bg-red-50 flex items-center justify-center">
+                                <AlertTriangle size={12} className="text-red-500 fill-red-500" />
+                            </div>
+                        </div>
+                    ),
                     className: 'bg-red-50 border-red-200 text-red-600'
                 }
             default:
