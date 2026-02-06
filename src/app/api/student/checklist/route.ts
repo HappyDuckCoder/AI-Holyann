@@ -6,15 +6,7 @@ import { TaskStatus } from '@prisma/client'
 
 export async function GET() {
     try {
-        console.log('📋 [Checklist API] Starting request...')
-
         const session = await getServerSession(authOptions)
-        console.log('🔐 [Checklist API] Session check:', {
-            hasSession: !!session,
-            hasUser: !!session?.user,
-            userId: session?.user?.id,
-            userEmail: session?.user?.email
-        })
 
         if (!session?.user?.id) {
             console.error('❌ [Checklist API] No session or user ID')
@@ -25,10 +17,8 @@ export async function GET() {
         }
 
         const studentId = session.user.id
-        console.log('👤 [Checklist API] Processing for student:', studentId)
 
         // Check if student exists
-        console.log('🔍 [Checklist API] Checking if student exists in DB...')
         const student = await prisma.students.findUnique({
             where: { user_id: studentId },
             select: { user_id: true }
@@ -42,7 +32,7 @@ export async function GET() {
             }, { status: 404 })
         }
 
-        console.log('✅ [Checklist API] Student found, fetching checklist data...')
+        // Student found, fetching checklist data
 
         // Get stages
         const stages = await prisma.checklist_stages.findMany({

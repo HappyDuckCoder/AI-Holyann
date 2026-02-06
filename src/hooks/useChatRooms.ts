@@ -89,7 +89,7 @@ export function useChatRooms(userId: string) {
           table: 'chat_messages',
         },
         (payload) => {
-          console.log('💬 Message event, refreshing rooms...');
+          // Message event, refreshing rooms
           // Refresh rooms when any message is sent/updated
           loadRooms();
         }

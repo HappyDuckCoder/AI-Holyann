@@ -65,11 +65,11 @@ export async function POST(request: NextRequest) {
             submission: updatedSubmission
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('❌ Error reviewing submission:', error);
 
         // Handle Prisma errors
-        if (error.code === 'P2025') {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
             return NextResponse.json(
                 { success: false, error: 'Submission not found' },
                 { status: 404 }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(
-            { success: false, error: 'Failed to review submission' },
+            { success: false, error: error instanceof Error ? error.message : 'Failed to review submission' },
             { status: 500 }
         );
     }

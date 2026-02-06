@@ -56,42 +56,50 @@ export async function getChatRooms(userId: string) {
       },
     });
 
-    // Tính số tin chưa đọc cho mỗi phòng
-    const roomsWithUnreadCount = await Promise.all(
-      rooms.map(async (room) => {
-        const participant = room.participants.find((p) => p.user_id === userId);
-        const lastReadAt = participant?.last_read_at || new Date(0);
+    // Optimize: Batch query unread counts instead of N+1 queries
+    const roomIds = rooms.map(r => r.id);
+    const participantsMap = new Map(
+      rooms.flatMap(r => 
+        r.participants
+          .filter(p => p.user_id === userId)
+          .map(p => [r.id, p.last_read_at || new Date(0)])
+      )
+    );
 
-        const unreadCount = await prisma.chat_messages.count({
+    // Batch query all unread counts at once
+    const unreadCounts = await Promise.all(
+      roomIds.map(async (roomId) => {
+        const lastReadAt = participantsMap.get(roomId) || new Date(0);
+        const count = await prisma.chat_messages.count({
           where: {
-            room_id: room.id,
-            created_at: {
-              gt: lastReadAt,
-            },
-            sender_id: {
-              not: userId,
-            },
+            room_id: roomId,
+            created_at: { gt: lastReadAt },
+            sender_id: { not: userId },
             deleted_at: null,
           },
         });
-
-        return {
-          ...room,
-          unreadCount,
-          lastMessage: room.messages[0] || null,
-        };
+        return { roomId, count };
       })
     );
+
+    const unreadCountMap = new Map(unreadCounts.map(u => [u.roomId, u.count]));
+
+    // Map results with unread counts
+    const roomsWithUnreadCount = rooms.map((room) => ({
+      ...room,
+      unreadCount: unreadCountMap.get(room.id) || 0,
+      lastMessage: room.messages[0] || null,
+    }));
 
     return {
       success: true,
       data: roomsWithUnreadCount,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting chat rooms:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -143,11 +151,11 @@ export async function getChatMessages(roomId: string, userId: string, limit = 50
       data: messages.reverse(), // Đảo ngược để hiển thị từ cũ đến mới
       nextCursor: messages.length === limit ? messages[messages.length - 1].id : null,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting messages:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -177,11 +185,11 @@ export async function getRoomParticipants(roomId: string) {
       success: true,
       data: participants,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting participants:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -276,11 +284,11 @@ export async function getRoomMedia(roomId: string, userId: string) {
         links,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting room media:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }

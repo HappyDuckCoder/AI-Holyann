@@ -39,15 +39,31 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
     // Thực hiện transaction để tạo assignment và chat rooms
     // Tăng timeout lên 10s để tránh lỗi với Supabase connection pooling
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Tạo mentor assignment
-      const assignment = await tx.mentor_assignments.create({
+      // 1. Tạo mentor assignments (mỗi mentor type một assignment riêng)
+      const assignmentAS = await tx.mentor_assignments.create({
         data: {
           student_id: studentId,
-          mentor_as_id: mentorASId,
-          mentor_acs_id: mentorACSId,
-          mentor_ard_id: mentorARDId,
-          created_by: createdBy,
-          is_active: true,
+          mentor_id: mentorASId,
+          type: MentorType.AS,
+          status: 'ACTIVE',
+        },
+      });
+
+      const assignmentACS = await tx.mentor_assignments.create({
+        data: {
+          student_id: studentId,
+          mentor_id: mentorACSId,
+          type: MentorType.ACS,
+          status: 'ACTIVE',
+        },
+      });
+
+      const assignmentARD = await tx.mentor_assignments.create({
+        data: {
+          student_id: studentId,
+          mentor_id: mentorARDId,
+          type: MentorType.ARD,
+          status: 'ACTIVE',
         },
       });
 
@@ -117,7 +133,7 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       });
 
       return {
-        assignment,
+        assignments: [assignmentAS, assignmentACS, assignmentARD],
         rooms: [roomAS, roomACS, roomARD, groupRoom],
       };
     }, {
@@ -130,11 +146,11 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       data: result,
       message: 'Đã gán mentor và tạo phòng chat thành công',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error assigning mentors:', error);
     return {
       success: false,
-      error: error.message || 'Có lỗi xảy ra khi gán mentor',
+      error: error instanceof Error ? error.message : 'Có lỗi xảy ra khi gán mentor',
     };
   }
 }
@@ -156,11 +172,11 @@ export async function closeChatRooms(studentId: string) {
       success: true,
       message: 'Đã đóng tất cả phòng chat',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error closing chat rooms:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -180,11 +196,11 @@ export async function softDeleteChatRooms(studentId: string) {
       success: true,
       message: 'Đã xóa mềm tất cả phòng chat',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error soft deleting chat rooms:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }

@@ -63,12 +63,12 @@ export function useSocket() {
 
         // Connection events
         socket.on('connect', () => {
-            console.log('Socket connected');
+            // Socket connected
             setIsConnected(true);
         });
 
         socket.on('disconnect', () => {
-            console.log('Socket disconnected');
+            console.warn('⚠️ Socket disconnected');
             setIsConnected(false);
         });
 
@@ -104,7 +104,7 @@ export function useSocket() {
     // Join conversation room
     const joinConversation = useCallback((conversationId: string) => {
         // Disabled - Socket functionality not available
-        console.log('[Socket Disabled] Would join conversation:', conversationId);
+        // Socket disabled - would join conversation
     }, []);
 
     // Leave conversation room
@@ -116,7 +116,7 @@ export function useSocket() {
     // Send message
     const sendMessage = useCallback((message: ChatMessage) => {
         // Disabled - Socket functionality not available
-        console.log('[Socket Disabled] Would send message:', message);
+        // Socket disabled - would send message
     }, []);
 
     // Start typing
@@ -132,7 +132,7 @@ export function useSocket() {
     // Mark messages as read
     const markAsRead = useCallback((conversationId: string, messageIds: string[]) => {
         // Disabled - Socket functionality not available
-        console.log('[Socket Disabled] Would mark as read:', conversationId, messageIds);
+        // Socket disabled - would mark as read
     }, []);
 
     // Listen for new messages

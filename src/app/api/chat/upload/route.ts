@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
+import { authOptions } from '@/lib/auth/auth-config';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -88,10 +88,10 @@ export async function POST(request: NextRequest) {
         thumbnailUrl,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error uploading file:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

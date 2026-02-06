@@ -433,4 +433,152 @@ export default function SwotCardPage() {
                       />
                       <PolarRadiusAxis
                         angle={30}
+                        tick={{
+                          fill: "#94A3B8",
+                          fontSize: 9,
+                        }}
+                      />
+                      <Radar
+                        name="Điểm số"
+                        dataKey="A"
+                        stroke="#0f6093"
+                        fill="#0f6093"
+                        fillOpacity={0.6}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #E2E8F0",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                        }}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Strategic Advice Card */}
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 sm:p-6 lg:col-span-2">
+                <h4 className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <Target
+                    size={16}
+                    className="sm:w-[18px] sm:h-[18px] text-[#0f6093]"
+                  />
+                  <span>Định hướng chiến lược</span>
+                </h4>
+                <div className="space-y-3">
+                  {swotData.strategicAdvice.map((advice, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50"
+                    >
+                      <h5 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white mb-1">
+                        {advice.title}
+                      </h5>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                        {advice.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* SWOT Analysis Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {/* Strengths */}
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 sm:p-6">
+                <h4 className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <ShieldCheck
+                    size={16}
+                    className="sm:w-[18px] sm:h-[18px] text-green-600"
+                  />
+                  <span>Điểm mạnh</span>
+                </h4>
+                <ul className="space-y-2">
+                  {swotData.strengths.map((strength, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      <span className="text-green-600 mt-1">•</span>
+                      <span>{strength}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Weaknesses */}
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 sm:p-6">
+                <h4 className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <AlertOctagon
+                    size={16}
+                    className="sm:w-[18px] sm:h-[18px] text-red-600"
+                  />
+                  <span>Điểm yếu</span>
+                </h4>
+                <ul className="space-y-2">
+                  {swotData.weaknesses.map((weakness, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      <span className="text-red-600 mt-1">•</span>
+                      <span>{weakness}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Opportunities */}
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 sm:p-6">
+                <h4 className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <Zap
+                    size={16}
+                    className="sm:w-[18px] sm:h-[18px] text-yellow-600"
+                  />
+                  <span>Cơ hội</span>
+                </h4>
+                <ul className="space-y-2">
+                  {swotData.opportunities.map((opportunity, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      <span className="text-yellow-600 mt-1">•</span>
+                      <span>{opportunity}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Threats */}
+              <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-4 sm:p-6">
+                <h4 className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <Target
+                    size={16}
+                    className="sm:w-[18px] sm:h-[18px] text-orange-600"
+                  />
+                  <span>Thách thức</span>
+                </h4>
+                <ul className="space-y-2">
+                  {swotData.threats.map((threat, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      <span className="text-orange-600 mt-1">•</span>
+                      <span>{threat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
 

@@ -14,7 +14,7 @@ const CreateMentorSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   specialization: z.nativeEnum(MentorType, {
-    errorMap: (issue, ctx) => ({ message: 'Chuyên môn không hợp lệ' }),
+    message: 'Chuyên môn không hợp lệ',
   }),
 })
 

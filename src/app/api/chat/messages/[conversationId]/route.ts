@@ -9,9 +9,10 @@ import {prisma} from '@/lib/prisma';
 // GET - Get all messages for a conversation
 export async function GET(
     request: NextRequest,
-    {params}: { params: { conversationId: string } }
+    {params}: { params: Promise<{ conversationId: string }> }
 ) {
     try {
+        const { conversationId } = await params
         const token = request.headers.get('Authorization')?.replace('Bearer ', '');
         if (!token) {
             return NextResponse.json({error: 'Unauthorized'}, {status: 401});
@@ -23,20 +24,21 @@ export async function GET(
         }
 
         const userId = decoded.userId;
-        const conversationId = params.conversationId;
 
-        // Verify user has access to this conversation
-        const conversation = await prisma.chat_conversations.findFirst({
+        // Verify user has access to this room
+        const room = await prisma.chat_rooms.findFirst({
             where: {
                 id: conversationId,
                 OR: [
                     {student_id: userId},
-                    {mentor_id: userId}
-                ]
+                    {participants: {some: {user_id: userId, is_active: true}}}
+                ],
+                status: 'ACTIVE',
+                deleted_at: null
             }
         });
 
-        if (!conversation) {
+        if (!room) {
             return NextResponse.json({error: 'Conversation not found'}, {status: 404});
         }
 
@@ -47,14 +49,25 @@ export async function GET(
         const skip = (page - 1) * limit;
 
         const messages = await prisma.chat_messages.findMany({
-            where: {conversation_id: conversationId},
+            where: {
+                room_id: conversationId,
+                deleted_at: null
+            },
             include: {
-                sender: {
+                users: {
                     select: {
                         id: true,
                         full_name: true,
                         avatar_url: true,
                         role: true
+                    }
+                },
+                attachments: {
+                    select: {
+                        id: true,
+                        file_url: true,
+                        file_name: true,
+                        file_type: true
                     }
                 }
             },
@@ -64,21 +77,30 @@ export async function GET(
         });
 
         const totalMessages = await prisma.chat_messages.count({
-            where: {conversation_id: conversationId}
+            where: {
+                room_id: conversationId,
+                deleted_at: null
+            }
         });
 
         // Format messages
         const formattedMessages = messages.map(msg => ({
             id: msg.id,
             senderId: msg.sender_id,
-            senderName: msg.sender.full_name,
-            senderAvatar: msg.sender.avatar_url,
-            senderRole: msg.sender.role,
+            senderName: msg.users.full_name,
+            senderAvatar: msg.users.avatar_url,
+            senderRole: msg.users.role,
             content: msg.content,
-            messageType: msg.message_type,
-            attachmentUrl: msg.attachment_url,
+            messageType: msg.type,
+            attachmentUrl: msg.attachments[0]?.file_url || null,
+            attachments: msg.attachments.map(att => ({
+                id: att.id,
+                url: att.file_url,
+                name: att.file_name,
+                type: att.file_type
+            })),
             timestamp: msg.created_at,
-            isRead: msg.is_read,
+            isRead: true, // Note: is_read field doesn't exist in schema, using true as default
             isMine: msg.sender_id === userId
         }));
 
@@ -92,10 +114,10 @@ export async function GET(
             }
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error fetching messages:', error);
         return NextResponse.json(
-            {error: 'Failed to fetch messages'},
+            {error: error instanceof Error ? error.message : 'Failed to fetch messages'},
             {status: 500}
         );
     }
@@ -104,9 +126,10 @@ export async function GET(
 // POST - Send a new message
 export async function POST(
     request: NextRequest,
-    {params}: { params: { conversationId: string } }
+    {params}: { params: Promise<{ conversationId: string }> }
 ) {
     try {
+        const { conversationId } = await params
         const token = request.headers.get('Authorization')?.replace('Bearer ', '');
         if (!token) {
             return NextResponse.json({error: 'Unauthorized'}, {status: 401});
@@ -118,57 +141,81 @@ export async function POST(
         }
 
         const userId = decoded.userId;
-        const conversationId = params.conversationId;
         const {content, messageType = 'TEXT', attachmentUrl} = await request.json();
 
         if (!content || content.trim() === '') {
             return NextResponse.json({error: 'Message content is required'}, {status: 400});
         }
 
-        // Verify user has access to this conversation
-        const conversation = await prisma.chat_conversations.findFirst({
+        // Verify user has access to this room
+        const room = await prisma.chat_rooms.findFirst({
             where: {
                 id: conversationId,
                 OR: [
                     {student_id: userId},
-                    {mentor_id: userId}
-                ]
+                    {participants: {some: {user_id: userId, is_active: true}}}
+                ],
+                status: 'ACTIVE',
+                deleted_at: null
             }
         });
 
-        if (!conversation) {
+        if (!room) {
             return NextResponse.json({error: 'Conversation not found'}, {status: 404});
         }
 
         // Create new message
         const {randomUUID} = await import('crypto');
+        const messageId = randomUUID();
+        
+        // Create message with optional attachment
+        const messageData: any = {
+            id: messageId,
+            room_id: conversationId,
+            sender_id: userId,
+            content: content.trim(),
+            type: messageType
+        };
+
+        // Create attachment if provided (before creating message)
+        if (attachmentUrl) {
+            const attachmentId = randomUUID();
+            messageData.attachments = {
+                create: {
+                    id: attachmentId,
+                    file_url: attachmentUrl,
+                    file_name: attachmentUrl.split('/').pop() || 'attachment',
+                    file_type: messageType === 'IMAGE' ? 'image' : 'file'
+                }
+            };
+        }
+
         const newMessage = await prisma.chat_messages.create({
-            data: {
-                id: randomUUID(),
-                conversation_id: conversationId,
-                sender_id: userId,
-                content: content.trim(),
-                message_type: messageType,
-                attachment_url: attachmentUrl || null,
-                is_read: false
-            },
+            data: messageData,
             include: {
-                sender: {
+                users: {
                     select: {
                         id: true,
                         full_name: true,
                         avatar_url: true,
                         role: true
                     }
+                },
+                attachments: {
+                    select: {
+                        id: true,
+                        file_url: true,
+                        file_name: true,
+                        file_type: true
+                    }
                 }
             }
         });
 
-        // Update conversation's last_message_at (handled by trigger, but we can also do it here)
-        await prisma.chat_conversations.update({
+        // Update room's updated_at
+        await prisma.chat_rooms.update({
             where: {id: conversationId},
             data: {
-                last_message_at: new Date(),
                 updated_at: new Date()
             }
         });
@@ -177,14 +224,20 @@ export async function POST(
         const formattedMessage = {
             id: newMessage.id,
             senderId: newMessage.sender_id,
-            senderName: newMessage.sender.full_name,
-            senderAvatar: newMessage.sender.avatar_url,
-            senderRole: newMessage.sender.role,
+            senderName: newMessage.users.full_name,
+            senderAvatar: newMessage.users.avatar_url,
+            senderRole: newMessage.users.role,
             content: newMessage.content,
-            messageType: newMessage.message_type,
-            attachmentUrl: newMessage.attachment_url,
+            messageType: newMessage.type,
+            attachmentUrl: attachmentUrl || null,
+            attachments: newMessage.attachments.map(att => ({
+                id: att.id,
+                url: att.file_url,
+                name: att.file_name,
+                type: att.file_type
+            })),
             timestamp: newMessage.created_at,
-            isRead: newMessage.is_read,
+            isRead: true,
             isMine: true
         };
 
@@ -193,10 +246,10 @@ export async function POST(
             success: true
         }, {status: 201});
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error sending message:', error);
         return NextResponse.json(
-            {error: 'Failed to send message'},
+            {error: error instanceof Error ? error.message : 'Failed to send message'},
             {status: 500}
         );
     }
@@ -205,9 +258,10 @@ export async function POST(
 // PATCH - Mark messages as read
 export async function PATCH(
     request: NextRequest,
-    {params}: { params: { conversationId: string } }
+    {params}: { params: Promise<{ conversationId: string }> }
 ) {
     try {
+        const { conversationId } = await params
         const token = request.headers.get('Authorization')?.replace('Bearer ', '');
         if (!token) {
             return NextResponse.json({error: 'Unauthorized'}, {status: 401});
@@ -219,45 +273,48 @@ export async function PATCH(
         }
 
         const userId = decoded.userId;
-        const conversationId = params.conversationId;
 
-        // Verify user has access to this conversation
-        const conversation = await prisma.chat_conversations.findFirst({
+        // Verify user has access to this room
+        const room = await prisma.chat_rooms.findFirst({
             where: {
                 id: conversationId,
                 OR: [
                     {student_id: userId},
-                    {mentor_id: userId}
-                ]
+                    {participants: {some: {user_id: userId, is_active: true}}}
+                ],
+                status: 'ACTIVE',
+                deleted_at: null
             }
         });
 
-        if (!conversation) {
+        if (!room) {
             return NextResponse.json({error: 'Conversation not found'}, {status: 404});
         }
 
-        // Mark all messages from other user as read
-        const result = await prisma.chat_messages.updateMany({
+        // Update participant's last_read_at (since is_read field doesn't exist in messages)
+        await prisma.chat_participants.updateMany({
             where: {
-                conversation_id: conversationId,
-                sender_id: {not: userId},
-                is_read: false
+                room_id: conversationId,
+                user_id: userId,
+                is_active: true
             },
             data: {
-                is_read: true,
-                updated_at: new Date()
+                last_read_at: new Date()
             }
         });
+
+        // Return success (note: is_read field doesn't exist in schema, using last_read_at instead)
+        const result = {count: 1};
 
         return NextResponse.json({
             success: true,
             updatedCount: result.count
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error marking messages as read:', error);
         return NextResponse.json(
-            {error: 'Failed to mark messages as read'},
+            {error: error instanceof Error ? error.message : 'Failed to mark messages as read'},
             {status: 500}
         );
     }

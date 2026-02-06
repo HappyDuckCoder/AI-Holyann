@@ -4,10 +4,10 @@ import { TestStatus } from '@prisma/client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { studentId: string } }
+  { params }: { params: Promise<{ studentId: string }> }
 ) {
   try {
-    const studentId = params.studentId;
+    const { studentId } = await params;
 
     // Validate studentId
     if (!studentId || studentId === 'undefined' || studentId === 'null' || studentId.trim() === '') {
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    console.log('📊 Fetching test results for student:', studentId);
+    // Fetching test results for student
 
     // Fetch all test results
     const mbti = await prisma.mbti_tests.findUnique({
@@ -114,7 +114,7 @@ export async function GET(
       };
     }
 
-    console.log(`✅ Found ${completedCount}/3 completed tests`);
+    // Found completed tests
 
     return NextResponse.json({
       success: true,
