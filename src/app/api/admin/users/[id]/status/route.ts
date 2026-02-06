@@ -4,14 +4,15 @@ import { prisma } from '@/lib/prisma'
 // PATCH - Thay đổi trạng thái người dùng
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const body = await request.json()
         const { is_active } = body
 
         const user = await prisma.users.update({
-            where: { id: params.id },
+            where: { id },
             data: { is_active }
         })
 
@@ -19,10 +20,10 @@ export async function PATCH(
             message: `${is_active ? 'Kích hoạt' : 'Khóa'} người dùng thành công`,
             user
         })
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error updating user status:', error)
         return NextResponse.json(
-            { message: 'Lỗi khi cập nhật trạng thái' },
+            { message: error instanceof Error ? error.message : 'Lỗi khi cập nhật trạng thái' },
             { status: 500 }
         )
     }

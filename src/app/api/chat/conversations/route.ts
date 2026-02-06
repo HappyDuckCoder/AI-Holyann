@@ -30,47 +30,16 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({error: 'User not found'}, {status: 404});
         }
 
-        // Get conversations based on role
+        // Get conversations based on role using chat_rooms
         const conversations = user.role === 'STUDENT' || user.role === 'ADMIN'
-            ? await prisma.chat_conversations.findMany({
-                where: {student_id: userId},
-                include: {
-                    mentor: {
-                        select: {
-                            id: true,
-                            full_name: true,
-                            email: true,
-                            avatar_url: true,
-                            role: true
-                        }
-                    },
-                    messages: {
-                        orderBy: {created_at: 'desc'},
-                        take: 1,
-                        select: {
-                            id: true,
-                            content: true,
-                            created_at: true,
-                            sender_id: true
-                        }
-                    },
-                    _count: {
-                        select: {
-                            messages: {
-                                where: {
-                                    sender_id: {not: userId},
-                                    is_read: false
-                                }
-                            }
-                        }
-                    }
+            ? await prisma.chat_rooms.findMany({
+                where: {
+                    student_id: userId,
+                    status: 'ACTIVE',
+                    deleted_at: null
                 },
-                orderBy: {last_message_at: 'desc'}
-            })
-            : await prisma.chat_conversations.findMany({
-                where: {mentor_id: userId},
                 include: {
-                    student: {
+                    users: {
                         select: {
                             id: true,
                             full_name: true,
@@ -84,6 +53,23 @@ export async function GET(request: NextRequest) {
                             }
                         }
                     },
+                    participants: {
+                        where: {
+                            user_id: {not: userId},
+                            is_active: true
+                        },
+                        include: {
+                            users: {
+                                select: {
+                                    id: true,
+                                    full_name: true,
+                                    email: true,
+                                    avatar_url: true,
+                                    role: true
+                                }
+                            }
+                        }
+                    },
                     messages: {
                         orderBy: {created_at: 'desc'},
                         take: 1,
@@ -98,39 +84,112 @@ export async function GET(request: NextRequest) {
                         select: {
                             messages: {
                                 where: {
-                                    sender_id: {not: userId},
-                                    is_read: false
+                                    sender_id: {not: userId}
                                 }
                             }
                         }
                     }
                 },
-                orderBy: {last_message_at: 'desc'}
+                orderBy: {updated_at: 'desc'}
+            })
+            : await prisma.chat_rooms.findMany({
+                where: {
+                    participants: {
+                        some: {
+                            user_id: userId,
+                            is_active: true
+                        }
+                    },
+                    status: 'ACTIVE',
+                    deleted_at: null
+                },
+                include: {
+                    users: {
+                        select: {
+                            id: true,
+                            full_name: true,
+                            email: true,
+                            avatar_url: true,
+                            students: {
+                                select: {
+                                    current_grade: true,
+                                    target_country: true
+                                }
+                            }
+                        }
+                    },
+                    participants: {
+                        where: {
+                            user_id: {not: userId},
+                            is_active: true
+                        },
+                        include: {
+                            users: {
+                                select: {
+                                    id: true,
+                                    full_name: true,
+                                    email: true,
+                                    avatar_url: true,
+                                    role: true
+                                }
+                            }
+                        }
+                    },
+                    messages: {
+                        orderBy: {created_at: 'desc'},
+                        take: 1,
+                        select: {
+                            id: true,
+                            content: true,
+                            created_at: true,
+                            sender_id: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            messages: {
+                                where: {
+                                    sender_id: {not: userId}
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: {updated_at: 'desc'}
             });
 
         // Format response
-        const formattedConversations = conversations.map(conv => ({
-            id: conv.id,
-            participant: user.role === 'STUDENT' || user.role === 'ADMIN' ? {
-                id: conv.mentor.id,
-                name: conv.mentor.full_name,
-                email: conv.mentor.email,
-                avatar: conv.mentor.avatar_url,
-                role: conv.mentor.role
-            } : {
-                id: conv.student.id,
-                name: conv.student.full_name,
-                email: conv.student.email,
-                avatar: conv.student.avatar_url,
-                grade: conv.student.students?.current_grade,
-                targetCountry: conv.student.students?.target_country
-            },
-            lastMessage: conv.messages[0]?.content || '',
-            lastMessageTime: conv.messages[0]?.created_at || conv.created_at,
-            unreadCount: conv._count.messages,
-            createdAt: conv.created_at,
-            updatedAt: conv.updated_at
-        }));
+        const formattedConversations = conversations.map(conv => {
+            let participant: any = null;
+            
+            if (user.role === 'STUDENT' || user.role === 'ADMIN') {
+                // For students/admins: get mentor from participants
+                participant = conv.participants[0]?.users;
+            } else {
+                // For mentors: get student from users relation
+                participant = conv.users;
+            }
+            
+            return {
+                id: conv.id,
+                participant: participant ? {
+                    id: participant.id,
+                    name: participant.full_name,
+                    email: participant.email,
+                    avatar: participant.avatar_url,
+                    role: participant.role || (user.role === 'MENTOR' ? 'STUDENT' : 'MENTOR'),
+                    ...(user.role === 'MENTOR' && conv.users && 'students' in conv.users ? {
+                        grade: conv.users.students?.current_grade,
+                        targetCountry: conv.users.students?.target_country
+                    } : {})
+                } : null,
+                lastMessage: conv.messages[0]?.content || '',
+                lastMessageTime: conv.messages[0]?.created_at || conv.created_at,
+                unreadCount: conv._count.messages,
+                createdAt: conv.created_at,
+                updatedAt: conv.updated_at
+            };
+        }).filter(conv => conv.participant !== null);
 
         return NextResponse.json({
             conversations: formattedConversations,
@@ -191,31 +250,21 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({error: 'Invalid user role'}, {status: 403});
         }
 
-        // Check if conversation already exists
-        const existingConversation = await prisma.chat_conversations.findFirst({
+        // Check if conversation already exists (room with both participants)
+        const existingRoom = await prisma.chat_rooms.findFirst({
             where: {
                 student_id: finalStudentId,
-                mentor_id: finalMentorId
-            }
-        });
-
-        if (existingConversation) {
-            return NextResponse.json({
-                conversation: existingConversation,
-                message: 'Conversation already exists'
-            });
-        }
-
-        // Create new conversation
-        const {randomUUID} = await import('crypto');
-        const newConversation = await prisma.chat_conversations.create({
-            data: {
-                id: randomUUID(),
-                student_id: finalStudentId,
-                mentor_id: finalMentorId
+                participants: {
+                    some: {
+                        user_id: finalMentorId,
+                        is_active: true
+                    }
+                },
+                status: 'ACTIVE',
+                deleted_at: null
             },
             include: {
-                student: {
+                users: {
                     select: {
                         id: true,
                         full_name: true,
@@ -223,16 +272,81 @@ export async function POST(request: NextRequest) {
                         avatar_url: true
                     }
                 },
-                mentor: {
+                participants: {
+                    where: {is_active: true},
+                    include: {
+                        users: {
+                            select: {
+                                id: true,
+                                full_name: true,
+                                email: true,
+                                avatar_url: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (existingRoom) {
+            const mentorParticipant = existingRoom.participants.find(p => p.user_id === finalMentorId);
+            return NextResponse.json({
+                conversation: {
+                    id: existingRoom.id,
+                    student: existingRoom.users || null,
+                    mentor: mentorParticipant?.users || null
+                },
+                message: 'Conversation already exists'
+            });
+        }
+
+        // Create new room
+        const {randomUUID} = await import('crypto');
+        const roomId = randomUUID();
+        const newRoom = await prisma.chat_rooms.create({
+            data: {
+                id: roomId,
+                name: `Chat ${finalStudentId.substring(0, 8)}-${finalMentorId.substring(0, 8)}`,
+                type: 'PRIVATE',
+                status: 'ACTIVE',
+                student_id: finalStudentId,
+                participants: {
+                    create: [
+                        {user_id: finalStudentId, is_active: true},
+                        {user_id: finalMentorId, is_active: true}
+                    ]
+                }
+            },
+            include: {
+                users: {
                     select: {
                         id: true,
                         full_name: true,
                         email: true,
                         avatar_url: true
                     }
+                },
+                participants: {
+                    where: {is_active: true},
+                    include: {
+                        users: {
+                            select: {
+                                id: true,
+                                full_name: true,
+                                email: true,
+                                avatar_url: true
+                            }
+                        }
+                    }
                 }
             }
         });
+
+        const newConversation = {
+            id: newRoom.id,
+            student: newRoom.users,
+            mentor: newRoom.participants.find(p => p.user_id === finalMentorId)?.users
+        };
 
         return NextResponse.json({
             conversation: newConversation,

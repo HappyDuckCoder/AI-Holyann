@@ -2,11 +2,11 @@
  * Career Assessment Schema (Feature 2)
  * 
  * Based on POSTMAN_GUIDE.md and POSTMAN_TEST_INPUT.json / POSTMAN_TEST_OUTPUT.json
- * Covers 4 API endpoints:
- * - /api/career-assessment/ (Combined)
- * - /api/mbti/ (MBTI only)
- * - /api/grit-scale/ (GRIT only)
- * - /api/riasec/ (RIASEC only)
+ * Covers 4 API endpoints (Module 2):
+ * - /api/module2/career-assessment/ (Combined)
+ * - /api/module2/mbti/ (MBTI only)
+ * - /api/module2/grit-scale/ (GRIT only)
+ * - /api/module2/riasec/ (RIASEC only)
  */
 
 // ============================================================================
@@ -15,7 +15,7 @@
 
 /**
  * Combined Career Assessment Input
- * Used for /api/career-assessment/
+ * Used for /api/module2/career-assessment/
  */
 export interface CareerAssessmentInput {
   mbti_answers: number[]; // Exactly 60 integers from -3 to 3
@@ -27,7 +27,7 @@ export interface CareerAssessmentInput {
 
 /**
  * MBTI Assessment Input
- * Used for /api/mbti/
+ * Used for /api/module2/mbti/
  */
 export interface MBTIInput {
   answers: number[]; // Exactly 60 integers from -3 to 3
@@ -35,7 +35,7 @@ export interface MBTIInput {
 
 /**
  * GRIT Scale Assessment Input
- * Used for /api/grit-scale/
+ * Used for /api/module2/grit-scale/
  */
 export interface GritInput {
   answers: Record<string, number>; // Keys "1"-"12", values 1-5
@@ -43,7 +43,7 @@ export interface GritInput {
 
 /**
  * RIASEC Assessment Input
- * Used for /api/riasec/
+ * Used for /api/module2/riasec/
  */
 export interface RIASECInput {
   answers: Record<string, number>; // Keys "1"-"48", values 1-5
@@ -133,7 +133,7 @@ export interface CombinedAssessmentResult {
 
 /**
  * Combined Career Assessment Output
- * Response from /api/career-assessment/
+ * Response from /api/module2/career-assessment/
  */
 export interface CareerAssessmentOutput {
   success: boolean;
@@ -144,7 +144,7 @@ export interface CareerAssessmentOutput {
 
 /**
  * MBTI Assessment Output
- * Response from /api/mbti/
+ * Response from /api/module2/mbti/
  */
 export interface MBTIOutput {
   success: boolean;
@@ -153,7 +153,7 @@ export interface MBTIOutput {
 
 /**
  * GRIT Assessment Output
- * Response from /api/grit-scale/
+ * Response from /api/module2/grit-scale/
  */
 export interface GritOutput {
   success: boolean;
@@ -162,7 +162,7 @@ export interface GritOutput {
 
 /**
  * RIASEC Assessment Output
- * Response from /api/riasec/
+ * Response from /api/module2/riasec/
  */
 export interface RIASECOutput {
   success: boolean;

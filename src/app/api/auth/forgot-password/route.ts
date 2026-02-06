@@ -5,11 +5,10 @@ import crypto from 'crypto';
 // Function to send email (you'll need to configure your email service)
 async function sendOTPEmail(email: string, otp: string) {
   // TODO: Integrate with your email service (SendGrid, AWS SES, Resend, etc.)
-  // For now, we'll just log it
-  console.log(`=== OTP FOR ${email} ===`);
-  console.log(`OTP: ${otp}`);
-  console.log(`This OTP will expire in 10 minutes`);
-  console.log(`========================`);
+  // In development, OTP is logged to console for testing
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`⚠️ [DEV] OTP for ${email}: ${otp} (expires in 10 minutes)`);
+  }
 
   // Example with Resend (uncomment and configure):
   /*
@@ -64,8 +63,8 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      console.log('⚠️  DEVELOPMENT MODE: Bỏ qua kiểm tra email trong database');
-      console.log(`📧 Testing với email: ${email}`);
+      console.warn('⚠️  DEVELOPMENT MODE: Bỏ qua kiểm tra email trong database');
+      // Testing with email in development mode
     }
 
     // Generate 6-digit OTP

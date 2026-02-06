@@ -22,14 +22,7 @@ export default function ProfilePageWrapper() {
 
   // Get student ID from session - memoized to prevent unnecessary recalculations
   const studentId = useMemo(() => {
-    console.log('🔍 [Profile] Checking for student ID...', {
-      hasSession: !!session,
-      sessionUser: session?.user,
-      sessionKeys: session ? Object.keys(session) : [],
-      userKeys: session?.user ? Object.keys(session.user) : [],
-      isLoading: sessionLoading,
-      isAuthenticated
-    });
+    // Checking for student ID
 
     // Priority 1: Try NextAuth session first
     const sessionUserId =
@@ -38,7 +31,7 @@ export default function ProfilePageWrapper() {
       (session?.user as any)?.sub;
 
     if (sessionUserId) {
-      console.log('✅ [Profile] Found student ID from NextAuth:', sessionUserId);
+      // Found student ID from NextAuth
       return sessionUserId as string;
     }
 
@@ -49,7 +42,6 @@ export default function ProfilePageWrapper() {
       return `email:${userEmail}`;
     }
 
-    console.warn('⚠️ [Profile] No student ID found');
     console.warn('⚠️ [Profile] No student ID found');
     return null;
   }, [session?.user, sessionLoading, isAuthenticated]);

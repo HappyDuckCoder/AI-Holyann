@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { studentId: string } }
+  { params }: { params: Promise<{ studentId: string }> }
 ) {
   try {
-    const studentId = params.studentId;
-    console.log('🎓 Fetching career recommendations for student:', studentId);
+    const { studentId } = await params;
+    // Fetching career recommendations for student
 
     if (!studentId) {
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function GET(
       created_at: match.created_at,
     }));
 
-    console.log(`✅ Found ${recommendations.length} career recommendations`);
+    // Found career recommendations
 
     return NextResponse.json({
       success: true,

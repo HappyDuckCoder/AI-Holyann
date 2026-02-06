@@ -72,11 +72,11 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.1);
         } catch (err) {
-          console.log('Could not play notification sound');
+          // Could not play notification sound
         }
       });
     } catch (err) {
-      console.log('Could not play notification sound');
+      // Could not play notification sound
     }
   }, [playSound]);
 
@@ -178,7 +178,7 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             isPending: false,
           };
 
-          console.log('✅ [SERVER CONFIRM] Message sent successfully:', realMessage.id);
+          // Message sent successfully
 
           // Map temp ID to real ID
           pendingMessagesRef.current.set(tempId, realMessage.id);
@@ -263,7 +263,7 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
   useEffect(() => {
     if (!roomId) return;
 
-    console.log('🔌 [REALTIME] Setting up subscription for room:', roomId);
+    // Setting up subscription for room
 
     // Subscribe to new messages
     const channel = supabase
@@ -281,13 +281,13 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
           filter: `room_id=eq.${roomId}`,
         },
         async (payload) => {
-          console.log('📩 [REALTIME] New message received:', payload.new);
+          // New message received via Realtime
 
           const newMessageId = payload.new.id as string;
 
           // Skip if already processed (from optimistic UI)
           if (processedMessagesRef.current.has(newMessageId)) {
-            console.log('⏭️ [SKIP] Message already processed (optimistic UI):', newMessageId);
+            // Message already processed (optimistic UI)
             return;
           }
 
@@ -306,7 +306,7 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
           setMessages((prev) => {
             const exists = prev.some(m => m.id === newMessageId);
             if (exists) {
-              console.log('⏭️ [SKIP] Message already in state:', newMessageId);
+              // Message already in state
               return prev;
             }
 
@@ -366,7 +366,7 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
           filter: `room_id=eq.${roomId}`,
         },
         (payload) => {
-          console.log('📝 [REALTIME] Message updated:', payload.new);
+          // Message updated via Realtime
 
           setMessages((prev) =>
             prev.map((msg) =>
@@ -383,12 +383,12 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
         }
       )
       .subscribe((status) => {
-        console.log(`📡 [REALTIME] Subscription status for room ${roomId}:`, status);
+        // Subscription status for room
 
         if (status === 'SUBSCRIBED') {
-          console.log('✅ [REALTIME] Successfully subscribed to room');
+          // Successfully subscribed to room
         } else if (status === 'CLOSED') {
-          console.log('❌ [REALTIME] Subscription closed');
+          console.warn('⚠️ [REALTIME] Subscription closed');
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ [REALTIME] Channel error');
         }
@@ -397,7 +397,7 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
     channelRef.current = channel;
 
     return () => {
-      console.log(`🔌 [REALTIME] Unsubscribing from room ${roomId}`);
+      // Unsubscribing from room
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;

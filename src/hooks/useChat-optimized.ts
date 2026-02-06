@@ -107,7 +107,7 @@ export function useChat({ roomId, userId, onNewMessage }: UseChatOptions) {
         isPending: true,
       };
 
-      console.log('📤 Optimistic UI: Adding message immediately', tempId);
+      // Adding message immediately (optimistic UI)
       setMessages((prev) => [...prev, optimisticMessage]);
       pendingMessagesRef.current.add(tempId);
 
@@ -138,7 +138,7 @@ export function useChat({ roomId, userId, onNewMessage }: UseChatOptions) {
             isFromMe: true,
           };
 
-          console.log('✅ Server confirmed message:', realMessage.id);
+          // Server confirmed message
 
           // Replace optimistic message with real message
           setMessages((prev) =>
@@ -213,24 +213,24 @@ export function useChat({ roomId, userId, onNewMessage }: UseChatOptions) {
           filter: `room_id=eq.${roomId}`,
         },
         async (payload) => {
-          console.log('📩 New message received via Realtime:', payload.new);
+          // New message received via Realtime
 
           const newMessageId = payload.new.id;
           
           // Skip if this is a pending message from current user (optimistic UI already shown)
           if (pendingMessagesRef.current.has(newMessageId)) {
-            console.log('⏭️ Skipping duplicate message (already in optimistic UI):', newMessageId);
+            // Skipping duplicate message (already in optimistic UI)
             return;
           }
 
           // Check if message is from current user (already shown via optimistic UI)
           if (payload.new.sender_id === userId) {
-            console.log('⏭️ Skipping own message (shown via optimistic UI)');
+            // Skipping own message (shown via optimistic UI)
             return;
           }
 
           // Load full message details for messages from others
-          console.log('📥 Loading new message from other user');
+          // Loading new message from other user
           await loadMessages();
           
           // Mark as read if not from me
@@ -255,7 +255,7 @@ export function useChat({ roomId, userId, onNewMessage }: UseChatOptions) {
           filter: `room_id=eq.${roomId}`,
         },
         (payload) => {
-          console.log('📝 Message updated via Realtime:', payload.new);
+          // Message updated via Realtime
 
           setMessages((prev) =>
             prev.map((msg) =>
@@ -272,13 +272,13 @@ export function useChat({ roomId, userId, onNewMessage }: UseChatOptions) {
         }
       )
       .subscribe((status) => {
-        console.log(`📡 Realtime status for room ${roomId}:`, status);
+        // Realtime status for room
       });
 
     channelRef.current = channel;
 
     return () => {
-      console.log(`🔌 Unsubscribing from room ${roomId}`);
+      // Unsubscribing from room
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }

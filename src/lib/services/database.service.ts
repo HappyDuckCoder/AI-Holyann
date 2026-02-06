@@ -14,7 +14,7 @@ export class DatabaseService {
                 await prisma.users.create({
                     data
                 });
-                console.log(`✅ [DatabaseService] Synced to Local DB on attempt ${attempt}:`, data.id);
+                // Successfully synced to Local DB
                 return;
             } catch (error: any) {
                 const errorMsg = error.message || '';
@@ -27,7 +27,7 @@ export class DatabaseService {
                 if (attempt === retries) {
                     console.error('❌ [DatabaseService] Failed to sync to Local DB after retries:', data.id);
                 } else if (!errorMsg.includes('Circuit breaker open')) {
-                    console.log('🔄 Retrying sync to Local DB...');
+                    // Retrying sync to Local DB
                 }
             }
         }
@@ -38,7 +38,7 @@ export class DatabaseService {
      */
     private static async createStudentProfile(userId: string, retries = 2): Promise<void> {
         const studentData = {user_id: userId};
-        console.log('📝 [DatabaseService] Creating student profile for:', userId);
+        // Creating student profile
 
         // 1. Supabase
         try {
@@ -56,10 +56,10 @@ export class DatabaseService {
                 if (supabaseError) {
                     console.error('❌ [DatabaseService] Failed to create student profile in Supabase:', supabaseError);
                 } else {
-                    console.log('✅ [DatabaseService] Student profile created in Supabase');
+                    // Student profile created in Supabase
                 }
             } else {
-                console.log('ℹ️ [DatabaseService] Student profile already exists in Supabase');
+                // Student profile already exists in Supabase
             }
         } catch (error) {
             console.error('⚠️ [DatabaseService] Error checking/creating student in Supabase:', error);
@@ -77,9 +77,9 @@ export class DatabaseService {
                     await prisma.students.create({
                         data: studentData
                     });
-                    console.log('✅ [DatabaseService] Student profile created in Local DB');
+                    // Student profile created in Local DB
                 } else {
-                    console.log('ℹ️ [DatabaseService] Student profile already exists in Local DB');
+                    // Student profile already exists in Local DB
                 }
                 return; // Success, exit retry loop
             } catch (error: any) {
@@ -92,7 +92,7 @@ export class DatabaseService {
                 }
 
                 if (errorMsg.includes('Unique constraint failed')) {
-                    console.log('ℹ️ [DatabaseService] Student profile already exists in Local DB (unique constraint)');
+                    // Student profile already exists in Local DB
                     return;
                 }
 
@@ -101,7 +101,7 @@ export class DatabaseService {
                 if (attempt === retries) {
                     console.error('❌ [DatabaseService] Failed to create student profile in Local DB after retries');
                 } else {
-                    console.log('🔄 Retrying student profile creation...');
+                    // Retrying student profile creation
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
                 }
             }
@@ -113,15 +113,11 @@ export class DatabaseService {
      */
     static async createUser(data: RegisterData): Promise<User | null> {
         try {
-            console.log('🔍 [DatabaseService] Creating user with data:', {
-                full_name: data.full_name,
-                email: data.email,
-                role: data.role || 'STUDENT'
-            });
+            // Creating user
 
             // Hash password
             const hashedPassword = await bcrypt.hash(data.password, 10);
-            console.log('✅ [DatabaseService] Password hashed successfully');
+            // Password hashed successfully
 
             const userId = randomUUID();
             const insertData = {
@@ -133,7 +129,7 @@ export class DatabaseService {
                 auth_provider: 'LOCAL',
                 is_active: true
             };
-            console.log('📦 [DatabaseService] Insert data:', insertData);
+            // Preparing to insert user data
 
             let createdUser: User | null = null;
 
@@ -165,7 +161,7 @@ export class DatabaseService {
                 if (supabaseError.message === 'FALLBACK_TO_PRISMA' ||
                     supabaseError.message.includes('permission denied')) {
 
-                    console.log('🔄 [DatabaseService] Using Prisma as primary database...');
+                    // Using Prisma as primary database
 
                     try {
                         const prismaUser = await prisma.users.create({
@@ -178,7 +174,7 @@ export class DatabaseService {
                         // Thử sync ngược lên Supabase (best effort)
                         try {
                             await supabase.from('users').insert(insertData);
-                            console.log('✅ [DatabaseService] Synced to Supabase (best effort)');
+                            // Synced to Supabase (best effort)
                         } catch (syncError) {
                             console.warn('⚠️ [DatabaseService] Could not sync to Supabase, continuing with Prisma only');
                         }
@@ -241,7 +237,7 @@ export class DatabaseService {
                 throw new Error(`Supabase insert failed: ${supabaseError.message}${supabaseError.code ? ` (code: ${supabaseError.code})` : ''}`);
             }
 
-            console.log('✅ [DatabaseService] OAuth user created in Supabase:', supabaseUser?.id);
+            // OAuth user created in Supabase
 
             // 2. Đồng bộ vào Local Database (Prisma) với retry
             await this.syncToLocalDB(userData);
@@ -274,7 +270,7 @@ export class DatabaseService {
                 })
 
                 if (localUser) {
-                    console.log('✅ [DatabaseService] Found user in Local DB:', localUser.id)
+                    // Found user in Local DB
                     return localUser as User
                 }
             } catch (prismaError: any) {
@@ -335,7 +331,7 @@ export class DatabaseService {
      */
     static async findUserById(id: string): Promise<User | null> {
         try {
-            console.log('🔍 [DatabaseService] Finding user by ID:', id);
+            // Finding user by ID
 
             // 1. Thử tìm trong Local DB trước
             try {
@@ -347,16 +343,16 @@ export class DatabaseService {
                 })
 
                 if (localUser) {
-                    console.log('✅ [DatabaseService] Found user by ID in Local DB:', localUser.id)
+                    // Found user by ID in Local DB
                     return localUser as User
                 }
-                console.log('⚠️ [DatabaseService] User not found in Local DB by ID:', id);
+                // User not found in Local DB by ID
             } catch (prismaError: any) {
                 console.warn('⚠️ [DatabaseService] Local DB query failed, trying Supabase:', prismaError.message)
             }
 
             // 2. Fallback về Supabase
-            console.log('🔄 [DatabaseService] Trying Supabase for user ID:', id);
+            // Trying Supabase for user ID
             const {data: user, error} = await supabase
                 .from('users')
                 .select('*')
@@ -366,13 +362,13 @@ export class DatabaseService {
 
             if (error) {
                 console.error('❌ [DatabaseService] Supabase error:', error.message);
-                console.log('🔄 [DatabaseService] User not found in either database, ID:', id);
+                // User not found in either database
                 return null
             }
 
             // Đồng bộ user từ Supabase vào Local DB nếu tìm thấy
             if (user) {
-                console.log('✅ [DatabaseService] Found user in Supabase:', user.id);
+                // Found user in Supabase
                 try {
                     await prisma.users.upsert({
                         where: {id: user.id},
@@ -431,7 +427,7 @@ export class DatabaseService {
      */
     static async findStudentByUserId(userId: string): Promise<any | null> {
         try {
-            console.log('🔍 [DatabaseService] Finding student for user_id:', userId);
+            // Finding student for user_id
 
             // Try Local DB first
             try {
@@ -440,7 +436,7 @@ export class DatabaseService {
                 });
 
                 if (localStudent) {
-                    console.log('✅ [DatabaseService] Found student in Local DB');
+                    // Found student in Local DB
                     return localStudent;
                 }
             } catch (prismaError: any) {
@@ -455,13 +451,13 @@ export class DatabaseService {
                 .single();
 
             if (error) {
-                console.log('ℹ️ [DatabaseService] No student record found for user:', userId);
+                // No student record found for user
                 return null;
             }
 
             // Sync to Local DB if found
             if (student) {
-                console.log('✅ [DatabaseService] Found student in Supabase');
+                // Found student in Supabase
                 try {
                     await prisma.students.upsert({
                         where: { user_id: student.user_id },
@@ -483,7 +479,7 @@ export class DatabaseService {
                             current_address: student.current_address
                         }
                     });
-                    console.log('✅ [DatabaseService] Synced student from Supabase to Local DB');
+                    // Synced student from Supabase to Local DB
                 } catch (syncError) {
                     console.warn('⚠️ [DatabaseService] Could not sync student to Local DB');
                 }

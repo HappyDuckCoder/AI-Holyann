@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { student_id } = body;
 
-    console.log('🎯 Marking all tests as completed for user:', student_id);
+    // Marking all tests as completed for user
 
     if (!student_id) {
         return NextResponse.json(
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('✅ All tests marked as completed');
+    // All tests marked as completed
 
     return NextResponse.json({
       success: true,

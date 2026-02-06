@@ -1,15 +1,15 @@
 'use client';
 
-import ChatContainer from '@/components/chat/_legacy/ChatContainer';
+import { ChatPage } from '@/components/chat/ChatPage';
 import AuthHeader from '@/components/auth/AuthHeader';
 import RoleGuard from '@/components/auth/RoleGuard';
-import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
+import { useAuthSession } from '@/hooks/useAuthSession';
 
 export default function MentorChatDashboard() {
-    const { data: session, status } = useSession();
+    const { user, isLoading, isAuthenticated } = useAuthSession();
+    const authReady = !isLoading;
 
-    if (status === 'loading') {
+    if (!authReady) {
         return (
             <div className="h-screen flex items-center justify-center bg-white">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -17,16 +17,16 @@ export default function MentorChatDashboard() {
         );
     }
 
-    if (!session?.user?.id) {
-        redirect('/login');
+    if (!isAuthenticated || !user?.id) {
+        return null; // RoleGuard will handle redirect
     }
 
     return (
-        <RoleGuard allowedRoles={['mentor', 'admin']}>
+        <RoleGuard allowedRoles={['MENTOR', 'ADMIN']}>
             <div className="h-screen flex flex-col bg-white text-gray-900">
                 <AuthHeader />
                 <div className="flex-1 overflow-hidden bg-gray-50">
-                    <ChatContainer userId={session.user.id as string} />
+                    <ChatPage />
                 </div>
             </div>
         </RoleGuard>

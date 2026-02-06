@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { testType: string; studentId: string } }
+  { params }: { params: Promise<{ testType: string; studentId: string }> }
 ) {
   try {
-    const { testType, studentId } = params;
-    console.log(`🗑️ Resetting ${testType.toUpperCase()} test for student:`, studentId);
+    const { testType, studentId } = await params;
+    // Resetting test for student
 
     if (!testType || !studentId) {
       return NextResponse.json(
@@ -58,11 +58,11 @@ export async function DELETE(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { testType: string; studentId: string } }
+  { params }: { params: Promise<{ testType: string; studentId: string }> }
 ) {
   try {
-    const { testType, studentId } = params;
-    console.log(`📖 Getting ${testType.toUpperCase()} test result for student:`, studentId);
+    const { testType, studentId } = await params;
+    // Getting test result for student
 
     const testTypeLower = testType.toLowerCase();
     let test = null;

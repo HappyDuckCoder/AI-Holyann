@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { test_id, student_id, test_type, answers, results } = body;
 
-    console.log('📝 Submitting test answers for user:', student_id, { test_id, test_type, answerCount: Object.keys(answers || {}).length });
+    // Submitting test answers for user
 
     // Validate input
     if (!test_id || !student_id || !test_type || !answers) {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       await prisma.riasec_tests.update({ where: { id: test_id }, data: updateData });
     }
 
-    console.log('✅ Test answers saved and status set to COMPLETED');
+    // Test answers saved and status set to COMPLETED
 
     // --- Checklist Linking Logic (Refactored) ---
     // Sử dụng helper function để tìm task dựa trên keyword trong link (mbti, grit, riasec)

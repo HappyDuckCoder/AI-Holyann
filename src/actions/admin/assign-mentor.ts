@@ -345,13 +345,13 @@ export async function assignMentorToStudent(
             }
         }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in assignMentorToStudent:', error)
 
         return {
             success: false,
-            message: error.message || 'Có lỗi xảy ra khi gán mentor',
-            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            message: error instanceof Error ? error.message : 'Có lỗi xảy ra khi gán mentor',
+            error: error instanceof Error && process.env.NODE_ENV === 'development' ? error.stack : undefined
         }
     }
 }
@@ -389,11 +389,11 @@ export async function getStudentAssignments(studentId: string) {
             success: true,
             data: assignments
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         return {
             success: false,
             message: 'Có lỗi khi lấy danh sách assignments',
-            error: error.message
+            error: error instanceof Error ? error.message : 'Unknown error'
         }
     }
 }
@@ -456,11 +456,11 @@ export async function unassignMentor(
             success: true,
             message: 'Đã hủy gán mentor thành công'
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         return {
             success: false,
             message: 'Có lỗi khi hủy gán mentor',
-            error: error.message
+            error: error instanceof Error ? error.message : 'Unknown error'
         }
     }
 }

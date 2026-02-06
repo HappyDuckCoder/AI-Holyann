@@ -18,7 +18,9 @@ function createPrismaClient() {
 
         // Use direct connection for better transaction support
         return new PrismaClient({
-            log: [], // Disable all Prisma logs (no query, no error, no warn)
+            log: process.env.NODE_ENV === 'development' 
+                ? ['error', 'warn'] 
+                : ['error'], // Only log errors in production
             datasources: {
                 db: {
                     url: connectionUrl

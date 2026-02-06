@@ -49,8 +49,8 @@ export async function submitMbtiAction(
     revalidatePath('/dashboard/tests')
 
     return { success: true, data: updatedTest }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Submit MBTI Action Fail:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }

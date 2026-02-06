@@ -181,11 +181,11 @@ export async function sendMessage(input: SendMessageInput) {
       success: true,
       data: message,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error sending message:', error);
     return {
       success: false,
-      error: error.message || 'Có lỗi xảy ra khi gửi tin nhắn',
+      error: error instanceof Error ? error.message : 'Có lỗi xảy ra khi gửi tin nhắn',
     };
   }
 }
@@ -205,11 +205,11 @@ export async function markAsRead(roomId: string, userId: string) {
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error marking as read:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -242,11 +242,11 @@ export async function deleteMessage(messageId: string, userId: string) {
       success: true,
       message: 'Đã xóa tin nhắn',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting message:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -282,11 +282,11 @@ export async function editMessage(messageId: string, userId: string, newContent:
       success: true,
       data: updated,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error editing message:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }

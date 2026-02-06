@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    console.log('📊 Fetching test results for student:', studentId);
+    // Fetching test results for student
 
     // Fetch all test results
     const mbti = await prisma.mbti_tests.findUnique({
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    console.log(`✅ Found ${completedCount}/3 completed tests`);
+    // Found completed tests
 
     return NextResponse.json({
       success: true,

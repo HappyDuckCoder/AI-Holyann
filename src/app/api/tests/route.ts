@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`🧪 Creating ${test_type.toUpperCase()} test for student:`, student_id);
+    // Creating test for student
 
     // Check if student exists
     const student = await prisma.students.findUnique({
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     // If test exists but not completed, return existing test
     if (existingTest) {
-      console.log(`✅ Found existing ${testType.toUpperCase()} test:`, existingTest.id);
+      // Found existing test
       return NextResponse.json({
         success: true,
         test_id: existingTest.id,
@@ -112,9 +112,9 @@ export async function POST(request: NextRequest) {
           },
         });
       }
-    } catch (createError: any) {
+    } catch (createError: unknown) {
       // Handle unique constraint violation (P2002) - Test might have been created in parallel
-      if (createError.code === 'P2002') {
+      if (createError && typeof createError === 'object' && 'code' in createError && createError.code === 'P2002') {
         console.warn(`⚠️ Test creation race condition detected for ${testType.toUpperCase()} (student ID: ${student_id}). Fetching existing test.`);
 
         // Fetch the existing test again
@@ -175,7 +175,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.log(`📝 Submitting ${test_type.toUpperCase()} test results:`, test_id);
+    // Submitting test results
 
     const testType = test_type.toLowerCase();
     const updateData: any = {
@@ -225,7 +225,7 @@ export async function PUT(request: NextRequest) {
       data: { assessments_completed: true },
     });
 
-    console.log(`✅ ${testType.toUpperCase()} test submitted successfully`);
+    // Test submitted successfully
 
     return NextResponse.json({
       success: true,

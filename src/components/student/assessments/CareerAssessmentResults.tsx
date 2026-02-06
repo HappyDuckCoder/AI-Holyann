@@ -146,8 +146,8 @@ function CareerAssessmentResults({
     try {
       console.log("🎯 Getting career recommendations for student:", studentId);
 
-      // Call real API
-      const response = await fetch("/api/career-assessment", {
+      // Call real API - Module 2
+      const response = await fetch("/api/module2/career-assessment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

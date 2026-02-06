@@ -75,11 +75,11 @@ export async function uploadChatFile(formData: FormData) {
         thumbnailUrl,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error uploading file:', error);
     return {
       success: false,
-      error: error.message || 'Có lỗi xảy ra khi tải file',
+      error: error instanceof Error ? error.message : 'Có lỗi xảy ra khi tải file',
     };
   }
 }
@@ -101,11 +101,11 @@ export async function deleteChatFile(fileUrl: string) {
       success: true,
       message: 'Đã xóa file thành công',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting file:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
