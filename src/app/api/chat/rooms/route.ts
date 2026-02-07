@@ -33,9 +33,6 @@ export async function GET(request: NextRequest) {
             },
             include: {
                 participants: {
-                    where: {
-                        user_id: { not: userId } // Lấy participants khác (để hiển thị thông tin đối tác chat)
-                    },
                     include: {
                         users: {
                             select: {
@@ -46,8 +43,7 @@ export async function GET(request: NextRequest) {
                                 role: true
                             }
                         }
-                    },
-                    take: 1 // Chỉ lấy 1 participant khác (vì room private chỉ có 2 người)
+                    }
                 },
                 messages: {
                     orderBy: {
@@ -81,10 +77,14 @@ export async function GET(request: NextRequest) {
         // Format dữ liệu để dễ sử dụng ở frontend
         const formattedRooms = rooms.map(room => {
             const lastMessage = room.messages[0]
-            const otherParticipant = room.participants[0]
+
+            // Find the current user's participant record
+            const myParticipant = room.participants.find(p => p.user_id === userId)
+
+            // Find other participant (for PRIVATE rooms) or first other participant (for GROUP rooms)
+            const otherParticipant = room.participants.find(p => p.user_id !== userId)
 
             // Count unread messages (messages chưa được user hiện tại đọc)
-            const myParticipant = room.participants.find(p => p.user_id === userId)
             const unreadCount = myParticipant?.last_read_at
                 ? room._count.messages // Simplified - should count messages after last_read_at
                 : room._count.messages

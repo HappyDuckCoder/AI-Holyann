@@ -27,7 +27,15 @@ export default function MentorDashboardContent() {
         ]);
 
         if (!statsRes.ok || !studentsRes.ok) {
-          throw new Error('Failed to fetch dashboard data');
+          const statsStatus = statsRes.status;
+          const studentsStatus = studentsRes.status;
+          const statsText = !statsRes.ok ? await statsRes.text() : 'OK';
+          const studentsText = !studentsRes.ok ? await studentsRes.text() : 'OK';
+
+          console.error('Dashboard Stats API Error:', { status: statsStatus, body: statsText });
+          console.error('Students API Error:', { status: studentsStatus, body: studentsText });
+
+          throw new Error('Không thể tải dữ liệu dashboard (Chi tiết lỗi trong Console)');
         }
 
         const statsData = await statsRes.json();

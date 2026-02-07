@@ -1,4 +1,4 @@
-import { Target, PenTool, Lightbulb, User } from "lucide-react";
+import { Target, PenTool, Lightbulb, User, GraduationCap } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { vi } from "date-fns/locale";
 
@@ -10,6 +10,8 @@ export const getRoleIcon = (roleCode: string) => {
       return PenTool;
     case "ARD":
       return Lightbulb;
+    case "STUDENT":
+      return GraduationCap;
     default:
       return User;
   }
@@ -23,6 +25,8 @@ export const getRoleColor = (roleCode: string) => {
       return { bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-300" };
     case "ARD":
       return { bg: "bg-emerald-100 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-300" };
+    case "STUDENT":
+      return { bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-700 dark:text-orange-300" };
     default:
       return { bg: "bg-gray-100 dark:bg-slate-700", text: "text-gray-700 dark:text-gray-300" };
   }

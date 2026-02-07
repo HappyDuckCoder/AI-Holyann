@@ -40,6 +40,9 @@ export async function assignMentorToStudent(
 
         // Execute trong transaction
         const result = await prisma.$transaction(async (tx) => {
+            // Variables to track if we need to create welcome message
+            let needsWelcomeMessage = false
+            let welcomeMessageData: any = null
             // ============================================
             // BƯỚC 1: KIỂM TRA MENTOR SPECIALIZATION
             // ============================================
@@ -252,7 +255,7 @@ export async function assignMentorToStudent(
                     // Tạo group chat room
                     groupChatRoom = await tx.chat_rooms.create({
                         data: {
-                            name: `Nhóm hỗ trợ học tập (Full Team) - ${student.users.full_name}`,
+                            name: `Nhóm mentor - ${student.users.full_name}`,
                             type: 'GROUP',
                             status: 'ACTIVE',
                             student_id: studentId
@@ -290,20 +293,16 @@ export async function assignMentorToStudent(
                         ]
                     })
 
-                    // Tạo tin nhắn welcome cho group
-                    await tx.chat_messages.create({
-                        data: {
-                            room_id: groupChatRoom.id,
-                            sender_id: asMentor!.mentor_id,
-                            content: `🎉 Chào mừng ${student.users.full_name} đến với nhóm hỗ trợ đầy đủ!\n\n` +
-                                    `Đội ngũ mentors của bạn:\n` +
-                                    `🔵 AS: ${asMentor!.mentor.user.full_name}\n` +
-                                    `🟢 ACS: ${acsMentor!.mentor.user.full_name}\n` +
-                                    `🟣 ARD: ${ardMentor!.mentor.user.full_name}\n\n` +
-                                    `Chúng tôi sẽ đồng hành cùng bạn trong suốt hành trình du học!`,
-                            type: 'TEXT'
-                        }
-                    })
+                    // Mark that we need to create welcome message after transaction
+                    needsWelcomeMessage = true
+                    welcomeMessageData = {
+                        roomId: groupChatRoom.id,
+                        studentName: student.users.full_name,
+                        senderId: asMentor!.mentor_id,
+                        asName: asMentor!.mentor.user.full_name,
+                        acsName: acsMentor!.mentor.user.full_name,
+                        ardName: ardMentor!.mentor.user.full_name
+                    }
                 }
             }
 
@@ -314,9 +313,37 @@ export async function assignMentorToStudent(
                 hasFullTeam,
                 isUpdate,
                 mentor,
-                student
+                student,
+                needsWelcomeMessage,
+                welcomeMessageData
             }
+        }, {
+            maxWait: 10000, // 10 seconds
+            timeout: 20000, // 20 seconds
         })
+
+        // Tạo welcome message NGOÀI transaction (không cần atomic)
+        if (result.needsWelcomeMessage && result.welcomeMessageData) {
+            try {
+                const data = result.welcomeMessageData
+                await prisma.chat_messages.create({
+                    data: {
+                        room_id: data.roomId,
+                        sender_id: data.senderId,
+                        content: `🎉 Chào mừng ${data.studentName} đến với nhóm hỗ trợ đầy đủ!\n\n` +
+                                `Đội ngũ mentors của bạn:\n` +
+                                `🔵 AS: ${data.asName}\n` +
+                                `🟢 ACS: ${data.acsName}\n` +
+                                `🟣 ARD: ${data.ardName}\n\n` +
+                                `Chúng tôi sẽ đồng hành cùng bạn trong suốt hành trình du học!`,
+                        type: 'TEXT'
+                    }
+                })
+            } catch (error) {
+                console.error('Error creating welcome message:', error)
+                // Don't fail the whole operation if welcome message fails
+            }
+        }
 
         // Revalidate các paths liên quan (safe for non-Next.js context)
         try {

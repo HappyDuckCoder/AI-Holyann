@@ -1,14 +1,25 @@
+export interface Attachment {
+  id: string;
+  url: string;
+  name: string;
+  type: string; // MIME type (e.g., 'image/jpeg', 'application/pdf')
+  size: number | null; // Size in bytes
+  thumbnail?: string | null; // For image thumbnails
+}
+
 export interface Message {
   id: string;
   senderId: string;
   senderName: string;
   senderAvatar: string;
-  content: string;
+  content: string | null; // Allow null for messages with only attachments
+  type?: 'TEXT' | 'IMAGE' | 'FILE' | 'LINK'; // Message type
   timestamp: Date;
   isRead: boolean;
   isMine: boolean;
   isSending?: boolean; // For optimistic UI
   isError?: boolean; // For optimistic UI error state
+  attachments?: Attachment[]; // Array of file attachments
 }
 
 export interface Mentor {

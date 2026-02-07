@@ -10,10 +10,10 @@ import { ConversationList } from "./ConversationList";
 import ChatHeader from "./ChatHeader";
 import { MessagesList } from "./MessagesList";
 import { MessageInput } from "./MessageInput";
-import { MentorInfo } from "./MentorInfo";
+import { StudentInfoPanel } from "./StudentInfoPanel";
 
-// Main Component
-export const ChatPage: React.FC = () => {
+// Main Component for Mentor Interface
+export const MentorChatInterface: React.FC = () => {
     const { user } = useAuthSession();
     const { rooms, loading: roomsLoading, refreshRooms } = useChatRooms(user?.id || "");
     const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
@@ -24,28 +24,29 @@ export const ChatPage: React.FC = () => {
     // Derived state for conversations list
     const conversations: Conversation[] = useMemo(() => {
         return rooms.map(room => {
-            const otherUser = room.otherUser || { id: "unknown", name: "Unknown", avatar: null, role: "mentor" };
+            const otherUser = room.otherUser || { id: "unknown", name: "Unknown", avatar: null, role: "student", email: "" };
 
             // For GROUP rooms: Use room name instead of user name
-            // For PRIVATE rooms: Use mentor name
+            // For PRIVATE rooms: Use student name
             const displayName = room.type === 'GROUP' ? room.name : otherUser.name;
 
-            // Mock mentor details if missing from API
-            const mentor: Mentor = {
+            // Map student data to Mentor interface structure
+            // This is a workaround to reuse existing components that expect 'Mentor' type
+            const studentAsMentor: Mentor = {
                 id: otherUser.id,
-                name: displayName, // Use room name for GROUP, mentor name for PRIVATE
+                name: displayName, // Use room name for GROUP, student name for PRIVATE
                 avatar: otherUser.avatar || "/images/avatars/default.jpg",
-                roleCode: room.type === 'GROUP' ? "GROUP" : (room.mentorType || "AS"), // Default or derive from room.mentorType if available
-                roleTitle: room.type === 'GROUP' ? "Nhóm Mentor" : "Mentor",
+                roleCode: room.type === 'GROUP' ? "GROUP" : "STUDENT",
+                roleTitle: room.type === 'GROUP' ? "Nhóm" : "Học viên",
                 isOnline: false, // Need realtime presence for this
                 lastSeen: "1 phút trước",
-                description: room.type === 'GROUP' ? "Nhóm hỗ trợ đầy đủ" : "Chuyên gia tư vấn...",
-                achievements: room.type === 'GROUP' ? [] : ["5 năm kinh nghiệm", "Mentor xuất sắc"]
+                description: ('email' in otherUser) ? otherUser.email : "", // Passing email via description field
+                achievements: [] // Not used for students
             };
 
             return {
                 id: room.id,
-                mentor,
+                mentor: studentAsMentor, // Property name is 'mentor' but holds student data
                 messages: [], // Message list is fetched separately
                 lastMessage: room.lastMessage?.content || "Chưa có tin nhắn",
                 lastMessageTime: room.lastMessage ? new Date(room.lastMessage.createdAt) : new Date(room.createdAt),
@@ -74,13 +75,10 @@ export const ChatPage: React.FC = () => {
     });
 
     // Auto-refresh messages when the conversation updates in the sidebar
-    // This serves as a backup to the internal realtime subscription of useChat
     useEffect(() => {
         if (selectedConversation?.lastMessageTime) {
-            // Only refresh if the last message time is very recent (to avoid unnecessary fetches on mount)
             const diffInfo = Math.abs(new Date().getTime() - new Date(selectedConversation.lastMessageTime).getTime());
-            if (diffInfo < 10000) { // If update happened in last 10 seconds
-                // console.log("Syncing messages from sidebar update...");
+            if (diffInfo < 10000) {
                 refreshMessages();
             }
         }
@@ -99,7 +97,7 @@ export const ChatPage: React.FC = () => {
             content: msg.content,
             type: msg.type as 'TEXT' | 'IMAGE' | 'FILE' | 'LINK' | undefined,
             timestamp: new Date(msg.createdAt),
-            isRead: true, // Simplified
+            isRead: true,
             isMine: msg.isFromMe,
             isSending: msg.isPending,
             isError: msg.error,
@@ -153,10 +151,10 @@ export const ChatPage: React.FC = () => {
     };
 
     // Loading state
-    if (!user) return null; // Or loading spinner
+    if (!user) return null;
 
     return (
-        <div className="h-[calc(100vh-4rem)] md:h-[calc(100vh-theme(spacing.16))] bg-gray-50 dark:bg-slate-900 flex overflow-hidden relative">
+        <div className="h-full w-full bg-gray-50 dark:bg-slate-900 flex overflow-hidden absolute inset-0">
             {/* ========== LEFT SIDEBAR - Conversation List ========== */}
             <ConversationList
                 conversations={conversations}
@@ -209,15 +207,15 @@ export const ChatPage: React.FC = () => {
                     </>
                 ) : (
                     <div className="flex-1 flex items-center justify-center text-gray-500">
-                        Chọn một cuộc hội thoại để bắt đầu
+                        Chọn một học viên để bắt đầu cuộc trò chuyện
                     </div>
                 )}
             </div>
 
-            {/* ========== RIGHT SIDEBAR - Mentor Info ========== */}
+            {/* ========== RIGHT SIDEBAR - Student Info (instead of Mentor Info) ========== */}
             {selectedConversation && (
-                <MentorInfo
-                    mentor={selectedConversation.mentor}
+                <StudentInfoPanel
+                    student={selectedConversation.mentor} // Actually student data
                     showMobileInfo={showMobileInfo}
                     onCloseMobileInfo={() => setShowMobileInfo(false)}
                 />
@@ -225,6 +223,3 @@ export const ChatPage: React.FC = () => {
         </div>
     );
 };
-
-export default ChatPage;
-

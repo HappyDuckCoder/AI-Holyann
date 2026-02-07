@@ -14,11 +14,9 @@ export default function MentorLayout({
       {/* Navbar at the top */}
       <MentorNavbar />
       
-      {/* Main Content Area without sidebar offset */}
+      {/* Main Content Area - no container/padding, let child pages handle their own layout */}
       <main className="min-h-screen">
-        <div className="container mx-auto px-6 py-8">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );

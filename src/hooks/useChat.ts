@@ -72,11 +72,11 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.1);
         } catch (err) {
-          // Could not play notification sound
+          console.log('Could not play notification sound');
         }
       });
     } catch (err) {
-      // Could not play notification sound
+      console.log('Could not play notification sound');
     }
   }, [playSound]);
 
@@ -178,7 +178,7 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             isPending: false,
           };
 
-          // Message sent successfully
+          console.log('✅ [SERVER CONFIRM] Message sent successfully:', realMessage.id);
 
           // Map temp ID to real ID
           pendingMessagesRef.current.set(tempId, realMessage.id);
@@ -263,141 +263,190 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
   useEffect(() => {
     if (!roomId) return;
 
-    // Setting up subscription for room
+    console.log('🔌 [REALTIME] Setting up subscription for room:', roomId);
 
-    // Subscribe to new messages
-    const channel = supabase
-      .channel(`room:${roomId}`, {
-        config: {
-          broadcast: { self: false }, // Don't receive own broadcasts
-        },
-      })
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`,
-        },
-        async (payload) => {
-          // New message received via Realtime
+    let retryCount = 0;
+    const maxRetries = 3;
+    let retryTimeout: NodeJS.Timeout;
 
-          const newMessageId = payload.new.id as string;
+    const setupSubscription = () => {
+      // Subscribe to new messages
+      const channel = supabase
+        .channel(`room:${roomId}:${Date.now()}`, {
+          config: {
+            broadcast: { self: false },
+            presence: { key: userId },
+          },
+        })
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'chat_messages',
+            filter: `room_id=eq.${roomId}`,
+          },
+          async (payload) => {
+            console.log('📩 [REALTIME] New message received:', payload.new);
 
-          // Skip if already processed (from optimistic UI)
-          if (processedMessagesRef.current.has(newMessageId)) {
-            // Message already processed (optimistic UI)
-            return;
-          }
+            const newMessageId = payload.new.id as string;
 
-          // Skip if it's from current user and we have a pending message
-          // (The optimistic UI already showed it and it will be replaced when server confirms)
-          if (payload.new.sender_id === userId) {
-            // Check if we have any pending temp messages
-            const hasPendingMessages = Array.from(pendingMessagesRef.current.values()).includes(newMessageId);
-            if (hasPendingMessages) {
-              console.log('⏭️ [SKIP] Own message already shown via optimistic UI');
+            // Skip if already processed (from optimistic UI)
+            if (processedMessagesRef.current.has(newMessageId)) {
+              console.log('⏭️ [SKIP] Message already processed (optimistic UI):', newMessageId);
               return;
             }
-          }
 
-          // Check if message already exists in state
-          setMessages((prev) => {
-            const exists = prev.some(m => m.id === newMessageId);
-            if (exists) {
-              // Message already in state
-              return prev;
+            // Skip if it's from current user and we have a pending message
+            if (payload.new.sender_id === userId) {
+              const hasPendingMessages = Array.from(pendingMessagesRef.current.values()).includes(newMessageId);
+              if (hasPendingMessages) {
+                console.log('⏭️ [SKIP] Own message already shown via optimistic UI');
+                return;
+              }
             }
 
-            // This is a new message from another user
-            console.log('📥 [ADD] Adding new message from other user');
+            // Check if message already exists in state
+            setMessages((prev) => {
+              const exists = prev.some(m => m.id === newMessageId);
+              if (exists) {
+                console.log('⏭️ [SKIP] Message already in state:', newMessageId);
+                return prev;
+              }
 
-            // Mark as processed
-            processedMessagesRef.current.add(newMessageId);
-            setTimeout(() => {
-              processedMessagesRef.current.delete(newMessageId);
-            }, 3000);
+              // This is a new message from another user
+              console.log('📥 [ADD] Adding new message from other user');
 
-            // Fetch full message details
-            fetch(`/api/chat/rooms/${roomId}/messages/${newMessageId}`)
-              .then(res => res.json())
-              .then(data => {
-                if (data.success) {
-                  const fullMessage = {
-                    ...data.message,
-                    createdAt: new Date(data.message.createdAt),
-                    updatedAt: new Date(data.message.updatedAt),
-                    isFromMe: false,
-                  };
+              // Mark as processed
+              processedMessagesRef.current.add(newMessageId);
+              setTimeout(() => {
+                processedMessagesRef.current.delete(newMessageId);
+              }, 3000);
 
-                  setMessages((prev) => {
-                    // Double check it's not already there
-                    if (prev.some(m => m.id === newMessageId)) return prev;
-                    return [...prev, fullMessage];
-                  });
+              // Fetch full message details
+              fetch(`/api/chat/rooms/${roomId}/messages/${newMessageId}`)
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    const fullMessage = {
+                      ...data.message,
+                      createdAt: new Date(data.message.createdAt),
+                      updatedAt: new Date(data.message.updatedAt),
+                      isFromMe: false,
+                    };
 
-                  // Play notification sound
-                  playNotificationSound();
+                    setMessages((prev) => {
+                      if (prev.some(m => m.id === newMessageId)) return prev;
+                      return [...prev, fullMessage];
+                    });
 
-                  // Trigger callback
-                  if (onNewMessage && !fullMessage.isFromMe) {
-                    onNewMessage(fullMessage);
+                    // Play notification sound
+                    playNotificationSound();
+
+                    // Trigger callback
+                    if (onNewMessage && !fullMessage.isFromMe) {
+                      onNewMessage(fullMessage);
+                    }
                   }
-                }
-              })
-              .catch(console.error);
+                })
+                .catch(console.error);
 
-            return prev; // Don't add yet, wait for full message fetch
-          });
+              return prev;
+            });
 
-          // Mark as read if not from me
-          if (payload.new.sender_id !== userId) {
-            markAsRead();
+            // Mark as read if not from me
+            if (payload.new.sender_id !== userId) {
+              markAsRead();
+            }
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          // Message updated via Realtime
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'chat_messages',
+            filter: `room_id=eq.${roomId}`,
+          },
+          (payload) => {
+            console.log('📝 [REALTIME] Message updated:', payload.new);
 
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === payload.new.id
-                ? {
-                    ...msg,
-                    content: payload.new.content,
-                    isEdited: payload.new.is_edited,
-                    updatedAt: new Date(payload.new.updated_at),
-                  }
-                : msg
-            )
-          );
-        }
-      )
-      .subscribe((status) => {
-        // Subscription status for room
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === payload.new.id
+                  ? {
+                      ...msg,
+                      content: payload.new.content,
+                      isEdited: payload.new.is_edited,
+                      updatedAt: new Date(payload.new.updated_at),
+                    }
+                  : msg
+              )
+            );
+          }
+        )
+        .subscribe((status) => {
+          console.log(`📡 [REALTIME] Subscription status for room ${roomId}:`, status);
 
-        if (status === 'SUBSCRIBED') {
-          // Successfully subscribed to room
-        } else if (status === 'CLOSED') {
-          console.warn('⚠️ [REALTIME] Subscription closed');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ [REALTIME] Channel error');
-        }
-      });
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ [REALTIME] Successfully subscribed to room');
+            retryCount = 0; // Reset retry count on success
+          } else if (status === 'CLOSED') {
+            console.log('⚠️ [REALTIME] Subscription closed');
 
-    channelRef.current = channel;
+            // Attempt to reconnect
+            if (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`🔄 [REALTIME] Attempting to reconnect (${retryCount}/${maxRetries})...`);
 
+              retryTimeout = setTimeout(() => {
+                if (channelRef.current) {
+                  supabase.removeChannel(channelRef.current);
+                }
+                setupSubscription();
+              }, 2000 * retryCount); // Exponential backoff
+            }
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ [REALTIME] Channel error - Check Supabase configuration');
+            console.error('Troubleshooting tips:');
+            console.error('1. Verify NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+            console.error('2. Check if Realtime is enabled: ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages');
+            console.error('3. Verify RLS policies allow SELECT on chat_messages');
+            console.error('4. Check Supabase Dashboard → Database → Replication for enabled tables');
+
+            // Attempt retry on channel error
+            if (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`🔄 [REALTIME] Retrying after channel error (${retryCount}/${maxRetries})...`);
+
+              retryTimeout = setTimeout(() => {
+                if (channelRef.current) {
+                  supabase.removeChannel(channelRef.current);
+                }
+                setupSubscription();
+              }, 3000 * retryCount);
+            } else {
+              console.error('❌ [REALTIME] Max retries reached. Realtime features disabled.');
+              console.error('💡 Chat will still work but messages won\'t update automatically.');
+              console.error('💡 Please refresh the page or check Supabase configuration.');
+            }
+          }
+        });
+
+      channelRef.current = channel;
+    };
+
+    // Initial setup
+    setupSubscription();
+
+    // Cleanup
     return () => {
-      // Unsubscribing from room
+      console.log(`🔌 [REALTIME] Cleaning up subscription for room ${roomId}`);
+
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;

@@ -2,14 +2,18 @@
 
 import { Phone, Video, Info, MoreVertical, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Mentor } from './types';
 
 interface ChatHeaderProps {
-  roomName: string;
+  roomName?: string;
   roomType?: string;
   avatar?: string | null;
   isOnline?: boolean;
+  mentor?: Mentor;
   onBack?: () => void;
   onToggleSidebar?: () => void;
+  onToggleMobileInfo?: () => void;
+  onToggleMobileConversations?: () => void;
 }
 
 export default function ChatHeader({
@@ -17,16 +21,27 @@ export default function ChatHeader({
   roomType,
   avatar,
   isOnline = false,
+  mentor,
   onBack,
   onToggleSidebar,
+  onToggleMobileInfo,
+  onToggleMobileConversations,
 }: ChatHeaderProps) {
+  // Determine display data
+  // For GROUP rooms: Always show room name
+  // For PRIVATE rooms: Show mentor name if available, otherwise room name
+  const displayName = (roomType === 'GROUP' ? roomName : (mentor?.name || roomName)) || 'Unknown';
+  const displayAvatar = mentor?.avatar || avatar;
+  const displayIsOnline = mentor?.isOnline ?? isOnline;
+  const firstLetter = displayName && displayName.length > 0 ? displayName.charAt(0).toUpperCase() : '?';
+
   return (
     <div className="h-16 bg-white border-b flex items-center justify-between px-4 flex-shrink-0">
       {/* Left: Avatar và Info */}
       <div className="flex items-center gap-3">
-        {onBack && (
+        {(onBack || onToggleMobileConversations) && (
           <button
-            onClick={onBack}
+            onClick={onBack || onToggleMobileConversations}
             className="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Quay lại"
           >
@@ -36,18 +51,18 @@ export default function ChatHeader({
 
         {/* Avatar */}
         <div className="relative">
-          {avatar ? (
+          {displayAvatar ? (
             <img
-              src={avatar}
-              alt={roomName}
+              src={displayAvatar}
+              alt={displayName}
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-              {roomName.charAt(0).toUpperCase()}
+              {firstLetter}
             </div>
           )}
-          {isOnline && (
+          {displayIsOnline && (
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
           )}
         </div>
@@ -55,10 +70,11 @@ export default function ChatHeader({
         {/* Name and Status */}
         <div>
           <h3 className="font-semibold text-gray-900 text-sm">
-            {roomName}
+            {displayName}
           </h3>
           <p className="text-xs text-gray-500">
-            {isOnline ? 'Đang hoạt động' : 'Offline'}
+            {displayIsOnline ? 'Đang hoạt động' : 'Offline'}
+            {mentor?.roleTitle && ` • ${mentor.roleTitle}`}
           </p>
         </div>
       </div>
@@ -79,9 +95,9 @@ export default function ChatHeader({
           <Video className="w-5 h-5 text-blue-600" />
         </button>
 
-        {onToggleSidebar && (
+        {(onToggleSidebar || onToggleMobileInfo) && (
           <button
-            onClick={onToggleSidebar}
+            onClick={onToggleSidebar || onToggleMobileInfo}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Thông tin"
           >

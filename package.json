@@ -18,7 +18,8 @@
     "prisma:generate": "prisma generate",
     "postinstall": "prisma generate",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:mentor-progress": "tsx tests/test-mentor-progress.ts"
   },
   "dependencies": {
     "@cyntler/react-doc-viewer": "^1.17.1",

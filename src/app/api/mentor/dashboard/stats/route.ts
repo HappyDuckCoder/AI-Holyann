@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-config';
-import { prisma } from '@/lib/prisma';
+import { getMentorDashboardStats } from '@/actions/mentor';
 
 /**
  * GET /api/mentor/dashboard/stats
@@ -9,36 +9,22 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET() {
   try {
+    console.log('[API] /api/mentor/dashboard/stats called');
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
+      console.log('[API] /api/mentor/dashboard/stats - Unauthorized: No session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const mentorId = session.user.id;
+    console.log(`[API] /api/mentor/dashboard/stats - Fetching for mentor: ${mentorId}`);
 
-    // 1. Đếm số học viên đang phụ trách (ACTIVE)
-    const totalActiveStudents = await prisma.mentor_assignments.count({
-      where: {
-        mentor_id: mentorId,
-        status: 'ACTIVE',
-      },
-    });
+    // Sử dụng server action để lấy thống kê
+    const stats = await getMentorDashboardStats(mentorId);
+    console.log('[API] /api/mentor/dashboard/stats - Stats retrieved:', stats);
 
-    // 2. Lấy rating của mentor
-    const mentor = await prisma.mentors.findUnique({
-      where: { user_id: mentorId },
-      select: { rating: true },
-    });
-
-    // 3. Weekly deadlines (mock for now - requires tasks table)
-    const weeklyDeadlines = 0; // TODO: Implement when tasks table exists
-
-    return NextResponse.json({
-      totalActiveStudents,
-      weeklyDeadlines,
-      averageRating: mentor?.rating || 5.0,
-    });
+    return NextResponse.json(stats);
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     return NextResponse.json(
