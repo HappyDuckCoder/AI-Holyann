@@ -48,11 +48,11 @@ export default function RecentUsersTable() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          setError('Bạn cần đăng nhập để xem thông tin này')
+          setError('Please sign in to view this')
         } else if (response.status === 403) {
-          setError('Bạn không có quyền truy cập tính năng này')
+          setError('You do not have access')
         } else {
-          setError(`Lỗi server: ${response.status}`)
+          setError(`Server error: ${response.status}`)
         }
         return
       }
@@ -65,7 +65,7 @@ export default function RecentUsersTable() {
         setError(result.error || 'Unknown error')
       }
     } catch (err) {
-      setError('Không thể kết nối đến server')
+      setError('Could not connect to server')
       console.error('Error fetching recent users:', err)
     } finally {
       setLoading(false)
@@ -85,15 +85,15 @@ export default function RecentUsersTable() {
   }
 
   const getRoleLabel = (role: string) => {
-    const labels = {
-      STUDENT: 'Học viên',
+    const labels: Record<string, string> = {
+      STUDENT: 'Student',
       MENTOR: 'Mentor',
       ADMIN: 'Admin',
-      user: 'Học viên',
+      user: 'Student',
       mentor: 'Mentor',
       admin: 'Admin',
     }
-    return labels[role as keyof typeof labels] || 'Học viên'
+    return labels[role] ?? 'User'
   }
 
   const formatDate = (date: string | Date | null) => {
@@ -130,14 +130,13 @@ export default function RecentUsersTable() {
     }
   }
 
-  // Prevent hydration mismatch by not rendering until mounted
+  const title = 'Recent users (last 5 days)'
+
   if (!mounted) {
     return (
-      <div className="card-holyann">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="section-title text-lg !mb-0 !text-left after:!mx-0 after:!w-10">
-            NGƯỜI DÙNG MỚI (5 NGÀY GẦN ĐÂY)
-          </h2>
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
         </div>
         <div className="flex items-center justify-center py-8">
           <div className="animate-pulse">
@@ -151,15 +150,13 @@ export default function RecentUsersTable() {
 
   if (loading) {
     return (
-      <div className="card-holyann">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="section-title text-lg !mb-0 !text-left after:!mx-0 after:!w-10">
-            NGƯỜI DÙNG MỚI (5 NGÀY GẦN ĐÂY)
-          </h2>
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
         </div>
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-2 text-muted-foreground">Đang tải...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <span className="ml-2 text-muted-foreground">Loading…</span>
         </div>
       </div>
     )
@@ -167,22 +164,20 @@ export default function RecentUsersTable() {
 
   if (error) {
     return (
-      <div className="card-holyann">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="section-title text-lg !mb-0 !text-left after:!mx-0 after:!w-10">
-            NGƯỜI DÙNG MỚI (5 NGÀY GẦN ĐÂY)
-          </h2>
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
         </div>
         <div className="text-center py-8">
-          <div className="text-red-500 mb-2">
-            <i className="fas fa-exclamation-triangle text-2xl"></i>
+          <div className="text-destructive mb-2">
+            <i className="fas fa-exclamation-triangle text-2xl" />
           </div>
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+          <p className="text-destructive text-sm">{error}</p>
           <button
             onClick={fetchRecentUsers}
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm"
           >
-            Thử lại
+            Retry
           </button>
         </div>
       </div>
@@ -190,43 +185,41 @@ export default function RecentUsersTable() {
   }
 
   return (
-    <div className="card-holyann">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="section-title text-lg !mb-0 !text-left after:!mx-0 after:!w-10">
-          NGƯỜI DÙNG MỚI (5 NGÀY GẦN ĐÂY)
-        </h2>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            {users.length} người dùng
+            {users.length} user{users.length !== 1 ? 's' : ''}
           </span>
           <button
             onClick={fetchRecentUsers}
             className="text-sm text-primary hover:underline flex items-center gap-1"
           >
-            <i className="fas fa-refresh text-xs"></i>
-            Làm mới
+            <i className="fas fa-refresh text-xs" />
+            Refresh
           </button>
         </div>
       </div>
 
       {users.length === 0 ? (
-        <div className="text-center py-8">
+        <div className="text-center py-8 border border-border rounded-lg bg-muted/30">
           <div className="text-muted-foreground mb-2">
-            <i className="fas fa-users text-2xl"></i>
+            <i className="fas fa-users text-2xl" />
           </div>
-          <p className="text-muted-foreground">Không có người dùng mới trong 5 ngày gần đây</p>
+          <p className="text-muted-foreground text-sm">No new users in the last 5 days</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Tên</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Name</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden md:table-cell">Email</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Vai trò</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden lg:table-cell">Ngày tạo</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Trạng thái</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Thao tác</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Role</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden lg:table-cell">Created</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Status</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -262,21 +255,21 @@ export default function RecentUsersTable() {
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                         : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                     }`}>
-                      {user.is_active ? 'Hoạt động' : 'Không hoạt động'}
+                      {user.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
                     <button
                       className="text-primary hover:text-primary/80 mx-1"
-                      title="Chỉnh sửa người dùng"
+                      title="Edit user"
                     >
-                      <i className="fas fa-edit"></i>
+                      <i className="fas fa-edit" />
                     </button>
                     <button
                       className="text-red-500 hover:text-red-600 mx-1"
-                      title="Xóa người dùng"
+                      title="Delete user"
                     >
-                      <i className="fas fa-trash"></i>
+                      <i className="fas fa-trash" />
                     </button>
                   </td>
                 </tr>

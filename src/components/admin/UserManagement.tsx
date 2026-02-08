@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { User, UserFormData } from '@/types/admin'
+import { Button } from '@/components/ui/button'
 import UserTable from './UserTable'
 import UserModal from './UserModal'
 import DeleteConfirmModal from './DeleteConfirmModal'
@@ -113,11 +114,6 @@ export default function UserManagement() {
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
 
     // Handlers
-    const handleAddUser = () => {
-        setEditingUser(null)
-        setIsModalOpen(true)
-    }
-
     const handleEditUser = (user: User) => {
         setEditingUser(user)
         setIsModalOpen(true)
@@ -205,87 +201,38 @@ export default function UserManagement() {
         }
     }
 
-    // Stats
-    const stats = {
-        total: users.length,
-        active: users.filter(u => u.is_active).length,
-        students: users.filter(u => u.role === 'STUDENT').length,
-        mentors: users.filter(u => u.role === 'MENTOR').length,
-        admins: users.filter(u => u.role === 'ADMIN').length,
-    }
-
     return (
-        <div className="space-y-6">
-            {/* Header & Stats */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-foreground">Quản lý người dùng</h1>
-                    <p className="text-muted-foreground mt-1">Quản lý tất cả người dùng trong hệ thống</p>
-                </div>
-                <button
-                    onClick={handleAddUser}
-                    className="btn-primary flex items-center gap-2"
-                >
-                    <i className="fas fa-user-plus"></i>
-                    Thêm người dùng
-                </button>
-            </div>
+        <div className="w-full max-w-6xl mx-auto min-h-[300px] flex flex-col">
+            <div className="flex-1 p-6 md:p-8 space-y-6">
+                <h1 className="text-xl font-semibold text-foreground">Users</h1>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Tổng số</div>
-                </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.active}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Hoạt động</div>
-                </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.students}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Học viên</div>
-                </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.mentors}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Mentors</div>
-                </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.admins}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Admins</div>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="card-holyann">
+                {/* Filters */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-2">
                         <div className="relative">
-                            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm theo tên hoặc email..."
+                                placeholder="Search by name or email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="input-holyann pl-10 w-full"
+                                className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
                             />
                         </div>
                     </div>
                     <div>
-                        <button
-                            className="btn-primary"
-                            onClick={() => setShowAssignMentorForm(true)}
-                        >
-                            Gán mentor
-                        </button>
+                        <Button size="sm" variant="outline" onClick={() => setShowAssignMentorForm(true)} className="w-full md:w-auto">
+                            Assign mentor
+                        </Button>
                     </div>
                     <div>
                         <select
                             value={roleFilter}
                             onChange={(e) => setRoleFilter(e.target.value)}
-                            className="input-holyann w-full"
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary"
                         >
-                            <option value="all">Tất cả vai trò</option>
-                            <option value="student">Học viên</option>
+                            <option value="all">All roles</option>
+                            <option value="student">Student</option>
                             <option value="mentor">Mentor</option>
                             <option value="admin">Admin</option>
                         </select>
@@ -294,64 +241,62 @@ export default function UserManagement() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="input-holyann w-full"
+                            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary"
                         >
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="active">Hoạt động</option>
-                            <option value="inactive">Không hoạt động</option>
+                            <option value="all">All status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
                         </select>
                     </div>
                 </div>
-            </div>
 
-            {/* Table */}
-            <div className="card-holyann">
-                <UserTable
-                    users={currentUsers}
-                    loading={loading}
-                    onEdit={handleEditUser}
-                    onDelete={handleDeleteClick}
-                    onToggleStatus={handleToggleStatus}
-                />
+                {/* Table */}
+                <div className="border border-border rounded-xl overflow-hidden">
+                    <UserTable
+                        users={currentUsers}
+                        loading={loading}
+                        onEdit={handleEditUser}
+                        onDelete={handleDeleteClick}
+                        onToggleStatus={handleToggleStatus}
+                    />
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
-                        <div className="text-sm text-muted-foreground">
-                            Hiển thị {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredUsers.length)} trong {filteredUsers.length} người dùng
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                disabled={currentPage === 1}
-                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <i className="fas fa-chevron-left"></i>
-                            </button>
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-1 rounded-lg transition-colors ${
-                                        currentPage === page
-                                            ? 'bg-primary text-white'
-                                            : 'bg-muted hover:bg-muted/80'
-                                    }`}
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/20">
+                            <div className="text-sm text-muted-foreground">
+                                Showing {indexOfFirstItem + 1}–{Math.min(indexOfLastItem, filteredUsers.length)} of {filteredUsers.length}
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
                                 >
-                                    {page}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <i className="fas fa-chevron-right"></i>
-                            </button>
+                                    <i className="fas fa-chevron-left" />
+                                </Button>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? 'default' : 'outline'}
+                                        size="sm"
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </Button>
+                                ))}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    <i className="fas fa-chevron-right" />
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
             {/* Modals */}
             <UserModal
@@ -381,12 +326,16 @@ export default function UserManagement() {
                             className="close-button"
                             onClick={() => setShowAssignMentorForm(false)}
                         >
-                            Đóng
+                            Close
                         </button>
                         <AssignMentorForm students={students} mentors={mentors} />
                     </div>
                 </div>
             )}
+            </div>
+            <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border mt-4">
+                Admin © 2025 <span className="text-primary font-heading font-bold">HOLYANN EXPLORE</span>
+            </footer>
         </div>
     )
 }
