@@ -15,7 +15,7 @@ const navItems = [
   { name: 'Checklist', href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
   { name: 'Tests', href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
   { name: 'Improve', href: `${STUDENT_BASE}/improve`, icon: Sparkles },
-  { name: 'Universities', href: `${STUDENT_BASE}/profile/schools`, icon: GraduationCap },
+  { name: 'Target', href: `${STUDENT_BASE}/target`, icon: GraduationCap },
   { name: 'Discussion', href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
 ];
 
