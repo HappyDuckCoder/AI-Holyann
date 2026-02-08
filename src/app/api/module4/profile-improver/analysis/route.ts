@@ -23,10 +23,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Django AI API
+    // Call Django AI API (phân tích có thể mất 1–2 phút)
     const AI_API_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
     const baseUrl = AI_API_BASE.replace(/\/+$/, "");
     const url = `${baseUrl}/hoexapp/api/profile-improver/analysis/`;
+    const timeoutMs = 170000; // 2m50s
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const response = await fetch(url, {
       method: 'POST',
@@ -39,7 +42,8 @@ export async function POST(request: NextRequest) {
         feature3_output: payload.feature3_output,
         use_nlp: payload.use_nlp !== undefined ? payload.use_nlp : true,
       }),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -54,12 +58,19 @@ export async function POST(request: NextRequest) {
 
     const result = await response.json();
     return NextResponse.json(result, { status: 200 });
-  } catch (error: unknown) {
-    console.error('❌ [Module 4 - Profile Improver Analysis API] Error:', error);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      console.error('❌ [Module 4 - Profile Improver Analysis API] Timeout');
+      return NextResponse.json(
+        { success: false, error: 'Phân tích mất quá nhiều thời gian. Vui lòng thử lại.' },
+        { status: 504 }
+      );
+    }
+    console.error('❌ [Module 4 - Profile Improver Analysis API] Error:', err);
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Lỗi khi phân tích profile',
+        error: err instanceof Error ? err.message : 'Lỗi khi phân tích profile',
       },
       { status: 500 }
     );

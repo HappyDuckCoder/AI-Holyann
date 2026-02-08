@@ -193,8 +193,9 @@ model students {
   checklist_progress student_task_progress[]
 
   // Improve: Essay & CV
-  essays         essays[]
-  student_cvs    student_cv_documents[]
+  essays                   essays[]
+  student_cvs              student_cv_documents[]
+  profile_improve_result   profile_improve_results?
 }
 
 // ==================== 4b. IMPROVE – ESSAY & CV ====================
@@ -236,6 +237,23 @@ model student_cv_documents {
   file_url    String   @db.Text
   file_name   String   @db.VarChar(255)
   uploaded_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([student_id])
+}
+
+/// Kết quả Phân tích & Đề xuất cải thiện (Improve – Feature 4). Mỗi student một bản ghi, cập nhật khi chạy lại.
+model profile_improve_results {
+  id               String    @id @default(uuid()) @db.Uuid
+  student_id       String    @unique @db.Uuid
+  student          students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  analysis_result  Json?     // Full response từ /profile-improver/analysis
+  enhance_result   Json?     // Full response từ /profile-improver/enhance
+  analysis_rating  Int?      // 1–5, do học sinh đánh giá
+  enhance_rating   Int?      // 1–5
+  analysis_at      DateTime? @db.Timestamp(6)
+  enhance_at       DateTime? @db.Timestamp(6)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime  @default(now()) @db.Timestamp(6)
 
   @@index([student_id])
 }
