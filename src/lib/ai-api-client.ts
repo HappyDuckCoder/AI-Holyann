@@ -19,8 +19,13 @@ const getBaseUrl = () => {
 
 const BASE_URL = getBaseUrl();
 
+const DEFAULT_TIMEOUT_MS = 30_000;
+/** Feature 1 profile-analysis: NLP + xử lý có thể 2–5 phút */
+const PROFILE_ANALYSIS_TIMEOUT_MS = 300_000; // 5 phút
+
 /**
  * Call AI API endpoint
+ * @param options.timeoutMs - Timeout (ms). Dùng PROFILE_ANALYSIS_TIMEOUT_MS cho profile-analysis.
  */
 export async function callAIAPI<T = any>(
   endpoint: string,
@@ -28,9 +33,10 @@ export async function callAIAPI<T = any>(
     method?: "GET" | "POST" | "PUT" | "DELETE";
     body?: any;
     headers?: Record<string, string>;
-  } = {}
+    timeoutMs?: number;
+  } = {},
 ): Promise<T> {
-  const { method = "POST", body, headers = {} } = options;
+  const { method = "POST", body, headers = {}, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
 
   // Ensure endpoint starts with /
   const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
@@ -44,9 +50,8 @@ export async function callAIAPI<T = any>(
   const fetchOptions: RequestInit = {
     method,
     headers: requestHeaders,
-    cache: "no-store", // Disable caching for AI API calls
-    // Add timeout for better error handling (30 seconds)
-    signal: AbortSignal.timeout(30000),
+    cache: "no-store",
+    signal: AbortSignal.timeout(timeoutMs),
   };
 
   if (body && method !== "GET") {
@@ -57,7 +62,10 @@ export async function callAIAPI<T = any>(
     // Log request details for debugging
     console.log(`🔄 [AI API] ${method} ${url}`);
     if (body) {
-      console.log(`📤 [AI API] Request body:`, JSON.stringify(body).substring(0, 200));
+      console.log(
+        `📤 [AI API] Request body:`,
+        JSON.stringify(body).substring(0, 200),
+      );
     }
 
     const response = await fetch(url, fetchOptions);
@@ -76,10 +84,11 @@ export async function callAIAPI<T = any>(
       console.error(`❌ [AI API] Error ${response.status}:`, errorData);
 
       // Extract detailed error message from Django
-      let errorMessage = errorData.error || errorData.message || errorData.detail;
+      let errorMessage =
+        errorData.error || errorData.message || errorData.detail;
 
       // If Django returned a traceback or detailed error, try to extract it
-      if (typeof errorData === 'object') {
+      if (typeof errorData === "object") {
         // Check for nested error structures
         if (errorData.details) {
           errorMessage = errorData.details;
@@ -90,7 +99,8 @@ export async function callAIAPI<T = any>(
 
       // If still no clear message, use the raw error text
       if (!errorMessage || errorMessage === "Unknown error") {
-        errorMessage = errorText.substring(0, 500) || `AI API returned ${response.status}`;
+        errorMessage =
+          errorText.substring(0, 500) || `AI API returned ${response.status}`;
       }
 
       throw new Error(errorMessage);
@@ -104,11 +114,19 @@ export async function callAIAPI<T = any>(
 
     // Check for specific error types
     if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error(`AI server timeout after 30 seconds. Please check if Django server is running at ${BASE_URL}`);
+      if (error.name === "AbortError" || (error as any).name === "TimeoutError") {
+        const sec = Math.round(timeoutMs / 1000);
+        throw new Error(
+          `AI server không phản hồi sau ${sec} giây. Kiểm tra server tại ${BASE_URL} hoặc thử lại.`,
+        );
       }
-      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
-        throw new Error(`Cannot connect to AI server at ${BASE_URL}. Please ensure Django server is running.`);
+      if (
+        error.message.includes("fetch failed") ||
+        error.message.includes("ECONNREFUSED")
+      ) {
+        throw new Error(
+          `Cannot connect to AI server at ${BASE_URL}. Please ensure Django server is running.`,
+        );
       }
       throw error;
     }
@@ -117,12 +135,13 @@ export async function callAIAPI<T = any>(
 }
 
 /**
- * Feature 1: Profile Analysis
+ * Feature 1: Profile Analysis (NLP + xử lý có thể 2–5 phút)
  */
 export async function callProfileAnalysis(payload: any) {
   return callAIAPI("/hoexapp/api/profile-analysis/", {
     method: "POST",
     body: payload,
+    timeoutMs: PROFILE_ANALYSIS_TIMEOUT_MS,
   });
 }
 
@@ -141,7 +160,7 @@ import type {
  * Feature 2: Career Assessment (Combined)
  */
 export async function callCareerAssessment(
-  payload: CareerAssessmentInput
+  payload: CareerAssessmentInput,
 ): Promise<CareerAssessmentOutput> {
   return callAIAPI<CareerAssessmentOutput>("/hoexapp/api/career-assessment/", {
     method: "POST",
@@ -153,7 +172,7 @@ export async function callCareerAssessment(
  * Feature 2: MBTI Assessment Only
  */
 export async function callMBTIAssessment(
-  answers: number[]
+  answers: number[],
 ): Promise<MBTIOutput> {
   const payload: MBTIInput = { answers };
   return callAIAPI<MBTIOutput>("/hoexapp/api/mbti/", {
@@ -166,7 +185,7 @@ export async function callMBTIAssessment(
  * Feature 2: GRIT Scale Assessment Only
  */
 export async function callGritAssessment(
-  answers: Record<string, number>
+  answers: Record<string, number>,
 ): Promise<GritOutput> {
   const payload: GritInput = { answers };
   return callAIAPI<GritOutput>("/hoexapp/api/grit-scale/", {
@@ -179,7 +198,7 @@ export async function callGritAssessment(
  * Feature 2: RIASEC Assessment Only
  */
 export async function callRIASECAssessment(
-  answers: Record<string, number>
+  answers: Record<string, number>,
 ): Promise<RIASECOutput> {
   const payload: RIASECInput = { answers };
   return callAIAPI<RIASECOutput>("/hoexapp/api/riasec/", {

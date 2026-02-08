@@ -8,6 +8,8 @@ import { RadarChartCard } from "./components/RadarChartCard";
 import { AcademicInfoSection } from "./components/AcademicInfoSection";
 import { ActivitiesSection } from "./components/ActivitiesSection";
 import { DocumentsSection } from "./components/DocumentsSection";
+import { ProfileEvaluationSection } from "./ProfileEvaluationSection";
+import type { AnalysisResult } from "./ProfileAnalysisContent";
 
 export interface ProfilePageProps {
   profile: StudentProfile;
@@ -15,6 +17,8 @@ export interface ProfilePageProps {
   onUploadDocument: (file: File, type: DocumentType) => void;
   onDeleteDocument: (id: string) => void;
   onUploadAvatar?: (file: File) => void;
+  analysisResult?: AnalysisResult | null;
+  analysisLoading?: boolean;
   onAnalyzeProfile?: () => void;
   onSaveBasicInfo?: (data: {
     name: string;
@@ -45,6 +49,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onUploadDocument,
   onDeleteDocument,
   onUploadAvatar,
+  analysisResult = null,
+  analysisLoading = false,
   onAnalyzeProfile,
   onSaveBasicInfo,
   onSaveAcademic,
@@ -77,7 +83,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto">
-      <ProfileHeader onEditClick={onEditClick} onAnalyzeProfile={onAnalyzeProfile} />
+      <ProfileHeader onEditClick={onEditClick} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-4 space-y-6">
@@ -112,6 +118,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             onUploadDocument={onUploadDocument}
             onDeleteDocument={onDeleteDocument}
           />
+          {onAnalyzeProfile && (
+            <ProfileEvaluationSection
+              analysisResult={analysisResult ?? null}
+              analysisLoading={analysisLoading}
+              onAnalyze={onAnalyzeProfile}
+            />
+          )}
         </div>
       </div>
     </div>

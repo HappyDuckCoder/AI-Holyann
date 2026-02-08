@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
+
+// Feature 1: profile-analysis có thể chạy 2–5 phút (NLP + xử lý)
+export const maxDuration = 300;
 import {
   Feature1InputPayload,
   Feature1OutputData,
@@ -198,7 +201,7 @@ function mapProficiency(proficiency: string | null | undefined): string {
 
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ student_id: string }> }
+  context: { params: Promise<{ student_id: string }> },
 ) {
   try {
     const { student_id: studentIdStr } = await context.params;
@@ -229,7 +232,7 @@ export async function POST(
     if (!studentData) {
       return NextResponse.json(
         { error: "Không tìm thấy thông tin học sinh" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -258,7 +261,7 @@ export async function POST(
           error:
             "Vui lòng cập nhật thông tin GPA để sử dụng tính năng phân tích AI",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -290,7 +293,7 @@ export async function POST(
             score: s.score || 0,
             year: s.year || null,
             semester: s.semester ? String(s.semester) : null,
-          })
+          }),
         ),
 
         // Academic awards (optional - có thể rỗng)
@@ -302,7 +305,7 @@ export async function POST(
             region: a.region || null,
             category: a.category || null,
             impact: a.description || null,
-          })
+          }),
         ),
       },
 
@@ -318,7 +321,7 @@ export async function POST(
           }
           return certs
             .filter(
-              (l) => l !== null && typeof l === "object" && !Array.isArray(l)
+              (l) => l !== null && typeof l === "object" && !Array.isArray(l),
             )
             .map((l) => {
               const cert = l as Record<string, unknown>;
@@ -340,7 +343,7 @@ export async function POST(
           }
           return tests
             .filter(
-              (t) => t !== null && typeof t === "object" && !Array.isArray(t)
+              (t) => t !== null && typeof t === "object" && !Array.isArray(t),
             )
             .map((t) => {
               const test = t as Record<string, unknown>;
@@ -362,7 +365,7 @@ export async function POST(
               role: mapRole(e.role),
               scale: e.scale || 10,
               region: mapRegion(e.region),
-            })
+            }),
           ),
           ...(background?.non_academic_extracurriculars ?? []).map(
             (e): ExtracurricularAction => ({
@@ -370,7 +373,7 @@ export async function POST(
               role: mapRole(e.role),
               scale: e.scale || 10,
               region: mapRegion(e.region),
-            })
+            }),
           ),
         ],
       },
@@ -383,7 +386,7 @@ export async function POST(
           year: a.year || null,
           rank: a.rank || null,
           region: mapRegion(a.region),
-        })
+        }),
       ),
 
       // personal_projects must be an array directly (optional - có thể rỗng)
@@ -396,7 +399,7 @@ export async function POST(
             description: p.description || null,
             duration_months: p.duration_months || null,
             impact: p.impact || null,
-          })
+          }),
         ),
         // Map research_experiences vào personal_projects với topic: "Research"
         ...(background?.research_experiences ?? []).map(
@@ -408,7 +411,7 @@ export async function POST(
               const end = new Date(r.end_date);
               const diffTime = Math.abs(end.getTime() - start.getTime());
               const diffMonths = Math.ceil(
-                diffTime / (1000 * 60 * 60 * 24 * 30)
+                diffTime / (1000 * 60 * 60 * 24 * 30),
               );
               durationMonths = diffMonths;
             }
@@ -420,7 +423,7 @@ export async function POST(
               duration_months: durationMonths,
               impact: r.findings || null,
             };
-          }
+          },
         ),
       ],
 
@@ -430,7 +433,7 @@ export async function POST(
             skill_name: s.skill_name || "",
             proficiency: mapProficiency(s.proficiency),
             category: s.category || null,
-          })
+          }),
         ),
       },
     };
@@ -449,7 +452,7 @@ export async function POST(
           error: "Lỗi khi gọi API phân tích",
           details: errorMessage,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -474,7 +477,7 @@ export async function POST(
             details: wrappedResponse.error || "Không có dữ liệu trả về",
             validation_warnings: wrappedResponse.validation_warnings,
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
       outputData = wrappedResponse.data;
@@ -489,7 +492,7 @@ export async function POST(
             error: "Dữ liệu phân tích không hợp lệ",
             details: "Cấu trúc dữ liệu trả về không đúng định dạng",
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
       outputData = normalized;
@@ -502,7 +505,7 @@ export async function POST(
           error: "Không thể xử lý dữ liệu phân tích",
           details: "Dữ liệu trả về không hợp lệ",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -511,7 +514,7 @@ export async function POST(
       const dbInput = mapAnalysisToDatabase(
         studentIdStr,
         feature1Payload,
-        outputData
+        outputData,
       );
 
       await prisma.profile_analyses.create({
@@ -521,7 +524,7 @@ export async function POST(
           analysis_date: dbInput.analysis_date,
           academic_data: JSON.parse(JSON.stringify(dbInput.academic_data)),
           extracurricular_data: JSON.parse(
-            JSON.stringify(dbInput.extracurricular_data)
+            JSON.stringify(dbInput.extracurricular_data),
           ),
           skill_data: JSON.parse(JSON.stringify(dbInput.skill_data)),
           overall_score: dbInput.overall_score,
@@ -551,7 +554,7 @@ export async function POST(
         error: "Lỗi server khi phân tích hồ sơ",
         details: errorMessage,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

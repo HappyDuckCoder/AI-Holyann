@@ -1,16 +1,14 @@
 "use client";
 
 import React from "react";
-import { Edit3, Sparkles } from "lucide-react";
+import { Edit3 } from "lucide-react";
 
 interface ProfileHeaderProps {
   onEditClick: () => void;
-  onAnalyzeProfile?: () => void;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onEditClick,
-  onAnalyzeProfile,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -23,16 +21,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {onAnalyzeProfile && (
-          <button
-            type="button"
-            onClick={onAnalyzeProfile}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Sparkles size={16} />
-            Phân tích AI
-          </button>
-        )}
         <button
           type="button"
           onClick={onEditClick}

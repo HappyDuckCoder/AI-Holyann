@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import {
   ResponsiveContainer,
   RadarChart,
@@ -83,20 +82,6 @@ export const RadarChartCard: React.FC<RadarChartCardProps> = ({
             />
           </RadarChart>
         </ResponsiveContainer>
-      </div>
-      <div className="mt-3 flex gap-2">
-        <Link
-          href="/student/tests"
-          className="flex-1 text-center py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          Bài đánh giá
-        </Link>
-        <Link
-          href="/student/swotCard"
-          className="flex-1 text-center py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:bg-muted transition-colors"
-        >
-          SWOT
-        </Link>
       </div>
     </div>
   );

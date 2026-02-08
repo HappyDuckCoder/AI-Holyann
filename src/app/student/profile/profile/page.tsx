@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { ProfilePage } from "@/components/student/profile";
 import AcademicInfoModal from "@/components/student/profile/AcademicInfoModal";
-import ProfileAnalysisModal from "@/components/student/profile/ProfileAnalysisModal";
 import { StudentPageContainer } from "@/components/student";
 import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -12,12 +11,12 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 export default function ProfilePageWrapper() {
   const { session, isLoading: sessionLoading, isAuthenticated } = useAuthSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const analysisInFlightRef = useRef(false);
   const [isNewStudent, setIsNewStudent] = useState(false);
 
   // Get student ID from session - memoized to prevent unnecessary recalculations
@@ -368,6 +367,7 @@ export default function ProfilePageWrapper() {
   };
 
   const handleAnalyzeProfile = async () => {
+    if (analysisInFlightRef.current) return;
     const studentId = getStudentId();
     if (!studentId) {
       toast.error("Không tìm thấy thông tin học sinh", {
@@ -376,7 +376,7 @@ export default function ProfilePageWrapper() {
       return;
     }
 
-    setIsAnalysisModalOpen(true);
+    analysisInFlightRef.current = true;
     setAnalysisLoading(true);
     setAnalysisResult(null);
 
@@ -419,6 +419,7 @@ export default function ProfilePageWrapper() {
         description: "Vui lòng kiểm tra kết nối mạng và thử lại",
       });
     } finally {
+      analysisInFlightRef.current = false;
       setAnalysisLoading(false);
     }
   };
@@ -510,6 +511,8 @@ export default function ProfilePageWrapper() {
           onEditClick={handleEditClick}
           onUploadDocument={handleUploadDocument}
           onDeleteDocument={handleDeleteDocument}
+          analysisResult={analysisResult}
+          analysisLoading={analysisLoading}
           onAnalyzeProfile={handleAnalyzeProfile}
           onProfileUpdate={handleProfileUpdate}
         />
@@ -519,13 +522,6 @@ export default function ProfilePageWrapper() {
             onClose={handleCloseModal}
           />
         )}
-        <ProfileAnalysisModal
-          isOpen={isAnalysisModalOpen}
-          onClose={() => setIsAnalysisModalOpen(false)}
-          result={analysisResult}
-          loading={analysisLoading}
-          onRetry={handleAnalyzeProfile}
-        />
       </div>
     </StudentPageContainer>
   );

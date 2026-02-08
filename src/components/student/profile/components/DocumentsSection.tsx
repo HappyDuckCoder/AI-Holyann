@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import Link from "next/link";
-import { FileText, UploadCloud, Trash2, File, GraduationCap, Sparkles } from "lucide-react";
+import { FileText, UploadCloud, Trash2, File } from "lucide-react";
 import { StudentProfile, DocumentType } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -142,24 +141,6 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="mt-4 pt-4 border-t border-border/60 flex flex-wrap gap-2 text-sm">
-          <Link
-            href="/student/profile/schools"
-            className="inline-flex items-center gap-1.5 text-primary hover:underline"
-          >
-            <GraduationCap size={14} />
-            Trường mục tiêu
-          </Link>
-          <span className="text-border">|</span>
-          <Link
-            href="/student/profile/improve"
-            className="inline-flex items-center gap-1.5 text-primary hover:underline"
-          >
-            <Sparkles size={14} />
-            Cải thiện hồ sơ
-          </Link>
         </div>
       </div>
     </section>
