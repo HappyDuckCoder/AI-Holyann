@@ -191,6 +191,15 @@ function CareerAssessmentResults({
         ) {
           errorMessage = "Không thể kết nối đến dịch vụ phân tích";
           errorDescription = "Vui lòng kiểm tra kết nối mạng và thử lại sau";
+        } else if (
+          msg.includes("no such file") ||
+          msg.includes("filenotfound") ||
+          msg.includes("missing required configuration") ||
+          msg.includes(".csv") ||
+          msg.includes("errno 2")
+        ) {
+          errorMessage = "Hệ thống đang thiếu dữ liệu cấu hình";
+          errorDescription = "Vui lòng liên hệ quản trị viên để cập nhật dữ liệu cần thiết (interests.csv)";
         } else if (msg.includes("missing") || msg.includes("complete")) {
           errorMessage = "Chưa hoàn thành đủ bài test";
           errorDescription =

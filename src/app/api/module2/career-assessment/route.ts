@@ -72,14 +72,39 @@ export async function POST(request: NextRequest) {
       externalResult = normalized;
     } catch (error) {
       console.error("❌ [Module 2 - Career Assessment] Failed to call AI API:", error);
+
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Phân biệt giữa connection error và server error
+      let statusCode = 503;
+      let userError = "Cannot connect to AI server. Make sure Django server is running.";
+
+      // Nếu error message chứa path hoặc file error -> đây là lỗi từ Django server
+      if (errorMessage.includes('No such file or directory') ||
+          errorMessage.includes('FileNotFoundError') ||
+          errorMessage.includes('.csv') ||
+          errorMessage.includes('Errno')) {
+        statusCode = 500;
+        userError = "AI server is missing required configuration files. Please contact administrator.";
+      }
+      // Nếu có response từ server -> server đang chạy nhưng có lỗi
+      else if (!errorMessage.includes('fetch failed') &&
+               !errorMessage.includes('ECONNREFUSED') &&
+               !errorMessage.includes('timeout')) {
+        statusCode = 500;
+        userError = "AI server encountered an error while processing your request.";
+      }
+
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Cannot connect to AI server. Make sure Django server is running.",
-          details: error instanceof Error ? error.message : String(error),
+          error: userError,
+          details: errorMessage,
+          suggestion: statusCode === 500
+            ? "The AI server is running but encountered an internal error. Check server logs for details."
+            : "Make sure Django server is running at the configured URL.",
         },
-        { status: 503 }
+        { status: statusCode }
       );
     }
 

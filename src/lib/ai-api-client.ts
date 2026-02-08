@@ -2,15 +2,15 @@
  * AI API Client Utility
  *
  * Centralized client for calling Django AI server endpoints
- * Uses AI_API_URL from environment variables
+ * Uses AI_SERVER_URL from environment variables
  */
 
-const AI_API_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
+const AI_API_BASE = process.env.AI_SERVER_URL || "http://127.0.0.1:8000";
 
 // Ensure base URL doesn't have trailing slash
 const getBaseUrl = () => {
   const base = AI_API_BASE.replace(/\/+$/, "");
-  // If AI_API_URL is just IP:port, add http://
+  // If AI_SERVER_URL is just IP:port, add http://
   if (!base.startsWith("http://") && !base.startsWith("https://")) {
     return `http://${base}`;
   }
@@ -45,6 +45,8 @@ export async function callAIAPI<T = any>(
     method,
     headers: requestHeaders,
     cache: "no-store", // Disable caching for AI API calls
+    // Add timeout for better error handling (30 seconds)
+    signal: AbortSignal.timeout(30000),
   };
 
   if (body && method !== "GET") {
@@ -52,7 +54,11 @@ export async function callAIAPI<T = any>(
   }
 
   try {
-    // AI API request
+    // Log request details for debugging
+    console.log(`🔄 [AI API] ${method} ${url}`);
+    if (body) {
+      console.log(`📤 [AI API] Request body:`, JSON.stringify(body).substring(0, 200));
+    }
 
     const response = await fetch(url, fetchOptions);
 
@@ -68,18 +74,42 @@ export async function callAIAPI<T = any>(
       }
 
       console.error(`❌ [AI API] Error ${response.status}:`, errorData);
-      throw new Error(
-        errorData.error ||
-          errorData.message ||
-          `AI API returned ${response.status}`
-      );
+
+      // Extract detailed error message from Django
+      let errorMessage = errorData.error || errorData.message || errorData.detail;
+
+      // If Django returned a traceback or detailed error, try to extract it
+      if (typeof errorData === 'object') {
+        // Check for nested error structures
+        if (errorData.details) {
+          errorMessage = errorData.details;
+        } else if (errorData.traceback) {
+          errorMessage = errorData.traceback;
+        }
+      }
+
+      // If still no clear message, use the raw error text
+      if (!errorMessage || errorMessage === "Unknown error") {
+        errorMessage = errorText.substring(0, 500) || `AI API returned ${response.status}`;
+      }
+
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
+    console.log(`✅ [AI API] Success ${response.status}`);
     return data;
   } catch (error) {
     console.error(`❌ [AI API] Request failed:`, error);
+
+    // Check for specific error types
     if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error(`AI server timeout after 30 seconds. Please check if Django server is running at ${BASE_URL}`);
+      }
+      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
+        throw new Error(`Cannot connect to AI server at ${BASE_URL}. Please ensure Django server is running.`);
+      }
       throw error;
     }
     throw new Error("Failed to call AI API");
