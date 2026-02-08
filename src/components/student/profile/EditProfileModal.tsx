@@ -236,7 +236,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   <div key={index} className="flex gap-2">
                     <input
                       type="text"
-                      value={ach}
+                      value={typeof ach === 'string' ? ach : ach.text}
                       onChange={(e) =>
                         handleAchievementChange(index, e.target.value)
                       }

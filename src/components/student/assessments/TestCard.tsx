@@ -1,6 +1,6 @@
 import React from 'react';
 import {ArrowRight, Brain, Briefcase, Activity, CheckCircle2} from 'lucide-react';
-import {TestResult} from '../types';
+import { TestResult } from '@/components/types';
 
 interface TestCardProps {
     title: string;

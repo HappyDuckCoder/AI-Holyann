@@ -18,6 +18,9 @@ export async function GET() {
     }
 
     const mentorId = session.user.id;
+    if (!mentorId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 400 });
+    }
     console.log(`[API] /api/mentor/dashboard/stats - Fetching for mentor: ${mentorId}`);
 
     // Sử dụng server action để lấy thống kê

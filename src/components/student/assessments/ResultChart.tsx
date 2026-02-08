@@ -4,7 +4,7 @@ import {
     PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, BarChart, Bar,
     XAxis, YAxis, CartesianGrid
 } from 'recharts';
-import {TestResult} from '../types';
+import { TestResult } from '@/components/types';
 
 interface ResultChartProps {
     result: TestResult;

@@ -25,7 +25,7 @@ export default function TestAvatarPage() {
       if (result.success && result.url) {
         setUser(prev => ({
           ...prev,
-          avatar_url: result.url
+          avatar_url: result.url ?? null,
         }))
         setUploadStatus('✅ Tải lên thành công!')
 
