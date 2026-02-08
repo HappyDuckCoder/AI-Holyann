@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BookOpen, Globe, Pencil, Check, X } from "lucide-react";
-import { StudentProfile } from "../../../types";
+import { BookOpen, Globe, Pencil, Check, X, Plus, Trash2 } from "lucide-react";
+import { StudentProfile, EnglishCertificate } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
 interface AcademicInfoSectionProps {
@@ -11,11 +11,15 @@ interface AcademicInfoSectionProps {
   onSave?: (data: {
     gpa: number;
     gpaScale: number;
-    englishLevel: string;
+    englishCertificates: EnglishCertificate[];
     targetMajor: string;
     targetCountry: string;
   }) => void;
 }
+
+const GPA_MIN = 0;
+const GPA_MAX = 10;
+const GPA_SCALE = 10;
 
 export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
   profile,
@@ -25,8 +29,10 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     gpa: profile.gpa,
-    gpaScale: profile.gpaScale,
-    englishLevel: profile.englishLevel,
+    gpaScale: GPA_SCALE,
+    englishCertificates: (profile.englishCertificates && profile.englishCertificates.length > 0
+      ? profile.englishCertificates
+      : [{ type: "", score: "" }]) as EnglishCertificate[],
     targetMajor: profile.targetMajor,
     targetCountry: profile.targetCountry,
   });
@@ -34,27 +40,70 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
   useEffect(() => {
     setForm({
       gpa: profile.gpa,
-      gpaScale: profile.gpaScale,
-      englishLevel: profile.englishLevel,
+      gpaScale: GPA_SCALE,
+      englishCertificates:
+        profile.englishCertificates && profile.englishCertificates.length > 0
+          ? [...profile.englishCertificates]
+          : [{ type: "", score: "" }],
       targetMajor: profile.targetMajor,
       targetCountry: profile.targetCountry,
     });
-  }, [profile.gpa, profile.gpaScale, profile.englishLevel, profile.targetMajor, profile.targetCountry]);
+  }, [
+    profile.gpa,
+    profile.englishCertificates,
+    profile.targetMajor,
+    profile.targetCountry,
+  ]);
 
   const handleSave = () => {
-    onSave?.(form);
+    const gpa = Math.min(GPA_MAX, Math.max(GPA_MIN, Number(form.gpa) || 0));
+    const certs = form.englishCertificates.filter(
+      (c) => (c.type || "").trim() || (c.score || "").trim()
+    );
+    onSave?.({
+      ...form,
+      gpa,
+      gpaScale: GPA_SCALE,
+      englishCertificates: certs.length > 0 ? certs : [],
+    });
     setEditing(false);
   };
 
   const handleCancel = () => {
     setForm({
       gpa: profile.gpa,
-      gpaScale: profile.gpaScale,
-      englishLevel: profile.englishLevel,
+      gpaScale: GPA_SCALE,
+      englishCertificates:
+        profile.englishCertificates && profile.englishCertificates.length > 0
+          ? [...profile.englishCertificates]
+          : [{ type: "", score: "" }],
       targetMajor: profile.targetMajor,
       targetCountry: profile.targetCountry,
     });
     setEditing(false);
+  };
+
+  const addCert = () => {
+    setForm((f) => ({
+      ...f,
+      englishCertificates: [...f.englishCertificates, { type: "", score: "" }],
+    }));
+  };
+
+  const updateCert = (index: number, field: "type" | "score", value: string) => {
+    setForm((f) => ({
+      ...f,
+      englishCertificates: f.englishCertificates.map((c, i) =>
+        i === index ? { ...c, [field]: value } : c
+      ),
+    }));
+  };
+
+  const removeCert = (index: number) => {
+    setForm((f) => ({
+      ...f,
+      englishCertificates: f.englishCertificates.filter((_, i) => i !== index),
+    }));
   };
 
   return (
@@ -98,69 +147,98 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
       </div>
       <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl border border-border/60 bg-muted/20">
-          <p className="text-xs font-medium text-muted-foreground mb-1">GPA</p>
+          <p className="text-xs font-medium text-muted-foreground mb-1">GPA (thang 10)</p>
           {editing ? (
             <div className="flex items-baseline gap-1 flex-wrap">
               <input
                 type="number"
                 step="0.1"
-                min="0"
-                max="10"
-                value={form.gpa || ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, gpa: parseFloat(e.target.value) || 0 }))
-                }
+                min={GPA_MIN}
+                max={GPA_MAX}
+                value={form.gpa}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  const clamped = Number.isNaN(v) ? 0 : Math.min(GPA_MAX, Math.max(GPA_MIN, v));
+                  setForm((f) => ({ ...f, gpa: clamped }));
+                }}
                 className="w-16 bg-background border border-border rounded px-2 py-1 text-foreground"
               />
-              <span className="text-sm text-muted-foreground">/</span>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                value={form.gpaScale || ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, gpaScale: parseFloat(e.target.value) || 10 }))
-                }
-                className="w-14 bg-background border border-border rounded px-2 py-1 text-foreground"
-              />
+              <span className="text-sm text-muted-foreground">/ {GPA_SCALE}</span>
             </div>
           ) : (
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-semibold text-foreground">{profile.gpa}</span>
-              <span className="text-sm text-muted-foreground">/ {profile.gpaScale}</span>
+              <span className="text-sm text-muted-foreground">/ {GPA_SCALE}</span>
             </div>
           )}
         </div>
-        <div className="p-4 rounded-xl border border-border/60 bg-muted/20">
+        <div className="p-4 rounded-xl border border-border/60 bg-muted/20 md:col-span-2">
           <p className="text-xs font-medium text-muted-foreground mb-1">Ngoại ngữ</p>
           {editing ? (
-            <input
-              value={form.englishLevel}
-              onChange={(e) => setForm((f) => ({ ...f, englishLevel: e.target.value }))}
-              className="w-full bg-background border border-border rounded px-2 py-1 text-foreground"
-              placeholder="vd: IELTS 7.0"
-            />
+            <div className="space-y-2">
+              {form.englishCertificates.map((cert, index) => (
+                <div key={index} className="flex gap-2 items-center flex-wrap">
+                  <input
+                    value={cert.type}
+                    onChange={(e) => updateCert(index, "type", e.target.value)}
+                    className="flex-1 min-w-[80px] max-w-[120px] bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                    placeholder="IELTS, TOEFL..."
+                  />
+                  <input
+                    value={cert.score}
+                    onChange={(e) => updateCert(index, "score", e.target.value)}
+                    className="w-20 bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                    placeholder="7.0"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeCert(index)}
+                    className="p-1.5 rounded text-muted-foreground hover:bg-muted"
+                    title="Xóa"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addCert}
+                className="flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                <Plus size={14} /> Thêm ngoại ngữ
+              </button>
+            </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Globe size={16} className="text-primary" />
-              <span className="font-semibold text-foreground">{profile.englishLevel}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Globe size={16} className="text-primary shrink-0" />
+              {profile.englishCertificates && profile.englishCertificates.length > 0 ? (
+                <div className="flex flex-wrap gap-x-2 gap-y-1">
+                  {profile.englishCertificates.map((c, i) => (
+                    <span key={i} className="font-medium text-foreground">
+                      {[c.type, c.score].filter(Boolean).join(" ")}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-muted-foreground">{profile.englishLevel || "Chưa cập nhật"}</span>
+              )}
             </div>
           )}
         </div>
-        <div className="p-4 rounded-xl border border-border/60 bg-muted/20">
+        <div className="p-4 rounded-xl border border-border/60 bg-muted/20 md:col-span-3">
           <p className="text-xs font-medium text-muted-foreground mb-1">Mục tiêu</p>
           {editing ? (
-            <div className="space-y-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <input
                 value={form.targetMajor}
                 onChange={(e) => setForm((f) => ({ ...f, targetMajor: e.target.value }))}
-                className="w-full bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                className="bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
                 placeholder="Ngành học"
               />
               <input
                 value={form.targetCountry}
                 onChange={(e) => setForm((f) => ({ ...f, targetCountry: e.target.value }))}
-                className="w-full bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                className="bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
                 placeholder="Quốc gia"
               />
             </div>

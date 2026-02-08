@@ -9,7 +9,7 @@ import { AcademicInfoSection } from "./components/AcademicInfoSection";
 import { ActivitiesSection } from "./components/ActivitiesSection";
 import { DocumentsSection } from "./components/DocumentsSection";
 
-interface ProfilePageProps {
+export interface ProfilePageProps {
   profile: StudentProfile;
   onEditClick: () => void;
   onUploadDocument: (file: File, type: DocumentType) => void;
@@ -26,7 +26,7 @@ interface ProfilePageProps {
   onSaveAcademic?: (data: {
     gpa: number;
     gpaScale: number;
-    englishLevel: string;
+    englishCertificates: { type: string; score: string }[];
     targetMajor: string;
     targetCountry: string;
   }) => void;
@@ -65,7 +65,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const isPersonalComplete = Boolean(
     profile.name && profile.email && profile.phone && profile.address && profile.dob
   );
-  const isAcademicComplete = Boolean(profile.gpa && profile.englishLevel && profile.targetMajor);
+  const hasEnglishCerts =
+    (profile.englishCertificates && profile.englishCertificates.length > 0) ||
+    (profile.englishLevel && profile.englishLevel !== "Chưa cập nhật");
+  const isAcademicComplete = Boolean(profile.gpa && profile.targetMajor && hasEnglishCerts);
   const isActivitiesComplete =
     profile.extracurriculars.length > 0 && profile.achievements.length > 0;
   const isDocumentsComplete = profile.documents.length >= 2;

@@ -19,6 +19,12 @@ export interface Document {
     size: string;
 }
 
+/** Một chứng chỉ ngoại ngữ (IELTS, TOEFL, ...) */
+export interface EnglishCertificate {
+    type: string;
+    score: string;
+}
+
 export interface StudentProfile {
     id: string;
     name: string;
@@ -29,7 +35,10 @@ export interface StudentProfile {
     avatarUrl: string;
     gpa: number;
     gpaScale: number;
+    /** Chuỗi hiển thị (vd: "IELTS 7.0, TOEFL 100") - từ englishCertificates nếu có */
     englishLevel: string;
+    /** Danh sách chứng chỉ ngoại ngữ để thêm/sửa/xóa */
+    englishCertificates?: EnglishCertificate[];
     satScore?: number;
     targetMajor: string;
     targetCountry: string;

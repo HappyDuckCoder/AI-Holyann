@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { ProfilePage } from "@/components/student/profile";
+import type { ProfilePageProps } from "@/components/student/profile/ProfilePage";
 import AcademicInfoModal from "@/components/student/profile/AcademicInfoModal";
 import ProfileAnalysisModal from "@/components/student/profile/ProfileAnalysisModal";
 import { StudentPageContainer } from "@/components/student";
@@ -176,10 +177,18 @@ export default function ProfilePageWrapper() {
             );
           })(),
 
-          gpaScale: 10.0,
-          englishLevel: data.academicProfile?.english_certificates?.[0]?.type
-            ? `${data.academicProfile.english_certificates[0].type} ${data.academicProfile.english_certificates[0].score}`
-            : "Chưa cập nhật",
+          gpaScale: 10,
+          englishCertificates: Array.isArray(data.academicProfile?.english_certificates)
+            ? data.academicProfile.english_certificates.map((c: any) => ({
+                type: c.type || "",
+                score: String(c.score ?? ""),
+              }))
+            : [],
+          englishLevel: (() => {
+            const certs = data.academicProfile?.english_certificates;
+            if (!Array.isArray(certs) || certs.length === 0) return "Chưa cập nhật";
+            return certs.map((c: any) => `${c.type || ""} ${c.score ?? ""}`.trim()).filter(Boolean).join(", ") || "Chưa cập nhật";
+          })(),
           targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
           targetCountry: data.studentInfo?.target_country || "Chưa xác định",
 
@@ -345,15 +354,11 @@ export default function ProfilePageWrapper() {
     }
   };
 
-  const handleSaveAcademic = async (data: {
-    gpa: number;
-    gpaScale: number;
-    englishLevel: string;
-    targetMajor: string;
-    targetCountry: string;
-  }) => {
+  const handleSaveAcademic: NonNullable<ProfilePageProps["onSaveAcademic"]> = async (data) => {
     const studentId = getStudentId();
     if (!studentId || !profile) return;
+    const gpa = Math.min(10, Math.max(0, Number(data.gpa) || 0));
+    const certs = (data.englishCertificates || []).filter((c) => (c.type || "").trim() || (c.score || "").trim());
     try {
       const [profileRes, academicRes] = await Promise.all([
         fetch(`/api/students/${studentId}/profile`, {
@@ -370,21 +375,24 @@ export default function ProfilePageWrapper() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            gpa_transcript_details: { grade12: String(data.gpa), grade11: String(data.gpa) },
-            english_certificates: data.englishLevel
-              ? [{ type: "Khác", score: data.englishLevel }]
-              : [],
+            gpa_transcript_details: { grade12: String(gpa), grade11: String(gpa) },
+            english_certificates: certs.map((c) => ({ type: (c.type || "Khác").trim() || "Khác", score: String(c.score || "").trim() })),
           }),
         }),
       ]);
       if (profileRes.ok && academicRes.ok) {
+        const englishLevel =
+          certs.length === 0
+            ? "Chưa cập nhật"
+            : certs.map((c) => `${(c.type || "").trim()} ${(c.score || "").trim()}`.trim()).filter(Boolean).join(", ");
         setProfile((prev) =>
           prev
             ? {
                 ...prev,
-                gpa: data.gpa,
-                gpaScale: data.gpaScale,
-                englishLevel: data.englishLevel,
+                gpa,
+                gpaScale: 10,
+                englishCertificates: certs,
+                englishLevel,
                 targetMajor: data.targetMajor,
                 targetCountry: data.targetCountry,
               }
