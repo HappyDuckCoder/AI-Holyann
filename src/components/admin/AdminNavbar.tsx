@@ -18,6 +18,7 @@ import {
   Moon,
   LogOut,
   Shield,
+  School,
 } from 'lucide-react';
 
 const ADMIN_BASE = '/admin';
@@ -27,6 +28,7 @@ const navItems = [
   { name: 'Users', href: `${ADMIN_BASE}/users`, icon: Users },
   { name: 'Students', href: `${ADMIN_BASE}/students`, icon: GraduationCap },
   { name: 'Mentors', href: `${ADMIN_BASE}/mentors`, icon: Briefcase },
+  { name: 'Universities', href: `${ADMIN_BASE}/universities`, icon: School },
   { name: 'File review', href: `${ADMIN_BASE}/file-review`, icon: FileCheck },
 ];
 
