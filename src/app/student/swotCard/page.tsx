@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import AuthHeader from "@/components/auth/AuthHeader";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { SwotData, StudentProfile } from "@/components/types";
@@ -154,7 +153,7 @@ export default function SwotCardPage() {
           dob: data.basicInfo.date_of_birth
             ? new Date(data.basicInfo.date_of_birth).toLocaleDateString("vi-VN")
             : "Chưa cập nhật",
-          avatarUrl: data.basicInfo.avatar_url || "/images/avatars/avt.jpg",
+          avatarUrl: data.basicInfo.avatar_url || "",
           gpa: (() => {
             const gpaDetails = data.academicProfile?.gpa_transcript_details;
             if (!gpaDetails) return 0;
@@ -287,8 +286,7 @@ export default function SwotCardPage() {
   // Loading state for profile
   if (profileLoading) {
     return (
-      <div className="min-h-screen flex flex-col font-sans bg-white dark:bg-slate-950">
-        <AuthHeader />
+      <div className="min-h-[calc(100vh-theme(spacing.14))] flex flex-col font-sans">
         <main className="flex-grow flex items-center justify-center p-6">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-[var(--brand-deep)] animate-spin mx-auto mb-4" />
@@ -302,10 +300,8 @@ export default function SwotCardPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-white dark:bg-slate-950">
-      <AuthHeader />
-
-      <main className="flex-grow p-4 sm:p-6 max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
+    <div className="min-h-[calc(100vh-theme(spacing.14))] flex flex-col font-sans">
+      <main className="container max-w-7xl mx-auto w-full flex-grow space-y-4 p-4 sm:p-6 sm:space-y-6">
         {/* Navigation & Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex-1">

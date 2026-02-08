@@ -14,6 +14,8 @@
  * - checklist: Application checklist
  */
 
+export { default as StudentNavbar } from './StudentNavbar';
+export { StudentPageContainer } from './StudentPageContainer';
 export * from './dashboard';
 export * from './profile';
 export * from './assessments';

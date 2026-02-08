@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import AuthHeader from "@/components/auth/AuthHeader";
+import { StudentPageContainer } from "@/components/student";
 import TestSelection from "@/components/Test/TestSelection";
 import TestView from "@/components/Test/TestView";
 import ResultView from "@/components/Test/ResultView";
@@ -625,22 +625,17 @@ export default function TestsPage() {
   // Loading state khi chưa load xong từ localStorage
   if (!isLoaded) {
     return (
-      <>
-        <AuthHeader />
-        <main className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
-          </div>
-        </main>
-      </>
+      <StudentPageContainer>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-8 w-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+        </div>
+      </StudentPageContainer>
     );
   }
 
   return (
-    <>
-      <AuthHeader />
-      <main className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <StudentPageContainer>
+      <div className="max-w-7xl mx-auto">
           {viewState === "selection" && (
             <>
               <TestSelection
@@ -686,7 +681,6 @@ export default function TestsPage() {
             />
           )}
         </div>
-      </main>
-    </>
+    </StudentPageContainer>
   );
 }

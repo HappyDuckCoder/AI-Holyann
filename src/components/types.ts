@@ -1,11 +1,14 @@
 export type DocumentType = 'transcript' | 'certificate' | 'letter' | 'essay' | 'other';
 
+export type ActivityCategory = 'academic' | 'non_academic';
+
 export interface Extracurricular {
     id: string;
     title: string;
     role: string;
     year: string;
     description: string;
+    category?: ActivityCategory;
 }
 
 export interface Document {
@@ -31,7 +34,8 @@ export interface StudentProfile {
     targetMajor: string;
     targetCountry: string;
     extracurriculars: Extracurricular[];
-    achievements: string[];
+    /** Thành tích: text hoặc object có id để sửa/xóa */
+    achievements: (string | { id: string; text: string; category?: 'academic' | 'non_academic' })[];
     documents: Document[];
 }
 
