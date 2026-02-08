@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
 
 export default function LatestNewsSection() {
@@ -10,18 +11,21 @@ export default function LatestNewsSection() {
   ];
 
   return (
-    <div className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-3 list-none p-0 m-0" aria-label="Tin tức và sự kiện">
       {newsItems.map((item, index) => (
-        <div
+        <motion.li
           key={index}
-          className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/20 p-3 hover:bg-muted/30 transition-colors"
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.05 * index, duration: 0.3 }}
+          className="flex items-center gap-3 rounded-xl border border-emerald-200/50 dark:border-emerald-800/30 bg-emerald-500/5 px-4 py-3 hover:bg-emerald-500/10 transition-colors"
         >
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 text-primary" />
-          </div>
-          <p className="text-sm font-medium text-foreground flex-1">{item}</p>
-        </div>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" aria-hidden>
+            <Clock className="h-4 w-4" />
+          </span>
+          <span className="text-sm font-medium text-foreground flex-1">{item}</span>
+        </motion.li>
       ))}
-    </div>
+    </ul>
   );
 }
