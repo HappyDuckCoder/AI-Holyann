@@ -1,5 +1,5 @@
 import React from 'react';
-import AuthHeader from '@/components/auth/AuthHeader';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 export default function AdminLayout({
   children,
@@ -8,7 +8,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      <AuthHeader />
+      <AdminNavbar />
       <main className="min-h-[calc(100vh-theme(spacing.14))]">
         <div className="container max-w-screen-2xl px-4 py-6 sm:px-6 md:px-8 md:py-8">
           {children}
