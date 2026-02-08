@@ -11,9 +11,7 @@ export default function StudentDashboardPage() {
   return (
     <RoleGuard allowedRoles={['user', 'student', 'STUDENT']}>
       <StudentPageContainer>
-        <div className="flex justify-center">
-          <DashboardComponent userName={user?.name || 'Người dùng'} />
-        </div>
+        <DashboardComponent userName={user?.name || 'Người dùng'} />
       </StudentPageContainer>
     </RoleGuard>
   );
