@@ -352,27 +352,43 @@ export default function ImprovePage() {
     };
   };
 
-  const PROFILE_ACTION_TIMEOUT_MS = 180000; // 3 phút cho AI xử lý
+  const POLL_INTERVAL_MS = 4000;
+  const POLL_MAX_WAIT_MS = 300000; // 5 phút tối đa poll
+
+  const pollJobResult = async (jobId: string, kind: 'analysis' | 'enhance'): Promise<Record<string, unknown>> => {
+    const start = Date.now();
+    while (Date.now() - start < POLL_MAX_WAIT_MS) {
+      const res = await fetch(`/api/module4/profile-improver/result/${encodeURIComponent(jobId)}`);
+      const data = (await res.json()) as { status: string; result?: Record<string, unknown>; error?: string };
+      if (data.status === 'done' && data.result) return data.result;
+      if (data.status === 'error') throw new Error(data.error || 'Xử lý thất bại');
+      if (data.status === 'missing') throw new Error('Không tìm thấy kết quả. Vui lòng thử lại.');
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    }
+    throw new Error('Hết thời gian chờ. Vui lòng thử lại.');
+  };
 
   const handleProfileAnalysis = async () => {
     setProfileAnalysisLoading(true);
-    toast.info('Phân tích profile có thể mất 1–2 phút, vui lòng không đóng trang.', { duration: 5000 });
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), PROFILE_ACTION_TIMEOUT_MS);
+    toast.info('Đang bắt đầu phân tích... Kết quả sẽ hiển thị trong 1–2 phút.', { duration: 5000 });
     try {
       const payload = await getProfilePayload();
       const analysisRes = await fetch('/api/module4/profile-improver/analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, use_nlp: true }),
-        signal: controller.signal,
+        body: JSON.stringify({ ...payload, use_nlp: true, async: true }),
       });
-      clearTimeout(timeoutId);
       if (!analysisRes.ok) {
         const errBody = await analysisRes.json().catch(() => ({}));
         throw new Error((errBody as { error?: string }).error || 'Phân tích thất bại');
       }
-      const result = await analysisRes.json();
+      const data = (await analysisRes.json()) as { job_id?: string } & Record<string, unknown>;
+      let result: Record<string, unknown>;
+      if (analysisRes.status === 202 && data.job_id) {
+        result = await pollJobResult(data.job_id, 'analysis');
+      } else {
+        result = data;
+      }
       setProfileAnalysis(result);
       try {
         await fetch('/api/student/improve/results', {
@@ -385,12 +401,7 @@ export default function ImprovePage() {
       }
       toast.success('Phân tích profile thành công');
     } catch (e) {
-      clearTimeout(timeoutId);
-      if (e instanceof Error && e.name === 'AbortError') {
-        toast.error('Hết thời gian chờ. Phân tích cần nhiều thời gian hơn, vui lòng thử lại.');
-      } else {
-        toast.error(e instanceof Error ? e.message : 'Lỗi phân tích profile');
-      }
+      toast.error(e instanceof Error ? e.message : 'Lỗi phân tích profile');
     } finally {
       setProfileAnalysisLoading(false);
     }
@@ -415,23 +426,25 @@ export default function ImprovePage() {
 
   const handleProfileEnhance = async () => {
     setProfileEnhanceLoading(true);
-    toast.info('Đề xuất cải thiện có thể mất 1–2 phút, vui lòng không đóng trang.', { duration: 5000 });
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), PROFILE_ACTION_TIMEOUT_MS);
+    toast.info('Đang bắt đầu tạo đề xuất... Kết quả sẽ hiển thị trong 1–2 phút.', { duration: 5000 });
     try {
       const payload = await getProfilePayload();
       const enhanceRes = await fetch('/api/module4/profile-improver/enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, use_nlp: true }),
-        signal: controller.signal,
+        body: JSON.stringify({ ...payload, use_nlp: true, async: true }),
       });
-      clearTimeout(timeoutId);
       if (!enhanceRes.ok) {
         const errBody = await enhanceRes.json().catch(() => ({}));
         throw new Error((errBody as { error?: string }).error || 'Enhance thất bại');
       }
-      const result = await enhanceRes.json();
+      const data = (await enhanceRes.json()) as { job_id?: string } & Record<string, unknown>;
+      let result: Record<string, unknown>;
+      if (enhanceRes.status === 202 && data.job_id) {
+        result = await pollJobResult(data.job_id, 'enhance');
+      } else {
+        result = data;
+      }
       setProfileEnhance(result);
       try {
         await fetch('/api/student/improve/results', {
@@ -444,12 +457,7 @@ export default function ImprovePage() {
       }
       toast.success('Đề xuất cải thiện đã sẵn sàng');
     } catch (e) {
-      clearTimeout(timeoutId);
-      if (e instanceof Error && e.name === 'AbortError') {
-        toast.error('Hết thời gian chờ. Đề xuất cải thiện cần nhiều thời gian hơn, vui lòng thử lại.');
-      } else {
-        toast.error(e instanceof Error ? e.message : 'Lỗi đề xuất cải thiện');
-      }
+      toast.error(e instanceof Error ? e.message : 'Lỗi đề xuất cải thiện');
     } finally {
       setProfileEnhanceLoading(false);
     }

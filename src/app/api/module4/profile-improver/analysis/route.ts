@@ -23,19 +23,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Django AI API (phân tích có thể mất 1–2 phút)
     const AI_API_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
     const baseUrl = AI_API_BASE.replace(/\/+$/, "");
-    const url = `${baseUrl}/hoexapp/api/profile-improver/analysis/`;
-    const timeoutMs = 170000; // 2m50s
+    const useAsync = payload.async === true;
+    const url = `${baseUrl}/hoexapp/api/profile-improver/analysis/${useAsync ? '?async=1' : ''}`;
+    const timeoutMs = useAsync ? 15000 : 170000;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         feature1_output: payload.feature1_output,
         feature2_output: payload.feature2_output,
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      let errorData: any;
+      let errorData: { error?: string };
       try {
         errorData = errorText ? JSON.parse(errorText) : { error: "Unknown error" };
       } catch {
@@ -57,6 +55,9 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await response.json();
+    if (response.status === 202 && result.job_id) {
+      return NextResponse.json({ job_id: result.job_id }, { status: 202 });
+    }
     return NextResponse.json(result, { status: 200 });
   } catch (err: unknown) {
     if (err instanceof Error && err.name === 'AbortError') {
