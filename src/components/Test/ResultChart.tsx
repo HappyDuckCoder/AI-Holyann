@@ -40,11 +40,11 @@ const ResultChart: React.FC<ResultChartProps> = ({ result }) => {
     // Grit Breakdown Data (Passion vs Perseverance)
     // Note: result.scores uses Vietnamese keys from GRIT_COMPONENTS
     const gritBreakdownData = result.type === 'GRIT' ? [
-        {name: 'Kiên trì', score: result.scores['Kiên trì'] || result.scores.Perseverance || 0, fill: 'var(--grit-perseverance)'},
-        {name: 'Đam mê', score: result.scores['Đam mê'] || result.scores.Passion || 0, fill: 'var(--grit-consistency)'},
+        { name: 'Kiên trì', score: result.scores['Kiên trì'] || result.scores.Perseverance || 0, fill: 'var(--primary)' },
+        { name: 'Đam mê', score: result.scores['Đam mê'] || result.scores.Passion || 0, fill: 'var(--secondary)' },
     ] : [];
 
-    const GRIT_COLORS = ['var(--grit-strong)', 'var(--muted-light)']; // Purple and Gray
+    const GRIT_COLORS = ['var(--primary)', 'var(--muted)'];
 
     return (
         <div className="p-6 flex flex-col items-center min-h-[400px]">
@@ -83,11 +83,11 @@ const ResultChart: React.FC<ResultChartProps> = ({ result }) => {
                         </h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={riasecData}>
-                                <PolarGrid stroke="hsl(var(--border))" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13, fontWeight: 600 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 25]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                                <Radar name="Điểm của bạn" dataKey="A" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.4} strokeWidth={2} />
-                                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', padding: '8px' }} />
+                                <PolarGrid stroke="var(--border)" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--muted-foreground)', fontSize: 13, fontWeight: 600 }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 25]} tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
+                                <Radar name="Điểm của bạn" dataKey="A" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.4} strokeWidth={2} />
+                                <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px' }} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
@@ -125,7 +125,7 @@ const ResultChart: React.FC<ResultChartProps> = ({ result }) => {
                                         dataKey="value"
                                     >
                                         {gritChartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={GRIT_COLORS[index % GRIT_COLORS.length]}/>
+                                            <Cell key={`cell-${index}`} fill={GRIT_COLORS[index % GRIT_COLORS.length]} />
                                         ))}
                                     </Pie>
                                 </PieChart>
@@ -205,12 +205,12 @@ const ResultChart: React.FC<ResultChartProps> = ({ result }) => {
                         </h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart layout="vertical" data={mbtiChartData} margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
                                 <XAxis type="number" domain={[0, 100]} hide />
-                                <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 13, fontWeight: 600, fill: 'hsl(var(--foreground))' }} />
+                                <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 13, fontWeight: 600, fill: 'var(--foreground)' }} />
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}
-                                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                                    contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px' }}
                                     content={({ active, payload }) => {
                                         if (active && payload?.length) {
                                             const data = payload[0].payload;
@@ -224,8 +224,8 @@ const ResultChart: React.FC<ResultChartProps> = ({ result }) => {
                                         return null;
                                     }}
                                 />
-                                <Bar dataKey="A" stackId="a" fill="hsl(var(--primary))" radius={[4, 0, 0, 4]} />
-                                <Bar dataKey="B" stackId="a" fill="hsl(var(--muted))" radius={[0, 4, 4, 0]} />
+                                <Bar dataKey="A" stackId="a" fill="var(--primary)" radius={[4, 0, 0, 4]} />
+                                <Bar dataKey="B" stackId="a" fill="var(--muted)" radius={[0, 4, 4, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
