@@ -1,15 +1,14 @@
 'use client';
 
 import {ProfileEnhancerPage} from '@/components/student/profile';
-import AuthHeader from '@/components/auth/AuthHeader';
+import { StudentPageContainer } from '@/components/student';
 
 export default function ProfileImprove() {
-    return (
-        <>
-            <AuthHeader/>
-            <ProfileEnhancerPage/>
-        </>
-    );
+  return (
+    <StudentPageContainer>
+      <ProfileEnhancerPage />
+    </StudentPageContainer>
+  );
 }
 
 

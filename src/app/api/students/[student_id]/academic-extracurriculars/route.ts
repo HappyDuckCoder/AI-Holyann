@@ -76,17 +76,25 @@ export async function POST(
     }
 }
 
-// DELETE - Xóa tất cả hoạt động ngoại khóa học thuật của student
+// DELETE - Xóa một hoặc tất cả hoạt động (query id= để xóa một)
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ student_id: string }> }
 ) {
     try {
         const { student_id } = await params;
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
 
-        await prisma.academic_extracurriculars.deleteMany({
-            where: { background_id: student_id }
-        });
+        if (id) {
+            await prisma.academic_extracurriculars.deleteMany({
+                where: { id, background_id: student_id }
+            });
+        } else {
+            await prisma.academic_extracurriculars.deleteMany({
+                where: { background_id: student_id }
+            });
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

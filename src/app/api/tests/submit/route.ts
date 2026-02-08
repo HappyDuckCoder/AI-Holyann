@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { TestStatus, TaskStatus } from '@prisma/client';
+import { TestStatus } from '@prisma/client';
 import { autoCompleteChecklistTask } from '@/lib/checklist-helper';
+import { callMBTI, callGRIT, callRIASEC } from '@/lib/server-ai-assessment';
+import { MBTI_QUESTIONS_SORTED } from '@/data/mbti-questions';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { test_id, student_id, test_type, answers, results } = body;
+    const { test_id, student_id, test_type, answers } = body;
 
-    // Submitting test answers for user
-
-    // Validate input
     if (!test_id || !student_id || !test_type || !answers) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields: test_id, student_id, test_type, answers' },
@@ -20,61 +19,103 @@ export async function POST(request: NextRequest) {
 
     const testType = test_type.toLowerCase();
 
-    // Verify ownership and existence
-    let existingTest = null;
+    let existingTest: any = null;
     if (testType === 'mbti') {
-        existingTest = await prisma.mbti_tests.findUnique({ where: { id: test_id } });
+      existingTest = await prisma.mbti_tests.findUnique({ where: { id: test_id } });
     } else if (testType === 'grit') {
-        existingTest = await prisma.grit_tests.findUnique({ where: { id: test_id } });
+      existingTest = await prisma.grit_tests.findUnique({ where: { id: test_id } });
     } else if (testType === 'riasec') {
-        existingTest = await prisma.riasec_tests.findUnique({ where: { id: test_id } });
+      existingTest = await prisma.riasec_tests.findUnique({ where: { id: test_id } });
     }
 
     if (!existingTest) {
-        return NextResponse.json({ success: false, error: 'Test not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Test not found' }, { status: 404 });
     }
-
     if (existingTest.student_id !== student_id) {
-        return NextResponse.json({ success: false, error: 'Unauthorized: Test does not belong to user' }, { status: 403 });
+      return NextResponse.json({ success: false, error: 'Unauthorized: Test does not belong to user' }, { status: 403 });
     }
 
-    // Prepare update data
     const updateData: any = {
-      answers: answers,
+      answers,
       status: TestStatus.COMPLETED,
       completed_at: new Date(),
       updated_at: new Date(),
     };
 
-    // Add results if provided
-    if (results) {
-       if (testType === 'mbti') {
-          updateData.result_type = results.type || (existingTest as any).result_type;
-          updateData.score_e = results.scores?.['E/I']?.E ?? null;
-          updateData.score_i = results.scores?.['E/I']?.I ?? null;
-          updateData.score_s = results.scores?.['S/N']?.S ?? null;
-          updateData.score_n = results.scores?.['S/N']?.N ?? null;
-          updateData.score_t = results.scores?.['T/F']?.T ?? null;
-          updateData.score_f = results.scores?.['T/F']?.F ?? null;
-          updateData.score_j = results.scores?.['J/P']?.J ?? null;
-          updateData.score_p = results.scores?.['J/P']?.P ?? null;
-       } else if (testType === 'grit') {
-          updateData.passion_score = results.passion_score ?? null;
-          updateData.perseverance_score = results.perseverance_score ?? null;
-          updateData.total_score = results.overall_grit_score ?? null;
-          updateData.level = results.level ?? null;
-       } else if (testType === 'riasec') {
-          updateData.score_realistic = results.scores?.R ?? null;
-          updateData.score_investigative = results.scores?.I ?? null;
-          updateData.score_artistic = results.scores?.A ?? null;
-          updateData.score_social = results.scores?.S ?? null;
-          updateData.score_enterprising = results.scores?.E ?? null;
-          updateData.score_conventional = results.scores?.C ?? null;
-          updateData.result_code = results.code ?? null;
-       }
+    let apiResult: any = { test_id, answers_count: Object.keys(answers).length };
+
+    // Gọi server-ai và map kết quả vào DB + response
+    try {
+      if (testType === 'mbti') {
+        const mbtiIds = MBTI_QUESTIONS_SORTED.map((q) => q.id);
+        const mbti = await callMBTI(answers, mbtiIds);
+        const ds = mbti.dimension_scores || {};
+        const toPct = (v: number) => Math.round(Number(v) * 100);
+        updateData.result_type = mbti.personality_type;
+        updateData.score_e = ds.E != null ? toPct(ds.E) : null;
+        updateData.score_i = ds.I != null ? toPct(ds.I) : null;
+        updateData.score_s = ds.S != null ? toPct(ds.S) : null;
+        updateData.score_n = ds.N != null ? toPct(ds.N) : null;
+        updateData.score_t = ds.T != null ? toPct(ds.T) : null;
+        updateData.score_f = ds.F != null ? toPct(ds.F) : null;
+        updateData.score_j = ds.J != null ? toPct(ds.J) : null;
+        updateData.score_p = ds.P != null ? toPct(ds.P) : null;
+        apiResult = {
+          ...apiResult,
+          result_type: mbti.personality_type,
+          scores: {
+            E: ds.E != null ? toPct(ds.E) : 0,
+            I: ds.I != null ? toPct(ds.I) : 0,
+            S: ds.S != null ? toPct(ds.S) : 0,
+            N: ds.N != null ? toPct(ds.N) : 0,
+            T: ds.T != null ? toPct(ds.T) : 0,
+            F: ds.F != null ? toPct(ds.F) : 0,
+            J: ds.J != null ? toPct(ds.J) : 0,
+            P: ds.P != null ? toPct(ds.P) : 0,
+          },
+        };
+      } else if (testType === 'grit') {
+        const grit = await callGRIT(answers);
+        updateData.total_score = grit.score;
+        updateData.level = grit.level;
+        if (grit.passion_score != null) updateData.passion_score = grit.passion_score;
+        if (grit.perseverance_score != null) updateData.perseverance_score = grit.perseverance_score;
+        apiResult = {
+          ...apiResult,
+          total_score: grit.score,
+          level: grit.level,
+          description: grit.description,
+          passion_score: grit.passion_score ?? null,
+          perseverance_score: grit.perseverance_score ?? null,
+        };
+      } else if (testType === 'riasec') {
+        const riasec = await callRIASEC(answers);
+        const s = riasec.scores || {};
+        updateData.score_realistic = s.R ?? null;
+        updateData.score_investigative = s.I ?? null;
+        updateData.score_artistic = s.A ?? null;
+        updateData.score_social = s.S ?? null;
+        updateData.score_enterprising = s.E ?? null;
+        updateData.score_conventional = s.C ?? null;
+        updateData.result_code = riasec.code;
+        apiResult = {
+          ...apiResult,
+          result_code: riasec.code,
+          scores: { ...s },
+          top3: riasec.top3 || [],
+        };
+      }
+    } catch (aiError: any) {
+      console.error('❌ Server-AI assessment error:', aiError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: aiError?.message || 'Không thể kết nối server AI. Vui lòng thử lại.',
+        },
+        { status: 502 }
+      );
     }
 
-    // Update answers & status in database
     if (testType === 'mbti') {
       await prisma.mbti_tests.update({ where: { id: test_id }, data: updateData });
     } else if (testType === 'grit') {
@@ -83,21 +124,15 @@ export async function POST(request: NextRequest) {
       await prisma.riasec_tests.update({ where: { id: test_id }, data: updateData });
     }
 
-    // Test answers saved and status set to COMPLETED
-
-    // --- Checklist Linking Logic (Refactored) ---
-    // Sử dụng helper function để tìm task dựa trên keyword trong link (mbti, grit, riasec)
-    // Điều này linh hoạt hơn so với tìm theo Title chính xác
     if (testType === 'mbti' || testType === 'grit' || testType === 'riasec') {
-      await autoCompleteChecklistTask(student_id, testType); // testType khớp với keyword trong path helper
+      await autoCompleteChecklistTask(student_id, testType);
     }
 
     return NextResponse.json({
       success: true,
       message: 'Test submitted and completed successfully',
-      result: { test_id, answers_count: Object.keys(answers).length },
+      result: apiResult,
     });
-
   } catch (error) {
     console.error('❌ Error saving test answers:', error);
     return NextResponse.json(

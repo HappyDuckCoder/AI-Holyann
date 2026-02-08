@@ -82,10 +82,18 @@ export async function DELETE(
 ) {
     try {
         const { student_id } = await params;
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
 
-        await prisma.non_academic_extracurriculars.deleteMany({
-            where: { background_id: student_id }
-        });
+        if (id) {
+            await prisma.non_academic_extracurriculars.deleteMany({
+                where: { id, background_id: student_id }
+            });
+        } else {
+            await prisma.non_academic_extracurriculars.deleteMany({
+                where: { background_id: student_id }
+            });
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

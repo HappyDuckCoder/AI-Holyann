@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { StudentProfile, DocumentType } from "../../types";
-import { ProfileNavigation } from "./components/ProfileNavigation";
+import { StudentProfile, DocumentType, Extracurricular } from "../../types";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { PersonalInfoCard } from "./components/PersonalInfoCard";
 import { RadarChartCard } from "./components/RadarChartCard";
@@ -10,12 +9,33 @@ import { AcademicInfoSection } from "./components/AcademicInfoSection";
 import { ActivitiesSection } from "./components/ActivitiesSection";
 import { DocumentsSection } from "./components/DocumentsSection";
 
-interface ProfilePageProps {
+export interface ProfilePageProps {
   profile: StudentProfile;
   onEditClick: () => void;
   onUploadDocument: (file: File, type: DocumentType) => void;
   onDeleteDocument: (id: string) => void;
+  onUploadAvatar?: (file: File) => void;
   onAnalyzeProfile?: () => void;
+  onSaveBasicInfo?: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    dob: string;
+    address: string;
+  }) => void;
+  onSaveAcademic?: (data: {
+    gpa: number;
+    gpaScale: number;
+    englishCertificates: { type: string; score: string }[];
+    targetMajor: string;
+    targetCountry: string;
+  }) => void;
+  onUpdateActivity?: (act: Extracurricular) => void;
+  onAddActivity?: (act: Omit<Extracurricular, "id">) => void;
+  onDeleteActivity?: (id: string) => void;
+  onUpdateAchievement?: (id: string, text: string) => void;
+  onAddAchievement?: (text: string, category: "academic" | "non_academic") => void;
+  onDeleteAchievement?: (id: string) => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -23,73 +43,67 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onEditClick,
   onUploadDocument,
   onDeleteDocument,
+  onUploadAvatar,
   onAnalyzeProfile,
+  onSaveBasicInfo,
+  onSaveAcademic,
+  onUpdateActivity,
+  onAddActivity,
+  onDeleteActivity,
+  onUpdateAchievement,
+  onAddAchievement,
+  onDeleteAchievement,
 }) => {
-  // Chart data
   const chartData = [
-    {
-      subject: "Học thuật",
-      A: (profile.gpa / profile.gpaScale) * 100,
-      fullMark: 100,
-    },
+    { subject: "Học thuật", A: profile.gpaScale ? (profile.gpa / profile.gpaScale) * 100 : 0, fullMark: 100 },
     { subject: "Ngoại ngữ", A: 85, fullMark: 100 },
-    {
-      subject: "Hoạt động",
-      A: Math.min(profile.extracurriculars.length * 20, 100),
-      fullMark: 100,
-    },
-    {
-      subject: "Thành tích",
-      A: Math.min(profile.achievements.length * 25, 100),
-      fullMark: 100,
-    },
-    { subject: "Kỹ năng mềm", A: 70, fullMark: 100 },
+    { subject: "Hoạt động", A: Math.min(profile.extracurriculars.length * 20, 100), fullMark: 100 },
+    { subject: "Thành tích", A: Math.min(profile.achievements.length * 25, 100), fullMark: 100 },
+    { subject: "Kỹ năng", A: 70, fullMark: 100 },
   ];
 
-  // Helper checks for status
   const isPersonalComplete = Boolean(
-    profile.name &&
-      profile.email &&
-      profile.phone &&
-      profile.address &&
-      profile.dob
+    profile.name && profile.email && profile.phone && profile.address && profile.dob
   );
-  const isAcademicComplete = Boolean(
-    profile.gpa && profile.englishLevel && profile.targetMajor
-  );
+  const hasEnglishCerts =
+    (profile.englishCertificates && profile.englishCertificates.length > 0) ||
+    (profile.englishLevel && profile.englishLevel !== "Chưa cập nhật");
+  const isAcademicComplete = Boolean(profile.gpa && profile.targetMajor && hasEnglishCerts);
   const isActivitiesComplete =
     profile.extracurriculars.length > 0 && profile.achievements.length > 0;
   const isDocumentsComplete = profile.documents.length >= 2;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <ProfileNavigation />
+    <div className="max-w-6xl mx-auto">
+      <ProfileHeader onEditClick={onEditClick} onAnalyzeProfile={onAnalyzeProfile} />
 
-      <ProfileHeader
-        onEditClick={onEditClick}
-        onAnalyzeProfile={onAnalyzeProfile}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* ================= LEFT COLUMN: PERSONAL INFO (3 cols) ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-4 space-y-6">
-          <PersonalInfoCard profile={profile} isComplete={isPersonalComplete} />
-
+          <PersonalInfoCard
+            profile={profile}
+            isComplete={isPersonalComplete}
+            onUploadAvatar={onUploadAvatar}
+            onSave={onSaveBasicInfo}
+          />
           <RadarChartCard profile={profile} chartData={chartData} />
         </div>
-
-        {/* ================= RIGHT COLUMN: DETAILED SECTIONS (9 cols) ================= */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-6">
           <AcademicInfoSection
             profile={profile}
             isComplete={isAcademicComplete}
+            onSave={onSaveAcademic}
           />
-
           <ActivitiesSection
             profile={profile}
             isComplete={isActivitiesComplete}
+            onEditClick={onEditClick}
+            onUpdateActivity={onUpdateActivity}
+            onAddActivity={onAddActivity}
+            onDeleteActivity={onDeleteActivity}
+            onUpdateAchievement={onUpdateAchievement}
+            onAddAchievement={onAddAchievement}
+            onDeleteAchievement={onDeleteAchievement}
           />
-
           <DocumentsSection
             profile={profile}
             isComplete={isDocumentsComplete}

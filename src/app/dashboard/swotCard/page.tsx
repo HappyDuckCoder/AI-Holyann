@@ -154,7 +154,7 @@ export default function SwotCardPage() {
           dob: data.basicInfo.date_of_birth
             ? new Date(data.basicInfo.date_of_birth).toLocaleDateString("vi-VN")
             : "Chưa cập nhật",
-          avatarUrl: data.basicInfo.avatar_url || "/images/avatars/avt.jpg",
+          avatarUrl: data.basicInfo.avatar_url || "",
           gpa: (() => {
             const gpaDetails = data.academicProfile?.gpa_transcript_details;
             if (!gpaDetails) return 0;

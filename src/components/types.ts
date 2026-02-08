@@ -1,11 +1,14 @@
 export type DocumentType = 'transcript' | 'certificate' | 'letter' | 'essay' | 'other';
 
+export type ActivityCategory = 'academic' | 'non_academic';
+
 export interface Extracurricular {
     id: string;
     title: string;
     role: string;
     year: string;
     description: string;
+    category?: ActivityCategory;
 }
 
 export interface Document {
@@ -14,6 +17,12 @@ export interface Document {
     type: DocumentType;
     uploadDate: string;
     size: string;
+}
+
+/** Một chứng chỉ ngoại ngữ (IELTS, TOEFL, ...) */
+export interface EnglishCertificate {
+    type: string;
+    score: string;
 }
 
 export interface StudentProfile {
@@ -26,12 +35,16 @@ export interface StudentProfile {
     avatarUrl: string;
     gpa: number;
     gpaScale: number;
+    /** Chuỗi hiển thị (vd: "IELTS 7.0, TOEFL 100") - từ englishCertificates nếu có */
     englishLevel: string;
+    /** Danh sách chứng chỉ ngoại ngữ để thêm/sửa/xóa */
+    englishCertificates?: EnglishCertificate[];
     satScore?: number;
     targetMajor: string;
     targetCountry: string;
     extracurriculars: Extracurricular[];
-    achievements: string[];
+    /** Thành tích: text hoặc object có id để sửa/xóa */
+    achievements: (string | { id: string; text: string; category?: 'academic' | 'non_academic' })[];
     documents: Document[];
 }
 

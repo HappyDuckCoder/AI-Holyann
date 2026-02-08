@@ -1,16 +1,13 @@
-'use client'
+'use client';
 
-import AuthHeader from '@/components/auth/AuthHeader'
-import ChecklistPage from '@/components/student/checklist/ChecklistPage'
+import ChecklistPage from '@/components/student/checklist/ChecklistPage';
+import { StudentPageContainer } from '@/components/student';
 
 export default function Checklist() {
-    return (
-        <>
-            <AuthHeader/>
-            <main className="min-h-screen bg-white dark:bg-slate-900">
-                <ChecklistPage/>
-            </main>
-        </>
-    );
+  return (
+    <StudentPageContainer>
+      <ChecklistPage />
+    </StudentPageContainer>
+  );
 }
 

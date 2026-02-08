@@ -78,8 +78,8 @@ const nextConfig: NextConfig = {
   },
 
   // Experimental features for performance
+  // optimizeCss disabled: avoids critters resolution issues in Next dev/server
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ['@radix-ui/react-icons', 'recharts'],
   },
 

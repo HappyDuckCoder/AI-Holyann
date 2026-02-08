@@ -11,33 +11,31 @@ interface StageNavigationProps {
 
 const StageNavigation: React.FC<StageNavigationProps> = ({stages, currentStageId, onSelectStage, completedStages}) => {
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 h-fit sticky top-6">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6 uppercase tracking-wide">Lộ trình hồ sơ</h3>
+        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-6 h-fit sticky top-6">
+            <h3 className="text-lg font-bold text-foreground mb-6 uppercase tracking-wide">Lộ trình hồ sơ</h3>
             <div className="space-y-0 relative">
-                {/* Vertical Line */}
-                <div className="absolute left-3.5 top-2 bottom-6 w-0.5 bg-gray-100 dark:bg-slate-700 -z-10"></div>
+                <div className="absolute left-3.5 top-2 bottom-6 w-0.5 bg-border -z-10"></div>
                 {stages.map((stage) => {
                     const isActive = stage.id === currentStageId;
                     const isCompleted = completedStages.includes(stage.id);
                     const isLocked = !stage.isUnlocked;
                     let Icon = Circle;
-                    let colorClass = "text-gray-300 dark:text-slate-600 border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800";
+                    let colorClass = "text-muted-foreground border-border bg-card";
                     let textClass: string;
                     if (isCompleted) {
                         Icon = CheckCircle2;
-                        colorClass = "text-green-500 dark:text-green-400 border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/30";
-                        textClass = "text-gray-700 dark:text-slate-300 font-medium";
+                        colorClass = "text-primary border-primary bg-primary/10";
+                        textClass = "text-foreground font-medium";
                     } else if (isActive) {
-                        Icon = Circle; // Using Dot indicator for active
-                        colorClass = "text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 ring-4 ring-blue-50 dark:ring-blue-900/20";
-                        textClass = "text-blue-700 dark:text-blue-300 font-bold";
+                        Icon = Circle;
+                        colorClass = "text-primary border-primary bg-primary/10 ring-4 ring-primary/10";
+                        textClass = "text-primary font-bold";
                     } else if (isLocked) {
                         Icon = Lock;
-                        colorClass = "text-gray-400 dark:text-slate-600 border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800";
-                        textClass = "text-gray-400 dark:text-slate-500";
+                        colorClass = "text-muted-foreground border-border bg-muted/30";
+                        textClass = "text-muted-foreground";
                     } else {
-                        // Unlocked but not active or completed (rare case in this linear flow but good to handle)
-                        textClass = "text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400";
+                        textClass = "text-muted-foreground hover:text-primary";
                     }
                     return (
                         <div
@@ -48,7 +46,7 @@ const StageNavigation: React.FC<StageNavigationProps> = ({stages, currentStageId
                             <div
                                 className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 ${colorClass} transition-colors`}>
                                 {isActive && !isCompleted ? (
-                                    <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>
+                                    <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>
                                 ) : (
                                     <Icon size={isLocked ? 14 : 16}/>
                                 )}
@@ -57,11 +55,11 @@ const StageNavigation: React.FC<StageNavigationProps> = ({stages, currentStageId
                                 <h4 className={`text-sm ${textClass} transition-colors`}>
                                     GIAI ĐOẠN {stage.id}
                                 </h4>
-                                <p className={`text-base ${isActive ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-500 dark:text-slate-400 font-medium'}`}>
+                                <p className={`text-base ${isActive ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
                                     {stage.name}
                                 </p>
                                 {isActive && (
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 max-w-[200px] line-clamp-2">
+                                    <p className="text-xs text-muted-foreground mt-1 max-w-[200px] line-clamp-2">
                                         {stage.description}
                                     </p>
                                 )}

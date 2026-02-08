@@ -13,30 +13,32 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onAnalyzeProfile,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Hồ sơ học sinh
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+          Hồ sơ cá nhân
         </h1>
-        <p className="text-gray-500 dark:text-slate-400 mt-1">
-          Quản lý toàn diện thông tin cá nhân và hồ sơ du học
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Quản lý thông tin và tài liệu du học
         </p>
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-2">
         {onAnalyzeProfile && (
           <button
+            type="button"
             onClick={onAnalyzeProfile}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            <Sparkles size={18} />
-            Phân tích hồ sơ AI
+            <Sparkles size={16} />
+            Phân tích AI
           </button>
         )}
         <button
+          type="button"
           onClick={onEditClick}
-          className="flex items-center gap-2 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-md"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-border bg-card text-foreground hover:bg-muted/50 transition-colors"
         >
-          <Edit3 size={18} />
+          <Edit3 size={16} />
           Cập nhật hồ sơ
         </button>
       </div>

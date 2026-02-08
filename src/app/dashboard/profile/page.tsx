@@ -153,7 +153,7 @@ export default function ProfilePageWrapper() {
           dob: data.basicInfo.date_of_birth
             ? new Date(data.basicInfo.date_of_birth).toLocaleDateString("vi-VN")
             : "Chưa cập nhật",
-          avatarUrl: data.basicInfo.avatar_url || "/images/avatars/avt.jpg",
+          avatarUrl: data.basicInfo.avatar_url || "",
 
           // GPA hiện tại: Lấy GPA lớp 12, nếu không có thì lấy lớp 11
           gpa: (() => {
