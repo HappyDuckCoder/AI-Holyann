@@ -270,7 +270,8 @@ export async function PATCH(
             if (basicInfo.full_name) userUpdate.full_name = basicInfo.full_name;
             if (basicInfo.phone_number) userUpdate.phone_number = basicInfo.phone_number;
             if (basicInfo.email) userUpdate.email = basicInfo.email;
-            
+            if (basicInfo.avatar_url !== undefined) userUpdate.avatar_url = basicInfo.avatar_url;
+
             if (Object.keys(userUpdate).length > 0) {
                 await prisma.users.update({
                     where: { id: student_id },

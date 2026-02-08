@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import AuthHeader from "@/components/auth/AuthHeader";
+import { StudentPageContainer } from "@/components/student";
 import TestSelection from "@/components/Test/TestSelection";
 import TestView from "@/components/Test/TestView";
 import ResultView from "@/components/Test/ResultView";
@@ -47,6 +47,7 @@ export default function TestsPage() {
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [careerRecs, setCareerRecs] = useState<MajorRecommendation[]>([]);
   const [showCareerAssessment, setShowCareerAssessment] = useState(false);
+  const [careerRefreshTrigger, setCareerRefreshTrigger] = useState(0);
 
   // State để lưu remainingTests tại thời điểm hoàn thành test (để tránh async state issue)
   const [currentRemainingTests, setCurrentRemainingTests] = useState<
@@ -71,7 +72,7 @@ export default function TestsPage() {
   // No need to create it here - if missing, it's a data sync issue that should be fixed at the source
 
   // Hook để quản lý tiến độ test - giờ lấy từ database
-  const { progress, isLoaded, saveTestResult } = useTestProgress(studentId);
+  const { progress, isLoaded, saveTestResult, refreshProgress } = useTestProgress(studentId);
 
   const getStudentId = () => studentId;
 
@@ -84,7 +85,10 @@ export default function TestsPage() {
     );
   }, [progress]);
 
-  // Không tự động gọi API career-assessment nữa - chỉ gọi khi bấm nút "Đề xuất nghề nghiệp"
+  // Luôn hiện UI đánh giá nghề khi đã hoàn thành đủ 3 test
+  useEffect(() => {
+    if (progress.allCompleted) setShowCareerAssessment(true);
+  }, [progress.allCompleted]);
 
   const handleStartTest = async (type: TestType) => {
     const studentId = getStudentId();
@@ -382,22 +386,30 @@ export default function TestsPage() {
 
         if (apiResult) {
           if (currentTestType === "RIASEC" && apiResult.result_code) {
+            const top3Desc = Array.isArray(apiResult.top3)
+              ? apiResult.top3.map((t: string[] | unknown) => (Array.isArray(t) ? t[0] : t)).join(", ")
+              : "";
             computedResult = {
               type: "RIASEC",
               scores: apiResult.scores || {},
               rawLabel: apiResult.result_code,
-              description: "",
+              description: top3Desc ? `Xu hướng chính: ${top3Desc}` : "",
             };
           } else if (
             currentTestType === "GRIT" &&
             apiResult.total_score !== undefined
           ) {
+            // API không trả Đam mê/Kiên trì → tính từ đáp án để hiển thị breakdown
+            const numericAnswers = Object.fromEntries(
+              Object.entries(answers).map(([k, v]) => [Number(k), Number(v)])
+            ) as Record<number, number>;
+            const localGrit = calculateGritScores(numericAnswers);
             computedResult = {
               type: "GRIT",
               scores: {
                 Grit: apiResult.total_score,
-                "Đam mê": apiResult.passion_score || 0,
-                "Kiên trì": apiResult.perseverance_score || 0,
+                "Đam mê": apiResult.passion_score ?? localGrit.passionScore,
+                "Kiên trì": apiResult.perseverance_score ?? localGrit.perseveranceScore,
               },
               rawLabel: apiResult.level,
               description: apiResult.description || "",
@@ -539,12 +551,9 @@ export default function TestsPage() {
       });
       return;
     }
-
-    // Hiển thị CareerAssessmentResults component và trigger load
     setShowCareerAssessment(true);
     setViewState("selection");
-
-    // Scroll to CareerAssessmentResults component
+    setCareerRefreshTrigger((t) => t + 1); // Gọi lại API đề xuất nghề mỗi lần bấm
     setTimeout(() => {
       const element = document.getElementById("career-assessment-results");
       if (element) {
@@ -571,52 +580,40 @@ export default function TestsPage() {
     }
   };
 
-  // Reset test functionality disabled - users cannot retake tests after completion
+  // Nút "Làm lại" RIASEC đã comment lại theo yêu cầu
   /*
   const handleResetTest = async (type: TestType) => {
-    const studentId = getStudentId();
-    if (!studentId) {
+    const sid = getStudentId();
+    if (!sid) {
       toast.error("Không tìm thấy thông tin người dùng", {
         description: "Vui lòng đăng nhập lại để tiếp tục",
       });
       return;
     }
-
-    // Xác nhận trước khi reset
     const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn làm lại bài test ${type}? Kết quả cũ sẽ bị xóa và bạn sẽ phải làm lại từ đầu.`
+      `Bạn có chắc chắn muốn làm lại bài test ${type}? Kết quả cũ sẽ bị xóa và bạn sẽ làm lại từ đầu.`
     );
-
     if (!confirmed) return;
-
     try {
       toast.info("Đang xóa kết quả test cũ...", {
         description: `Đang reset bài test ${type}...`,
       });
-
-      const testTypeLower = type.toLowerCase();
-      const response = await fetch(`/api/tests/${testTypeLower}/${studentId}`, {
+      const response = await fetch(`/api/tests/${type.toLowerCase()}/${sid}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
-
       const data = await response.json();
-
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Không thể reset test");
       }
-
-      // Refresh progress để cập nhật UI
-      // Force reload bằng cách trigger useEffect
-      window.location.reload(); // Simple approach - reload page to refresh state
-
+      await refreshProgress();
       toast.success("Đã reset test thành công", {
         description: `Bạn có thể làm lại bài test ${type} ngay bây giờ`,
       });
     } catch (error: any) {
       console.error("Reset test error:", error);
       toast.error("Không thể reset test", {
-        description: error.message || "Đã xảy ra lỗi. Vui lòng thử lại sau.",
+        description: error?.message || "Đã xảy ra lỗi. Vui lòng thử lại sau.",
       });
     }
   };
@@ -625,68 +622,65 @@ export default function TestsPage() {
   // Loading state khi chưa load xong từ localStorage
   if (!isLoaded) {
     return (
-      <>
-        <AuthHeader />
-        <main className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
-          </div>
-        </main>
-      </>
+      <StudentPageContainer>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-8 w-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+        </div>
+      </StudentPageContainer>
     );
   }
 
   return (
-    <>
-      <AuthHeader />
-      <main className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {viewState === "selection" && (
-            <>
-              <TestSelection
-                onStartTest={handleStartTest}
-                onViewResult={handleViewResult}
-                completedTests={progress.completedTests}
-                testResults={progress.results}
-                onViewRecommendations={handleViewAllRecommendations}
-              />
-
-              {/* Career Assessment Results - chỉ hiển thị khi bấm nút hoặc đã có recommendations */}
-              {currentAllCompleted && studentId && showCareerAssessment && (
-                <div id="career-assessment-results" className="mt-8">
-                  <CareerAssessmentResults
-                    studentId={studentId}
-                    onClose={() => setShowCareerAssessment(false)}
-                    autoLoad={true}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {viewState === "test" && currentTestType && (
-            <TestView
-              testType={currentTestType}
-              questions={getQuestionsForTest(currentTestType)}
-              onBack={handleBackToSelection}
-              onComplete={handleTestComplete}
+    <StudentPageContainer>
+      <div className="max-w-7xl mx-auto">
+        {viewState === "selection" && (
+          <>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-foreground">Bài test</h1>
+              <p className="text-muted-foreground mt-1">Khám phá bản thân qua MBTI, GRIT và Holland.</p>
+            </div>
+            <TestSelection
+              onStartTest={handleStartTest}
+              onViewResult={handleViewResult}
+              completedTests={progress.completedTests}
+              testResults={progress.results}
+              onViewRecommendations={handleViewAllRecommendations}
             />
-          )}
+            {currentAllCompleted && studentId && showCareerAssessment && (
+              <div id="career-assessment-results" className="mt-8">
+                <CareerAssessmentResults
+                  studentId={studentId}
+                  onClose={() => setShowCareerAssessment(false)}
+                  autoLoad={true}
+                  refreshTrigger={careerRefreshTrigger}
+                />
+              </div>
+            )}
+          </>
+        )}
 
-          {viewState === "result" && (
-            <ResultView
-              result={testResult}
-              recommendations={careerRecs.length ? careerRecs : recommendations}
-              loadingRecommendations={loadingRecommendations}
-              onBackToDashboard={handleBackToSelection}
-              remainingTests={currentRemainingTests}
-              onStartNextTest={handleStartNextTest}
-              allTestsCompleted={currentAllCompleted}
-              onViewAllRecommendations={handleViewAllRecommendations}
-            />
-          )}
-        </div>
-      </main>
-    </>
+        {viewState === "test" && currentTestType && (
+          <TestView
+            testType={currentTestType}
+            questions={getQuestionsForTest(currentTestType)}
+            onBack={handleBackToSelection}
+            onComplete={handleTestComplete}
+          />
+        )}
+
+        {viewState === "result" && (
+          <ResultView
+            result={testResult}
+            recommendations={careerRecs.length ? careerRecs : recommendations}
+            loadingRecommendations={loadingRecommendations}
+            onBackToDashboard={handleBackToSelection}
+            remainingTests={currentRemainingTests}
+            onStartNextTest={handleStartNextTest}
+            allTestsCompleted={currentAllCompleted}
+            onViewAllRecommendations={handleViewAllRecommendations}
+          />
+        )}
+      </div>
+    </StudentPageContainer>
   );
 }

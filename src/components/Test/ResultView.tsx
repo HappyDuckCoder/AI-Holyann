@@ -1,16 +1,5 @@
 import React from 'react';
-import {
-    RotateCcw,
-    Sparkles,
-    BookOpen,
-    Briefcase,
-    Target,
-    TrendingUp,
-    ArrowRight,
-    Brain,
-    Activity,
-    Trophy
-} from 'lucide-react';
+import { RotateCcw, Briefcase, Brain, Activity } from 'lucide-react';
 import {TestResult, MajorRecommendation, TestType} from '../types';
 import ResultChart from './ResultChart';
 import {TEST_DESCRIPTIONS} from '@/constants';
@@ -62,17 +51,17 @@ const ResultView: React.FC<ResultViewProps> = ({
     };
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 animate-in fade-in duration-300">
             <button
+                type="button"
                 onClick={onBackToDashboard}
-                className="text-gray-500 hover:text-gray-900 flex items-center gap-2 text-sm font-medium"
+                className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-medium transition-colors"
             >
-                <RotateCcw size={16}/> Quay về trang chủ
+                <RotateCcw size={16} /> Quay về trang chủ
             </button>
 
-            {/* Chart Section - Full Width */}
-            <div className="w-full">
-                <ResultChart result={result}/>
+            <div className="w-full rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+                <ResultChart result={result} />
             </div>
         </div>
     );

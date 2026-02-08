@@ -40,16 +40,17 @@ interface CareerAssessment {
 interface CareerAssessmentResultsProps {
   studentId: string;
   onClose: () => void;
-  autoLoad?: boolean; // Nếu true, tự động gọi API khi component mount và chưa có recommendations
+  autoLoad?: boolean; // Tự động gọi API khi component mount
+  refreshTrigger?: number; // Tăng khi bấm "Xem đề xuất nghề nghiệp" để gọi lại API
 }
 
 function CareerAssessmentResults({
   studentId,
   onClose,
   autoLoad = false,
+  refreshTrigger = 0,
 }: CareerAssessmentResultsProps) {
   const [loading, setLoading] = useState(false);
-  const [checkingCache, setCheckingCache] = useState(true);
   const [assessment, setAssessment] = useState<CareerAssessment | null>(null);
   const [recommendations, setRecommendations] = useState<
     CareerRecommendation[]
@@ -59,85 +60,18 @@ function CareerAssessmentResults({
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Kiểm tra xem đã có career recommendations trong DB chưa
+  // Gọi API đề xuất nghề khi mount (autoLoad) hoặc khi user bấm "Xem đề xuất nghề nghiệp" (refreshTrigger tăng)
   useEffect(() => {
-    const loadCachedRecommendations = async () => {
-      try {
-        console.log("🔍 Checking for cached career recommendations...");
-        const response = await fetch(`/api/tests/career/${studentId}`);
-        const data = await response.json();
-
-        if (
-          data.success &&
-          data.recommendations &&
-          data.recommendations.length > 0
-        ) {
-          console.log(
-            "✅ Found cached recommendations:",
-            data.recommendations.length
-          );
-          // Transform DB data to component format
-          const formattedRecs = data.recommendations.map((rec: any) => ({
-            name: rec.job_title,
-            category: rec.job_field || "",
-            matchReason: rec.reasoning || "",
-            careerPaths: [],
-            requiredSkills: [],
-            matchPercentage: Math.round(rec.match_percentage),
-            riasecCode: rec.riasec_code || rec.riasecCode, // Support both formats
-            riasecScores: rec.riasec_scores || rec.riasecScores, // Support both formats
-          }));
-          setRecommendations(formattedRecs);
-
-          // Group by job_field (category) - luôn group để hiển thị theo nhóm
-          const groups: ComponentCareerGroups = {};
-          formattedRecs.forEach((rec: any) => {
-            // Sử dụng job_field từ DB (đã map vào category ở dòng 82)
-            // Nếu category rỗng hoặc null, group vào "Khác"
-            const groupName =
-              rec.category && rec.category.trim() !== ""
-                ? rec.category
-                : "Khác";
-            if (!groups[groupName]) {
-              groups[groupName] = [];
-            }
-            groups[groupName].push(rec);
-          });
-
-          // Luôn set careerGroups nếu có recommendations
-          if (Object.keys(groups).length > 0) {
-            setCareerGroups(groups);
-          }
-        } else {
-          console.log("ℹ️ No cached recommendations found");
-        }
-      } catch (error) {
-        console.error("❌ Error loading cached recommendations:", error);
-      } finally {
-        setCheckingCache(false);
-      }
-    };
-
-    if (studentId) {
-      loadCachedRecommendations();
+    if (!studentId) return;
+    if (autoLoad) {
+      handleGetRecommendations();
+      return;
     }
-  }, [studentId]);
-
-  // Auto load recommendations khi component được hiển thị và chưa có recommendations
-  useEffect(() => {
-    if (
-      autoLoad &&
-      studentId &&
-      !checkingCache &&
-      !loading &&
-      !recommendations.length &&
-      !error
-    ) {
-      console.log("🔄 Auto-loading career recommendations...");
+    if (refreshTrigger > 0) {
       handleGetRecommendations();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoLoad, studentId, checkingCache]);
+  }, [studentId, autoLoad, refreshTrigger]);
 
   const handleGetRecommendations = async () => {
     setLoading(true);
@@ -295,10 +229,10 @@ function CareerAssessmentResults({
   };
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return "text-green-600 bg-green-50";
-    if (percentage >= 60) return "text-blue-600 bg-blue-50";
-    if (percentage >= 40) return "text-yellow-600 bg-yellow-50";
-    return "text-gray-600 bg-gray-50";
+    if (percentage >= 80) return "text-primary bg-primary/10";
+    if (percentage >= 60) return "text-primary bg-primary/10";
+    if (percentage >= 40) return "text-foreground bg-muted/50";
+    return "text-muted-foreground bg-muted/30";
   };
 
   const getRIASECDescription = (code: string) => {
@@ -316,17 +250,16 @@ function CareerAssessmentResults({
       .join(" + ");
   };
 
-  // Show loading state while checking cache hoặc đang gọi API
-  if (checkingCache || loading) {
+  if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mt-8">
+      <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-8 mt-8">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
           <div className="text-center">
-            <p className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+            <p className="text-lg font-semibold text-foreground mb-1">
               Đang phân tích nghề nghiệp phù hợp
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               AI đang phân tích kết quả test của bạn...
             </p>
           </div>
@@ -335,14 +268,13 @@ function CareerAssessmentResults({
     );
   }
 
-  // Nếu không có recommendations và không đang loading, hiển thị empty state với nút
   if (!recommendations.length && !error) {
     return (
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 mt-8">
+      <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-8 mt-8">
         <div className="text-center">
-          <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-indigo-600 dark:text-indigo-400"
+              className="w-8 h-8 text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -355,21 +287,21 @@ function CareerAssessmentResults({
               />
             </svg>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-2xl font-bold text-foreground mb-2">
             🎯 Khám phá nghề nghiệp phù hợp
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
             Dựa trên kết quả 3 bài test, chúng tôi sẽ đề xuất những nghề nghiệp
             phù hợp nhất với bạn
           </p>
           <button
             onClick={handleGetRecommendations}
             disabled={loading}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-primary text-primary-foreground font-semibold py-3 px-8 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                 <span>Đang phân tích...</span>
               </div>
             ) : (
@@ -384,10 +316,10 @@ function CareerAssessmentResults({
   return (
     <div className="mt-8 space-y-6">
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-xl">
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive px-6 py-4 rounded-xl">
           <div className="flex items-center space-x-2">
             <svg
-              className="w-5 h-5"
+              className="w-5 h-5 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -406,89 +338,171 @@ function CareerAssessmentResults({
       )}
 
       {assessment && (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-xl font-bold text-foreground">
               📊 Tổng hợp kết quả đánh giá
             </h3>
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 text-sm font-medium"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
             >
               {showDetails ? "Ẩn chi tiết" : "Xem chi tiết"}
+              <svg
+                className={`w-4 h-4 transition-transform ${showDetails ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <div className="font-semibold text-blue-900 dark:text-blue-300">
-                MBTI
-              </div>
-              <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">MBTI</div>
+              <div className="text-2xl font-bold text-primary mt-1">
                 {assessment.mbti.personality_type}
               </div>
-              <div className="text-sm text-blue-600 dark:text-blue-400">
+              <div className="text-sm text-muted-foreground mt-0.5">
                 Độ tin cậy: {(assessment.mbti.confidence * 100).toFixed(1)}%
               </div>
             </div>
 
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-              <div className="font-semibold text-green-900 dark:text-green-300">
-                GRIT
-              </div>
-              <div className="text-2xl font-bold text-green-700 dark:text-green-400">
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">GRIT</div>
+              <div className="text-2xl font-bold text-primary mt-1">
                 {assessment.grit.score.toFixed(2)}/5.0
               </div>
-              <div className="text-sm text-green-600 dark:text-green-400">
+              <div className="text-sm text-muted-foreground mt-0.5">
                 {assessment.grit.level}
               </div>
             </div>
 
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-              <div className="font-semibold text-purple-900 dark:text-purple-300">
-                RIASEC
-              </div>
-              <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">RIASEC</div>
+              <div className="text-2xl font-bold text-primary mt-1">
                 {assessment.riasec.code}
               </div>
-              <div className="text-sm text-purple-600 dark:text-purple-400">
+              <div className="text-sm text-muted-foreground mt-0.5">
                 {getRIASECDescription(assessment.riasec.code)}
               </div>
             </div>
           </div>
 
           {showDetails && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  MBTI Chi tiết:
+            <div className="mt-5 pt-5 border-t border-border/60 space-y-6">
+              {/* MBTI 4 dimensions với thanh tiến trình */}
+              <div className="rounded-xl border border-border/60 bg-muted/10 p-5">
+                <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <span className="text-primary">MBTI</span> — Các chiều tính cách
                 </h4>
-                <div className="space-y-1 text-sm">
-                  {Object.entries(assessment.mbti.dimension_scores).map(
-                    ([dim, score]) => (
-                      <div key={dim} className="flex justify-between">
-                        <span>{dim}:</span>
-                        <span>{(score * 100).toFixed(1)}%</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { a: "E", b: "I", labelA: "Hướng ngoại", labelB: "Hướng nội" },
+                    { a: "S", b: "N", labelA: "Giác quan", labelB: "Trực giác" },
+                    { a: "T", b: "F", labelA: "Lý trí", labelB: "Cảm xúc" },
+                    { a: "J", b: "P", labelA: "Nguyên tắc", labelB: "Linh hoạt" },
+                  ].map(({ a, b }) => {
+                    const scores = assessment.mbti.dimension_scores;
+                    const va = typeof scores[a] === "number" ? scores[a] : 0;
+                    const vb = typeof scores[b] === "number" ? scores[b] : 0;
+                    const total = va + vb || 1;
+                    const pctA = Math.round((va / total) * 100);
+                    return (
+                      <div key={`${a}/${b}`}>
+                        <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                          <span>{a}</span>
+                          <span>{b}</span>
+                        </div>
+                        <div className="h-2.5 rounded-full bg-muted overflow-hidden flex">
+                          <div
+                            className="h-full bg-primary rounded-l-full transition-all"
+                            style={{ width: `${pctA}%` }}
+                          />
+                          <div
+                            className="h-full bg-primary/40 rounded-r-full transition-all"
+                            style={{ width: `${100 - pctA}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1 text-xs font-medium text-foreground">
+                          <span>{pctA}%</span>
+                          <span>{100 - pctA}%</span>
+                        </div>
                       </div>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  RIASEC Top 3:
-                </h4>
-                <div className="space-y-1 text-sm">
-                  {assessment.riasec.top3.map(([category, score], index) => (
-                    <div key={category} className="flex justify-between">
-                      <span>
-                        {index + 1}. {category}:
-                      </span>
-                      <span>{score}</span>
-                    </div>
-                  ))}
+              {/* GRIT mô tả */}
+              {assessment.grit.description && (
+                <div className="rounded-xl border border-border/60 bg-muted/10 p-5">
+                  <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <span className="text-primary">GRIT</span> — Mức độ kiên trì & đam mê
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {assessment.grit.description}
+                  </p>
                 </div>
+              )}
+
+              {/* RIASEC 6 chiều + Top 3 */}
+              <div className="rounded-xl border border-border/60 bg-muted/10 p-5">
+                <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <span className="text-primary">Holland (RIASEC)</span> — Xu hướng nghề nghiệp
+                </h4>
+                {(() => {
+                  const riasecScores = assessment.riasec?.scores && typeof assessment.riasec.scores === "object"
+                    ? assessment.riasec.scores
+                    : {};
+                  const riasecTop3 = Array.isArray(assessment.riasec?.top3) ? assessment.riasec.top3 : [];
+                  const scoreValues = ["R", "I", "A", "S", "E", "C"].map((c) => Number(riasecScores[c]) || 0);
+                  const maxScore = Math.max(...scoreValues, 1);
+                  return (
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-4">
+                        {["R", "I", "A", "S", "E", "C"].map((code) => {
+                          const score = Number(riasecScores[code]) || 0;
+                          const pct = maxScore ? (score / maxScore) * 100 : 0;
+                          const isTop3 = riasecTop3.some((pair: unknown) => Array.isArray(pair) && pair[0] === code);
+                          return (
+                            <div
+                              key={code}
+                              className={`rounded-lg border p-3 text-center ${isTop3 ? "border-primary bg-primary/10" : "border-border/60 bg-muted/20"}`}
+                            >
+                              <div className="text-xs font-semibold text-muted-foreground mb-1">{code}</div>
+                              <div className="text-lg font-bold text-foreground">{score.toFixed(1)}</div>
+                              <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="pt-3 border-t border-border/60">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Top 3 xu hướng:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {riasecTop3.map((pair: unknown, index: number) => {
+                            const category = Array.isArray(pair) ? String(pair[0]) : "";
+                            const score = Array.isArray(pair) && pair.length >= 2 ? Number(pair[1]) : 0;
+                            return (
+                              <span
+                                key={`${category}-${index}`}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-sm font-medium"
+                              >
+                                <span className="text-muted-foreground">{index + 1}.</span>
+                                {category}
+                                <span className="text-muted-foreground">({typeof score === "number" && !Number.isNaN(score) ? score : ""})</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -496,14 +510,14 @@ function CareerAssessmentResults({
       )}
 
       {recommendations.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h3 className="text-2xl font-bold text-foreground">
               🎯 Đề xuất nghề nghiệp ({recommendations.length} nghề)
             </h3>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted/50"
             >
               <svg
                 className="w-6 h-6"
@@ -530,12 +544,12 @@ function CareerAssessmentResults({
               {Object.entries(careerGroups).map(([groupName, groupRecs]) => (
                 <div
                   key={groupName}
-                  className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6 shadow-lg"
+                  className="rounded-2xl border border-border/60 bg-muted/20 p-6"
                 >
-                  <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-indigo-200 dark:border-indigo-800">
-                    <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center">
+                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/60">
+                    <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-white"
+                        className="w-6 h-6 text-primary"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -549,10 +563,10 @@ function CareerAssessmentResults({
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <h4 className="text-2xl font-bold text-foreground">
                         {groupName}
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {groupRecs.length} nghề nghiệp phù hợp
                       </p>
                     </div>
@@ -561,18 +575,16 @@ function CareerAssessmentResults({
                     {groupRecs.map((rec, index) => (
                       <div
                         key={index}
-                        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col"
+                        className="rounded-xl border border-border/60 bg-card p-5 hover:shadow-md transition-all flex flex-col"
                       >
-                        {/* Header với match percentage */}
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h5 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
+                            <h5 className="font-bold text-lg text-foreground mb-2">
                               {rec.name}
                             </h5>
-                            {/* Job field badge */}
                             {rec.category && (
                               <div className="mb-2">
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2.5 py-1 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                                   <svg
                                     className="w-3 h-3"
                                     fill="none"
@@ -590,13 +602,12 @@ function CareerAssessmentResults({
                                 </span>
                               </div>
                             )}
-                            {/* RIASEC Code */}
                             {rec.riasecCode && (
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">
+                                <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">
                                   {rec.riasecCode}
                                 </span>
-                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                <span className="text-xs text-muted-foreground">
                                   {getRIASECDescription(rec.riasecCode)}
                                 </span>
                               </div>
@@ -611,11 +622,10 @@ function CareerAssessmentResults({
                           </div>
                         </div>
 
-                        {/* RIASEC Scores - Redesigned */}
                         {rec.riasecScores && (
-                          <div className="mt-auto pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <div className="mt-auto pt-3 border-t border-border/60">
                             <div className="flex items-center justify-between mb-2">
-                              <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                              <p className="text-xs font-semibold text-muted-foreground">
                                 Điểm RIASEC
                               </p>
                             </div>
@@ -624,12 +634,12 @@ function CareerAssessmentResults({
                                 ([code, score]) => (
                                   <div
                                     key={code}
-                                    className="text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-600"
+                                    className="text-center rounded-lg p-1.5 border border-border/60 bg-muted/30"
                                   >
-                                    <div className="text-xs font-bold text-gray-900 dark:text-white mb-0.5">
+                                    <div className="text-xs font-bold text-foreground mb-0.5">
                                       {code}
                                     </div>
-                                    <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                                    <div className="text-xs font-semibold text-primary">
                                       {typeof score === "number"
                                         ? score.toFixed(1)
                                         : score}
@@ -647,23 +657,20 @@ function CareerAssessmentResults({
               ))}
             </div>
           ) : (
-            /* Fallback: Display all recommendations in a redesigned grid */
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {recommendations.map((rec, index) => (
                 <div
                   key={index}
-                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col"
+                  className="rounded-xl border border-border/60 bg-card p-5 hover:shadow-md transition-all flex flex-col"
                 >
-                  {/* Header với match percentage */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
+                      <h4 className="font-bold text-lg text-foreground mb-2">
                         {rec.name}
                       </h4>
-                      {/* Job field badge */}
                       {rec.category && (
                         <div className="mb-2">
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                             <svg
                               className="w-3 h-3"
                               fill="none"
@@ -681,13 +688,12 @@ function CareerAssessmentResults({
                           </span>
                         </div>
                       )}
-                      {/* RIASEC Code */}
                       {rec.riasecCode && (
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">
+                          <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">
                             {rec.riasecCode}
                           </span>
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="text-xs text-muted-foreground">
                             {getRIASECDescription(rec.riasecCode)}
                           </span>
                         </div>
@@ -702,11 +708,10 @@ function CareerAssessmentResults({
                     </div>
                   </div>
 
-                  {/* RIASEC Scores - Redesigned */}
                   {rec.riasecScores && (
-                    <div className="mt-auto pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="mt-auto pt-3 border-t border-border/60">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                        <p className="text-xs font-semibold text-muted-foreground">
                           Điểm RIASEC
                         </p>
                       </div>
@@ -715,12 +720,12 @@ function CareerAssessmentResults({
                           ([code, score]) => (
                             <div
                               key={code}
-                              className="text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-600"
+                              className="text-center rounded-lg p-1.5 border border-border/60 bg-muted/30"
                             >
-                              <div className="text-xs font-bold text-gray-900 dark:text-white mb-0.5">
+                              <div className="text-xs font-bold text-foreground mb-0.5">
                                 {code}
                               </div>
-                              <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                              <div className="text-xs font-semibold text-primary">
                                 {typeof score === "number"
                                   ? score.toFixed(1)
                                   : score}

@@ -10,15 +10,16 @@ interface ResultChartProps {
     result: TestResult;
 }
 
-const ResultChart: React.FC<ResultChartProps> = ({result}) => {
-    // Debug log
-    console.log('📊 [ResultChart] Received result:', result);
-
+const ResultChart: React.FC<ResultChartProps> = ({ result }) => {
     // --- Data Preparation Logic ---
 
-    // 1. RIASEC Data
+    // 1. RIASEC Data (server-ai may return 0-1; scale to 0-25 for chart)
     const riasecData = result.type === 'RIASEC'
-        ? Object.entries(result.scores).map(([key, value]) => ({subject: key, A: value, fullMark: 25}))
+        ? Object.entries(result.scores).map(([key, value]) => {
+            const v = typeof value === 'number' ? value : 0;
+            const chartVal = v <= 1 && v >= 0 ? v * 25 : v;
+            return { subject: key, A: chartVal, fullMark: 25 };
+          })
         : [];
 
     // 2. MBTI Data
@@ -39,39 +40,36 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
     // Grit Breakdown Data (Passion vs Perseverance)
     // Note: result.scores uses Vietnamese keys from GRIT_COMPONENTS
     const gritBreakdownData = result.type === 'GRIT' ? [
-        {name: 'Kiên trì', score: result.scores['Kiên trì'] || result.scores.Perseverance || 0, fill: 'var(--grit-perseverance)'},
-        {name: 'Đam mê', score: result.scores['Đam mê'] || result.scores.Passion || 0, fill: 'var(--grit-consistency)'},
+        { name: 'Kiên trì', score: result.scores['Kiên trì'] || result.scores.Perseverance || 0, fill: 'var(--primary)' },
+        { name: 'Đam mê', score: result.scores['Đam mê'] || result.scores.Passion || 0, fill: 'var(--secondary)' },
     ] : [];
 
-    const GRIT_COLORS = ['var(--grit-strong)', 'var(--muted-light)']; // Purple and Gray
+    const GRIT_COLORS = ['var(--primary)', 'var(--muted)'];
 
     return (
-        <div
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center min-h-[400px]">
-            <h3 className="text-lg font-bold text-gray-800 mb-6 self-start w-full border-b border-gray-100 pb-2">
+        <div className="p-6 flex flex-col items-center min-h-[400px]">
+            <h3 className="text-lg font-bold text-foreground mb-6 self-start w-full border-b border-border/60 pb-3">
                 Biểu đồ phân tích
             </h3>
 
             {/* --- RIASEC RADAR CHART --- */}
             {result.type === 'RIASEC' && (
                 <div className="w-full space-y-6">
-                    {/* RIASEC Code Result Card */}
-                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-200">
+                    <div className="rounded-xl p-6 border border-border/60 bg-muted/20">
                         <div className="text-center">
-                            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                                 Mã Holland của bạn
                             </p>
-                            <h2 className="text-5xl font-black text-emerald-600 mb-3 tracking-tight">
+                            <h2 className="text-4xl font-bold text-primary mb-3 tracking-tight">
                                 {result.rawLabel}
                             </h2>
                             <div className="grid grid-cols-6 gap-2 max-w-2xl mx-auto">
                                 {Object.entries(result.scores).map(([key, value]) => (
-                                    <div key={key} className="bg-white rounded-lg p-3 shadow-sm">
-                                        <p className="text-xs text-gray-500 font-medium mb-1">{key}</p>
-                                        <p className="text-2xl font-bold text-emerald-600">
-                                            {Math.round(value as number)}
+                                    <div key={key} className="rounded-lg p-3 bg-card border border-border/60">
+                                        <p className="text-xs text-muted-foreground font-medium mb-1">{key}</p>
+                                        <p className="text-xl font-bold text-primary">
+                                            {typeof value === 'number' ? Math.round(value) : value}
                                         </p>
-                                        <p className="text-xs text-gray-400">điểm</p>
                                     </div>
                                 ))}
                             </div>
@@ -80,55 +78,28 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
 
                     {/* Radar Chart */}
                     <div className="w-full h-[350px]">
-                        <h4 className="text-sm font-semibold text-gray-600 mb-3 text-center">
+                        <h4 className="text-sm font-semibold text-foreground mb-3 text-center">
                             Biểu đồ radar - Xu hướng nghề nghiệp
                         </h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={riasecData}>
-                                <PolarGrid stroke="#E5E7EB"/>
-                                <PolarAngleAxis dataKey="subject" tick={{fill: '#6B7280', fontSize: 13, fontWeight: 600}}/>
-                                <PolarRadiusAxis angle={30} domain={[0, 25]} tick={{fill: '#9CA3AF', fontSize: 11}}/>
-                                <Radar name="Điểm của bạn" dataKey="A" stroke="#10B981" fill="#10B981"
-                                       fillOpacity={0.5} strokeWidth={2}/>
-                                <Tooltip 
-                                    contentStyle={{
-                                        backgroundColor: 'white',
-                                        border: '1px solid #E5E7EB',
-                                        borderRadius: '8px',
-                                        padding: '8px'
-                                    }}
-                                />
+                                <PolarGrid stroke="var(--border)" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--muted-foreground)', fontSize: 13, fontWeight: 600 }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 25]} tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
+                                <Radar name="Điểm của bạn" dataKey="A" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.4} strokeWidth={2} />
+                                <Tooltip contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px' }} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Legend & Explanation */}
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-xs text-gray-600">
+                    <div className="rounded-lg p-4 bg-muted/20 border border-border/60 text-xs text-muted-foreground">
                         <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <p className="font-bold text-emerald-600">R - Realistic (Thực tế):</p>
-                                <p>Làm việc với vật thể, máy móc, công cụ</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-emerald-600">I - Investigative (Nghiên cứu):</p>
-                                <p>Giải quyết vấn đề, phân tích, khoa học</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-emerald-600">A - Artistic (Nghệ thuật):</p>
-                                <p>Sáng tạo, biểu đạt, nghệ thuật</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-emerald-600">S - Social (Xã hội):</p>
-                                <p>Giúp đỡ, chăm sóc, làm việc với người</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-emerald-600">E - Enterprising (Kinh doanh):</p>
-                                <p>Lãnh đạo, thuyết phục, kinh doanh</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-emerald-600">C - Conventional (Hành chính):</p>
-                                <p>Tổ chức, dữ liệu, quy trình rõ ràng</p>
-                            </div>
+                            <div><p className="font-semibold text-primary">R - Realistic (Thực tế):</p><p>Làm việc với vật thể, máy móc, công cụ</p></div>
+                            <div><p className="font-semibold text-primary">I - Investigative (Nghiên cứu):</p><p>Giải quyết vấn đề, phân tích, khoa học</p></div>
+                            <div><p className="font-semibold text-primary">A - Artistic (Nghệ thuật):</p><p>Sáng tạo, biểu đạt, nghệ thuật</p></div>
+                            <div><p className="font-semibold text-primary">S - Social (Xã hội):</p><p>Giúp đỡ, chăm sóc, làm việc với người</p></div>
+                            <div><p className="font-semibold text-primary">E - Enterprising (Kinh doanh):</p><p>Lãnh đạo, thuyết phục, kinh doanh</p></div>
+                            <div><p className="font-semibold text-primary">C - Conventional (Hành chính):</p><p>Tổ chức, dữ liệu, quy trình rõ ràng</p></div>
                         </div>
                     </div>
                 </div>
@@ -154,22 +125,21 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
                                         dataKey="value"
                                     >
                                         {gritChartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={GRIT_COLORS[index % GRIT_COLORS.length]}/>
+                                            <Cell key={`cell-${index}`} fill={GRIT_COLORS[index % GRIT_COLORS.length]} />
                                         ))}
                                     </Pie>
                                 </PieChart>
                             </ResponsiveContainer>
-                            <div
-                                className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end h-full pb-2 pointer-events-none">
-                                <span className="text-4xl font-black text-purple-600">{gritScore}</span>
-                                <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Tổng điểm / 5.0</span>
+                            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end h-full pb-2 pointer-events-none">
+                                <span className="text-4xl font-bold text-primary">{gritScore}</span>
+                                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Tổng điểm / 5.0</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Bar Chart (Breakdown) */}
                     <div className="w-full h-[200px]">
-                        <h4 className="text-sm font-semibold text-gray-600 mb-2 text-center">Chi tiết thành phần</h4>
+                        <h4 className="text-sm font-semibold text-foreground mb-2 text-center">Chi tiết thành phần</h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 data={gritBreakdownData}
@@ -189,10 +159,9 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
                         </ResponsiveContainer>
                     </div>
 
-                    <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-                        <p><span className="font-bold text-purple-600">Kiên trì:</span> Khả năng làm việc chăm chỉ
-                            trước thử thách.</p>
-                        <p className="mt-1"><span className="font-bold text-pink-500">Đam mê:</span> Tính nhất quán trong sở thích và mục tiêu qua thời gian dài.</p>
+                    <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg border border-border/60">
+                        <p><span className="font-semibold text-primary">Kiên trì:</span> Khả năng làm việc chăm chỉ trước thử thách.</p>
+                        <p className="mt-1"><span className="font-semibold text-primary">Đam mê:</span> Tính nhất quán trong sở thích và mục tiêu qua thời gian dài.</p>
                     </div>
                 </div>
             )}
@@ -200,131 +169,77 @@ const ResultChart: React.FC<ResultChartProps> = ({result}) => {
             {/* --- MBTI STACKED BAR CHART --- */}
             {result.type === 'MBTI' && (
                 <div className="w-full space-y-6">
-                    {/* MBTI Type Result Card */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                    <div className="rounded-xl p-6 border border-border/60 bg-muted/20">
                         <div className="text-center">
-                            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                                 Kiểu tính cách của bạn
                             </p>
-                            <h2 className="text-5xl font-black text-blue-600 mb-3 tracking-tight">
+                            <h2 className="text-4xl font-bold text-primary mb-3 tracking-tight">
                                 {result.rawLabel}
                             </h2>
                             <div className="grid grid-cols-4 gap-2 max-w-md mx-auto">
-                                <div className="bg-white rounded-lg p-2 shadow-sm">
-                                    <p className="text-xs text-gray-500 font-medium">E/I</p>
-                                    <p className="text-lg font-bold text-blue-600">
-                                        {(result.scores.E || 0) > (result.scores.I || 0) ? 'E' : 'I'}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        {Math.round(Math.max(result.scores.E || 0, result.scores.I || 0))}%
-                                    </p>
-                                </div>
-                                <div className="bg-white rounded-lg p-2 shadow-sm">
-                                    <p className="text-xs text-gray-500 font-medium">S/N</p>
-                                    <p className="text-lg font-bold text-blue-600">
-                                        {(result.scores.S || 0) > (result.scores.N || 0) ? 'S' : 'N'}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        {Math.round(Math.max(result.scores.S || 0, result.scores.N || 0))}%
-                                    </p>
-                                </div>
-                                <div className="bg-white rounded-lg p-2 shadow-sm">
-                                    <p className="text-xs text-gray-500 font-medium">T/F</p>
-                                    <p className="text-lg font-bold text-blue-600">
-                                        {(result.scores.T || 0) > (result.scores.F || 0) ? 'T' : 'F'}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        {Math.round(Math.max(result.scores.T || 0, result.scores.F || 0))}%
-                                    </p>
-                                </div>
-                                <div className="bg-white rounded-lg p-2 shadow-sm">
-                                    <p className="text-xs text-gray-500 font-medium">J/P</p>
-                                    <p className="text-lg font-bold text-blue-600">
-                                        {(result.scores.J || 0) > (result.scores.P || 0) ? 'J' : 'P'}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        {Math.round(Math.max(result.scores.J || 0, result.scores.P || 0))}%
-                                    </p>
-                                </div>
+                                {[
+                                    { dim: 'E/I', a: 'E', b: 'I' },
+                                    { dim: 'S/N', a: 'S', b: 'N' },
+                                    { dim: 'T/F', a: 'T', b: 'F' },
+                                    { dim: 'J/P', a: 'J', b: 'P' },
+                                ].map(({ dim, a, b }) => (
+                                    <div key={dim} className="rounded-lg p-2 bg-card border border-border/60">
+                                        <p className="text-xs text-muted-foreground font-medium">{dim}</p>
+                                        <p className="text-lg font-bold text-primary">
+                                            {(result.scores[a] || 0) > (result.scores[b] || 0) ? a : b}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {Math.round(Math.max(result.scores[a] || 0, result.scores[b] || 0))}%
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
 
                     {/* Bar Chart */}
                     <div className="w-full h-[320px]">
-                        <h4 className="text-sm font-semibold text-gray-600 mb-3 text-center">
+                        <h4 className="text-sm font-semibold text-foreground mb-3 text-center">
                             Phân tích chi tiết các chiều kích tính cách
                         </h4>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                layout="vertical"
-                                data={mbtiChartData}
-                                margin={{top: 5, right: 30, left: 50, bottom: 5}}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false}/>
-                                <XAxis type="number" domain={[0, 100]} hide/>
-                                <YAxis dataKey="name" type="category" width={50} tick={{fontSize: 13, fontWeight: 600}}/>
+                            <BarChart layout="vertical" data={mbtiChartData} margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+                                <XAxis type="number" domain={[0, 100]} hide />
+                                <YAxis dataKey="name" type="category" width={50} tick={{ fontSize: 13, fontWeight: 600, fill: 'var(--foreground)' }} />
                                 <Tooltip
-                                    cursor={{fill: 'transparent'}}
-                                    content={({active, payload}) => {
-                                        if (active && payload && payload.length) {
+                                    cursor={{ fill: 'transparent' }}
+                                    contentStyle={{ backgroundColor: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px' }}
+                                    content={({ active, payload }) => {
+                                        if (active && payload?.length) {
                                             const data = payload[0].payload;
                                             return (
-                                                <div
-                                                    className="bg-white p-3 border border-gray-200 shadow-xl rounded-lg text-sm z-50">
-                                                    <p className="text-blue-600 font-bold mb-1">
-                                                        {data.labelA}: {Math.round(data.A)}%
-                                                    </p>
-                                                    <p className="text-gray-600 font-bold">
-                                                        {data.labelB}: {Math.round(data.B)}%
-                                                    </p>
+                                                <div className="p-3 rounded-lg text-sm">
+                                                    <p className="text-primary font-semibold mb-1">{data.labelA}: {Math.round(data.A)}%</p>
+                                                    <p className="text-muted-foreground font-medium">{data.labelB}: {Math.round(data.B)}%</p>
                                                 </div>
                                             );
                                         }
                                         return null;
                                     }}
                                 />
-                                <Bar dataKey="A" stackId="a" fill="#3B82F6" radius={[4, 0, 0, 4]}/>
-                                <Bar dataKey="B" stackId="a" fill="#E5E7EB" radius={[0, 4, 4, 0]}/>
+                                <Bar dataKey="A" stackId="a" fill="var(--primary)" radius={[4, 0, 0, 4]} />
+                                <Bar dataKey="B" stackId="a" fill="var(--muted)" radius={[0, 4, 4, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Legend & Explanation */}
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-xs text-gray-600">
+                    <div className="rounded-lg p-4 bg-muted/20 border border-border/60 text-xs text-muted-foreground">
                         <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <p className="font-bold text-blue-600">E - Extraversion (Hướng ngoại):</p>
-                                <p>Năng lượng từ tương tác xã hội</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-gray-600">I - Introversion (Hướng nội):</p>
-                                <p>Năng lượng từ thời gian riêng tư</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-blue-600">S - Sensing (Cảm giác):</p>
-                                <p>Tập trung vào thực tế, chi tiết</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-gray-600">N - Intuition (Trực giác):</p>
-                                <p>Tập trung vào ý tưởng, tương lai</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-blue-600">T - Thinking (Suy nghĩ):</p>
-                                <p>Quyết định dựa trên logic</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-gray-600">F - Feeling (Cảm xúc):</p>
-                                <p>Quyết định dựa trên giá trị cá nhân</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-blue-600">J - Judging (Nguyên tắc):</p>
-                                <p>Thích cấu trúc, kế hoạch rõ ràng</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-gray-600">P - Perceiving (Linh hoạt):</p>
-                                <p>Thích sự linh hoạt, tự phát</p>
-                            </div>
+                            <div><p className="font-semibold text-primary">E - Extraversion (Hướng ngoại):</p><p>Năng lượng từ tương tác xã hội</p></div>
+                            <div><p className="font-semibold text-foreground">I - Introversion (Hướng nội):</p><p>Năng lượng từ thời gian riêng tư</p></div>
+                            <div><p className="font-semibold text-primary">S - Sensing (Cảm giác):</p><p>Tập trung vào thực tế, chi tiết</p></div>
+                            <div><p className="font-semibold text-foreground">N - Intuition (Trực giác):</p><p>Tập trung vào ý tưởng, tương lai</p></div>
+                            <div><p className="font-semibold text-primary">T - Thinking (Suy nghĩ):</p><p>Quyết định dựa trên logic</p></div>
+                            <div><p className="font-semibold text-foreground">F - Feeling (Cảm xúc):</p><p>Quyết định dựa trên giá trị cá nhân</p></div>
+                            <div><p className="font-semibold text-primary">J - Judging (Nguyên tắc):</p><p>Thích cấu trúc, kế hoạch rõ ràng</p></div>
+                            <div><p className="font-semibold text-foreground">P - Perceiving (Linh hoạt):</p><p>Thích sự linh hoạt, tự phát</p></div>
                         </div>
                     </div>
                 </div>

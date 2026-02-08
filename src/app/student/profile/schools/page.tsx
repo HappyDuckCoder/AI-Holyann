@@ -1,14 +1,13 @@
 'use client';
 
-import {TargetSchoolsPage} from '@/components/student/profile';
-import AuthHeader from '@/components/auth/AuthHeader';
+import { TargetSchoolsPage } from '@/components/student/profile';
+import { StudentPageContainer } from '@/components/student';
 
 export default function TargetSchools() {
-    return (
-        <>
-            <AuthHeader/>
-            <TargetSchoolsPage/>
-        </>
-    );
+  return (
+    <StudentPageContainer>
+      <TargetSchoolsPage />
+    </StudentPageContainer>
+  );
 }
 

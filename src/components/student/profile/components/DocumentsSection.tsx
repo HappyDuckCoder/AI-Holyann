@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  FileText,
-  GraduationCap,
-  Target,
-  UploadCloud,
-  Trash2,
-  File,
-} from "lucide-react";
+import Link from "next/link";
+import { FileText, UploadCloud, Trash2, File, GraduationCap, Sparkles } from "lucide-react";
 import { StudentProfile, DocumentType } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -20,214 +13,119 @@ interface DocumentsSectionProps {
   onDeleteDocument: (id: string) => void;
 }
 
+const DOC_TYPES: { type: DocumentType; label: string }[] = [
+  { type: "transcript", label: "Bảng điểm" },
+  { type: "certificate", label: "Chứng chỉ" },
+  { type: "letter", label: "Thư giới thiệu" },
+  { type: "essay", label: "Bài luận" },
+  { type: "other", label: "Khác" },
+];
+
+function getDocTypeName(type: DocumentType): string {
+  return DOC_TYPES.find((d) => d.type === type)?.label ?? "Khác";
+}
+
 export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
   profile,
   isComplete,
   onUploadDocument,
   onDeleteDocument,
 }) => {
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedDocType, setSelectedDocType] =
-    useState<DocumentType>("transcript");
+  const [selectedType, setSelectedType] = useState<DocumentType>("transcript");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      onUploadDocument(e.target.files[0], selectedDocType);
+    if (e.target.files?.[0]) {
+      onUploadDocument(e.target.files[0], selectedType);
+      e.target.value = "";
     }
   };
 
   const triggerUpload = (type: DocumentType) => {
-    setSelectedDocType(type);
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const getDocTypeName = (type: DocumentType) => {
-    switch (type) {
-      case "transcript":
-        return "Bảng điểm";
-      case "certificate":
-        return "Chứng chỉ";
-      case "letter":
-        return "Thư giới thiệu";
-      case "essay":
-        return "Bài luận";
-      case "other":
-        return "File khác";
-      default:
-        return "Khác";
-    }
+    setSelectedType(type);
+    fileInputRef.current?.click();
   };
 
   return (
-    <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
-      {/* Hidden File Input */}
+    <section className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
       <input
         type="file"
         ref={fileInputRef}
         className="hidden"
+        accept=".pdf,.doc,.docx"
         onChange={handleFileChange}
       />
 
-      <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-900">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <FileText
-            className="text-gray-600 dark:text-slate-400"
-            size={20}
-          />
-          TÀI LIỆU ĐÍNH KÈM
+      <div className="px-5 py-4 border-b border-border/60 flex flex-wrap items-center justify-between gap-3 bg-muted/30">
+        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+          <FileText size={18} className="text-primary" />
+          Tài liệu đính kèm
         </h3>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/dashboard/profile/schools")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-lg text-sm font-semibold hover:from-blue-600 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-          >
-            <GraduationCap size={16} />
-            Trường mục tiêu
-          </button>
-          <button
-            onClick={() => router.push("/dashboard/profile/improve")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-          >
-            <Target size={16} />
-            Cải thiện hồ sơ
-          </button>
-          <StatusBadge isComplete={isComplete} />
-        </div>
+        <StatusBadge isComplete={isComplete} />
       </div>
 
-      <div className="p-6">
-        {/* Upload Area */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
-          <button
-            onClick={() => triggerUpload("transcript")}
-            className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-xl bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors group"
-          >
-            <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center mb-2 shadow-sm text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform">
-              <UploadCloud size={20} />
-            </div>
-            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-              Tải lên Bảng điểm
-            </span>
-          </button>
-          <button
-            onClick={() => triggerUpload("certificate")}
-            className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-purple-200 dark:border-purple-800 rounded-xl bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors group"
-          >
-            <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center mb-2 shadow-sm text-purple-500 dark:text-purple-400 group-hover:scale-110 transition-transform">
-              <UploadCloud size={20} />
-            </div>
-            <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
-              Tải lên Chứng chỉ
-            </span>
-          </button>
-          <button
-            onClick={() => triggerUpload("letter")}
-            className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-green-200 dark:border-green-800 rounded-xl bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group"
-          >
-            <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center mb-2 shadow-sm text-green-500 dark:text-green-400 group-hover:scale-110 transition-transform">
-              <UploadCloud size={20} />
-            </div>
-            <span className="text-xs font-semibold text-green-700 dark:text-green-300">
-              Thư giới thiệu
-            </span>
-          </button>
-          <button
-            onClick={() => triggerUpload("essay")}
-            className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-orange-200 dark:border-orange-800 rounded-xl bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors group"
-          >
-            <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center mb-2 shadow-sm text-orange-500 dark:text-orange-400 group-hover:scale-110 transition-transform">
-              <UploadCloud size={20} />
-            </div>
-            <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
-              Bài luận mẫu
-            </span>
-          </button>
-          <button
-            onClick={() => triggerUpload("other")}
-            className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
-          >
-            <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center mb-2 shadow-sm text-gray-600 dark:text-slate-400 group-hover:scale-110 transition-transform">
-              <UploadCloud size={20} />
-            </div>
-            <span className="text-xs font-semibold text-gray-700 dark:text-slate-300">
-              File khác
-            </span>
-          </button>
+      <div className="p-5">
+        <div className="flex flex-wrap gap-2 mb-4">
+          {DOC_TYPES.map(({ type, label }) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => triggerUpload(type)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors"
+            >
+              <UploadCloud size={14} />
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Document List */}
-        <div className="border dark:border-slate-700 rounded-xl overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
-            <thead className="bg-gray-50 dark:bg-slate-900">
+        <div className="rounded-xl border border-border/60 overflow-hidden">
+          <table className="min-w-full divide-y divide-border/60">
+            <thead className="bg-muted/30">
               <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
-                >
-                  Tên tài liệu
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Tài liệu
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
-                >
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Loại
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
-                >
-                  Ngày tải lên
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Ngày
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
-                >
-                  Kích thước
-                </th>
-                <th scope="col" className="relative px-6 py-3">
-                  <span className="sr-only">Hành động</span>
+                <th className="relative px-4 py-2.5 w-10">
+                  <span className="sr-only">Xóa</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-border/60 bg-card">
               {profile.documents.length > 0 ? (
                 profile.documents.map((doc) => (
-                  <tr
-                    key={doc.id}
-                    className="hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="shrink-0 h-8 w-8 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400">
-                          <File size={16} />
+                  <tr key={doc.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground">
+                          <File size={14} />
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-slate-200">
-                            {doc.name}
-                          </div>
-                        </div>
+                        <span className="text-sm font-medium text-foreground truncate max-w-[180px]">
+                          {doc.name}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-200">
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded bg-muted text-foreground">
                         {getDocTypeName(doc.type)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
                       {doc.uploadDate}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
-                      {doc.size}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-4 py-3 text-right">
                       <button
+                        type="button"
                         onClick={() => onDeleteDocument(doc.id)}
-                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={14} />
                       </button>
                     </td>
                   </tr>
@@ -235,16 +133,33 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
               ) : (
                 <tr>
                   <td
-                    colSpan={5}
-                    className="px-6 py-10 text-center text-sm text-gray-400 dark:text-slate-500"
+                    colSpan={4}
+                    className="px-4 py-8 text-center text-sm text-muted-foreground"
                   >
-                    Chưa có tài liệu nào được tải lên. Hãy chọn các mục ở trên
-                    để thêm tài liệu.
+                    Chưa có tài liệu. Chọn loại phía trên để tải lên.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-border/60 flex flex-wrap gap-2 text-sm">
+          <Link
+            href="/student/profile/schools"
+            className="inline-flex items-center gap-1.5 text-primary hover:underline"
+          >
+            <GraduationCap size={14} />
+            Trường mục tiêu
+          </Link>
+          <span className="text-border">|</span>
+          <Link
+            href="/student/profile/improve"
+            className="inline-flex items-center gap-1.5 text-primary hover:underline"
+          >
+            <Sparkles size={14} />
+            Cải thiện hồ sơ
+          </Link>
         </div>
       </div>
     </section>

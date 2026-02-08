@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { ProfilePage } from "@/components/student/profile";
 import AcademicInfoModal from "@/components/student/profile/AcademicInfoModal";
 import ProfileAnalysisModal from "@/components/student/profile/ProfileAnalysisModal";
-import AuthHeader from "@/components/auth/AuthHeader";
+import { StudentPageContainer } from "@/components/student";
 import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
@@ -153,7 +153,7 @@ export default function ProfilePageWrapper() {
           dob: data.basicInfo.date_of_birth
             ? new Date(data.basicInfo.date_of_birth).toLocaleDateString("vi-VN")
             : "Chưa cập nhật",
-          avatarUrl: data.basicInfo.avatar_url || "/images/avatars/avt.jpg",
+          avatarUrl: data.basicInfo.avatar_url || "",
 
           // GPA hiện tại: Lấy GPA lớp 12, nếu không có thì lấy lớp 11
           gpa: (() => {
@@ -426,27 +426,22 @@ export default function ProfilePageWrapper() {
   // Loading state
   if (loading || sessionLoading) {
     return (
-      <>
-        <AuthHeader />
-        <main className="min-h-screen bg-white dark:bg-slate-900">
-          <div className="flex flex-col justify-center items-center h-screen">
+      <StudentPageContainer>
+        <div className="flex flex-col justify-center items-center min-h-[60vh]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               {sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
             </p>
           </div>
-        </main>
-      </>
+      </StudentPageContainer>
     );
   }
 
   // Error state
   if (error || !profile) {
     return (
-      <>
-        <AuthHeader />
-        <main className="min-h-screen bg-white dark:bg-slate-900">
-          <div className="flex flex-col justify-center items-center h-screen px-4">
+      <StudentPageContainer>
+        <div className="flex flex-col justify-center items-center min-h-[60vh] px-4">
             <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
               <div className="text-red-600 dark:text-red-400 text-xl font-semibold mb-2">
                 ⚠️ Lỗi tải dữ liệu
@@ -469,16 +464,14 @@ export default function ProfilePageWrapper() {
                 Tải lại trang
               </button>
             </div>
-          </div>
-        </main>
-      </>
+        </div>
+      </StudentPageContainer>
     );
   }
 
   return (
-    <>
-      <AuthHeader />
-      <main className="min-h-screen bg-white dark:bg-gray-900">
+    <StudentPageContainer>
+      <div className="min-h-[60vh]">
         {/* Welcome Banner for New Students */}
         {isNewStudent && (
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
@@ -533,7 +526,7 @@ export default function ProfilePageWrapper() {
           loading={analysisLoading}
           onRetry={handleAnalyzeProfile}
         />
-      </main>
-    </>
+      </div>
+    </StudentPageContainer>
   );
 }
