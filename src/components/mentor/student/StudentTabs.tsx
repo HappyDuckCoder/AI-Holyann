@@ -4,12 +4,13 @@ import { useState } from 'react';
 import SchoolListTab from './SchoolListTab';
 import DeadlineManagementTab from './DeadlineManagementTab';
 import ChecklistTab from './ChecklistTab';
+import EssayTab from './EssayTab';
 
 interface StudentTabsProps {
   studentId: string;
 }
 
-type TabType = 'checklist' | 'schools' | 'deadlines';
+type TabType = 'checklist' | 'schools' | 'deadlines' | 'essay';
 
 export default function StudentTabs({ studentId }: StudentTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('checklist');
@@ -18,6 +19,7 @@ export default function StudentTabs({ studentId }: StudentTabsProps) {
     { id: 'checklist' as TabType, label: 'Tiến độ Checklist' },
     { id: 'schools' as TabType, label: 'Danh sách trường' },
     { id: 'deadlines' as TabType, label: 'Tiến độ & Deadline' },
+    { id: 'essay' as TabType, label: 'Essay' },
   ];
 
   return (
@@ -46,6 +48,7 @@ export default function StudentTabs({ studentId }: StudentTabsProps) {
         {activeTab === 'checklist' && <ChecklistTab studentId={studentId} />}
         {activeTab === 'schools' && <SchoolListTab studentId={studentId} />}
         {activeTab === 'deadlines' && <DeadlineManagementTab studentId={studentId} />}
+        {activeTab === 'essay' && <EssayTab studentId={studentId} />}
       </div>
     </div>
   );

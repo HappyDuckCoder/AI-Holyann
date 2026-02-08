@@ -20,6 +20,22 @@ export async function POST(
             );
         }
 
+        // Chỉ cho phép một CV: nếu đã có CV rồi thì không cho tải thêm
+        if (documentType === 'cv') {
+            const cvsDir = path.join(process.cwd(), 'public', 'uploads', 'cvs');
+            if (existsSync(cvsDir)) {
+                const fs = await import('fs');
+                const names = fs.readdirSync(cvsDir);
+                const hasCv = names.some((name) => name.startsWith(`cv_${student_id}_`));
+                if (hasCv) {
+                    return NextResponse.json(
+                        { error: 'Bạn đã tải CV lên rồi. Không thể tải thêm.' },
+                        { status: 400 }
+                    );
+                }
+            }
+        }
+
         const allowedTypes = [
             'application/pdf',
             'application/msword',

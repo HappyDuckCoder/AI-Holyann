@@ -103,6 +103,9 @@ model users {
 
   // Assignment relations
   assigned_mentorships mentor_assignments[] @relation("MentorUser")
+
+  // Improve: mentor comments on essays
+  essay_comments essay_comments[]
 }
 
 // ==================== 3. MENTOR SYSTEM ====================
@@ -188,6 +191,104 @@ model students {
 
   // Quan hệ với bảng Task Progress
   checklist_progress student_task_progress[]
+
+  // Improve: Essay & CV
+  essays                   essays[]
+  student_cvs              student_cv_documents[]
+  profile_improve_result   profile_improve_results?
+  cv_improve_result        cv_improve_results?
+}
+
+// ==================== 4b. IMPROVE – ESSAY & CV ====================
+
+model essays {
+  id         String   @id @default(uuid()) @db.Uuid
+  student_id String   @db.Uuid
+  student    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  title      String?  @db.VarChar(500)
+  content    String   @db.Text
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+
+  comments            essay_comments[]
+  improve_result      essay_improve_results?
+  @@index([student_id])
+}
+
+model essay_comments {
+  id          String   @id @default(uuid()) @db.Uuid
+  essay_id    String   @db.Uuid
+  essay       essays   @relation(fields: [essay_id], references: [id], onDelete: Cascade)
+  author_id   String   @db.Uuid
+  author      users    @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  start_offset Int?    // Vị trí ký tự đầu (comment inline)
+  end_offset   Int?    // Vị trí ký tự cuối
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([essay_id])
+  @@index([author_id])
+}
+
+model student_cv_documents {
+  id          String   @id @default(uuid()) @db.Uuid
+  student_id  String   @db.Uuid
+  student     students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  file_url    String   @db.Text
+  file_name   String   @db.VarChar(255)
+  uploaded_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([student_id])
+}
+
+/// Kết quả Phân tích & Đề xuất cải thiện (Improve – Feature 4). Mỗi student một bản ghi, cập nhật khi chạy lại.
+model profile_improve_results {
+  id               String    @id @default(uuid()) @db.Uuid
+  student_id       String    @unique @db.Uuid
+  student          students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  analysis_result  Json?     // Full response từ /profile-improver/analysis
+  enhance_result   Json?     // Full response từ /profile-improver/enhance
+  analysis_rating  Int?      // 1–5, do học sinh đánh giá
+  enhance_rating   Int?      // 1–5
+  analysis_at      DateTime? @db.Timestamp(6)
+  enhance_at       DateTime? @db.Timestamp(6)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([student_id])
+}
+
+/// Kết quả Phân tích & Enhance theo từng essay (mỗi essay một bản ghi).
+model essay_improve_results {
+  id               String    @id @default(uuid()) @db.Uuid
+  essay_id         String    @unique @db.Uuid
+  essay            essays    @relation(fields: [essay_id], references: [id], onDelete: Cascade)
+  analysis_result  Json?
+  enhance_result   Json?
+  analysis_rating  Int?
+  enhance_rating   Int?
+  analysis_at      DateTime? @db.Timestamp(6)
+  enhance_at       DateTime? @db.Timestamp(6)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime  @default(now()) @db.Timestamp(6)
+  @@index([essay_id])
+}
+
+/// Kết quả Phân tích & Enhance CV (mỗi student một bản ghi).
+model cv_improve_results {
+  id               String    @id @default(uuid()) @db.Uuid
+  student_id       String    @unique @db.Uuid
+  student          students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  analysis_result  Json?
+  enhance_result   Json?
+  analysis_rating  Int?
+  enhance_rating   Int?
+  analysis_at      DateTime? @db.Timestamp(6)
+  enhance_at       DateTime? @db.Timestamp(6)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime  @default(now()) @db.Timestamp(6)
+  @@index([student_id])
 }
 
 // ==================== 5. CHECKLISTS (TASK SYSTEM) ====================
