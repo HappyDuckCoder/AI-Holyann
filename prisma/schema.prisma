@@ -183,6 +183,7 @@ model students {
   grit_tests           grit_tests?
   career_matches       career_matches[]
   student_match_school student_match_school[]
+  student_university_recommendations student_university_recommendations[]
   mentors              mentor_assignments[]
 
   // Quan hệ với bảng Task Progress
@@ -612,6 +613,19 @@ model student_match_school {
   @@index([ai_matching])
   @@index([student_id])
   @@index([university_id])
+}
+
+// Kết quả gợi ý trường (Module 3) từ server-ai: summary, roadmap, snapshot universities
+model student_university_recommendations {
+  id          String   @id @default(uuid()) @db.Uuid
+  student_id  String   @db.Uuid
+  students    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  summary     Json     @default("{}")  // total_matched, reach_count, match_count, safety_count
+  roadmap     Json     @default("{}")  // start_date, duration_months, overall_goals, key_milestones, monthly_plans
+  universities Json?   @default("{}")  // optional snapshot: REACH/MATCH/SAFETY
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([student_id])
 }
 
 // ==================== 9. LIVE CHAT SYSTEM ====================
