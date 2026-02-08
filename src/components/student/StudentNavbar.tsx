@@ -5,7 +5,7 @@ import { useAuthSession } from '@/hooks/useAuthSession';
 import { signOut } from 'next-auth/react';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown, LayoutDashboard, User, CheckSquare, GraduationCap, MessageCircle, Settings, Sun, Moon, LogOut } from 'lucide-react';
+import { Menu, X, ChevronDown, LayoutDashboard, User, CheckSquare, GraduationCap, MessageCircle, Settings, Sun, Moon, LogOut, Sparkles } from 'lucide-react';
 
 const STUDENT_BASE = '/student';
 
@@ -13,6 +13,7 @@ const navItems = [
   { name: 'Dashboard', href: `${STUDENT_BASE}/dashboard`, icon: LayoutDashboard },
   { name: 'Profile', href: `${STUDENT_BASE}/profile`, icon: User },
   { name: 'Checklist', href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
+  { name: 'Improve', href: `${STUDENT_BASE}/improve`, icon: Sparkles },
   { name: 'Universities', href: `${STUDENT_BASE}/profile/schools`, icon: GraduationCap },
   { name: 'Discussion', href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
 ];
