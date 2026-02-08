@@ -40,10 +40,10 @@ export function getRoleChatPath(role?: string | null): string {
 
 /**
  * Get a specific page URL for the current user role
- * @param role - User role
  * @param page - Page path (e.g., 'profile', 'tests')
+ * @param role - User role (optional)
  * @returns Full page URL
  */
-export function getRolePagePath(role?: string | null, page: string): string {
+export function getRolePagePath(page: string, role?: string | null): string {
   return `${getRoleBasePath(role)}/${page}`;
 }

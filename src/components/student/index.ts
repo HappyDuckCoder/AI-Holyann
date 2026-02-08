@@ -19,8 +19,7 @@ export { StudentPageContainer } from './StudentPageContainer';
 export * from './dashboard';
 export * from './profile';
 export * from './assessments';
-export * from './recommendations';
-export * from './profile-enhancer';
+// TargetSchoolsPage, ProfileEnhancerPage already exported from ./profile
 export * from './opportunities';
 export * from './reports';
 export * from './study-journal';

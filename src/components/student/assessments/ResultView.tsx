@@ -11,7 +11,7 @@ import {
     Activity,
     Trophy
 } from 'lucide-react';
-import {TestResult, MajorRecommendation, TestType} from '../types';
+import { TestResult, MajorRecommendation, TestType } from '@/components/types';
 import ResultChart from './ResultChart';
 import {TEST_DESCRIPTIONS} from '@/constants';
 

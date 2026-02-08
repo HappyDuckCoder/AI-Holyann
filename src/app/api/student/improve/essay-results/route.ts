@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/prisma';
 
@@ -91,13 +92,14 @@ export async function POST(request: NextRequest) {
     if (analysis_rating !== undefined) data.analysis_rating = analysis_rating == null ? null : clamp(analysis_rating);
     if (enhance_rating !== undefined) data.enhance_rating = enhance_rating == null ? null : clamp(enhance_rating);
 
+    const createPayload: Prisma.essay_improve_resultsUncheckedCreateInput = {
+      essay_id: essay_id,
+      ...data,
+    };
     await prisma.essay_improve_results.upsert({
       where: { essay_id: essay_id },
-      create: {
-        essay_id: essay_id,
-        ...(data as Parameters<typeof prisma.essay_improve_results.upsert>[0]['create']),
-      },
-      update: data as Parameters<typeof prisma.essay_improve_results.upsert>[0]['update'],
+      create: createPayload,
+      update: data as Prisma.essay_improve_resultsUncheckedUpdateInput,
     });
     return NextResponse.json({ ok: true });
   } catch (e) {

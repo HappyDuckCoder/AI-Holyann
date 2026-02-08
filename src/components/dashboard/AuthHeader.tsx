@@ -145,7 +145,7 @@ export default function AuthHeader() {
 
                             <div className="relative group cursor-pointer">
                                 <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-primary-foreground/20 rounded-full flex items-center justify-center text-primary-foreground font-bold border-2 border-primary-foreground/30 shadow-lg group-hover:border-accent transition-colors text-xs sm:text-sm md:text-base flex-shrink-0">
-                                    {user?.name.charAt(0).toUpperCase()}
+                                    {(user?.name ?? '').charAt(0).toUpperCase() || '?'}
                                 </div>
 
                                 <div className="absolute right-0 top-full mt-2 w-32 bg-popover dark:bg-card rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right text-foreground z-50">
@@ -214,7 +214,7 @@ export default function AuthHeader() {
                             <div className="mt-2 pt-2 border-t border-primary-foreground/20">
                                 <div className="px-4 py-2 flex items-center gap-3">
                                     <div className="w-10 h-10 bg-primary-foreground/20 rounded-full flex items-center justify-center text-primary-foreground font-bold border-2 border-primary-foreground/30">
-                                        {user?.name.charAt(0).toUpperCase()}
+                                        {(user?.name ?? '').charAt(0).toUpperCase() || '?'}
                                     </div>
                                     <div>
                                         <p className="text-xs text-primary-foreground/70 font-sans">XIN CHÀO,</p>

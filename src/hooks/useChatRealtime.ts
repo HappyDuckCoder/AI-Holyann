@@ -214,44 +214,29 @@ export function useChatRealtime<T extends FormattedMessage>(
     // Create unique channel name
     const channelName = `chat-room:${roomId}:${Date.now()}`;
 
-    const channel = supabase
-      .channel(channelName, {
-        config: {
-          broadcast: { self: false }, // Don't receive own broadcasts
-          presence: { key: currentUserId }, // Track presence
-        },
-      })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const channel = (supabase.channel(channelName, {
+      config: {
+        broadcast: { self: false },
+        presence: { key: currentUserId },
+      },
+    }) as any)
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` },
         handleInsert
       )
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`,
-        },
+        { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` },
         handleUpdate
       )
       .on(
         'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`,
-        },
+        { event: 'DELETE', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` },
         handleDelete
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         console.log(`📡 [REALTIME] Subscription status:`, status);
 
         if (status === 'SUBSCRIBED') {

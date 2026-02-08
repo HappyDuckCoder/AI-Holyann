@@ -93,9 +93,10 @@ export async function GET(request: NextRequest) {
       let top3: [string, number][] = sortedScores.map(([key, value]) => [key, value as number]);
       const saved = riasec.top_3_types;
       if (saved && Array.isArray(saved) && saved.length > 0) {
-        const parsed = saved
-          .filter((x: unknown) => Array.isArray(x) && x.length >= 2)
-          .map((x: unknown[]) => [String(x[0]), Number(x[1])] as [string, number]);
+        const arr = saved as unknown[];
+        const parsed = arr
+          .filter((x: unknown): x is unknown[] => Array.isArray(x) && x.length >= 2)
+          .map((x) => [String(x[0]), Number(x[1])] as [string, number]);
         if (parsed.length > 0) top3 = parsed.slice(0, 3);
       }
 

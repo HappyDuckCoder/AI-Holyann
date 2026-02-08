@@ -1,7 +1,7 @@
 import React from 'react';
 import {Sparkles, Trophy, ArrowRight} from 'lucide-react';
 import TestCard from './TestCard';
-import {TestType, TestResult} from '../types';
+import { TestType, TestResult } from '@/components/types';
 import {TEST_DESCRIPTIONS} from '@/constants';
 
 interface TestSelectionProps {

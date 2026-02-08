@@ -42,9 +42,14 @@ export function validateAndSanitize<T>(
     return { success: true, data: validated };
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const issues = error.issues ?? [];
       return {
         success: false,
-        error: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+        error: issues.map((e) => {
+          const path = Array.isArray(e.path) ? e.path.map(String).join('.') : '';
+          const msg = 'message' in e && typeof (e as { message?: string }).message === 'string' ? (e as { message: string }).message : 'Invalid';
+          return `${path}: ${msg}`;
+        }).join(', '),
       };
     }
     return { success: false, error: 'Validation failed' };

@@ -36,6 +36,7 @@ export interface ProfilePageProps {
   onUpdateAchievement?: (id: string, text: string) => void;
   onAddAchievement?: (text: string, category: "academic" | "non_academic") => void;
   onDeleteAchievement?: (id: string) => void;
+  onProfileUpdate?: (updatedFields: Partial<StudentProfile>) => Promise<void>;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -53,6 +54,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onUpdateAchievement,
   onAddAchievement,
   onDeleteAchievement,
+  onProfileUpdate,
 }) => {
   const chartData = [
     { subject: "Học thuật", A: profile.gpaScale ? (profile.gpa / profile.gpaScale) * 100 : 0, fullMark: 100 },

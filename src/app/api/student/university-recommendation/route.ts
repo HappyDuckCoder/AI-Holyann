@@ -32,10 +32,10 @@ function buildFeature1FromProfile(analysis: {
       main_spike: 'Academic Excellence',
       sharpness: overall >= 80 ? 'High' : overall >= 60 ? 'Medium' : 'Low',
     },
-    ...(analysis.summary && { summaryText: analysis.summary }),
-    ...(analysis.swot_data && typeof analysis.swot_data === 'object' && {
-      'B. Phân tích SWOT': analysis.swot_data,
-    }),
+    ...(analysis.summary ? { summaryText: analysis.summary } : {}),
+    ...(analysis.swot_data && typeof analysis.swot_data === 'object'
+      ? { 'B. Phân tích SWOT': analysis.swot_data }
+      : {}),
   };
 }
 

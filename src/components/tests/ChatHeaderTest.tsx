@@ -2,7 +2,7 @@
  * Test component to verify ChatHeader handles undefined/null values correctly
  */
 import React from 'react';
-import ChatHeader from '../src/components/chat/ChatHeader';
+import ChatHeader from '../chat/ChatHeader';
 
 // Test cases for different scenarios
 const testCases = [

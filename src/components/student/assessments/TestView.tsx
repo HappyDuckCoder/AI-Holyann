@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {RotateCcw, ChevronLeft, ChevronRight, Check, List, X} from 'lucide-react';
-import {Question, TestType} from '../types';
+import { Question, TestType } from '@/components/types';
 import {TEST_DESCRIPTIONS} from '@/constants';
 
 interface TestViewProps {
