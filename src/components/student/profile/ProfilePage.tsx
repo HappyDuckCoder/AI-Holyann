@@ -16,6 +16,7 @@ interface ProfilePageProps {
   onUploadDocument: (file: File, type: DocumentType) => void;
   onDeleteDocument: (id: string) => void;
   onAnalyzeProfile?: () => void;
+  onProfileUpdate?: (updatedProfile: Partial<StudentProfile>) => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -24,6 +25,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onUploadDocument,
   onDeleteDocument,
   onAnalyzeProfile,
+  onProfileUpdate,
 }) => {
   // Chart data
   const chartData = [
@@ -73,7 +75,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* ================= LEFT COLUMN: PERSONAL INFO (3 cols) ================= */}
         <div className="lg:col-span-4 space-y-6">
-          <PersonalInfoCard profile={profile} isComplete={isPersonalComplete} />
+          <PersonalInfoCard
+            profile={profile}
+            isComplete={isPersonalComplete}
+            onProfileUpdate={onProfileUpdate}
+          />
 
           <RadarChartCard profile={profile} chartData={chartData} />
         </div>

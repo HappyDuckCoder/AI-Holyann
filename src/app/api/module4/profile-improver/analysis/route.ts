@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call Django AI API
-    const AI_API_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
+    const AI_API_BASE = process.env.AI_SERVER_URL || "http://127.0.0.1:8000";
     const baseUrl = AI_API_BASE.replace(/\/+$/, "");
     const url = `${baseUrl}/hoexapp/api/profile-improver/analysis/`;
 

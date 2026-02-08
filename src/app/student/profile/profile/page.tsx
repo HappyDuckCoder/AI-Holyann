@@ -286,7 +286,51 @@ export default function ProfilePageWrapper() {
     }
   };
 
-  const handleUploadDocument = async (file: File, type: string) => {
+  // Handle profile updates (like avatar upload)
+  const handleProfileUpdate = async (updatedFields: Partial<StudentProfile>): Promise<void> => {
+    try {
+      const studentId = getStudentId();
+      if (!studentId) {
+        throw new Error('Không có thông tin người dùng');
+      }
+
+      // Update local state immediately for better UX
+      if (profile) {
+        setProfile(prev => prev ? { ...prev, ...updatedFields } : null);
+      }
+
+      // Send update to server
+      const actualStudentId = studentId.startsWith('email:') ?
+        studentId.replace('email:', '') : studentId;
+
+      const response = await fetch(`/api/students/${actualStudentId}/profile`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedFields),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      // Show success message
+      toast.success('Cập nhật thông tin thành công!');
+
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error('Cập nhật thất bại. Vui lòng thử lại.');
+
+      // Revert local state on error
+      if (profile) {
+        setProfile(profile); // Reset to original profile
+      }
+    }
+  };
+
+  const handleUploadDocument = async (file: File, type: any) => {
     const studentId = getStudentId();
     if (!studentId) return;
 
@@ -474,6 +518,7 @@ export default function ProfilePageWrapper() {
           onUploadDocument={handleUploadDocument}
           onDeleteDocument={handleDeleteDocument}
           onAnalyzeProfile={handleAnalyzeProfile}
+          onProfileUpdate={handleProfileUpdate}
         />
         {isModalOpen && profile && (
           <AcademicInfoModal

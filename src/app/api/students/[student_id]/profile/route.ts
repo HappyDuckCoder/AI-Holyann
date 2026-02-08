@@ -240,7 +240,29 @@ export async function PATCH(
     try {
         const { student_id } = await params;
         const body = await request.json();
-        const { basicInfo, studentInfo } = body;
+
+        console.log('🔄 [Profile Update] Updating profile for student_id:', student_id);
+        console.log('📝 [Profile Update] Fields to update:', body);
+
+        if (!student_id) {
+            return NextResponse.json(
+                { success: false, error: 'Student ID is required' },
+                { status: 400 }
+            );
+        }
+
+        const { basicInfo, studentInfo, avatarUrl } = body;
+
+        // Handle avatar update (new functionality)
+        if (avatarUrl !== undefined) {
+            console.log('📸 [Profile Update] Updating avatar URL...');
+            await prisma.users.update({
+                where: { id: student_id },
+                data: {
+                    avatar_url: avatarUrl
+                }
+            });
+        }
 
         // Cập nhật bảng users (từ basicInfo)
         if (basicInfo) {
@@ -305,15 +327,22 @@ export async function PATCH(
             });
         }
 
-        return NextResponse.json({ 
+        console.log('✅ [Profile Update] Profile updated successfully');
+
+        return NextResponse.json({
             success: true,
-            message: 'Cập nhật thông tin thành công' 
+            message: 'Cập nhật thông tin thành công',
+            updatedFields: body
         });
     } catch (error) {
         console.error('❌ Error updating student profile:', error);
         return NextResponse.json(
-            { error: 'Lỗi khi cập nhật thông tin' },
+            {
+                success: false,
+                error: error instanceof Error ? error.message : 'Lỗi khi cập nhật thông tin'
+            },
             { status: 500 }
         );
     }
 }
+

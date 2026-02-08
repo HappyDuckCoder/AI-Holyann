@@ -1,7 +1,5 @@
 "use client"
-import {useAuthSession} from '@/hooks/useAuthSession'
-import {useState} from 'react'
-import UserManagement from '@/components/admin/UserManagement'
+import { useState, useEffect } from 'react'
 import {
     Dialog,
     DialogContent,
@@ -9,20 +7,14 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import CreateMentorForm from "@/components/admin/CreateMentorForm"
-import MentorManagement from "@/components/admin/MentorManagement"
-
-type TabKey = 'overview' | 'users' | 'mentors' | 'system'
+import RecentUsersTable from "@/components/admin/RecentUsersTable"
 
 export default function AdminDashboard() {
-    const {user} = useAuthSession()
-    const [activeTab, setActiveTab] = useState<TabKey>('overview')
+    const [mounted, setMounted] = useState(false)
 
-    const tabs: { key: TabKey; label: string; icon: string }[] = [
-        {key: 'overview', label: 'Tổng quan', icon: 'fa-chart-line'},
-        {key: 'users', label: 'Người dùng', icon: 'fa-users'},
-        {key: 'mentors', label: 'Mentors', icon: 'fa-chalkboard-teacher'},
-        {key: 'system', label: 'Hệ thống', icon: 'fa-cog'},
-    ]
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const stats = [
         {label: 'Tổng người dùng', value: '2,847', icon: 'fa-users', color: 'blue', trend: '+12%'},
@@ -31,35 +23,12 @@ export default function AdminDashboard() {
         {label: 'Doanh thu tháng', value: '₫125M', icon: 'fa-dollar-sign', color: 'yellow', trend: '+15%'},
     ]
 
-    const recentUsers = [
-        {
-            id: 1,
-            name: 'Nguyễn Văn A',
-            email: 'nguyenvana@email.com',
-            role: 'user',
-            date: '07/12/2025',
-            status: 'active'
-        },
-        {id: 2, name: 'Trần Thị B', email: 'tranthib@email.com', role: 'mentor', date: '06/12/2025', status: 'active'},
-        {id: 3, name: 'Lê Văn C', email: 'levanc@email.com', role: 'user', date: '06/12/2025', status: 'pending'},
-        {id: 4, name: 'Phạm Thị D', email: 'phamthid@email.com', role: 'user', date: '05/12/2025', status: 'active'},
-    ]
-
     const systemLogs = [
         {id: 1, action: 'Đăng nhập hệ thống', user: 'admin@holyann.vn', time: '10 phút trước', type: 'info'},
         {id: 2, action: 'Thêm mentor mới', user: 'admin@holyann.vn', time: '1 giờ trước', type: 'success'},
         {id: 3, action: 'Cập nhật cài đặt', user: 'admin@holyann.vn', time: '2 giờ trước', type: 'warning'},
         {id: 4, action: 'Backup dữ liệu', user: 'System', time: '3 giờ trước', type: 'success'},
     ]
-
-    const getRoleBadge = (role: string) => {
-        const badges = {
-            user: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-            mentor: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-            admin: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-        }
-        return badges[role as keyof typeof badges] || badges.user
-    }
 
     const getLogIcon = (type: string) => {
         const icons = {
@@ -71,60 +40,29 @@ export default function AdminDashboard() {
         return icons[type as keyof typeof icons] || icons.info
     }
 
+    // Prevent hydration mismatch
+    if (!mounted) {
+        return (
+            <div className="w-full max-w-7xl mx-auto bg-muted/50 dark:bg-card/20 shadow-2xl rounded-3xl overflow-hidden min-h-[800px] flex flex-col font-sans transition-colors duration-300 backdrop-blur-sm border border-border">
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <div className="animate-pulse">
+                        <div className="h-8 bg-muted rounded w-64 mb-4"></div>
+                        <div className="h-4 bg-muted rounded w-48"></div>
+                    </div>
+                </main>
+            </div>
+        )
+    }
+
     return (
         <div
             className="w-full max-w-7xl mx-auto bg-muted/50 dark:bg-card/20 shadow-2xl rounded-3xl overflow-hidden min-h-[800px] flex flex-col font-sans transition-colors duration-300 backdrop-blur-sm border border-border">
 
-            {/* Header */}
-            <div className="bg-gradient-to-r from-red-600 to-pink-600 text-white p-8">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-heading font-bold mb-2">
-                            Admin Control Panel
-                        </h1>
-                        <p className="text-red-100">
-                            Chào {user?.name}! Quản lý toàn bộ hệ thống Holyann Explore
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors">
-                            <i className="fas fa-bell mr-2"></i>
-                            <span className="bg-yellow-500 text-xs px-2 py-0.5 rounded-full">3</span>
-                        </button>
-                        <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-                            <i className="fas fa-user-shield text-3xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex gap-2 mt-6">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`px-4 py-2 rounded-lg transition-all ${
-                                activeTab === tab.key
-                                    ? 'bg-white text-red-600 shadow-lg'
-                                    : 'bg-white/10 hover:bg-white/20'
-                            }`}
-                        >
-                            <i className={`fas ${tab.icon} mr-2`}></i>
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
 
             <main className="flex-1 p-8">
-                {/* Show UserManagement when users tab is active */}
-                {activeTab === 'users' ? (
-                    <UserManagement />
-                ) : activeTab === 'mentors' ? (
-                    <MentorManagement />
-                ) : (
-                    <>
-                        {/* Statistics Cards */}
+                {/* Overview Content */}
+                <>
+                    {/* Statistics Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                             {stats.map((stat, index) => (
                                 <div key={index} className="card-holyann">
@@ -149,80 +87,9 @@ export default function AdminDashboard() {
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    {/* Recent Users */}
-                    <div className="lg:col-span-2 card-holyann">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="section-title text-lg !mb-0 !text-left after:!mx-0 after:!w-10">
-                                NGƯỜI DÙNG MỚI
-                            </h2>
-                            <button className="text-sm text-primary hover:underline">
-                                Xem tất cả
-                            </button>
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                <tr className="border-b border-border">
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Tên</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden md:table-cell">Email</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Vai
-                                        trò
-                                    </th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden lg:table-cell">Ngày
-                                        tạo
-                                    </th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Trạng
-                                        thái
-                                    </th>
-                                    <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Thao
-                                        tác
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {recentUsers.map((user) => (
-                                    <tr key={user.id}
-                                        className="border-b border-border hover:bg-muted/30 transition-colors">
-                                        <td className="py-3 px-4">
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                    <i className="fas fa-user text-primary text-sm"></i>
-                                                </div>
-                                                <span className="font-semibold text-foreground">{user.name}</span>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-4 text-sm text-muted-foreground hidden md:table-cell">{user.email}</td>
-                                        <td className="py-3 px-4">
-                                                <span
-                                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${getRoleBadge(user.role)}`}>
-                                                    {user.role === 'user' ? 'Học viên' : user.role === 'mentor' ? 'Mentor' : 'Admin'}
-                                                </span>
-                                        </td>
-                                        <td className="py-3 px-4 text-sm text-muted-foreground hidden lg:table-cell">{user.date}</td>
-                                        <td className="py-3 px-4">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                    user.status === 'active'
-                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                                }`}>
-                                                    {user.status === 'active' ? 'Hoạt động' : 'Chờ duyệt'}
-                                                </span>
-                                        </td>
-                                        <td className="py-3 px-4 text-right">
-                                            <button className="text-primary hover:text-primary/80 mx-1">
-                                                <i className="fas fa-edit"></i>
-                                            </button>
-                                            <button className="text-red-500 hover:text-red-600 mx-1">
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
+                    {/* Recent Users - Using Real Data */}
+                    <div className="lg:col-span-2">
+                        <RecentUsersTable />
                     </div>
 
                     {/* System Logs */}
@@ -296,13 +163,12 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
-                    </>
-                )}
+                </>
             </main>
 
             <footer
                 className="py-6 text-center text-xs text-muted-foreground border-t border-border bg-background font-sans transition-colors duration-300">
-                Admin Control Panel © 2025 <span className="text-primary dark:text-sky-400 font-heading font-bold">HOLYANN EXPLORE</span>
+                Admin Dashboard © 2025 <span className="text-primary dark:text-sky-400 font-heading font-bold">HOLYANN EXPLORE</span>
             </footer>
         </div>
     )
