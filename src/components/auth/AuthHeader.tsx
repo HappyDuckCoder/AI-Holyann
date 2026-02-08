@@ -61,11 +61,10 @@ export default function AuthHeader() {
     }
 
     const navItems = user?.role === 'admin' || user?.role === 'ADMIN' ? [
-        {name: 'TỔNG QUAN', href: dashboardUrl},
-        {name: 'NGƯỜI DÙNG', href: `${baseUrl}/users`},
-        {name: 'HỌC VIÊN', href: `${baseUrl}/students`},
-        {name: 'MENTOR', href: `${baseUrl}/mentors`},
-        {name: 'TRAO ĐỔI', href: chatUrl},
+        {name: 'Overview', href: dashboardUrl},
+        {name: 'Users', href: `${baseUrl}/users`},
+        {name: 'Students', href: `${baseUrl}/students`},
+        {name: 'Mentors', href: `${baseUrl}/mentors`},
     ] : [
         {name: 'DASHBOARD', href: dashboardUrl},
         {name: 'HỒ SƠ', href: `${baseUrl}/profile`},

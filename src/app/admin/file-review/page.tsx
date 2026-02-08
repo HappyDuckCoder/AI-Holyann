@@ -15,9 +15,9 @@ import {
     MessageSquare,
     Download,
     Eye,
-    RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
+import RoleGuard from '@/components/auth/RoleGuard';
 
 interface SubmittedFile {
     id: string;
@@ -119,79 +119,85 @@ export default function MentorReviewPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p>Đang tải danh sách file...</p>
+            <RoleGuard allowedRoles={['admin', 'ADMIN']}>
+                <div className="max-w-6xl mx-auto">
+                    <div className="bg-card border border-border rounded-xl shadow-sm p-6 md:p-8 flex items-center justify-center min-h-[300px]">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                            <p className="text-muted-foreground">Đang tải danh sách file...</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </RoleGuard>
         );
     }
 
     return (
-        <div className="container mx-auto p-6">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Review File Học Viên</h1>
-                <p className="text-gray-600">Duyệt CV, transcript và tài liệu khác của học viên</p>
-            </div>
+        <RoleGuard allowedRoles={['admin', 'ADMIN']}>
+            <div className="max-w-6xl mx-auto">
+                <div className="bg-card border border-border rounded-xl shadow-sm p-6 md:p-8">
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold text-foreground mb-2">Review File Học Viên</h1>
+                        <p className="text-muted-foreground">Duyệt CV, transcript và tài liệu khác của học viên</p>
+                    </div>
 
-            {/* Filter Tabs */}
-            <div className="mb-6">
-                <div className="flex gap-2">
-                    {[
-                        { key: 'submitted', label: 'Chờ review', count: submissions.filter(s => s.status === 'SUBMITTED').length },
-                        { key: 'completed', label: 'Đã duyệt', count: submissions.filter(s => s.status === 'COMPLETED').length },
-                        { key: 'needs_revision', label: 'Cần sửa', count: submissions.filter(s => s.status === 'NEEDS_REVISION').length },
-                        { key: 'all', label: 'Tất cả', count: submissions.length }
-                    ].map(tab => (
-                        <Button
-                            key={tab.key}
-                            variant={filter === tab.key ? 'default' : 'outline'}
-                            onClick={() => setFilter(tab.key as any)}
-                            className="flex items-center gap-2"
-                        >
-                            {tab.label} ({tab.count})
-                        </Button>
-                    ))}
-                </div>
-            </div>
+                    {/* Filter Tabs */}
+                    <div className="mb-6">
+                        <div className="flex gap-2">
+                            {[
+                                { key: 'submitted', label: 'Chờ review', count: submissions.filter(s => s.status === 'SUBMITTED').length },
+                                { key: 'completed', label: 'Đã duyệt', count: submissions.filter(s => s.status === 'COMPLETED').length },
+                                { key: 'needs_revision', label: 'Cần sửa', count: submissions.filter(s => s.status === 'NEEDS_REVISION').length },
+                                { key: 'all', label: 'Tất cả', count: submissions.length }
+                            ].map(tab => (
+                                <Button
+                                    key={tab.key}
+                                    variant={filter === tab.key ? 'default' : 'outline'}
+                                    onClick={() => setFilter(tab.key as any)}
+                                    className="flex items-center gap-2"
+                                >
+                                    {tab.label} ({tab.count})
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
 
-            {/* Submissions List */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredSubmissions.map((submission) => (
-                    <Card key={submission.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg">{submission.student.users.full_name}</CardTitle>
-                                {getStatusBadge(submission.status)}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <User size={14}/>
-                                {submission.student.users.email}
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <h4 className="font-semibold text-gray-900 mb-1">{submission.task.title}</h4>
-                                {submission.task.description && (
-                                    <p className="text-sm text-gray-600">{submission.task.description}</p>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <Calendar size={14}/>
-                                Nộp lúc: {new Date(submission.completed_at).toLocaleString('vi-VN')}
-                            </div>
-
-                            {submission.mentor_note && (
-                                <div className="p-3 bg-blue-50 rounded-lg">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <MessageSquare size={14} className="text-blue-600"/>
-                                        <span className="text-sm font-medium text-blue-800">Ghi chú mentor</span>
+                    {/* Submissions List */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {filteredSubmissions.map((submission) => (
+                            <Card key={submission.id} className="hover:shadow-md transition-shadow border-border">
+                                <CardHeader className="pb-4">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-lg text-foreground">{submission.student.users.full_name}</CardTitle>
+                                        {getStatusBadge(submission.status)}
                                     </div>
-                                    <p className="text-sm text-blue-700">{submission.mentor_note}</p>
-                                </div>
-                            )}
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <User size={14}/>
+                                        {submission.student.users.email}
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <h4 className="font-semibold text-foreground mb-1">{submission.task.title}</h4>
+                                        {submission.task.description && (
+                                            <p className="text-sm text-muted-foreground">{submission.task.description}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Calendar size={14}/>
+                                        Nộp lúc: {new Date(submission.completed_at).toLocaleString('vi-VN')}
+                                    </div>
+
+                                    {submission.mentor_note && (
+                                        <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <MessageSquare size={14} className="text-primary"/>
+                                                <span className="text-sm font-medium text-foreground">Ghi chú mentor</span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">{submission.mentor_note}</p>
+                                        </div>
+                                    )}
 
                             <div className="flex gap-2">
                                 <Button
@@ -230,29 +236,29 @@ export default function MentorReviewPage() {
                 ))}
             </div>
 
-            {filteredSubmissions.length === 0 && (
-                <div className="text-center py-12">
-                    <FileText size={48} className="mx-auto text-gray-400 mb-4"/>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Không có file nào</h3>
-                    <p className="text-gray-500">
+                    {filteredSubmissions.length === 0 && (
+                        <div className="text-center py-12">
+                            <FileText size={48} className="mx-auto text-muted-foreground mb-4"/>
+                            <h3 className="text-lg font-medium text-foreground mb-2">Không có file nào</h3>
+                            <p className="text-muted-foreground">
                         {filter === 'submitted' && 'Chưa có file nào cần review'}
                         {filter === 'completed' && 'Chưa có file nào được duyệt'}
                         {filter === 'needs_revision' && 'Chưa có file nào cần chỉnh sửa'}
-                        {filter === 'all' && 'Chưa có file nào được nộp'}
-                    </p>
-                </div>
-            )}
+                                {filter === 'all' && 'Chưa có file nào được nộp'}
+                            </p>
+                        </div>
+                    )}
 
-            {/* Review Modal */}
-            {selectedSubmission && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <CardHeader>
-                            <CardTitle>Review File - {selectedSubmission.student.users.full_name}</CardTitle>
-                            <p className="text-sm text-gray-600">{selectedSubmission.task.title}</p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex gap-2">
+                    {/* Review Modal */}
+                    {selectedSubmission && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border-border">
+                                <CardHeader>
+                                    <CardTitle className="text-foreground">Review File - {selectedSubmission.student.users.full_name}</CardTitle>
+                                    <p className="text-sm text-muted-foreground">{selectedSubmission.task.title}</p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex gap-2">
                                 <Button
                                     variant="outline"
                                     onClick={() => window.open(selectedSubmission.submission_url, '_blank')}
@@ -276,7 +282,7 @@ export default function MentorReviewPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-foreground mb-2">
                                     Ghi chú cho học viên (tuỳ chọn)
                                 </label>
                                 <Textarea
@@ -318,7 +324,9 @@ export default function MentorReviewPage() {
                         </CardContent>
                     </Card>
                 </div>
-            )}
-        </div>
+                    )}
+                </div>
+            </div>
+        </RoleGuard>
     );
 }

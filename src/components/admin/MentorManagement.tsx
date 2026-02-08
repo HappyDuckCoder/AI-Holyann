@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { getMentorsAction } from '@/actions/admin/get-mentors'
+import { assignMentorToStudent, unassignMentor } from '@/actions/admin/assign-mentor'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { Loader2, Mail, Phone, Globe, Linkedin, Briefcase, GraduationCap, Star, Users } from 'lucide-react'
 
 // Define type based on action return
@@ -42,11 +44,163 @@ type MentorWithUser = {
     assignments: any[]
 }
 
+type StudentOption = { id: string; name: string | null; email: string | null }
+
 export default function MentorManagement() {
     const [mentors, setMentors] = useState<MentorWithUser[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedMentor, setSelectedMentor] = useState<MentorWithUser | null>(null)
+    const [profileOpen, setProfileOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
+    const [assignMentor, setAssignMentor] = useState<MentorWithUser | null>(null)
+    const [assignOpen, setAssignOpen] = useState(false)
+    const [assignStudents, setAssignStudents] = useState<StudentOption[]>([])
+    const [assignStudentIds, setAssignStudentIds] = useState<Set<string>>(new Set())
+    const [unassignStudentIds, setUnassignStudentIds] = useState<Set<string>>(new Set())
+    const [assignLoading, setAssignLoading] = useState(false)
+    const [unassignLoading, setUnassignLoading] = useState(false)
+    const [assignMessage, setAssignMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+    const openProfile = (mentor: MentorWithUser) => {
+        setSelectedMentor(mentor)
+        setProfileOpen(true)
+    }
+    const closeProfile = () => {
+        setProfileOpen(false)
+        setSelectedMentor(null)
+    }
+
+    const openAssign = (mentor: MentorWithUser) => {
+        setAssignMentor(mentor)
+        setAssignStudentIds(new Set())
+        setUnassignStudentIds(new Set())
+        setAssignMessage(null)
+        setAssignOpen(true)
+    }
+    const closeAssign = () => {
+        setAssignOpen(false)
+        setAssignMentor(null)
+        setAssignStudentIds(new Set())
+        setUnassignStudentIds(new Set())
+        setAssignMessage(null)
+    }
+    const toggleUnassignStudent = (id: string) => {
+        setUnassignStudentIds((prev) => {
+            const next = new Set(prev)
+            if (next.has(id)) next.delete(id)
+            else next.add(id)
+            return next
+        })
+    }
+    const toggleAssignStudent = (id: string) => {
+        setAssignStudentIds((prev) => {
+            const next = new Set(prev)
+            if (next.has(id)) next.delete(id)
+            else next.add(id)
+            return next
+        })
+    }
+    const selectAllAssignStudents = () => setAssignStudentIds(new Set(assignStudents.map((s) => s.id)))
+    const clearAllAssignStudents = () => setAssignStudentIds(new Set())
+
+    useEffect(() => {
+        if (assignOpen) {
+            fetch('/api/admin/students')
+                .then(res => res.ok ? res.json() : { students: [] })
+                .then(data => setAssignStudents(data.students || []))
+                .catch(() => setAssignStudents([]))
+        }
+    }, [assignOpen])
+
+    const handleAssignSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!assignMentor || assignStudentIds.size === 0) return
+        const mentorType = assignMentor.specialization as 'AS' | 'ACS' | 'ARD'
+        if (!['AS', 'ACS', 'ARD'].includes(mentorType)) return
+
+        const currentCount = (assignMentor.assignments ?? []).filter(
+            (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
+        ).length
+        const maxStudents = assignMentor.max_students ?? 0
+        const freeSlots = Math.max(0, maxStudents - currentCount)
+        if (freeSlots <= 0) {
+            toast.error('This mentor has reached the maximum number of students.')
+            return
+        }
+        const ids = Array.from(assignStudentIds)
+        if (ids.length > freeSlots) {
+            toast.error(`This mentor can only accept ${freeSlots} more student(s) (max ${maxStudents}). Please deselect some.`)
+            return
+        }
+
+        setAssignLoading(true)
+        setAssignMessage(null)
+        const ok: string[] = []
+        const err: string[] = []
+        try {
+            for (const studentId of ids) {
+                const result = await assignMentorToStudent(studentId, assignMentor.user_id, mentorType)
+                if (result.success) ok.push(studentId)
+                else err.push(result.message)
+            }
+            if (err.length === 0) {
+                setAssignMessage({ type: 'success', text: `Assigned ${ok.length} student(s) successfully.` })
+                setAssignStudentIds(new Set())
+                const result = await getMentorsAction()
+                if (result.success && result.data) {
+                    setMentors(result.data as MentorWithUser[])
+                    const updated = (result.data as MentorWithUser[]).find((m) => m.user_id === assignMentor.user_id)
+                    if (updated) setAssignMentor(updated)
+                }
+            } else if (ok.length > 0) {
+                setAssignMessage({
+                    type: 'error',
+                    text: `Assigned ${ok.length}; ${err.length} failed. You can retry the remaining.`
+                })
+                setAssignStudentIds(new Set(ids.filter((id) => !ok.includes(id))))
+            } else {
+                setAssignMessage({ type: 'error', text: err[0] ?? 'Failed to assign' })
+            }
+        } catch {
+            setAssignMessage({ type: 'error', text: 'Failed to assign' })
+        } finally {
+            setAssignLoading(false)
+        }
+    }
+
+    const handleUnassignSubmit = async () => {
+        if (!assignMentor || unassignStudentIds.size === 0) return
+        const mentorType = assignMentor.specialization as 'AS' | 'ACS' | 'ARD'
+        if (!['AS', 'ACS', 'ARD'].includes(mentorType)) return
+        setUnassignLoading(true)
+        setAssignMessage(null)
+        const ids = Array.from(unassignStudentIds)
+        const ok: string[] = []
+        const err: string[] = []
+        try {
+            for (const studentId of ids) {
+                const result = await unassignMentor(studentId, mentorType)
+                if (result.success) ok.push(studentId)
+                else err.push(result.message ?? 'Failed')
+            }
+            if (err.length === 0) {
+                setAssignMessage({ type: 'success', text: `Unassigned ${ok.length} student(s).` })
+                setUnassignStudentIds(new Set())
+                const result = await getMentorsAction()
+                if (result.success && result.data) {
+                    setMentors(result.data as MentorWithUser[])
+                    const updated = (result.data as MentorWithUser[]).find((m) => m.user_id === assignMentor.user_id)
+                    if (updated) setAssignMentor(updated)
+                }
+            } else {
+                setAssignMessage({ type: 'error', text: err[0] ?? 'Unassign failed' })
+            }
+        } catch {
+            setAssignMessage({ type: 'error', text: 'Unassign failed' })
+        } finally {
+            setUnassignLoading(false)
+        }
+    }
 
     useEffect(() => {
         const fetchMentors = async () => {
@@ -64,194 +218,430 @@ export default function MentorManagement() {
         mentor.user.email.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
-
-    return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white dark:bg-card p-4 rounded-xl shadow-sm border border-border">
-                <input
-                    type="text"
-                    placeholder="Tìm kiếm mentor..."
-                    className="px-4 py-2 border rounded-lg w-64 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <div className="text-sm text-muted-foreground">
-                    Tổng: {filteredMentors.length} mentors
+    if (loading) {
+        return (
+            <div className="w-full max-w-6xl mx-auto min-h-[300px] flex flex-col">
+                <div className="flex-1 p-6 md:p-8 space-y-6">
+                    <h1 className="text-xl font-semibold text-foreground">Mentors</h1>
+                    <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <span className="ml-3 text-muted-foreground">Loading…</span>
+                    </div>
                 </div>
             </div>
+        )
+    }
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredMentors.map((mentor) => (
-                    <Dialog key={mentor.user_id} onOpenChange={(open) => open && setSelectedMentor(mentor)}>
-                        <DialogTrigger asChild>
-                            <div className="bg-white dark:bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-md transition cursor-pointer group">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden shrink-0">
-                                        {/* Avatar placeholder or image */}
-                                        {mentor.user.avatar_url ? (
-                                            <img src={mentor.user.avatar_url} alt={mentor.user.full_name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-purple-100 text-purple-600 text-xl font-bold">
-                                                {mentor.user.full_name.charAt(0)}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h3 className="font-bold text-lg group-hover:text-primary transition truncate">{mentor.user.full_name}</h3>
-                                        <p className="text-sm text-muted-foreground">{mentor.specialization}</p>
-                                        <div className="flex items-center gap-1 text-xs text-yellow-500 mt-1">
-                                            <Star size={12} fill="currentColor" />
-                                            <span>{mentor.rating ? mentor.rating.toFixed(1) : '5.0'}</span>
-                                        </div>
-                                    </div>
-                                </div>
+    return (
+        <div className="w-full max-w-6xl mx-auto min-h-[300px] flex flex-col">
+            <div className="flex-1 p-6 md:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h1 className="text-xl font-semibold text-foreground">Mentors</h1>
+                    <span className="text-sm text-muted-foreground">
+                        {filteredMentors.length} mentor{filteredMentors.length !== 1 ? 's' : ''}
+                    </span>
+                </div>
 
-                                <div className="grid grid-cols-2 gap-2 text-sm border-t pt-4">
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        <Users size={14} />
-                                        <span>{mentor.assignments.length}/{mentor.max_students} Học viên</span>
-                                    </div>
-                                    <div className={`text-right font-medium ${mentor.is_accepting_students ? 'text-green-600' : 'text-red-600'}`}>
-                                        {mentor.is_accepting_students ? 'Đang nhận' : 'Full'}
-                                    </div>
-                                </div>
-                            </div>
-                        </DialogTrigger>
+                <div className="relative max-w-md">
+                    <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                        type="text"
+                        placeholder="Search mentors..."
+                        className="w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
 
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>Hồ sơ Mentor</DialogTitle>
-                            </DialogHeader>
-                            {selectedMentor && (
-                                <div className="space-y-6">
-                                    {/* Header Info */}
-                                    <div className="flex flex-col md:flex-row items-center md:items-start gap-6 pb-6 border-b">
-                                        <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden shrink-0">
-                                             {selectedMentor.user.avatar_url ? (
+                {filteredMentors.length === 0 ? (
+                    <div className="text-center py-16 border border-border rounded-xl bg-muted/20 border-dashed">
+                        <Users className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                        <h3 className="text-lg font-medium text-foreground">No mentors found</h3>
+                        <p className="text-muted-foreground text-sm">Try a different search.</p>
+                    </div>
+                ) : (
+                    <div className="border border-border rounded-xl overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-border bg-muted/20">
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Mentor</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden md:table-cell">Email</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden lg:table-cell">Specialization</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Rating</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Active</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Status</th>
+                                        <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredMentors.map((mentor) => (
+                                        <tr
+                                            key={mentor.user_id}
+                                            className="border-b border-border hover:bg-muted/30 transition-colors"
+                                        >
+                                            <td className="py-3 px-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                                                        {mentor.user.avatar_url ? (
+                                                            <img src={mentor.user.avatar_url} alt={mentor.user.full_name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <span className="text-lg font-semibold text-primary">
+                                                                {mentor.user.full_name?.charAt(0)?.toUpperCase() ?? 'M'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-semibold text-foreground">{mentor.user.full_name}</div>
+                                                        <div className="text-xs text-muted-foreground md:hidden">{mentor.user.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4 text-sm text-muted-foreground hidden md:table-cell">
+                                                {mentor.user.email}
+                                            </td>
+                                            <td className="py-3 px-4 text-sm text-muted-foreground hidden lg:table-cell max-w-[180px] truncate" title={mentor.specialization}>
+                                                {mentor.specialization || '–'}
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <span className="inline-flex items-center gap-1 text-sm">
+                                                    <Star size={14} className="text-amber-500 shrink-0" fill="currentColor" />
+                                                    {mentor.rating != null ? mentor.rating.toFixed(1) : '–'}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 px-4 text-sm text-muted-foreground">
+                                                {(mentor.assignments ?? []).filter((a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE').length}/{mentor.max_students ?? '–'}
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                                    mentor.is_accepting_students
+                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                }`}>
+                                                    {mentor.is_accepting_students ? 'Accepting' : 'Full'}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 px-4 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => openAssign(mentor)}
+                                                        className="text-primary hover:text-primary/80"
+                                                        title="Assign to student"
+                                                    >
+                                                        <i className="fas fa-user-plus mr-1" />
+                                                        Assign
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => openProfile(mentor)}
+                                                        className="text-primary hover:text-primary/80"
+                                                    >
+                                                        <i className="fas fa-eye mr-1" />
+                                                        View
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Mentor view modal – redesigned */}
+                <Dialog open={profileOpen} onOpenChange={(open) => !open && closeProfile()}>
+                    <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+                        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
+                            <DialogTitle>Mentor profile</DialogTitle>
+                        </DialogHeader>
+                        {selectedMentor && (
+                            <div className="flex-1 overflow-y-auto px-6 pb-6">
+                                <div className="space-y-6 pt-4">
+                                    {/* Header card */}
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border">
+                                        <div className="w-20 h-20 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                                            {selectedMentor.user.avatar_url ? (
                                                 <img src={selectedMentor.user.avatar_url} alt={selectedMentor.user.full_name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-purple-100 text-purple-600 text-3xl font-bold">
-                                                    {selectedMentor.user.full_name.charAt(0)}
-                                                </div>
+                                                <span className="text-2xl font-bold text-primary">{selectedMentor.user.full_name?.charAt(0) ?? 'M'}</span>
                                             )}
                                         </div>
-                                        <div className="flex-1 text-center md:text-left">
-                                            <h2 className="text-2xl font-bold">{selectedMentor.user.full_name}</h2>
-                                            <p className="text-primary font-medium flex items-center justify-center md:justify-start gap-2">
-                                                <Briefcase size={16} />
+                                        <div className="min-w-0">
+                                            <h2 className="text-xl font-semibold text-foreground">{selectedMentor.user.full_name}</h2>
+                                            <p className="text-sm text-primary font-medium flex items-center gap-1.5 mt-0.5">
+                                                <Briefcase size={14} />
                                                 {selectedMentor.current_job_title || 'Mentor'} @ {selectedMentor.current_company || 'Freelance'}
                                             </p>
-
-                                            <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-3">
-                                                 <a href={`mailto:${selectedMentor.user.email}`} className="flex items-center gap-1 text-sm hover:underline">
+                                            <span className="inline-block mt-2 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                                {selectedMentor.specialization}
+                                            </span>
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
+                                                <a href={`mailto:${selectedMentor.user.email}`} className="flex items-center gap-1 hover:text-foreground">
                                                     <Mail size={14} /> {selectedMentor.user.email}
                                                 </a>
                                                 {selectedMentor.user.phone_number && (
-                                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                                    <span className="flex items-center gap-1">
                                                         <Phone size={14} /> {selectedMentor.user.phone_number}
-                                                    </div>
+                                                    </span>
                                                 )}
                                             </div>
-
-                                            <div className="flex justify-center md:justify-start gap-3 mt-3">
+                                            <div className="flex gap-2 mt-2">
                                                 {selectedMentor.linkedin_url && (
-                                                    <a href={selectedMentor.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:opacity-80">
-                                                        <Linkedin size={20} />
+                                                    <a href={selectedMentor.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                                                        <Linkedin size={18} />
                                                     </a>
                                                 )}
                                                 {selectedMentor.website_url && (
-                                                    <a href={selectedMentor.website_url} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:opacity-80">
-                                                        <Globe size={20} />
+                                                    <a href={selectedMentor.website_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                                                        <Globe size={18} />
                                                     </a>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Stats */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
-                                        <div className="text-center p-3 bg-muted/30 rounded-lg">
-                                            <div className="text-2xl font-bold">{selectedMentor.years_of_experience || 0}</div>
-                                            <div className="text-xs text-muted-foreground">Năm kinh nghiệm</div>
+                                    {/* Stats row */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <div className="rounded-xl border border-border p-3 text-center">
+                                            <div className="text-lg font-bold text-foreground">{selectedMentor.years_of_experience ?? 0}</div>
+                                            <div className="text-xs text-muted-foreground">Years exp.</div>
                                         </div>
-                                        <div className="text-center p-3 bg-muted/30 rounded-lg">
-                                            <div className="text-2xl font-bold">{selectedMentor.rating ? selectedMentor.rating.toFixed(1) : '5.0'}</div>
-                                            <div className="text-xs text-muted-foreground">Đánh giá</div>
+                                        <div className="rounded-xl border border-border p-3 text-center">
+                                            <div className="text-lg font-bold text-foreground">{selectedMentor.rating != null ? selectedMentor.rating.toFixed(1) : '–'}</div>
+                                            <div className="text-xs text-muted-foreground">Rating</div>
                                         </div>
-                                        <div className="text-center p-3 bg-muted/30 rounded-lg">
-                                            <div className="text-2xl font-bold">{selectedMentor.max_students}</div>
-                                            <div className="text-xs text-muted-foreground">Học viên tối đa</div>
+                                        <div className="rounded-xl border border-border p-3 text-center">
+                                            <div className="text-lg font-bold text-foreground">{(selectedMentor.assignments ?? []).filter((a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE').length}/{selectedMentor.max_students ?? '–'}</div>
+                                            <div className="text-xs text-muted-foreground">Active</div>
                                         </div>
-                                        <div className="text-center p-3 bg-muted/30 rounded-lg">
-                                            <div className="text-2xl font-bold text-primary">{selectedMentor.specialization}</div>
-                                            <div className="text-xs text-muted-foreground">Chuyên môn</div>
+                                        <div className="rounded-xl border border-border p-3 text-center">
+                                            <div className="text-lg font-bold text-primary">{selectedMentor.specialization}</div>
+                                            <div className="text-xs text-muted-foreground">Role</div>
                                         </div>
                                     </div>
 
-                                    {/* Bio */}
-                                    <div className="space-y-2">
-                                        <h3 className="font-semibold text-lg flex items-center gap-2">
-                                            <span className="w-1 h-6 bg-primary rounded-full"></span>
-                                            Giới thiệu
-                                        </h3>
-                                        <p className="text-muted-foreground whitespace-pre-wrap">{selectedMentor.bio || 'Chưa cập nhật thông tin giới thiệu.'}</p>
+                                    {/* About */}
+                                    <div className="rounded-xl border border-border p-4">
+                                        <h3 className="text-sm font-semibold text-foreground mb-2">About</h3>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedMentor.bio || 'No bio yet.'}</p>
                                     </div>
 
                                     {/* Education */}
-                                    <div className="space-y-2">
-                                        <h3 className="font-semibold text-lg flex items-center gap-2">
-                                             <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
-                                             Học vấn
+                                    <div className="rounded-xl border border-border p-4">
+                                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
+                                            <GraduationCap size={16} className="text-primary" />
+                                            Education
                                         </h3>
                                         {selectedMentor.university_name ? (
-                                            <div className="flex items-start gap-4 p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                                                <GraduationCap className="shrink-0 text-blue-500 mt-1" />
-                                                <div>
-                                                    <div className="font-semibold">{selectedMentor.university_name}</div>
-                                                    <div className="text-sm text-muted-foreground">{selectedMentor.degree} - {selectedMentor.major}</div>
-                                                    {selectedMentor.graduation_year && (
-                                                        <div className="text-xs text-muted-foreground mt-1">Tốt nghiệp năm {selectedMentor.graduation_year}</div>
-                                                    )}
-                                                </div>
+                                            <div>
+                                                <p className="font-medium text-foreground">{selectedMentor.university_name}</p>
+                                                <p className="text-sm text-muted-foreground">{selectedMentor.degree} – {selectedMentor.major}</p>
+                                                {selectedMentor.graduation_year && (
+                                                    <p className="text-xs text-muted-foreground mt-1">Graduated {selectedMentor.graduation_year}</p>
+                                                )}
                                             </div>
                                         ) : (
-                                            <p className="text-muted-foreground italic">Chưa cập nhật học vấn.</p>
+                                            <p className="text-sm text-muted-foreground italic">No education info.</p>
                                         )}
                                     </div>
 
-                                     {/* Achievements (JSON) */}
+                                    {/* Achievements */}
                                     {Array.isArray(selectedMentor.outstanding_achievements) && selectedMentor.outstanding_achievements.length > 0 && (
-                                         <div className="space-y-2">
-                                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                                 <span className="w-1 h-6 bg-yellow-500 rounded-full"></span>
-                                                 Thành tích nổi bật
+                                        <div className="rounded-xl border border-border p-4">
+                                            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                                                <Star size={16} className="text-amber-500" fill="currentColor" />
+                                                Achievements
                                             </h3>
                                             <ul className="space-y-2">
                                                 {selectedMentor.outstanding_achievements.map((item: any, idx: number) => (
-                                                    <li key={idx} className="bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-lg flex items-start gap-2 text-sm text-foreground">
-                                                        <Star size={16} className="text-yellow-500 shrink-0 mt-0.5" fill="currentColor" />
+                                                    <li key={idx} className="text-sm text-foreground flex items-start gap-2 py-2 border-b border-border last:border-0">
+                                                        <span className="text-amber-500 mt-0.5">•</span>
                                                         <span>{typeof item === 'string' ? item : JSON.stringify(item)}</span>
                                                     </li>
                                                 ))}
                                             </ul>
                                         </div>
                                     )}
+                                </div>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
 
+                {/* Assign mentor to students (multiple) */}
+                <Dialog open={assignOpen} onOpenChange={(open) => !open && closeAssign()}>
+                    <DialogContent className="max-w-md max-h-[90vh] flex flex-col gap-0">
+                        <DialogHeader className="pb-3 border-b border-border">
+                            <DialogTitle className="text-lg">
+                                {assignMentor?.user.full_name}
+                            </DialogTitle>
+                            <p className="text-sm text-muted-foreground">
+                                {assignMentor?.specialization}
+                                {assignMentor && (
+                                    <span className="ml-2 font-medium text-foreground">
+                                        · {(() => {
+                                            const n = (assignMentor.assignments ?? []).filter(
+                                                (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
+                                            ).length
+                                            const max = assignMentor.max_students ?? 0
+                                            return `${n}/${max} slots`
+                                        })()}
+                                    </span>
+                                )}
+                            </p>
+                        </DialogHeader>
+                        {assignMessage && (
+                            <div className={`mt-3 px-3 py-2 rounded-md text-sm ${
+                                assignMessage.type === 'success'
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                            }`}>
+                                {assignMessage.text}
+                            </div>
+                        )}
+                        {assignMentor && (() => {
+                            const assignedList = (assignMentor.assignments ?? []).filter(
+                                (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
+                            ).map((a: { student_id: string; student?: { users?: { full_name?: string } } }) => ({
+                                student_id: a.student_id,
+                                name: a.student?.users?.full_name ?? 'N/A'
+                            }))
+                            const assignedIds = new Set(assignedList.map((a) => a.student_id))
+                            const studentsToAssign = assignStudents.filter((s) => !assignedIds.has(s.id))
+                            return (
+                        <div className="flex flex-col gap-4 pt-4 overflow-y-auto min-h-0 flex-1">
+                            {/* Section: Currently assigned — Unassign */}
+                            {assignedList.length > 0 && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-sm font-semibold text-foreground">
+                                            Currently assigned ({assignedList.length})
+                                        </h4>
+                                        {unassignStudentIds.size > 0 && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={unassignLoading}
+                                                onClick={handleUnassignSubmit}
+                                            >
+                                                {unassignLoading ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    `Unassign (${unassignStudentIds.size})`
+                                                )}
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
+                                        <ul className="max-h-32 overflow-y-auto divide-y divide-border">
+                                            {assignedList.map((a) => (
+                                                <li key={a.student_id}>
+                                                    <label className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={unassignStudentIds.has(a.student_id)}
+                                                            onChange={() => toggleUnassignStudent(a.student_id)}
+                                                            className="rounded border-border"
+                                                        />
+                                                        <span className="text-sm font-medium">{a.name}</span>
+                                                    </label>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </div>
                             )}
-                        </DialogContent>
-                    </Dialog>
-                ))}
 
-                {filteredMentors.length === 0 && !loading && (
-                     <div className="col-span-full text-center py-16 bg-white dark:bg-card rounded-xl border border-dashed">
-                        <Users className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                        <h3 className="text-lg font-medium">Không tìm thấy mentor nào</h3>
-                        <p className="text-muted-foreground">Thử tìm kiếm với từ khóa khác.</p>
-                    </div>
-                )}
+                            {/* Section: Assign new students */}
+                            <form onSubmit={handleAssignSubmit} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-semibold text-foreground">
+                                        Assign new students
+                                    </h4>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 text-xs"
+                                            onClick={() => setAssignStudentIds(new Set(studentsToAssign.map((s) => s.id)))}
+                                        >
+                                            All
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 text-xs"
+                                            onClick={clearAllAssignStudents}
+                                        >
+                                            Clear
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
+                                    {assignStudents.length === 0 ? (
+                                        <div className="p-4 text-center text-sm text-muted-foreground">Loading…</div>
+                                    ) : studentsToAssign.length === 0 ? (
+                                        <div className="p-4 text-center text-sm text-muted-foreground">All students are already assigned.</div>
+                                    ) : (
+                                        <ul className="max-h-40 overflow-y-auto divide-y divide-border">
+                                            {studentsToAssign.map((s) => (
+                                                <li key={s.id}>
+                                                    <label className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={assignStudentIds.has(s.id)}
+                                                            onChange={() => toggleAssignStudent(s.id)}
+                                                            className="rounded border-border"
+                                                        />
+                                                        <div className="min-w-0 flex-1">
+                                                            <span className="text-sm font-medium block truncate">{s.name ?? 'N/A'}</span>
+                                                            {s.email && (
+                                                                <span className="text-xs text-muted-foreground truncate block">{s.email}</span>
+                                                            )}
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+
+                                {/* Footer actions */}
+                                <div className="flex gap-2 justify-end pt-2 border-t border-border shrink-0">
+                                    <Button type="button" variant="outline" onClick={closeAssign}>
+                                        Close
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={assignLoading || assignStudentIds.size === 0}
+                                    >
+                                        {assignLoading ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Assigning…
+                                            </>
+                                        ) : (
+                                            `Assign (${assignStudentIds.size})`
+                                        )}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                            )
+                        })()}
+                    </DialogContent>
+                </Dialog>
             </div>
+            <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border mt-4">
+                Admin © 2025 <span className="text-primary font-heading font-bold">HOLYANN EXPLORE</span>
+            </footer>
         </div>
     )
 }

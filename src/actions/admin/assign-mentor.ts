@@ -114,15 +114,15 @@ export async function assignMentorToStudent(
             let isUpdate = false
 
             if (existingAssignment) {
-                // Nếu đã có assignment cho type này, update
-                if (existingAssignment.mentor_id === mentorId) {
+                // Đã gán cùng mentor và vẫn ACTIVE → báo lỗi
+                if (existingAssignment.status === 'ACTIVE' && existingAssignment.mentor_id === mentorId) {
                     throw new Error(
                         `Học viên ${student.users.full_name} đã được gán ` +
                         `mentor ${mentor.user.full_name} cho vị trí ${mentorType}`
                     )
                 }
 
-                // Update mentor mới
+                // Còn lại: đổi mentor hoặc gán lại sau khi CANCELLED → update
                 assignment = await tx.mentor_assignments.update({
                     where: {
                         student_id_type: {
