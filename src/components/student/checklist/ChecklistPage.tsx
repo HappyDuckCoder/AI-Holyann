@@ -19,7 +19,9 @@ import {
     Calendar,
     Loader2,
     Sparkles,
-    AlertTriangle
+    AlertTriangle,
+    Trash2,
+    RefreshCw
 } from 'lucide-react';
 import {Task, Stage, StudentProfile} from '@/components/types';
 import ProgressBar from './ProgressBar';
@@ -27,6 +29,16 @@ import StageNavigation from './StageNavigation';
 import {scanCVWithAI} from '@/service/geminiService';
 
 // Helper to calculate days remaining
+/** Lấy tên file hiển thị từ submission_url (path) hoặc tên đã lưu */
+const getCVDisplayName = (uploadedFile: string | undefined): string => {
+    if (!uploadedFile) return '';
+    if (uploadedFile.startsWith('/uploads/')) {
+        const parts = uploadedFile.split('/');
+        return parts[parts.length - 1] || 'CV';
+    }
+    return uploadedFile;
+};
+
 const getDaysRemaining = (deadline: string) => {
     const parts = deadline.split('/');
     const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
@@ -297,104 +309,103 @@ const ChecklistPage: React.FC = () => {
         }
     };
 
+    const studentId = session?.user?.id as string | undefined;
+
     const handleCVUpload = async (event: React.ChangeEvent<HTMLInputElement>, taskId: string) => {
         const file = event.target.files?.[0];
-        if (!file) return;
+        if (!file || !studentId) return;
 
         setUploadingCV(true);
         setScanningCV(true);
         setCvScanError('');
 
         try {
-            console.log('📁 Uploading CV file:', file.name);
-
-            // Create FormData for file upload
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('userId', session?.user?.id || '');
-            formData.append('category', 'cv');
+            formData.append('documentType', 'cv');
 
-            // Upload file to server
-            const uploadResponse = await fetch('/api/upload', {
+            const uploadResponse = await fetch(`/api/students/${studentId}/upload-cv`, {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
 
             if (!uploadResponse.ok) {
-                throw new Error('Failed to upload file');
+                const err = await uploadResponse.json();
+                throw new Error(err.error || 'Upload failed');
             }
 
             const uploadResult = await uploadResponse.json();
+            const fileUrl = uploadResult.fileUrl;
 
-            if (uploadResult.success && uploadResult.url) {
-                console.log('✅ File uploaded successfully:', uploadResult.url);
+            if (!fileUrl) throw new Error('Không nhận được đường dẫn file');
 
-                // Update task with uploaded file
-                setTasks(prev => prev.map(t =>
-                    t.id === taskId ? {
-                        ...t,
-                        uploadedFile: file.name,
-                        isCompleted: false, // Not completed yet, needs review
-                        status: 'SUBMITTED' // Set to submitted for review
-                    } : t
-                ));
+            setTasks(prev => prev.map(t =>
+                t.id === taskId ? { ...t, uploadedFile: fileUrl, isCompleted: false, status: 'SUBMITTED' } : t
+            ));
 
-                // Submit task with file URL to complete it
-                const submitResponse = await fetch('/api/student/checklist/submit-file', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        taskId,
-                        fileUrl: uploadResult.url,
-                        studentId: session?.user?.id
-                    })
-                });
+            const submitResponse = await fetch('/api/student/checklist/submit-file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ taskId, fileUrl, studentId }),
+            });
 
-                if (submitResponse.ok) {
-                    console.log('✅ Task completed and submitted to database');
-
-                    // Try AI scanning (optional, won't fail the upload)
-                    try {
-                        const text = await file.text();
-                        const profile = await scanCVWithAI(text);
-
-                        if (profile) {
-                            setScannedProfile(profile);
-                            setTasks(prev => prev.map(t =>
-                                t.id === taskId ? {
-                                    ...t,
-                                    feedback: `✅ AI đã scan thành công! Tìm thấy: ${profile.name}, GPA: ${profile.gpa}, ${profile.extracurriculars?.length || 0} hoạt động ngoại khóa, ${profile.achievements?.length || 0} thành tích.`
-                                } : t
-                            ));
-                        }
-                    } catch (scanError) {
-                        console.warn('AI scanning failed, but file upload succeeded:', scanError);
-                        // Don't show error since upload was successful
-                    }
-                } else {
-                    console.error('File uploaded but failed to submit task');
-                    setCvScanError('File đã upload nhưng không thể cập nhật trạng thái task.');
-                }
-            } else {
-                throw new Error(uploadResult.error || 'Upload failed');
+            if (!submitResponse.ok) {
+                setCvScanError('File đã upload nhưng không thể cập nhật checklist.');
+                return;
             }
+
+            try {
+                const text = await file.text();
+                const profile = await scanCVWithAI(text);
+                if (profile) {
+                    setScannedProfile(profile);
+                    setTasks(prev => prev.map(t =>
+                        t.id === taskId ? {
+                            ...t,
+                            feedback: `✅ Đã trích xuất: ${profile.name}, GPA: ${profile.gpa}, ${profile.extracurriculars?.length || 0} hoạt động, ${profile.achievements?.length || 0} thành tích.`
+                        } : t
+                    ));
+                }
+            } catch (_) {}
         } catch (error) {
             console.error('Error uploading CV:', error);
-            setCvScanError('Lỗi khi upload file. Vui lòng thử lại.');
-
-            // Reset task state on error
+            setCvScanError(error instanceof Error ? error.message : 'Lỗi khi upload file.');
             setTasks(prev => prev.map(t =>
-                t.id === taskId ? {
-                    ...t,
-                    uploadedFile: undefined,
-                    isCompleted: false
-                } : t
+                t.id === taskId ? { ...t, uploadedFile: undefined, isCompleted: false } : t
             ));
         } finally {
             setUploadingCV(false);
             setScanningCV(false);
+        }
+        event.target.value = '';
+    };
+
+    const handleCVDelete = async (taskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task?.uploadedFile || !studentId) return;
+        const submissionUrl = String(task.uploadedFile);
+        const docId = submissionUrl.startsWith('/uploads/') ? submissionUrl.split('/').pop() : null;
+
+        try {
+            if (docId && (docId.startsWith('cv_') || docId.startsWith('cert_'))) {
+                const delRes = await fetch(`/api/students/${studentId}/upload-cv?id=${encodeURIComponent(docId)}`, {
+                    method: 'DELETE',
+                });
+                if (!delRes.ok) console.warn('Could not delete file from storage');
+            }
+            const clearRes = await fetch('/api/student/checklist/clear-submission', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ taskId, studentId }),
+            });
+            if (clearRes.ok) {
+                setTasks(prev => prev.map(t =>
+                    t.id === taskId ? { ...t, uploadedFile: undefined, isCompleted: false, status: 'PENDING' } : t
+                ));
+                if (taskId === '1-2') setScannedProfile(null);
+            }
+        } catch (e) {
+            console.error('Error deleting CV:', e);
         }
     };
 
@@ -764,16 +775,41 @@ const ChecklistPage: React.FC = () => {
                                                                             </div>
                                                                         ) : task.uploadedFile ? (
                                                                             <div className="p-4 bg-primary/5 border border-border/60 rounded-xl">
-                                                                                <div className="flex items-center gap-3 mb-3">
-                                                                                    <div className="p-2 bg-card rounded-lg border border-border/60 text-primary">
+                                                                                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                                                                                    <div className="p-2 bg-card rounded-lg border border-border/60 text-primary shrink-0">
                                                                                         <FileText size={20}/>
                                                                                     </div>
-                                                                                    <div className="flex-1">
-                                                                                        <span className="text-sm font-bold text-foreground block">{task.uploadedFile}</span>
-                                                                                        <span className="text-xs text-muted-foreground">CV đã được xử lý</span>
+                                                                                    <div className="flex-1 min-w-0">
+                                                                                        <span className="text-sm font-bold text-foreground block truncate">{getCVDisplayName(task.uploadedFile as string)}</span>
+                                                                                        <span className="text-xs text-muted-foreground">CV đã tải lên</span>
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-2 shrink-0">
+                                                                                        <input
+                                                                                            id={`cv-replace-${task.id}`}
+                                                                                            type="file"
+                                                                                            accept=".pdf,.doc,.docx,.txt"
+                                                                                            className="hidden"
+                                                                                            onChange={(e) => handleCVUpload(e, task.id)}
+                                                                                            disabled={uploadingCV}
+                                                                                        />
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => document.getElementById(`cv-replace-${task.id}`)?.click()}
+                                                                                            disabled={uploadingCV}
+                                                                                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium hover:bg-muted"
+                                                                                        >
+                                                                                            <RefreshCw size={14}/> Đổi file
+                                                                                        </button>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={(e) => { e.stopPropagation(); handleCVDelete(task.id); }}
+                                                                                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-destructive/50 text-destructive text-xs font-medium hover:bg-destructive/10"
+                                                                                        >
+                                                                                            <Trash2 size={14}/> Xóa file
+                                                                                        </button>
                                                                                     </div>
                                                                                 </div>
-                                                                                {scannedProfile && task.id === '1-2' && (
+                                                                                {scannedProfile && task.requiresFile && (
                                                                                     <div className="bg-card rounded-lg p-4 border border-border/60">
                                                                                         <p className="text-xs font-bold text-primary mb-2">✨ Thông tin đã trích xuất:</p>
                                                                                         <div className="grid grid-cols-2 gap-2 text-xs">
