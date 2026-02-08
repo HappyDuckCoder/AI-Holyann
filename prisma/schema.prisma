@@ -196,6 +196,7 @@ model students {
   essays                   essays[]
   student_cvs              student_cv_documents[]
   profile_improve_result   profile_improve_results?
+  cv_improve_result        cv_improve_results?
 }
 
 // ==================== 4b. IMPROVE – ESSAY & CV ====================
@@ -209,8 +210,8 @@ model essays {
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @default(now()) @db.Timestamp(6)
 
-  comments essay_comments[]
-
+  comments            essay_comments[]
+  improve_result      essay_improve_results?
   @@index([student_id])
 }
 
@@ -255,6 +256,38 @@ model profile_improve_results {
   created_at       DateTime  @default(now()) @db.Timestamp(6)
   updated_at       DateTime  @default(now()) @db.Timestamp(6)
 
+  @@index([student_id])
+}
+
+/// Kết quả Phân tích & Enhance theo từng essay (mỗi essay một bản ghi).
+model essay_improve_results {
+  id               String    @id @default(uuid()) @db.Uuid
+  essay_id         String    @unique @db.Uuid
+  essay            essays    @relation(fields: [essay_id], references: [id], onDelete: Cascade)
+  analysis_result  Json?
+  enhance_result   Json?
+  analysis_rating  Int?
+  enhance_rating   Int?
+  analysis_at      DateTime? @db.Timestamp(6)
+  enhance_at       DateTime? @db.Timestamp(6)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime  @default(now()) @db.Timestamp(6)
+  @@index([essay_id])
+}
+
+/// Kết quả Phân tích & Enhance CV (mỗi student một bản ghi).
+model cv_improve_results {
+  id               String    @id @default(uuid()) @db.Uuid
+  student_id       String    @unique @db.Uuid
+  student          students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  analysis_result  Json?
+  enhance_result   Json?
+  analysis_rating  Int?
+  enhance_rating   Int?
+  analysis_at      DateTime? @db.Timestamp(6)
+  enhance_at       DateTime? @db.Timestamp(6)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
+  updated_at       DateTime  @default(now()) @db.Timestamp(6)
   @@index([student_id])
 }
 
