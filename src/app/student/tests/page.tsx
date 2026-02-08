@@ -382,22 +382,30 @@ export default function TestsPage() {
 
         if (apiResult) {
           if (currentTestType === "RIASEC" && apiResult.result_code) {
+            const top3Desc = Array.isArray(apiResult.top3)
+              ? apiResult.top3.map((t: string[] | unknown) => (Array.isArray(t) ? t[0] : t)).join(", ")
+              : "";
             computedResult = {
               type: "RIASEC",
               scores: apiResult.scores || {},
               rawLabel: apiResult.result_code,
-              description: "",
+              description: top3Desc ? `Xu hướng chính: ${top3Desc}` : "",
             };
           } else if (
             currentTestType === "GRIT" &&
             apiResult.total_score !== undefined
           ) {
+            // API không trả Đam mê/Kiên trì → tính từ đáp án để hiển thị breakdown
+            const numericAnswers = Object.fromEntries(
+              Object.entries(answers).map(([k, v]) => [Number(k), Number(v)])
+            ) as Record<number, number>;
+            const localGrit = calculateGritScores(numericAnswers);
             computedResult = {
               type: "GRIT",
               scores: {
                 Grit: apiResult.total_score,
-                "Đam mê": apiResult.passion_score || 0,
-                "Kiên trì": apiResult.perseverance_score || 0,
+                "Đam mê": apiResult.passion_score ?? localGrit.passionScore,
+                "Kiên trì": apiResult.perseverance_score ?? localGrit.perseveranceScore,
               },
               rawLabel: apiResult.level,
               description: apiResult.description || "",
@@ -636,9 +644,15 @@ export default function TestsPage() {
   return (
     <StudentPageContainer>
       <div className="max-w-7xl mx-auto">
-          {viewState === "selection" && (
-            <>
-              <TestSelection
+        {viewState === "selection" && (
+          <>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <span className="text-primary">Bài test</span>
+              </h1>
+              <p className="text-muted-foreground mt-1">Khám phá bản thân qua MBTI, GRIT và Holland.</p>
+            </div>
+            <TestSelection
                 onStartTest={handleStartTest}
                 onViewResult={handleViewResult}
                 completedTests={progress.completedTests}
@@ -656,10 +670,10 @@ export default function TestsPage() {
                   />
                 </div>
               )}
-            </>
-          )}
+          </>
+        )}
 
-          {viewState === "test" && currentTestType && (
+        {viewState === "test" && currentTestType && (
             <TestView
               testType={currentTestType}
               questions={getQuestionsForTest(currentTestType)}
@@ -668,7 +682,7 @@ export default function TestsPage() {
             />
           )}
 
-          {viewState === "result" && (
+        {viewState === "result" && (
             <ResultView
               result={testResult}
               recommendations={careerRecs.length ? careerRecs : recommendations}
@@ -679,8 +693,8 @@ export default function TestsPage() {
               allTestsCompleted={currentAllCompleted}
               onViewAllRecommendations={handleViewAllRecommendations}
             />
-          )}
-        </div>
+        )}
+      </div>
     </StudentPageContainer>
   );
 }
