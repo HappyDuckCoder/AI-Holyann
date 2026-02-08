@@ -18,80 +18,72 @@ export function useTestProgress(studentId?: string | null) {
     });
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Load progress from database on mount or when studentId changes
-    useEffect(() => {
-        const loadProgressFromDB = async () => {
-            // Don't load if studentId is not valid
-            if (!studentId || studentId === 'undefined' || studentId === 'null' || studentId.trim() === '') {
-                // Skipping test progress load - no valid studentId yet
+    const loadProgressFromDB = useCallback(async () => {
+        if (!studentId || studentId === 'undefined' || studentId === 'null' || studentId.trim() === '') {
+            setIsLoaded(true);
+            return;
+        }
+        try {
+            const res = await fetch(`/api/tests/results?student_id=${studentId}`);
+            const data = await res.json();
+            if (!data.success) {
+                console.error('Failed to load progress:', data.error);
                 setIsLoaded(true);
                 return;
             }
-
-            try {
-                // Loading test progress for student
-                const res = await fetch(`/api/tests/results?student_id=${studentId}`);
-                const data = await res.json();
-
-                if (!data.success) {
-                    console.error('Failed to load progress:', data.error);
-                    setIsLoaded(true);
-                    return;
-                }
-
-                // Parse progress from API response
-                const completedTests: TestType[] = [];
-                const results: Partial<Record<TestType, TestResult>> = {};
-
-                if (data.results?.mbti) {
-                    completedTests.push('MBTI');
-                    results['MBTI'] = {
-                        type: 'MBTI',
-                        scores: data.results.mbti.scores || {},
-                        rawLabel: data.results.mbti.result_type,
-                        description: ''
-                    };
-                }
-
-                if (data.results?.riasec) {
-                    completedTests.push('RIASEC');
-                    results['RIASEC'] = {
-                        type: 'RIASEC',
-                        scores: data.results.riasec.scores || {},
-                        rawLabel: data.results.riasec.result_code,
-                        description: ''
-                    };
-                }
-
-                if (data.results?.grit) {
-                    completedTests.push('GRIT');
-                    results['GRIT'] = {
-                        type: 'GRIT',
-                        scores: {
-                            Grit: data.results.grit.total_score,
-                            'Kiên trì': data.results.grit.perseverance_score,
-                            'Đam mê': data.results.grit.passion_score
-                        },
-                        rawLabel: data.results.grit.level,
-                        description: data.results.grit.description || ''
-                    };
-                }
-
-                setProgress({
-                    completedTests,
-                    results,
-                    allCompleted: data.progress?.all_completed || false
-                });
-
-            } catch (e) {
-                console.error('Failed to load test progress from DB:', e);
-            } finally {
-                setIsLoaded(true);
+            const completedTests: TestType[] = [];
+            const results: Partial<Record<TestType, TestResult>> = {};
+            if (data.results?.mbti) {
+                completedTests.push('MBTI');
+                results['MBTI'] = {
+                    type: 'MBTI',
+                    scores: data.results.mbti.scores || {},
+                    rawLabel: data.results.mbti.result_type,
+                    description: ''
+                };
             }
-        };
-
-        loadProgressFromDB();
+            if (data.results?.riasec) {
+                completedTests.push('RIASEC');
+                results['RIASEC'] = {
+                    type: 'RIASEC',
+                    scores: data.results.riasec.scores || {},
+                    rawLabel: data.results.riasec.result_code,
+                    description: ''
+                };
+            }
+            if (data.results?.grit) {
+                completedTests.push('GRIT');
+                results['GRIT'] = {
+                    type: 'GRIT',
+                    scores: {
+                        Grit: data.results.grit.total_score,
+                        'Kiên trì': data.results.grit.perseverance_score,
+                        'Đam mê': data.results.grit.passion_score
+                    },
+                    rawLabel: data.results.grit.level,
+                    description: data.results.grit.description || ''
+                };
+            }
+            setProgress({
+                completedTests,
+                results,
+                allCompleted: data.progress?.all_completed || false
+            });
+        } catch (e) {
+            console.error('Failed to load test progress from DB:', e);
+        } finally {
+            setIsLoaded(true);
+        }
     }, [studentId]);
+
+    useEffect(() => {
+        loadProgressFromDB();
+    }, [loadProgressFromDB]);
+
+    const refreshProgress = useCallback(async () => {
+        setIsLoaded(false);
+        await loadProgressFromDB();
+    }, [loadProgressFromDB]);
 
     const saveTestResult = useCallback((testType: TestType, result: TestResult) => {
         setProgress(prev => {
@@ -148,6 +140,7 @@ export function useTestProgress(studentId?: string | null) {
         progress,
         isLoaded,
         saveTestResult,
+        refreshProgress,
         isTestCompleted,
         getTestResult,
         getRemainingTests,

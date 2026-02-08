@@ -77,6 +77,41 @@ export async function callGRIT(answers: AnswersRecord): Promise<{
   return data.grit;
 }
 
+const RIASEC_LETTER_MAP: Record<string, string> = {
+  R: "R",
+  I: "I",
+  A: "A",
+  S: "S",
+  E: "E",
+  C: "C",
+  Realistic: "R",
+  Investigative: "I",
+  Artistic: "A",
+  Social: "S",
+  Enterprising: "E",
+  Conventional: "C",
+};
+
+function normalizeRIASECScores(raw: Record<string, number> | null | undefined): Record<string, number> {
+  const out: Record<string, number> = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+  if (!raw || typeof raw !== "object") return out;
+  for (const [key, val] of Object.entries(raw)) {
+    const letter = RIASEC_LETTER_MAP[key] ?? (key.length === 1 ? key : undefined);
+    if (letter && typeof val === "number" && !Number.isNaN(val)) {
+      out[letter] = val;
+    }
+  }
+  return out;
+}
+
+function normalizeRIASECTop3(raw: unknown): [string, number][] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((x): x is [string, number] => Array.isArray(x) && x.length >= 2 && typeof x[0] === "string" && typeof x[1] === "number")
+    .map(([domain, score]) => [RIASEC_LETTER_MAP[domain] ?? String(domain).charAt(0).toUpperCase(), score] as [string, number])
+    .slice(0, 3);
+}
+
 /** RIASEC: server-ai cần object keys 1-48, values 1-5. */
 export async function callRIASEC(answers: AnswersRecord): Promise<{
   code: string;
@@ -99,10 +134,14 @@ export async function callRIASEC(answers: AnswersRecord): Promise<{
   });
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data?.error || `RIASEC API: ${res.status}`);
+    throw new Error(data?.error || data?.detail || `RIASEC API: ${res.status}`);
   }
   if (!data.success || !data.riasec) {
-    throw new Error(data?.error || "Kết quả RIASEC không hợp lệ.");
+    throw new Error(data?.error || data?.detail || "Kết quả RIASEC không hợp lệ.");
   }
-  return data.riasec;
+  const raw = data.riasec;
+  const scores = normalizeRIASECScores(raw.scores);
+  const top3 = normalizeRIASECTop3(raw.top3);
+  const code = (raw.code && String(raw.code).replace(/\s/g, "").slice(0, 6)) || top3.map(([c]) => c).join("");
+  return { code, scores, top3 };
 }

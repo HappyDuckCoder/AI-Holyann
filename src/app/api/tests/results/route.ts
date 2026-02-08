@@ -44,22 +44,14 @@ export async function GET(request: NextRequest) {
       results.mbti = {
         result_type: mbti.result_type,
         scores: {
-          'E/I': {
-            E: mbti.score_e || 0,
-            I: mbti.score_i || 0,
-          },
-          'S/N': {
-            S: mbti.score_s || 0,
-            N: mbti.score_n || 0,
-          },
-          'T/F': {
-            T: mbti.score_t || 0,
-            F: mbti.score_f || 0,
-          },
-          'J/P': {
-            J: mbti.score_j || 0,
-            P: mbti.score_p || 0,
-          },
+          E: mbti.score_e ?? 0,
+          I: mbti.score_i ?? 0,
+          S: mbti.score_s ?? 0,
+          N: mbti.score_n ?? 0,
+          T: mbti.score_t ?? 0,
+          F: mbti.score_f ?? 0,
+          J: mbti.score_j ?? 0,
+          P: mbti.score_p ?? 0,
         },
         completed_at: mbti.completed_at,
       };
@@ -99,10 +91,12 @@ export async function GET(request: NextRequest) {
         .slice(0, 3);
 
       const resultCode = riasec.result_code || sortedScores.map(([key]) => key).join('');
+      const top3: [string, number][] = sortedScores.map(([key, value]) => [key, value]);
 
       results.riasec = {
         scores,
         result_code: resultCode,
+        top3,
         top_interests: sortedScores.map(([key, value]) => ({
           code: key,
           score: value,

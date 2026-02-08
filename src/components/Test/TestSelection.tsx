@@ -7,6 +7,7 @@ import { TEST_DESCRIPTIONS } from '@/constants';
 interface TestSelectionProps {
   onStartTest: (type: TestType) => void;
   onViewResult: (type: TestType) => void;
+  // onResetTest?: (type: TestType) => void; // Đã comment - bỏ nút Làm lại
   completedTests?: TestType[];
   testResults?: Partial<Record<TestType, TestResult>>;
   onViewRecommendations?: () => void;
@@ -80,27 +81,33 @@ const TestSelection: React.FC<TestSelectionProps> = ({
       </div>
 
       {allCompleted && onViewRecommendations && (
-        <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40 p-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex-1 text-center md:text-left">
-                <h3 className="text-xl font-bold text-primary-foreground mb-2 flex items-center justify-center md:justify-start gap-2">
-                  <Trophy className="w-6 h-6" />
+        <div
+          className="relative rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden
+            bg-gradient-to-br from-primary/[0.06] via-transparent to-primary/[0.04]"
+        >
+          <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-6 p-6 md:p-8">
+            <div className="flex items-start gap-4 flex-1">
+              <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0">
+                <Trophy className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-1.5">
                   Đề xuất nghề nghiệp
                 </h3>
-                <p className="text-primary-foreground/90 text-sm md:text-base">
-                  Dựa trên kết quả 3 bài test, chúng tôi sẽ phân tích và đề xuất những nghề nghiệp phù hợp nhất với bạn.
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
+                  Dựa trên kết quả MBTI, GRIT và Holland, chúng tôi phân tích và đề xuất những nghề nghiệp phù hợp nhất với bạn.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={onViewRecommendations}
-                className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-background text-primary font-semibold py-3 px-6 hover:bg-background/90 transition-colors shadow-md"
-              >
-                <ArrowRight className="w-5 h-5" />
-                Xem đề xuất nghề nghiệp
-              </button>
             </div>
+            <button
+              type="button"
+              onClick={onViewRecommendations}
+              className="shrink-0 inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground font-semibold py-3 px-6
+                hover:bg-primary/90 active:scale-[0.98] transition-all shadow-sm hover:shadow"
+            >
+              Xem đề xuất nghề nghiệp
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       )}

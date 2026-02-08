@@ -47,6 +47,7 @@ export default function TestsPage() {
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [careerRecs, setCareerRecs] = useState<MajorRecommendation[]>([]);
   const [showCareerAssessment, setShowCareerAssessment] = useState(false);
+  const [careerRefreshTrigger, setCareerRefreshTrigger] = useState(0);
 
   // State để lưu remainingTests tại thời điểm hoàn thành test (để tránh async state issue)
   const [currentRemainingTests, setCurrentRemainingTests] = useState<
@@ -71,7 +72,7 @@ export default function TestsPage() {
   // No need to create it here - if missing, it's a data sync issue that should be fixed at the source
 
   // Hook để quản lý tiến độ test - giờ lấy từ database
-  const { progress, isLoaded, saveTestResult } = useTestProgress(studentId);
+  const { progress, isLoaded, saveTestResult, refreshProgress } = useTestProgress(studentId);
 
   const getStudentId = () => studentId;
 
@@ -84,7 +85,10 @@ export default function TestsPage() {
     );
   }, [progress]);
 
-  // Không tự động gọi API career-assessment nữa - chỉ gọi khi bấm nút "Đề xuất nghề nghiệp"
+  // Luôn hiện UI đánh giá nghề khi đã hoàn thành đủ 3 test
+  useEffect(() => {
+    if (progress.allCompleted) setShowCareerAssessment(true);
+  }, [progress.allCompleted]);
 
   const handleStartTest = async (type: TestType) => {
     const studentId = getStudentId();
@@ -547,12 +551,9 @@ export default function TestsPage() {
       });
       return;
     }
-
-    // Hiển thị CareerAssessmentResults component và trigger load
     setShowCareerAssessment(true);
     setViewState("selection");
-
-    // Scroll to CareerAssessmentResults component
+    setCareerRefreshTrigger((t) => t + 1); // Gọi lại API đề xuất nghề mỗi lần bấm
     setTimeout(() => {
       const element = document.getElementById("career-assessment-results");
       if (element) {
@@ -562,7 +563,6 @@ export default function TestsPage() {
   };
 
   const handleViewResult = (type: TestType) => {
-    // Lấy kết quả đã lưu từ progress và hiển thị
     const result = progress.results[type];
     if (result) {
       setTestResult(result);
@@ -579,52 +579,40 @@ export default function TestsPage() {
     }
   };
 
-  // Reset test functionality disabled - users cannot retake tests after completion
+  // Nút "Làm lại" test đã comment lại theo yêu cầu
   /*
   const handleResetTest = async (type: TestType) => {
-    const studentId = getStudentId();
-    if (!studentId) {
+    const sid = getStudentId();
+    if (!sid) {
       toast.error("Không tìm thấy thông tin người dùng", {
         description: "Vui lòng đăng nhập lại để tiếp tục",
       });
       return;
     }
-
-    // Xác nhận trước khi reset
     const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn làm lại bài test ${type}? Kết quả cũ sẽ bị xóa và bạn sẽ phải làm lại từ đầu.`
+      `Bạn có chắc chắn muốn làm lại bài test ${type}? Kết quả cũ sẽ bị xóa và bạn sẽ làm lại từ đầu.`
     );
-
     if (!confirmed) return;
-
     try {
       toast.info("Đang xóa kết quả test cũ...", {
         description: `Đang reset bài test ${type}...`,
       });
-
-      const testTypeLower = type.toLowerCase();
-      const response = await fetch(`/api/tests/${testTypeLower}/${studentId}`, {
+      const response = await fetch(`/api/tests/${type.toLowerCase()}/${sid}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
-
       const data = await response.json();
-
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Không thể reset test");
       }
-
-      // Refresh progress để cập nhật UI
-      // Force reload bằng cách trigger useEffect
-      window.location.reload(); // Simple approach - reload page to refresh state
-
+      await refreshProgress();
       toast.success("Đã reset test thành công", {
         description: `Bạn có thể làm lại bài test ${type} ngay bây giờ`,
       });
     } catch (error: any) {
       console.error("Reset test error:", error);
       toast.error("Không thể reset test", {
-        description: error.message || "Đã xảy ra lỗi. Vui lòng thử lại sau.",
+        description: error?.message || "Đã xảy ra lỗi. Vui lòng thử lại sau.",
       });
     }
   };
@@ -660,13 +648,14 @@ export default function TestsPage() {
                 onViewRecommendations={handleViewAllRecommendations}
               />
 
-              {/* Career Assessment Results - chỉ hiển thị khi bấm nút hoặc đã có recommendations */}
+              {/* Đánh giá nghề nghiệp: luôn hiện khi đủ 3 test */}
               {currentAllCompleted && studentId && showCareerAssessment && (
                 <div id="career-assessment-results" className="mt-8">
                   <CareerAssessmentResults
                     studentId={studentId}
                     onClose={() => setShowCareerAssessment(false)}
                     autoLoad={true}
+                    refreshTrigger={careerRefreshTrigger}
                   />
                 </div>
               )}

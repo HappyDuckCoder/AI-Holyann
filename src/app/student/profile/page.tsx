@@ -837,7 +837,7 @@ export default function ProfilePageWrapper() {
                 Tải lại trang
               </button>
             </div>
-        </div>
+          </div>
       </StudentPageContainer>
     );
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Brain, Briefcase, Activity, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Brain, Briefcase, Activity, CheckCircle2, RotateCcw } from 'lucide-react';
 import { TestResult } from '../types';
 
 interface TestCardProps {
@@ -9,6 +9,7 @@ interface TestCardProps {
   iconType: 'MBTI' | 'RIASEC' | 'GRIT';
   onClick: () => void;
   onViewResult?: () => void;
+  onReset?: () => void;
   isCompleted?: boolean;
   result?: TestResult;
 }
@@ -20,6 +21,7 @@ const TestCard: React.FC<TestCardProps> = ({
   iconType,
   onClick,
   onViewResult,
+  onReset,
   isCompleted,
   result,
 }) => {
@@ -71,7 +73,7 @@ const TestCard: React.FC<TestCardProps> = ({
           </div>
         )}
 
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-2">
           <button
             type="button"
             onClick={isCompleted && onViewResult ? onViewResult : onClick}
@@ -84,6 +86,18 @@ const TestCard: React.FC<TestCardProps> = ({
             {isCompleted ? 'Xem kết quả' : 'Làm bài test'}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
+          {/* Nút "Làm lại" đã comment lại theo yêu cầu
+          {isCompleted && onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              className="w-full py-2 px-4 text-sm font-medium rounded-xl border border-border/60 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Làm lại
+            </button>
+          )}
+          */}
         </div>
       </div>
     </div>
