@@ -68,6 +68,12 @@ export default function UniversitiesPage() {
   const [editingScholarship, setEditingScholarship] = useState<ScholarshipRow | null>(null);
   const [facultyForm, setFacultyForm] = useState({ name: '', description: '', type: '', url_web: '' });
   const [scholarshipForm, setScholarshipForm] = useState({ name: '', description: '', deadline: '', url_web: '' });
+  const [quickName, setQuickName] = useState('');
+  const [quickCountry, setQuickCountry] = useState('');
+  const [quickAdding, setQuickAdding] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState('');
+  const [bulkAdding, setBulkAdding] = useState(false);
 
   const loadList = useCallback(async () => {
     try {
@@ -395,6 +401,108 @@ export default function UniversitiesPage() {
     });
   };
 
+  const handleQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = quickName.trim();
+    if (!name) {
+      toast.error('Name is required');
+      return;
+    }
+    setQuickAdding(true);
+    try {
+      const res = await fetch('/api/admin/universities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          country: quickCountry.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        toast.success('Added');
+        setQuickName('');
+        setQuickCountry('');
+        loadList();
+      } else {
+        const err = await res.json();
+        toast.error(err.message || 'Failed');
+      }
+    } catch (e) {
+      toast.error('Failed');
+    } finally {
+      setQuickAdding(false);
+    }
+  };
+
+  /** Parse bulk text: TSV or CSV. Columns = name, country, state, ranking, website_url, logo_url, essay_requirements. First row can be header (skipped). */
+  const parseBulkRows = (): Array<{ name: string; country: string | null; state: string | null; current_ranking: number | null; website_url: string | null; logo_url: string | null; essay_requirements: string | null }> => {
+    const lines = bulkText
+      .split(/\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (lines.length === 0) return [];
+    const sep = lines[0].includes('\t') ? '\t' : ',';
+    const rows: Array<string[]> = lines.map((line) => line.split(sep).map((c) => c.trim()));
+    const firstCell = rows[0][0]?.toLowerCase() ?? '';
+    const isHeader = firstCell === 'name' || firstCell === 'university' || firstCell === 'school' || firstCell === 'tên';
+    const dataRows = isHeader ? rows.slice(1) : rows;
+    return dataRows.map((cells) => {
+      const name = cells[0] ?? '';
+      const rankVal = cells[3];
+      let current_ranking: number | null = null;
+      if (rankVal !== undefined && rankVal !== '') {
+        const n = parseInt(rankVal, 10);
+        if (!Number.isNaN(n)) current_ranking = n;
+      }
+      return {
+        name,
+        country: (cells[1] && cells[1].length > 0) ? cells[1] : null,
+        state: (cells[2] && cells[2].length > 0) ? cells[2] : null,
+        current_ranking,
+        website_url: (cells[4] && cells[4].length > 0) ? cells[4] : null,
+        logo_url: (cells[5] && cells[5].length > 0) ? cells[5] : null,
+        essay_requirements: (cells[6] && cells[6].length > 0) ? cells[6] : null,
+      };
+    }).filter((r) => r.name.length > 0);
+  };
+
+  const handleBulkAdd = async () => {
+    const rows = parseBulkRows();
+    if (rows.length === 0) {
+      toast.error('Paste data with at least one row. Column 1 = name (required). Use tab or comma as separator.');
+      return;
+    }
+    setBulkAdding(true);
+    let ok = 0;
+    let fail = 0;
+    for (const row of rows) {
+      try {
+        const res = await fetch('/api/admin/universities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: row.name,
+            country: row.country,
+            state: row.state,
+            current_ranking: row.current_ranking,
+            website_url: row.website_url,
+            logo_url: row.logo_url,
+            essay_requirements: row.essay_requirements,
+          }),
+        });
+        if (res.ok) ok++;
+        else fail++;
+      } catch {
+        fail++;
+      }
+    }
+    setBulkAdding(false);
+    setBulkText('');
+    setBulkOpen(false);
+    loadList();
+    toast.success(`Added ${ok} university(ies)${fail ? `, ${fail} failed` : ''}`);
+  };
+
   const filtered = universities.filter(
     (u) =>
       !searchTerm ||
@@ -420,12 +528,64 @@ export default function UniversitiesPage() {
                   className="pl-9"
                 />
               </div>
+              <Button variant="outline" size="sm" onClick={() => setBulkOpen((b) => !b)}>
+                Bulk add
+              </Button>
               <Button onClick={openCreate}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add university
               </Button>
             </div>
           </div>
+
+          {/* Quick add: name + country, no modal */}
+          <form onSubmit={handleQuickAdd} className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-border bg-muted/20">
+            <Input
+              placeholder="University name *"
+              value={quickName}
+              onChange={(e) => setQuickName(e.target.value)}
+              className="max-w-[220px]"
+            />
+            <Input
+              placeholder="Country (optional)"
+              value={quickCountry}
+              onChange={(e) => setQuickCountry(e.target.value)}
+              className="max-w-[160px]"
+            />
+            <Button type="submit" size="sm" disabled={quickAdding || !quickName.trim()}>
+              {quickAdding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
+              Quick add
+            </Button>
+          </form>
+
+          {/* Bulk add: paste TSV/CSV with full columns */}
+          {bulkOpen && (
+            <div className="flex flex-col gap-2 p-4 rounded-lg border border-border bg-muted/20">
+              <p className="text-sm font-medium text-foreground">Bulk add (tab or comma separated)</p>
+              <p className="text-xs text-muted-foreground">
+                Columns in order: <strong>name</strong>, country, state, ranking, website_url, logo_url, essay_requirements. First row can be a header (name, country, …) — it will be skipped. Paste from Excel/Sheets (tab-separated) or CSV.
+              </p>
+              <Textarea
+                placeholder={'name\tcountry\tstate\tranking\twebsite_url\tlogo_url\tessay_requirements\nHarvard University\tUSA\tMassachusetts\t1\thttps://harvard.edu'}
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                rows={6}
+                className="font-mono text-sm min-h-[120px]"
+              />
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={handleBulkAdd} disabled={bulkAdding || !bulkText.trim()}>
+                  {bulkAdding ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                  Add all
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setBulkOpen(false)}>Cancel</Button>
+                {bulkText.trim() && (
+                  <span className="text-xs text-muted-foreground">
+                    {parseBulkRows().length} row(s) to import
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
