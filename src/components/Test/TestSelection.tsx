@@ -7,7 +7,7 @@ import { TEST_DESCRIPTIONS } from '@/constants';
 interface TestSelectionProps {
   onStartTest: (type: TestType) => void;
   onViewResult: (type: TestType) => void;
-  // onResetTest?: (type: TestType) => void; // Đã comment - bỏ nút Làm lại
+  // onResetTest?: (type: TestType) => void; // Đã comment - bỏ nút Làm lại RIASEC
   completedTests?: TestType[];
   testResults?: Partial<Record<TestType, TestResult>>;
   onViewRecommendations?: () => void;

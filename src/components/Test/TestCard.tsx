@@ -86,7 +86,7 @@ const TestCard: React.FC<TestCardProps> = ({
             {isCompleted ? 'Xem kết quả' : 'Làm bài test'}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
-          {/* Nút "Làm lại" đã comment lại theo yêu cầu
+          {/* Nút "Làm lại" RIASEC đã comment lại theo yêu cầu
           {isCompleted && onReset && (
             <button
               type="button"

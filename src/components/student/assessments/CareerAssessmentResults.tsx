@@ -444,51 +444,56 @@ function CareerAssessmentResults({
                 <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <span className="text-primary">Holland (RIASEC)</span> — Xu hướng nghề nghiệp
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-4">
-                  {["R", "I", "A", "S", "E", "C"].map((code) => {
-                    const score = assessment.riasec.scores?.[code] ?? 0;
-                    const maxScore = Math.max(
-                      ...Object.values(assessment.riasec.scores || {}),
-                      1
-                    );
-                    const pct = maxScore ? (score / maxScore) * 100 : 0;
-                    const isTop3 = assessment.riasec.top3.some(([c]) => c === code);
-                    return (
-                      <div
-                        key={code}
-                        className={`rounded-lg border p-3 text-center ${isTop3 ? "border-primary bg-primary/10" : "border-border/60 bg-muted/20"}`}
-                      >
-                        <div className="text-xs font-semibold text-muted-foreground mb-1">
-                          {code}
-                        </div>
-                        <div className="text-lg font-bold text-foreground">
-                          {typeof score === "number" ? score.toFixed(1) : score}
-                        </div>
-                        <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full"
-                            style={{ width: `${pct}%` }}
-                          />
+                {(() => {
+                  const riasecScores = assessment.riasec?.scores && typeof assessment.riasec.scores === "object"
+                    ? assessment.riasec.scores
+                    : {};
+                  const riasecTop3 = Array.isArray(assessment.riasec?.top3) ? assessment.riasec.top3 : [];
+                  const scoreValues = ["R", "I", "A", "S", "E", "C"].map((c) => Number(riasecScores[c]) || 0);
+                  const maxScore = Math.max(...scoreValues, 1);
+                  return (
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-4">
+                        {["R", "I", "A", "S", "E", "C"].map((code) => {
+                          const score = Number(riasecScores[code]) || 0;
+                          const pct = maxScore ? (score / maxScore) * 100 : 0;
+                          const isTop3 = riasecTop3.some((pair: unknown) => Array.isArray(pair) && pair[0] === code);
+                          return (
+                            <div
+                              key={code}
+                              className={`rounded-lg border p-3 text-center ${isTop3 ? "border-primary bg-primary/10" : "border-border/60 bg-muted/20"}`}
+                            >
+                              <div className="text-xs font-semibold text-muted-foreground mb-1">{code}</div>
+                              <div className="text-lg font-bold text-foreground">{score.toFixed(1)}</div>
+                              <div className="mt-1.5 h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="pt-3 border-t border-border/60">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Top 3 xu hướng:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {riasecTop3.map((pair: unknown, index: number) => {
+                            const category = Array.isArray(pair) ? String(pair[0]) : "";
+                            const score = Array.isArray(pair) && pair.length >= 2 ? Number(pair[1]) : 0;
+                            return (
+                              <span
+                                key={`${category}-${index}`}
+                                className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-sm font-medium"
+                              >
+                                <span className="text-muted-foreground">{index + 1}.</span>
+                                {category}
+                                <span className="text-muted-foreground">({typeof score === "number" && !Number.isNaN(score) ? score : ""})</span>
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="pt-3 border-t border-border/60">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Top 3 xu hướng:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {assessment.riasec.top3.map(([category, score], index) => (
-                      <span
-                        key={category}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-sm font-medium"
-                      >
-                        <span className="text-muted-foreground">{index + 1}.</span>
-                        {category}
-                        <span className="text-muted-foreground">({score})</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}

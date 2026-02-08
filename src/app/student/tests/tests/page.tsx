@@ -580,7 +580,7 @@ export default function TestsPage() {
     }
   };
 
-  // Nút "Làm lại" test đã comment lại theo yêu cầu
+  // Nút "Làm lại" RIASEC đã comment lại theo yêu cầu
   /*
   const handleResetTest = async (type: TestType) => {
     const sid = getStudentId();

@@ -98,11 +98,14 @@ export async function POST(request: NextRequest) {
         updateData.score_enterprising = s.E ?? null;
         updateData.score_conventional = s.C ?? null;
         updateData.result_code = riasec.code;
+        // Lưu top3 dạng JSON (array of [code, score]) để hiển thị chi tiết đúng thứ tự từ server-ai
+        const top3 = riasec.top3 || [];
+        updateData.top_3_types = top3.length ? top3 : null;
         apiResult = {
           ...apiResult,
           result_code: riasec.code,
           scores: { ...s },
-          top3: riasec.top3 || [],
+          top3,
         };
       }
     } catch (aiError: any) {

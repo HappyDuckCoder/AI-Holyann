@@ -184,34 +184,39 @@ export async function PUT(request: NextRequest) {
       answers: answers || {},
     };
 
-    // Update based on test type
+    // Update based on test type (field names must match Prisma schema)
     if (testType === 'mbti') {
       updateData.result_type = results?.type || null;
-      updateData.e_i_score = results?.scores?.['E/I'] || null;
-      updateData.s_n_score = results?.scores?.['S/N'] || null;
-      updateData.t_f_score = results?.scores?.['T/F'] || null;
-      updateData.j_p_score = results?.scores?.['J/P'] || null;
+      updateData.score_e = results?.scores?.E ?? null;
+      updateData.score_i = results?.scores?.I ?? null;
+      updateData.score_s = results?.scores?.S ?? null;
+      updateData.score_n = results?.scores?.N ?? null;
+      updateData.score_t = results?.scores?.T ?? null;
+      updateData.score_f = results?.scores?.F ?? null;
+      updateData.score_j = results?.scores?.J ?? null;
+      updateData.score_p = results?.scores?.P ?? null;
 
       await prisma.mbti_tests.update({
         where: { id: test_id },
         data: updateData,
       });
     } else if (testType === 'grit') {
-      updateData.passion_score = results?.passion_score || null;
-      updateData.perseverance_score = results?.perseverance_score || null;
-      updateData.overall_grit_score = results?.overall_grit_score || null;
+      updateData.passion_score = results?.passion_score ?? null;
+      updateData.perseverance_score = results?.perseverance_score ?? null;
+      updateData.total_score = results?.total_score ?? results?.overall_grit_score ?? null;
 
       await prisma.grit_tests.update({
         where: { id: test_id },
         data: updateData,
       });
     } else if (testType === 'riasec') {
-      updateData.realistic_score = results?.scores?.R || null;
-      updateData.investigative_score = results?.scores?.I || null;
-      updateData.artistic_score = results?.scores?.A || null;
-      updateData.social_score = results?.scores?.S || null;
-      updateData.enterprising_score = results?.scores?.E || null;
-      updateData.conventional_score = results?.scores?.C || null;
+      updateData.score_realistic = results?.scores?.R ?? null;
+      updateData.score_investigative = results?.scores?.I ?? null;
+      updateData.score_artistic = results?.scores?.A ?? null;
+      updateData.score_social = results?.scores?.S ?? null;
+      updateData.score_enterprising = results?.scores?.E ?? null;
+      updateData.score_conventional = results?.scores?.C ?? null;
+      if (results?.result_code) updateData.result_code = results.result_code;
 
       await prisma.riasec_tests.update({
         where: { id: test_id },

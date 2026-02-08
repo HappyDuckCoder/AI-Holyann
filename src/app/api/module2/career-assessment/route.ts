@@ -140,9 +140,12 @@ export async function POST(request: NextRequest) {
       jobFieldMap
     );
 
+    // Chuẩn hóa assessment.riasec (scores R,I,A,S,E,C và top3 [string, number][]) để hiển thị chi tiết không lỗi
+    const assessment = normalizeAssessmentForResponse(externalResult.assessment, testResults.riasec);
+
     return NextResponse.json({
       success: true,
-      assessment: externalResult.assessment,
+      assessment,
       recommendations,
       career_groups: careerGroups, // Include career groups in response
       message: `Found ${recommendations.length} career recommendations`,
@@ -322,6 +325,58 @@ function transformRIASECAnswers(answers: any): Record<string, number> {
   }
 
   return transformed;
+}
+
+const RIASEC_LETTER_MAP: Record<string, string> = {
+  R: "R", I: "I", A: "A", S: "S", E: "E", C: "C",
+  Realistic: "R", Investigative: "I", Artistic: "A",
+  Social: "S", Enterprising: "E", Conventional: "C",
+};
+
+/** Chuẩn hóa assessment.riasec để hiển thị chi tiết: scores { R,I,A,S,E,C }, top3 [string, number][]. */
+function normalizeAssessmentForResponse(assessment: any, riasecTestFromDb?: any): any {
+  if (!assessment) return assessment;
+  const out = { ...assessment };
+  if (!out.riasec) out.riasec = { code: "", scores: {}, top3: [] };
+
+  const r = out.riasec;
+  const rawScores = r.scores && typeof r.scores === "object" ? r.scores : {};
+  const scores: Record<string, number> = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+  for (const [key, val] of Object.entries(rawScores)) {
+    const letter = RIASEC_LETTER_MAP[key as string] ?? (String(key).length === 1 ? key : null);
+    if (letter && typeof val === "number" && !Number.isNaN(val)) scores[letter as string] = val;
+  }
+  if (riasecTestFromDb && Object.values(scores).every((v) => v === 0)) {
+    scores.R = Number(riasecTestFromDb.score_realistic) || 0;
+    scores.I = Number(riasecTestFromDb.score_investigative) || 0;
+    scores.A = Number(riasecTestFromDb.score_artistic) || 0;
+    scores.S = Number(riasecTestFromDb.score_social) || 0;
+    scores.E = Number(riasecTestFromDb.score_enterprising) || 0;
+    scores.C = Number(riasecTestFromDb.score_conventional) || 0;
+  }
+  out.riasec.scores = scores;
+
+  let top3: [string, number][] = [];
+  const saved = riasecTestFromDb?.top_3_types;
+  if (saved && Array.isArray(saved) && saved.length > 0) {
+    top3 = saved
+      .filter((x: unknown) => Array.isArray(x) && x.length >= 2)
+      .map((x: unknown[]) => [String(x[0]), Number(x[1])] as [string, number])
+      .slice(0, 3);
+  }
+  if (top3.length === 0 && Array.isArray(r.top3)) {
+    top3 = r.top3
+      .filter((x: unknown) => Array.isArray(x) && x.length >= 2)
+      .map((x: unknown[]) => [RIASEC_LETTER_MAP[String(x[0])] ?? String(x[0]), Number(x[1])] as [string, number])
+      .slice(0, 3);
+  }
+  if (top3.length === 0) {
+    const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a).slice(0, 3);
+    top3 = sorted.map(([k, v]) => [k, v]);
+  }
+  out.riasec.top3 = top3;
+  if (!out.riasec.code && top3.length > 0) out.riasec.code = top3.map(([c]) => c).join("");
+  return out;
 }
 
 // Store career assessment results with career groups

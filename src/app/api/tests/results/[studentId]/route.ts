@@ -79,31 +79,35 @@ export async function GET(
     }
 
     if (riasec && riasec.status === TestStatus.COMPLETED) {
-      // Determine top 3 interests
       const scores = {
-        R: riasec.score_realistic || 0,
-        I: riasec.score_investigative || 0,
-        A: riasec.score_artistic || 0,
-        S: riasec.score_social || 0,
-        E: riasec.score_enterprising || 0,
-        C: riasec.score_conventional || 0,
+        R: riasec.score_realistic ?? 0,
+        I: riasec.score_investigative ?? 0,
+        A: riasec.score_artistic ?? 0,
+        S: riasec.score_social ?? 0,
+        E: riasec.score_enterprising ?? 0,
+        C: riasec.score_conventional ?? 0,
       };
 
       const sortedScores = Object.entries(scores)
-        .sort(([, a], [, b]) => b - a)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 3);
 
-      const resultCode = riasec.result_code || sortedScores.map(([key]) => key).join('');
-      const top3: [string, number][] = sortedScores.map(([key, value]) => [key, value]);
+      let top3: [string, number][] = sortedScores.map(([key, value]) => [key, value as number]);
+      const saved = riasec.top_3_types;
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        const parsed = saved
+          .filter((x: unknown) => Array.isArray(x) && x.length >= 2)
+          .map((x: unknown[]) => [String(x[0]), Number(x[1])] as [string, number]);
+        if (parsed.length > 0) top3 = parsed.slice(0, 3);
+      }
+
+      const resultCode = riasec.result_code || top3.map(([key]) => key).join('');
 
       results.riasec = {
         scores,
         result_code: resultCode,
         top3,
-        top_interests: sortedScores.map(([key, value]) => ({
-          code: key,
-          score: value,
-        })),
+        top_interests: top3.map(([code, score]) => ({ code, score })),
         completed_at: riasec.completed_at,
       };
     }
