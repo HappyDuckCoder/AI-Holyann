@@ -59,11 +59,10 @@ export const MessagesList: React.FC<MessagesListProps> = ({
     return (
         <div
             ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4 bg-gradient-to-b from-gray-50/50 dark:from-slate-900/50 to-white dark:to-slate-800 min-h-0"
+            className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4 bg-gradient-to-b from-muted/30 to-background min-h-0"
         >
-            {/* Date Separator */}
             <div className="flex items-center justify-center">
-                <div className="px-3 md:px-4 py-1 md:py-1.5 bg-gray-100 dark:bg-slate-700 rounded-full text-xs text-gray-500 dark:text-slate-400 font-medium">
+                <div className="px-3 md:px-4 py-1 md:py-1.5 bg-muted rounded-full text-xs text-muted-foreground font-medium">
                     Hôm nay
                 </div>
             </div>

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 import {
   GraduationCap,
   MapPin,
@@ -19,6 +21,13 @@ import {
   FileText,
   DollarSign,
 } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 type UniversityFromDb = {
   id: number;
@@ -93,6 +102,7 @@ export default function TargetPage() {
   const [loadingSaved, setLoadingSaved] = useState(true);
   const [recError, setRecError] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<'REACH' | 'MATCH' | 'SAFETY' | null>('REACH');
+  const [bannerSrc, setBannerSrc] = useState('/images/HOEX_IMAGES/target-banner.jpg');
 
   useEffect(() => {
     let cancelled = false;
@@ -149,183 +159,241 @@ export default function TargetPage() {
       .finally(() => setLoadingRec(false));
   };
 
-  const categories: Array<{ key: 'REACH' | 'MATCH' | 'SAFETY'; title: string; icon: typeof Star; borderClass: string; iconClass: string }> = [
-    { key: 'REACH', title: 'Reach', icon: Star, borderClass: 'border-l-violet-500', iconClass: 'text-violet-600 dark:text-violet-400' },
-    { key: 'MATCH', title: 'Match', icon: Target, borderClass: 'border-l-primary', iconClass: 'text-primary' },
-    { key: 'SAFETY', title: 'Safety', icon: Shield, borderClass: 'border-l-emerald-500', iconClass: 'text-emerald-600 dark:text-emerald-400' },
+  const categories: Array<{ key: 'REACH' | 'MATCH' | 'SAFETY'; title: string; icon: typeof Star; borderClass: string; iconClass: string; accent: string }> = [
+    { key: 'REACH', title: 'Reach', icon: Star, borderClass: 'border-l-violet-500/60', iconClass: 'text-violet-600 dark:text-violet-400', accent: 'from-violet-500/15 to-purple-500/10' },
+    { key: 'MATCH', title: 'Match', icon: Target, borderClass: 'border-l-primary', iconClass: 'text-primary', accent: 'from-primary/15 to-secondary/10' },
+    { key: 'SAFETY', title: 'Safety', icon: Shield, borderClass: 'border-l-emerald-500/60', iconClass: 'text-emerald-600 dark:text-emerald-400', accent: 'from-emerald-500/15 to-teal-500/10' },
   ];
 
+  const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } } };
+  const itemVariant = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
+
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header - giống ProfileHeader */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">
-            Target
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Danh sách trường trong hệ thống và gợi ý trường phù hợp với profile (Module 3)
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        {/* 1. Danh sách trường trong DB - card giống profile */}
-        <section className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-border/60 flex items-center gap-2 bg-muted/30">
-            <GraduationCap className="text-primary" size={18} />
-            <h2 className="text-base font-semibold text-foreground">
-              Danh sách trường trong hệ thống
-            </h2>
-          </div>
-          <div className="p-0">
-          {loadingList ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : universities.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              Chưa có trường nào trong cơ sở dữ liệu.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="border-b border-border/60 bg-muted/30">
-                    <tr>
-                      <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">#</th>
-                      <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trường</th>
-                      <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quốc gia / Khu vực</th>
-                      <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ranking</th>
-                      <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Website</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60">
-                    {universities.map((u, i) => (
-                      <tr key={u.id} className="hover:bg-muted/20 transition-colors">
-                        <td className="px-5 py-3.5 text-sm text-muted-foreground">{i + 1}</td>
-                        <td className="px-5 py-3.5">
-                          <span className="font-medium text-foreground">{u.name}</span>
-                          {u.state && (
-                            <span className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                              <MapPin size={12} /> {u.state}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5 text-sm text-foreground">{u.country ?? '—'}</td>
-                        <td className="px-5 py-3.5 text-sm text-foreground">{u.current_ranking != null ? `#${u.current_ranking}` : '—'}</td>
-                        <td className="px-5 py-3.5">
-                          {u.website_url ? (
-                            <a
-                              href={u.website_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                            >
-                              Link <ExternalLink size={14} />
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-          )}
-          </div>
-        </section>
-
-        {/* 2. Module 3: Gợi ý trường theo profile - card giống profile */}
-        <section className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-muted/30">
-            <div className="flex items-center gap-2">
-              <Sparkles className="text-primary" size={18} />
-              <h2 className="text-base font-semibold text-foreground">
-                Gợi ý trường theo profile (Module 3)
-              </h2>
-            </div>
-            <button
-              type="button"
-              onClick={fetchRecommendation}
-              disabled={loadingRec}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
+    <div className="max-w-6xl mx-auto pb-8" aria-label="Trang Target - gợi ý trường và roadmap">
+      {/* Welcome banner – giống student dashboard */}
+      <motion.header
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative rounded-2xl overflow-hidden mb-8 border border-primary/20 shadow-lg"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,var(--tw-gradient-from),transparent)] from-primary/25 to-transparent" />
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 4L4 20v20l26 16 26-16V20L30 4z' fill='none' stroke='%230f4c81' stroke-width='1'/%3E%3C/svg%3E")`,
+          }}
+        />
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-6 py-8 sm:px-8 sm:py-10">
+          <div className="flex-1 min-w-0">
+            <motion.p
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+              className="text-sm font-medium text-primary uppercase tracking-wider"
             >
-              {loadingRec ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {loadingRec ? 'Đang xử lý...' : 'Lấy gợi ý trường'}
-            </button>
+              Target
+            </motion.p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">
+              Gợi ý trường & roadmap
+            </h1>
+            <p className="text-muted-foreground mt-2 text-base sm:text-lg max-w-xl leading-relaxed">
+              Danh sách trường trong hệ thống và gợi ý trường phù hợp với profile (Reach / Match / Safety).
+            </p>
           </div>
-          <div className="p-5">
-          <p className="text-sm text-muted-foreground mb-4">
-            Dựa trên hồ sơ (Feature 1) và bài test MBTI, Grit, RIASEC (Feature 2), hệ thống gợi ý các trường phân loại Reach / Match / Safety và roadmap phát triển.
-          </p>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.25, duration: 0.5 }}
+            className="relative w-full md:w-64 h-40 md:h-44 rounded-xl overflow-hidden border border-white/20 shadow-xl shrink-0"
+          >
+            <Image
+              src={bannerSrc}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 16rem"
+              priority
+              onError={() => setBannerSrc('/images/auth/left.jpg')}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
+          </motion.div>
+        </div>
+      </motion.header>
 
-          {loadingSaved && !recommendation && (
-            <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Đang tải gợi ý đã lưu...
-            </div>
-          )}
+      <motion.div className="space-y-8" initial="hidden" animate="show" variants={container}>
+        {/* 1. Danh sách trường trong DB */}
+        <motion.section variants={itemVariant} aria-labelledby="university-list-heading">
+          <Card className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-sky-500/60 bg-gradient-to-br from-sky-500/5 to-transparent">
+            <CardHeader className="border-b border-border bg-gradient-to-r from-primary/10 to-secondary/5 px-6 py-4 sm:px-6 sm:py-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/20 text-sky-700 dark:text-sky-400 shadow-sm">
+                  <GraduationCap className="size-5 shrink-0" aria-hidden />
+                </div>
+                <div>
+                  <CardTitle id="university-list-heading" className="text-lg font-semibold m-0 leading-tight">
+                    Danh sách trường trong hệ thống
+                  </CardTitle>
+                  <CardDescription className="sr-only">Bảng trường đại học trong cơ sở dữ liệu</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {loadingList ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : universities.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  Chưa có trường nào trong cơ sở dữ liệu.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="border-b border-border bg-muted/30">
+                      <tr>
+                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">#</th>
+                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Trường</th>
+                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quốc gia / Khu vực</th>
+                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ranking</th>
+                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Website</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {universities.map((u, i) => (
+                        <tr key={u.id} className="hover:bg-muted/20 transition-colors">
+                          <td className="px-5 py-3.5 text-sm text-muted-foreground">{i + 1}</td>
+                          <td className="px-5 py-3.5">
+                            <span className="font-medium text-foreground">{u.name}</span>
+                            {u.state && (
+                              <span className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                <MapPin size={12} /> {u.state}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3.5 text-sm text-foreground">{u.country ?? '—'}</td>
+                          <td className="px-5 py-3.5 text-sm text-foreground">{u.current_ranking != null ? `#${u.current_ranking}` : '—'}</td>
+                          <td className="px-5 py-3.5">
+                            {u.website_url ? (
+                              <a
+                                href={u.website_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                              >
+                                Link <ExternalLink size={14} />
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.section>
 
-          {recError && (
-            <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-4 text-sm text-destructive mb-4">
-              {recError}
-            </div>
-          )}
-
-          {recommendation && recommendation.success && (
-            <div className="space-y-6">
-              {/* Summary từ server-ai */}
-              {recommendation.summary && (recommendation.summary.total_matched != null || recommendation.summary.reach_count != null) && (
-                <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-                  <div className="px-5 py-3 border-b border-border/60 bg-muted/30">
-                    <h3 className="text-sm font-semibold text-foreground">Tổng quan gợi ý</h3>
+        {/* 2. Module 3: Gợi ý trường theo profile */}
+        <motion.section variants={itemVariant} aria-labelledby="module3-heading">
+          <Card className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-gradient-to-br from-amber-500/5 to-transparent">
+            <CardHeader className="border-b border-border bg-gradient-to-r from-primary/10 to-secondary/5 px-6 py-4 sm:px-6 sm:py-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400 shadow-sm">
+                    <Sparkles className="size-5 shrink-0" aria-hidden />
                   </div>
-                  <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {recommendation.summary.total_matched != null && (
-                      <div className="rounded-xl border border-border/60 bg-muted/30 p-3 text-center">
-                        <p className="text-2xl font-bold text-foreground">{recommendation.summary.total_matched}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Tổng trường khớp</p>
-                      </div>
-                    )}
-                    {recommendation.summary.reach_count != null && (
-                      <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/30 p-3 text-center">
-                        <p className="text-2xl font-bold text-violet-700 dark:text-violet-300">{recommendation.summary.reach_count}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Reach</p>
-                      </div>
-                    )}
-                    {recommendation.summary.match_count != null && (
-                      <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center">
-                        <p className="text-2xl font-bold text-primary">{recommendation.summary.match_count}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Match</p>
-                      </div>
-                    )}
-                    {recommendation.summary.safety_count != null && (
-                      <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 p-3 text-center">
-                        <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{recommendation.summary.safety_count}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Safety</p>
-                      </div>
-                    )}
+                  <div>
+                    <CardTitle id="module3-heading" className="text-lg font-semibold m-0 leading-tight">
+                      Gợi ý trường theo profile (Module 3)
+                    </CardTitle>
+                    <CardDescription className="mt-0.5">
+                      Dựa trên hồ sơ và bài test MBTI, Grit, RIASEC – phân loại Reach / Match / Safety và roadmap.
+                    </CardDescription>
                   </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchRecommendation}
+                  disabled={loadingRec}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60 shrink-0"
+                >
+                  {loadingRec ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  {loadingRec ? 'Đang xử lý...' : 'Lấy gợi ý trường'}
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 sm:p-6">
+              {loadingSaved && !recommendation && (
+                <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang tải gợi ý đã lưu...
                 </div>
               )}
 
-              {recommendation.universities && categories.map(({ key, title, icon: Icon, borderClass, iconClass }) => {
+              {recError && (
+                <div className="rounded-xl bg-destructive/10 border border-destructive/30 p-4 text-sm text-destructive mb-4">
+                  {recError}
+                </div>
+              )}
+
+              {recommendation && recommendation.success && (
+                <div className="space-y-6">
+                  {/* Summary từ server-ai – 4 gam màu giáo dục */}
+                  {recommendation.summary && (recommendation.summary.total_matched != null || recommendation.summary.reach_count != null) && (
+                    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+                      <div className="px-5 py-3 border-b border-border bg-muted/30">
+                        <h3 className="text-sm font-semibold text-foreground">Tổng quan gợi ý</h3>
+                      </div>
+                      <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {recommendation.summary.total_matched != null && (
+                          <div className="rounded-xl border border-border bg-gradient-to-br from-sky-500/10 to-transparent p-3 text-center">
+                            <p className="text-2xl font-bold text-sky-700 dark:text-sky-300">{recommendation.summary.total_matched}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Tổng trường khớp</p>
+                          </div>
+                        )}
+                        {recommendation.summary.reach_count != null && (
+                          <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/30 p-3 text-center">
+                            <p className="text-2xl font-bold text-violet-700 dark:text-violet-300">{recommendation.summary.reach_count}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Reach</p>
+                          </div>
+                        )}
+                        {recommendation.summary.match_count != null && (
+                          <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center">
+                            <p className="text-2xl font-bold text-primary">{recommendation.summary.match_count}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Match</p>
+                          </div>
+                        )}
+                        {recommendation.summary.safety_count != null && (
+                          <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 p-3 text-center">
+                            <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{recommendation.summary.safety_count}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Safety</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {recommendation.universities && categories.map(({ key, title, icon: Icon, borderClass, iconClass, accent }) => {
                 const block = recommendation.universities?.[key];
                 const list = block?.universities ?? [];
                 const isExpanded = expandedCategory === key;
                 return (
                   <div
                     key={key}
-                    className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden"
+                    className={`rounded-2xl border border-border shadow-sm overflow-hidden bg-gradient-to-br ${accent} bg-card`}
                   >
                     <button
                       type="button"
-                      className={`w-full flex items-center justify-between h-16 px-5 border-b border-border/60 bg-muted/30 hover:bg-muted/50 transition-colors border-l-4 ${borderClass}`}
+                      className={`w-full flex items-center justify-between h-16 px-5 border-b border-border bg-muted/30 hover:bg-muted/50 transition-colors border-l-4 ${borderClass}`}
                       onClick={() => setExpandedCategory(isExpanded ? null : key)}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg bg-background border border-border/60 flex items-center justify-center ${iconClass}`}>
+                        <div className={`w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center shadow-sm ${iconClass}`}>
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="text-left">
@@ -337,12 +405,12 @@ export default function TargetPage() {
                       <span className="text-muted-foreground">{isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}</span>
                     </button>
                     {isExpanded && list.length > 0 && (
-                      <div className="p-5 border-t border-border/60 bg-card">
+                      <div className="p-5 border-t border-border bg-card">
                         <ul className="space-y-4">
                           {list.map((uni) => (
                             <li
                               key={uni.id}
-                              className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-3"
+                              className="rounded-xl border border-border bg-muted/30 p-4 space-y-3 hover:bg-muted/40 transition-colors"
                             >
                               <div className="flex flex-wrap items-start justify-between gap-2">
                                 <div>
@@ -401,12 +469,14 @@ export default function TargetPage() {
                 );
               })}
 
-              {/* Roadmap đầy đủ từ server-ai */}
+              {/* Roadmap đầy đủ từ server-ai – gam màu giáo dục */}
               {recommendation.roadmap && (recommendation.roadmap.overall_goals?.length || recommendation.roadmap.key_milestones?.length || recommendation.roadmap.monthly_plans?.length) ? (
-                <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-                  <div className="h-14 px-5 flex items-center justify-between border-b border-border/60 bg-muted/40">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
+                <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-emerald-500/60 bg-gradient-to-br from-emerald-500/5 to-transparent">
+                  <div className="h-14 px-5 flex items-center justify-between border-b border-border bg-emerald-500/5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
+                        <Calendar className="h-5 w-5" />
+                      </div>
                       <h3 className="font-semibold text-foreground">Roadmap phát triển</h3>
                     </div>
                     {(recommendation.roadmap.start_date || recommendation.roadmap.duration_months) && (
@@ -418,7 +488,7 @@ export default function TargetPage() {
                       </span>
                     )}
                   </div>
-                  <div className="p-5 border-t border-border/60 space-y-6">
+                  <div className="p-5 border-t border-border space-y-6">
                     {recommendation.roadmap.overall_goals && recommendation.roadmap.overall_goals.length > 0 && (
                       <div>
                         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
@@ -436,7 +506,7 @@ export default function TargetPage() {
                       <div>
                         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
                           <Flag size={16} className="text-primary" />
-                          Cột mốc quan trọng
+                          Cột mốc quan trọng  
                         </h4>
                         <ul className="space-y-3">
                           {recommendation.roadmap.key_milestones.map((m, i) => (
@@ -500,11 +570,12 @@ export default function TargetPage() {
                   </div>
                 </div>
               ) : null}
-            </div>
-          )}
-          </div>
-        </section>
-      </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.section>
+      </motion.div>
     </div>
   );
 }

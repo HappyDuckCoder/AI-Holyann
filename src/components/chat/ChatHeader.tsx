@@ -36,80 +36,70 @@ export default function ChatHeader({
   const firstLetter = displayName && displayName.length > 0 ? displayName.charAt(0).toUpperCase() : '?';
 
   return (
-    <div className="h-16 bg-white border-b flex items-center justify-between px-4 flex-shrink-0">
-      {/* Left: Avatar và Info */}
+    <div className="h-16 bg-card border-b border-border flex items-center justify-between px-4 flex-shrink-0">
       <div className="flex items-center gap-3">
         {(onBack || onToggleMobileConversations) && (
           <button
             onClick={onBack || onToggleMobileConversations}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="lg:hidden p-2 hover:bg-muted rounded-full transition-colors text-foreground"
             aria-label="Quay lại"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
         )}
-
-        {/* Avatar */}
         <div className="relative">
           {displayAvatar ? (
             <img
               src={displayAvatar}
               alt={displayName}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-10 h-10 rounded-full object-cover border-2 border-border"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-500 flex items-center justify-center text-primary-foreground font-semibold">
               {firstLetter}
             </div>
           )}
           {displayIsOnline && (
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-card rounded-full" />
           )}
         </div>
-
-        {/* Name and Status */}
         <div>
-          <h3 className="font-semibold text-gray-900 text-sm">
+          <h3 className="font-semibold text-foreground text-sm">
             {displayName}
           </h3>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             {displayIsOnline ? 'Đang hoạt động' : 'Offline'}
             {mentor?.roleTitle && ` • ${mentor.roleTitle}`}
           </p>
         </div>
       </div>
-
-      {/* Right: Action Buttons */}
       <div className="flex items-center gap-1">
         <button
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+          className="p-2 hover:bg-muted rounded-full transition-colors hidden sm:block text-primary"
           aria-label="Gọi thoại"
         >
-          <Phone className="w-5 h-5 text-blue-600" />
+          <Phone className="w-5 h-5" />
         </button>
-        
         <button
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+          className="p-2 hover:bg-muted rounded-full transition-colors hidden sm:block text-primary"
           aria-label="Gọi video"
         >
-          <Video className="w-5 h-5 text-blue-600" />
+          <Video className="w-5 h-5" />
         </button>
-
         {(onToggleSidebar || onToggleMobileInfo) && (
           <button
             onClick={onToggleSidebar || onToggleMobileInfo}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-muted rounded-full transition-colors text-primary"
             aria-label="Thông tin"
           >
-            <Info className="w-5 h-5 text-blue-600" />
+            <Info className="w-5 h-5" />
           </button>
         )}
-
         <button
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 hover:bg-muted rounded-full transition-colors text-primary"
           aria-label="Thêm tùy chọn"
         >
-          <MoreVertical className="w-5 h-5 text-blue-600" />
+          <MoreVertical className="w-5 h-5" />
         </button>
       </div>
     </div>

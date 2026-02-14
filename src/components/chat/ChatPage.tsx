@@ -155,7 +155,7 @@ export const ChatPage: React.FC = () => {
     if (!user) return null; // Or loading spinner
 
     return (
-        <div className="h-[calc(100vh-4rem)] md:h-[calc(100vh-theme(spacing.16))] bg-gray-50 dark:bg-slate-900 flex overflow-hidden relative">
+        <div className="h-full flex overflow-hidden relative bg-background">
             {/* ========== LEFT SIDEBAR - Conversation List ========== */}
             <ConversationList
                 conversations={conversations}
@@ -167,16 +167,15 @@ export const ChatPage: React.FC = () => {
                 onCloseMobile={() => setShowMobileConversations(false)}
             />
 
-            {/* Mobile Overlay */}
             {showMobileConversations && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
                     onClick={() => setShowMobileConversations(false)}
                 />
             )}
 
             {/* ========== MAIN CHAT AREA ========== */}
-            <div className="flex-1 flex flex-col bg-white dark:bg-slate-800 min-h-0 w-full md:w-auto">
+            <div className="flex-1 flex flex-col bg-card border-x border-border min-h-0 w-full md:w-auto">
                 {selectedConversation ? (
                     <>
                     <ChatHeader
@@ -207,8 +206,17 @@ export const ChatPage: React.FC = () => {
                     />
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-500">
-                        Chọn một cuộc hội thoại để bắt đầu
+                    <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-muted-foreground">
+                        <p className="text-sm font-medium">Chọn một cuộc hội thoại để bắt đầu</p>
+                        <div className="relative w-48 h-32 rounded-xl overflow-hidden border border-border shadow-sm">
+                            <img
+                                src="/images/HOEX_IMAGES/discussion-empty.jpg"
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(e) => { (e.target as HTMLImageElement).src = '/images/auth/left.jpg'; }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+                        </div>
                     </div>
                 )}
             </div>

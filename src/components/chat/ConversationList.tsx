@@ -32,34 +32,32 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
     return (
         <div
-            className={`w-full md:w-80 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col fixed md:relative inset-y-0 left-0 z-50 md:z-auto transform transition-transform duration-300 ease-in-out ${
+            className={`w-full md:w-80 bg-card border-r border-border flex flex-col fixed md:relative inset-y-0 left-0 z-50 md:z-auto transform transition-transform duration-300 ease-in-out ${
                 showMobile ? "translate-x-0" : "-translate-x-full"
             } md:translate-x-0`}
         >
-            {/* Header */}
-            <div className="p-3 md:p-4 border-b border-gray-200 dark:border-slate-700">
+            {/* Header – gradient giống dashboard */}
+            <div className="p-3 md:p-4 border-b border-border bg-gradient-to-r from-primary/10 via-indigo-500/5 to-transparent">
                 <div className="flex items-center justify-between mb-3 md:mb-4">
-                    <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <MessageCircle
-                            className="text-blue-600 dark:text-blue-400"
-                            size={20}
-                        />
+                    <h2 className="text-lg md:text-xl font-bold text-foreground flex items-center gap-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary shrink-0">
+                            <MessageCircle className="size-5" aria-hidden />
+                        </span>
                         <span className="hidden sm:inline">Trao Đổi</span>
                         <span className="sm:hidden">Chat</span>
                     </h2>
                     {onCloseMobile && (
                         <button
                             onClick={onCloseMobile}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors text-gray-600 dark:text-slate-300 md:hidden"
+                            className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground md:hidden"
                         >
                             <X size={20} />
                         </button>
                     )}
                 </div>
-                {/* Search */}
                 <div className="relative">
                     <Search
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                         size={16}
                     />
                     <input
@@ -67,7 +65,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                         placeholder="Tìm kiếm..."
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 bg-gray-100 dark:bg-slate-700 rounded-lg md:rounded-xl border-0 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-slate-600 transition-all text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400"
+                        className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 bg-muted/80 rounded-lg md:rounded-xl border border-border focus:ring-2 focus:ring-primary/50 focus:bg-background transition-all text-sm text-foreground placeholder:text-muted-foreground"
                     />
                 </div>
             </div>
@@ -83,61 +81,52 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                         <div
                             key={conv.id}
                             onClick={() => onSelectConversation(conv)}
-                            className={`p-3 md:p-4 cursor-pointer border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors ${
+                            className={`p-3 md:p-4 cursor-pointer border-b border-border hover:bg-muted/30 transition-colors ${
                                 isSelected
-                                    ? "bg-blue-50 dark:bg-blue-900/30 border-l-4 border-l-blue-500 dark:border-l-blue-400"
+                                    ? "bg-primary/10 border-l-4 border-l-primary"
                                     : ""
                             }`}
                         >
                             <div className="flex items-start gap-2 md:gap-3">
-                                {/* Avatar */}
                                 <div className="relative shrink-0">
                                     <img
                                         src={conv.mentor.avatar}
                                         alt={conv.mentor.name}
-                                        className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm"
+                                        className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-background shadow-sm"
                                     />
                                     {conv.mentor.isOnline && (
-                                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800" />
+                                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-background" />
                                     )}
                                 </div>
-
-                                {/* Info */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between mb-1">
                                         <h3
                                             className={`font-semibold truncate ${
-                                                isSelected
-                                                    ? "text-blue-700 dark:text-blue-300"
-                                                    : "text-gray-900 dark:text-white"
+                                                isSelected ? "text-primary" : "text-foreground"
                                             }`}
                                         >
                                             {conv.mentor.name}
                                         </h3>
-                                        <span className="text-xs text-gray-500 dark:text-slate-400 shrink-0 ml-2">
-                      {formatTime(conv.lastMessageTime)}
-                    </span>
+                                        <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                                            {formatTime(conv.lastMessageTime)}
+                                        </span>
                                     </div>
-
-                                    {/* Role Badge */}
                                     <div className="flex items-center gap-1.5 mb-1.5">
-                    <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${convColors.bg} ${convColors.text}`}
-                    >
-                      <ConvIcon size={12} />
-                        {conv.mentor.roleCode}
-                    </span>
+                                        <span
+                                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${convColors.bg} ${convColors.text}`}
+                                        >
+                                            <ConvIcon size={12} />
+                                            {conv.mentor.roleCode}
+                                        </span>
                                     </div>
-
-                                    {/* Last Message */}
                                     <div className="flex items-center justify-between">
-                                        <p className="text-sm text-gray-600 dark:text-slate-300 truncate pr-2">
+                                        <p className="text-sm text-muted-foreground truncate pr-2">
                                             {conv.lastMessage}
                                         </p>
                                         {conv.unreadCount > 0 && (
-                                            <span className="shrink-0 w-5 h-5 bg-blue-600 dark:bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                        {conv.unreadCount}
-                      </span>
+                                            <span className="shrink-0 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
+                                                {conv.unreadCount}
+                                            </span>
                                         )}
                                     </div>
                                 </div>

@@ -12,6 +12,8 @@ export const getRoleIcon = (roleCode: string) => {
       return Lightbulb;
     case "STUDENT":
       return GraduationCap;
+    case "GROUP":
+      return User;
     default:
       return User;
   }
@@ -20,15 +22,17 @@ export const getRoleIcon = (roleCode: string) => {
 export const getRoleColor = (roleCode: string) => {
   switch (roleCode) {
     case "AS":
-      return { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300" };
+      return { bg: "bg-primary/15", text: "text-primary" };
     case "ACS":
-      return { bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-300" };
+      return { bg: "bg-violet-100 dark:bg-violet-900/30", text: "text-violet-700 dark:text-violet-300" };
     case "ARD":
       return { bg: "bg-emerald-100 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-300" };
     case "STUDENT":
-      return { bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-700 dark:text-orange-300" };
+      return { bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-300" };
+    case "GROUP":
+      return { bg: "bg-indigo-100 dark:bg-indigo-900/30", text: "text-indigo-700 dark:text-indigo-300" };
     default:
-      return { bg: "bg-gray-100 dark:bg-slate-700", text: "text-gray-700 dark:text-gray-300" };
+      return { bg: "bg-muted", text: "text-muted-foreground" };
   }
 };
 
