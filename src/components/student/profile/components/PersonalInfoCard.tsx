@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Mail, Phone, Calendar, MapPin, Camera, Pencil, Check, X, Loader2 } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  Camera,
+  Pencil,
+  Check,
+  X,
+  Loader2,
+} from "lucide-react";
 import { StudentProfile } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -10,7 +20,13 @@ interface PersonalInfoCardProps {
   isComplete: boolean;
   onUploadAvatar?: (file: File) => void;
   uploadAvatarLoading?: boolean;
-  onSave?: (data: { name: string; email: string; phone: string; dob: string; address: string }) => void;
+  onSave?: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    dob: string;
+    address: string;
+  }) => void;
 }
 
 export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
@@ -39,7 +55,13 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
       dob: profile.dob,
       address: profile.address,
     });
-  }, [profile.name, profile.email, profile.phone, profile.dob, profile.address]);
+  }, [
+    profile.name,
+    profile.email,
+    profile.phone,
+    profile.dob,
+    profile.address,
+  ]);
 
   const hasAvatarUrl =
     profile.avatarUrl &&
@@ -71,21 +93,33 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
     setEditing(false);
   };
 
-  const initials = (form.name || profile.name)
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "?";
+  const initials =
+    (form.name || profile.name)
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "?";
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-      <div className="h-24 bg-gradient-to-br from-primary/80 via-primary/60 to-primary/40" />
+    <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-blue-500/60 bg-card bg-gradient-to-br from-blue-500/5 to-transparent">
+      <div className="h-24 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 2L2 14v12l18 12 18-12V14L20 2z' fill='none' stroke='%230f4c81' stroke-width='1'/%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
       <div className="px-5 pb-5 relative">
         <div className="flex flex-col items-center -mt-12 mb-4">
           <div
             className="relative group w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-lg bg-muted"
-            onClick={() => onUploadAvatar && !uploadAvatarLoading && inputRef.current?.click()}
+            onClick={() =>
+              onUploadAvatar &&
+              !uploadAvatarLoading &&
+              inputRef.current?.click()
+            }
           >
             {showImage ? (
               <img
@@ -102,7 +136,9 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
             {uploadAvatarLoading && (
               <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center cursor-wait">
                 <Loader2 className="h-8 w-8 text-white animate-spin" />
-                <span className="text-[10px] font-medium text-white mt-1 drop-shadow">Đang tải...</span>
+                <span className="text-[10px] font-medium text-white mt-1 drop-shadow">
+                  Đang tải...
+                </span>
               </div>
             )}
             {onUploadAvatar && !uploadAvatarLoading && (
@@ -133,7 +169,9 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
               placeholder="Họ tên"
             />
           ) : (
-            <h2 className="mt-3 text-lg font-semibold text-foreground">{profile.name}</h2>
+            <h2 className="mt-3 text-lg font-semibold text-foreground">
+              {profile.name}
+            </h2>
           )}
           <p className="text-xs text-muted-foreground">Mã HS: {profile.id}</p>
         </div>
@@ -144,8 +182,8 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
               Thông tin cá nhân
             </h3>
             <div className="flex items-center gap-2">
-              {onSave && (
-                editing ? (
+              {onSave &&
+                (editing ? (
                   <div className="flex gap-1">
                     <button
                       type="button"
@@ -171,8 +209,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                   >
                     <Pencil size={14} />
                   </button>
-                )
-              )}
+                ))}
               <StatusBadge isComplete={isComplete} />
             </div>
           </div>
@@ -184,12 +221,16 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
               {editing ? (
                 <input
                   value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, email: e.target.value }))
+                  }
                   className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
                   placeholder="Email"
                 />
               ) : (
-                <span className="truncate text-foreground">{profile.email}</span>
+                <span className="truncate text-foreground">
+                  {profile.email}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors">
@@ -199,7 +240,9 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
               {editing ? (
                 <input
                   value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, phone: e.target.value }))
+                  }
                   className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
                   placeholder="Số điện thoại"
                 />
@@ -214,7 +257,9 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
               {editing ? (
                 <input
                   value={form.dob}
-                  onChange={(e) => setForm((f) => ({ ...f, dob: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, dob: e.target.value }))
+                  }
                   className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
                   placeholder="Ngày sinh (vd: 01/01/2010)"
                 />
@@ -229,7 +274,9 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
               {editing ? (
                 <input
                   value={form.address}
-                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, address: e.target.value }))
+                  }
                   className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
                   placeholder="Địa chỉ"
                 />

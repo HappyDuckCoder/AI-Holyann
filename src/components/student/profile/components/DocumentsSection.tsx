@@ -48,7 +48,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
   };
 
   return (
-    <section className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+    <section className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-sky-500/60 bg-card bg-gradient-to-br from-sky-500/5 to-transparent">
       <input
         type="file"
         ref={fileInputRef}
@@ -57,9 +57,11 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         onChange={handleFileChange}
       />
 
-      <div className="px-5 py-4 border-b border-border/60 flex flex-wrap items-center justify-between gap-3 bg-muted/30">
+      <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3 bg-sky-500/5">
         <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <FileText size={18} className="text-primary" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-700 dark:text-sky-400 shrink-0">
+            <FileText size={18} className="size-4" aria-hidden />
+          </span>
           Tài liệu đính kèm
         </h3>
         <StatusBadge isComplete={isComplete} />

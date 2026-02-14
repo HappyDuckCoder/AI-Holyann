@@ -86,7 +86,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const isDocumentsComplete = profile.documents.length >= 2;
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       <ProfileHeader onEditClick={onEditClick} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

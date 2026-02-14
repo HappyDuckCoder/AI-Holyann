@@ -9,7 +9,11 @@ import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
 export default function ProfilePageWrapper() {
-  const { session, isLoading: sessionLoading, isAuthenticated } = useAuthSession();
+  const {
+    session,
+    isLoading: sessionLoading,
+    isAuthenticated,
+  } = useAuthSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,11 +41,14 @@ export default function ProfilePageWrapper() {
     // If we have email but no id, mark for email-based fetch
     const userEmail = session?.user?.email;
     if (userEmail && !sessionUserId) {
-      console.warn('⚠️ [Profile] Have email but no user ID, will fetch by email:', userEmail);
+      console.warn(
+        "⚠️ [Profile] Have email but no user ID, will fetch by email:",
+        userEmail,
+      );
       return `email:${userEmail}`;
     }
 
-    console.warn('⚠️ [Profile] No student ID found');
+    console.warn("⚠️ [Profile] No student ID found");
     return null;
   }, [session?.user, sessionLoading, isAuthenticated]);
 
@@ -62,7 +69,7 @@ export default function ProfilePageWrapper() {
     const hasAuth = isAuthenticated || studentId;
 
     if (!hasAuth) {
-      console.warn('⚠️ [Profile] No authentication found');
+      console.warn("⚠️ [Profile] No authentication found");
       setError("Vui lòng đăng nhập để xem hồ sơ.");
       setLoading(false);
       return;
@@ -70,7 +77,7 @@ export default function ProfilePageWrapper() {
 
     // Skip if no studentId
     if (!studentId) {
-      console.error('❌ [Profile] No student ID found', {
+      console.error("❌ [Profile] No student ID found", {
         session,
       });
       setError("Không tìm thấy thông tin học sinh. Vui lòng đăng nhập lại.");
@@ -89,33 +96,40 @@ export default function ProfilePageWrapper() {
 
         // Check if studentId is an email marker
         let actualStudentId = studentId;
-        if (studentId.startsWith('email:')) {
+        if (studentId.startsWith("email:")) {
           const email = studentId.substring(6);
           // Fetch user by email to get the actual ID
-          const userResponse = await fetch(`/api/users/by-email?email=${encodeURIComponent(email)}`);
+          const userResponse = await fetch(
+            `/api/users/by-email?email=${encodeURIComponent(email)}`,
+          );
           if (userResponse.ok) {
             const userData = await userResponse.json();
             actualStudentId = userData.id;
           } else {
-            throw new Error('Không thể tìm thấy người dùng với email này');
+            throw new Error("Không thể tìm thấy người dùng với email này");
           }
         }
 
-        const response = await fetch(`/api/students/${actualStudentId}/profile`);
+        const response = await fetch(
+          `/api/students/${actualStudentId}/profile`,
+        );
 
         if (!response.ok) {
           const text = await response.text();
-          console.error('❌ [Profile] API Error Response Text:', text);
+          console.error("❌ [Profile] API Error Response Text:", text);
           let errorData;
           try {
             errorData = JSON.parse(text);
           } catch (e) {
-            console.error('❌ [Profile] Failed to decode JWT token:', e);
-            errorData = { error: 'Unknown error', raw: text };
+            console.error("❌ [Profile] Failed to decode JWT token:", e);
+            errorData = { error: "Unknown error", raw: text };
           }
-          console.error('❌ [Profile] API Error Data:', errorData);
-          const errorMessage = errorData.error || "Không thể tải thông tin học sinh";
-          const errorDetails = errorData.details ? ` (${errorData.details})` : "";
+          console.error("❌ [Profile] API Error Data:", errorData);
+          const errorMessage =
+            errorData.error || "Không thể tải thông tin học sinh";
+          const errorDetails = errorData.details
+            ? ` (${errorData.details})`
+            : "";
           throw new Error(errorMessage + errorDetails);
         }
 
@@ -189,7 +203,7 @@ export default function ProfilePageWrapper() {
                   ? new Date(act.start_date).getFullYear().toString()
                   : "",
                 description: act.description || "",
-              })
+              }),
             ) || []),
           ],
 
@@ -197,11 +211,11 @@ export default function ProfilePageWrapper() {
           achievements: [
             ...(data.background?.academic_awards?.map(
               (award: any) =>
-                `${award.award_name} - ${award.issuing_organization || ""}`
+                `${award.award_name} - ${award.issuing_organization || ""}`,
             ) || []),
             ...(data.background?.non_academic_awards?.map(
               (award: any) =>
-                `${award.award_name} - ${award.issuing_organization || ""}`
+                `${award.award_name} - ${award.issuing_organization || ""}`,
             ) || []),
           ],
 
@@ -273,41 +287,43 @@ export default function ProfilePageWrapper() {
   };
 
   // Handle profile updates (like avatar upload)
-  const handleProfileUpdate = async (updatedFields: Partial<StudentProfile>): Promise<void> => {
+  const handleProfileUpdate = async (
+    updatedFields: Partial<StudentProfile>,
+  ): Promise<void> => {
     try {
       const studentId = getStudentId();
       if (!studentId) {
-        throw new Error('Không có thông tin người dùng');
+        throw new Error("Không có thông tin người dùng");
       }
 
       // Update local state immediately for better UX
       if (profile) {
-        setProfile(prev => prev ? { ...prev, ...updatedFields } : null);
+        setProfile((prev) => (prev ? { ...prev, ...updatedFields } : null));
       }
 
       // Send update to server
-      const actualStudentId = studentId.startsWith('email:') ?
-        studentId.replace('email:', '') : studentId;
+      const actualStudentId = studentId.startsWith("email:")
+        ? studentId.replace("email:", "")
+        : studentId;
 
       const response = await fetch(`/api/students/${actualStudentId}/profile`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(updatedFields),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update profile');
+        throw new Error(errorData.error || "Failed to update profile");
       }
 
       // Show success message
-      toast.success('Cập nhật thông tin thành công!');
-
+      toast.success("Cập nhật thông tin thành công!");
     } catch (error) {
-      console.error('Profile update error:', error);
-      toast.error('Cập nhật thất bại. Vui lòng thử lại.');
+      console.error("Profile update error:", error);
+      toast.error("Cập nhật thất bại. Vui lòng thử lại.");
 
       // Revert local state on error
       if (profile) {
@@ -375,7 +391,7 @@ export default function ProfilePageWrapper() {
         `/api/students/${studentId}/analyze-profile`,
         {
           method: "POST",
-        }
+        },
       );
 
       const data = await response.json();
@@ -413,12 +429,14 @@ export default function ProfilePageWrapper() {
   if (loading || sessionLoading) {
     return (
       <StudentPageContainer>
-        <div className="flex flex-col justify-center items-center min-h-[60vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-muted-foreground">
-              {sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
-            </p>
-          </div>
+        <div className="max-w-6xl mx-auto flex flex-col justify-center items-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary/30 border-t-primary mb-4" />
+          <p className="text-muted-foreground">
+            {sessionLoading
+              ? "Đang xác thực..."
+              : "Đang tải thông tin học sinh..."}
+          </p>
+        </div>
       </StudentPageContainer>
     );
   }
@@ -427,29 +445,31 @@ export default function ProfilePageWrapper() {
   if (error || !profile) {
     return (
       <StudentPageContainer>
-        <div className="flex flex-col justify-center items-center min-h-[60vh] px-4">
-            <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-              <div className="text-red-600 dark:text-red-400 text-xl font-semibold mb-2">
+        <div className="max-w-6xl mx-auto flex flex-col justify-center items-center min-h-[60vh] px-4">
+          <div className="max-w-md w-full rounded-2xl border border-border shadow-sm bg-card overflow-hidden border-l-4 border-l-destructive">
+            <div className="px-6 py-5 bg-destructive/5 border-b border-border">
+              <h2 className="text-lg font-semibold text-destructive flex items-center gap-2">
                 ⚠️ Lỗi tải dữ liệu
-              </div>
-              <div className="text-red-700 dark:text-red-300 mb-4">
+              </h2>
+            </div>
+            <div className="p-6">
+              <p className="text-muted-foreground mb-4">
                 {error || "Không tìm thấy thông tin học sinh"}
-              </div>
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded">
-                  <strong>Debug Info:</strong><br/>
-                  Student ID: {studentId || 'null'}<br/>
-                  Session: {session ? 'exists' : 'null'}<br/>
-                  Authenticated: {isAuthenticated ? 'yes' : 'no'}
+              </p>
+              {process.env.NODE_ENV === "development" && (
+                <div className="text-xs text-muted-foreground mb-4 p-3 rounded-xl bg-muted/50">
+                  <strong>Debug:</strong> Student ID: {studentId || "null"} ·
+                  Session: {session ? "yes" : "no"}
                 </div>
               )}
               <button
                 onClick={() => window.location.reload()}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="w-full px-6 py-3 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Tải lại trang
               </button>
             </div>
+          </div>
         </div>
       </StudentPageContainer>
     );
@@ -457,35 +477,57 @@ export default function ProfilePageWrapper() {
 
   return (
     <StudentPageContainer>
-      <div className="min-h-[60vh]">
-        {/* Welcome Banner for New Students */}
+      <div className="min-h-[60vh] max-w-6xl mx-auto pb-8">
+        {/* Welcome Banner for New Students - dashboard style */}
         {isNewStudent && (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-2">
-                    🎉 Chào mừng bạn đến với Holyann Explore!
-                  </h2>
-                  <p className="text-blue-100 mb-4">
-                    Hồ sơ của bạn đang trống. Hãy bắt đầu xây dựng hồ sơ du học của bạn bằng cách điền thông tin cơ bản, thành tích học tập và hoạt động ngoại khóa.
-                  </p>
-                  <button
-                    onClick={handleEditClick}
-                    className="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-md hover:bg-blue-50 transition-colors"
+          <div className="relative rounded-2xl overflow-hidden mb-8 border border-primary/20 shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,var(--tw-gradient-from),transparent)] from-primary/25 to-transparent" />
+            <div
+              className="absolute inset-0 opacity-[0.06]"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 4L4 20v20l26 16 26-16V20L30 4z' fill='none' stroke='%230f4c81' stroke-width='1'/%3E%3C/svg%3E")`,
+              }}
+            />
+            <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-6 py-8 sm:px-8 sm:py-10">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-primary uppercase tracking-wider">
+                  Chào mừng
+                </p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">
+                  🎉 Bắt đầu xây dựng hồ sơ du học
+                </h2>
+                <p className="text-muted-foreground mt-2 text-base max-w-xl leading-relaxed">
+                  Hồ sơ của bạn đang trống. Điền thông tin cơ bản, thành tích
+                  học tập và hoạt động ngoại khóa.
+                </p>
+                <button
+                  onClick={handleEditClick}
+                  className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Bắt đầu xây dựng hồ sơ
-                  </button>
-                </div>
-                <div className="hidden lg:block">
-                  <svg className="w-32 h-32 opacity-20" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
-                </div>
+                  Bắt đầu xây dựng hồ sơ
+                </button>
+              </div>
+              <div className="hidden md:block relative w-48 h-32 rounded-xl overflow-hidden border border-white/20 shadow-xl shrink-0">
+                <img
+                  src="/images/auth/left.jpg"
+                  alt=""
+                  className="object-cover w-full h-full"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
               </div>
             </div>
           </div>

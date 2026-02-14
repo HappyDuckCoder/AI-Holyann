@@ -19,18 +19,19 @@ export function ProfileEvaluationSection({
   const hasError = analysisResult?.error != null || (!analysisResult?.data && analysisResult != null);
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5">
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted border border-border/60">
-            <Sparkles className="h-4 w-4 text-foreground/80" />
-          </span>
-          Đánh giá profile
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Phân tích AI điểm mạnh, điểm yếu, spike và khu vực phù hợp
-        </p>
+    <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-indigo-500/60 bg-card bg-gradient-to-br from-indigo-500/5 to-transparent">
+      <div className="px-5 py-4 border-b border-border bg-indigo-500/5 flex flex-row items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 shrink-0">
+          <Sparkles className="size-4" aria-hidden />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold text-foreground m-0">Đánh giá profile</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Phân tích AI điểm mạnh, điểm yếu, spike và khu vực phù hợp
+          </p>
+        </div>
       </div>
+      <div className="p-5">
       {!hasResult && !analysisLoading && !hasError && (
         <div className="rounded-xl border border-border/60 bg-muted/30 p-6 flex flex-col items-center justify-center text-center">
           <p className="text-muted-foreground text-sm max-w-sm mb-5">
@@ -64,6 +65,7 @@ export function ProfileEvaluationSection({
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 }

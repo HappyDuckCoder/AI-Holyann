@@ -107,10 +107,12 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
   };
 
   return (
-    <section className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-border/60 flex justify-between items-center bg-muted/30">
+    <section className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-card bg-gradient-to-br from-amber-500/5 to-transparent">
+      <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-amber-500/5">
         <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <BookOpen className="text-primary" size={18} />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
+            <BookOpen className="size-4" aria-hidden />
+          </span>
           Thông tin học thuật
         </h3>
         <div className="flex items-center gap-2">

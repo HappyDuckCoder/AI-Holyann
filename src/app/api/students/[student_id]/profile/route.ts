@@ -255,7 +255,10 @@ export async function PATCH(
             if (basicInfo.current_address) studentBasicUpdate.current_address = basicInfo.current_address;
             if (basicInfo.talents) studentBasicUpdate.talents = basicInfo.talents;
             if (basicInfo.hobbies) studentBasicUpdate.hobbies = basicInfo.hobbies;
-            if (basicInfo.date_of_birth) studentBasicUpdate.date_of_birth = new Date(basicInfo.date_of_birth);
+            if (basicInfo.date_of_birth) {
+                const dob = new Date(basicInfo.date_of_birth);
+                if (!Number.isNaN(dob.getTime())) studentBasicUpdate.date_of_birth = dob;
+            }
 
             if (Object.keys(studentBasicUpdate).length > 0) {
                 await prisma.students.update({
@@ -267,10 +270,15 @@ export async function PATCH(
 
         // Cập nhật bảng students
         if (studentInfo) {
+            const parseDob = (val: string | undefined) => {
+                if (!val) return undefined;
+                const d = new Date(val);
+                return Number.isNaN(d.getTime()) ? undefined : d;
+            };
             await prisma.students.upsert({
                 where: { user_id: student_id },
                 update: {
-                    date_of_birth: studentInfo.date_of_birth ? new Date(studentInfo.date_of_birth) : undefined,
+                    date_of_birth: parseDob(studentInfo.date_of_birth),
                     current_address: studentInfo.current_address || undefined,
                     current_school: studentInfo.current_school || undefined,
                     current_grade: studentInfo.current_grade || undefined,
@@ -283,7 +291,7 @@ export async function PATCH(
                 },
                 create: {
                     user_id: student_id,
-                    date_of_birth: studentInfo.date_of_birth ? new Date(studentInfo.date_of_birth) : undefined,
+                    date_of_birth: parseDob(studentInfo.date_of_birth),
                     current_address: studentInfo.current_address || undefined,
                     current_school: studentInfo.current_school || undefined,
                     current_grade: studentInfo.current_grade || undefined,

@@ -1,11 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Award, GraduationCap, Edit3, Pencil, Check, X, Trash2, Plus } from "lucide-react";
+import {
+  Award,
+  GraduationCap,
+  Edit3,
+  Pencil,
+  Check,
+  X,
+  Trash2,
+  Plus,
+} from "lucide-react";
 import { StudentProfile, Extracurricular } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
-type AchievementItem = string | { id: string; text: string; category?: "academic" | "non_academic" };
+type AchievementItem =
+  | string
+  | { id: string; text: string; category?: "academic" | "non_academic" };
 
 interface ActivitiesSectionProps {
   profile: StudentProfile;
@@ -15,11 +26,15 @@ interface ActivitiesSectionProps {
   onAddActivity?: (act: Omit<Extracurricular, "id">) => void;
   onDeleteActivity?: (id: string) => void;
   onUpdateAchievement?: (id: string, text: string) => void;
-  onAddAchievement?: (text: string, category: "academic" | "non_academic") => void;
+  onAddAchievement?: (
+    text: string,
+    category: "academic" | "non_academic",
+  ) => void;
   onDeleteAchievement?: (id: string) => void;
 }
 
-const TAG_STYLE = "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium";
+const TAG_STYLE =
+  "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium";
 
 function getAchievementText(a: AchievementItem): string {
   return typeof a === "string" ? a : a.text;
@@ -51,7 +66,10 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
     description: "",
     category: "academic" as ActivityCategory,
   });
-  const [newAch, setNewAch] = useState<{ text: string; category: "academic" | "non_academic" }>({
+  const [newAch, setNewAch] = useState<{
+    text: string;
+    category: "academic" | "non_academic";
+  }>({
     text: "",
     category: "academic",
   });
@@ -87,7 +105,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
           year: newAct.year,
           description: newAct.description,
           category: newAct.category,
-        })
+        }),
       );
       setNewAct({
         title: "",
@@ -120,17 +138,21 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
   const addAch = async () => {
     if (!newAch.text.trim() || !onAddAchievement) return;
     try {
-      await Promise.resolve(onAddAchievement(newAch.text.trim(), newAch.category));
+      await Promise.resolve(
+        onAddAchievement(newAch.text.trim(), newAch.category),
+      );
       setNewAch({ text: "", category: "academic" });
       setAddingAch(false);
     } catch (_) {}
   };
 
   return (
-    <section className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-border/60 flex flex-wrap items-center justify-between gap-3 bg-muted/30">
+    <section className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-violet-500/60 bg-card bg-gradient-to-br from-violet-500/5 to-transparent">
+      <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3 bg-violet-500/5">
         <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Award className="text-primary" size={18} />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/20 text-violet-700 dark:text-violet-400 shrink-0">
+            <Award className="size-4" aria-hidden />
+          </span>
           Hoạt động & Thành tích
         </h3>
         <StatusBadge isComplete={isComplete} />
@@ -171,7 +193,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                       <input
                         value={editActForm.title}
                         onChange={(e) =>
-                          setEditActForm((f) => (f ? { ...f, title: e.target.value } : f))
+                          setEditActForm((f) =>
+                            f ? { ...f, title: e.target.value } : f,
+                          )
                         }
                         className="w-full text-sm bg-background border border-border rounded px-2 py-1"
                         placeholder="Tên hoạt động"
@@ -180,7 +204,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                         <input
                           value={editActForm.role}
                           onChange={(e) =>
-                            setEditActForm((f) => (f ? { ...f, role: e.target.value } : f))
+                            setEditActForm((f) =>
+                              f ? { ...f, role: e.target.value } : f,
+                            )
                           }
                           className="flex-1 min-w-0 text-xs bg-background border border-border rounded px-2 py-1"
                           placeholder="Vai trò"
@@ -188,7 +214,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                         <input
                           value={editActForm.year}
                           onChange={(e) =>
-                            setEditActForm((f) => (f ? { ...f, year: e.target.value } : f))
+                            setEditActForm((f) =>
+                              f ? { ...f, year: e.target.value } : f,
+                            )
                           }
                           className="w-16 text-xs bg-background border border-border rounded px-2 py-1"
                           placeholder="Năm"
@@ -197,7 +225,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                       <textarea
                         value={editActForm.description}
                         onChange={(e) =>
-                          setEditActForm((f) => (f ? { ...f, description: e.target.value } : f))
+                          setEditActForm((f) =>
+                            f ? { ...f, description: e.target.value } : f,
+                          )
                         }
                         rows={2}
                         className="w-full text-xs bg-background border border-border rounded px-2 py-1"
@@ -239,7 +269,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                   ) : (
                     <>
                       <div className="flex items-start justify-between gap-2">
-                        <h5 className="font-medium text-foreground text-sm">{act.title}</h5>
+                        <h5 className="font-medium text-foreground text-sm">
+                          {act.title}
+                        </h5>
                         {onUpdateActivity && (
                           <button
                             type="button"
@@ -269,7 +301,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                                 : "bg-muted text-muted-foreground border border-border"
                             }`}
                           >
-                            {act.category === "academic" ? "Học thuật" : "Ngoại khóa"}
+                            {act.category === "academic"
+                              ? "Học thuật"
+                              : "Ngoại khóa"}
                           </span>
                         )}
                       </div>
@@ -286,20 +320,26 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
               <div className="pl-3 border-l-2 border-dashed border-border space-y-2">
                 <input
                   value={newAct.title}
-                  onChange={(e) => setNewAct((f) => ({ ...f, title: e.target.value }))}
+                  onChange={(e) =>
+                    setNewAct((f) => ({ ...f, title: e.target.value }))
+                  }
                   className="w-full text-sm bg-background border border-border rounded px-2 py-1"
                   placeholder="Tên hoạt động"
                 />
                 <div className="flex gap-2 flex-wrap">
                   <input
                     value={newAct.role}
-                    onChange={(e) => setNewAct((f) => ({ ...f, role: e.target.value }))}
+                    onChange={(e) =>
+                      setNewAct((f) => ({ ...f, role: e.target.value }))
+                    }
                     className="flex-1 min-w-0 text-xs bg-background border border-border rounded px-2 py-1"
                     placeholder="Vai trò"
                   />
                   <input
                     value={newAct.year}
-                    onChange={(e) => setNewAct((f) => ({ ...f, year: e.target.value }))}
+                    onChange={(e) =>
+                      setNewAct((f) => ({ ...f, year: e.target.value }))
+                    }
                     className="w-16 text-xs bg-background border border-border rounded px-2 py-1"
                     placeholder="Năm"
                   />
@@ -319,7 +359,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                 </div>
                 <textarea
                   value={newAct.description}
-                  onChange={(e) => setNewAct((f) => ({ ...f, description: e.target.value }))}
+                  onChange={(e) =>
+                    setNewAct((f) => ({ ...f, description: e.target.value }))
+                  }
                   rows={2}
                   className="w-full text-xs bg-background border border-border rounded px-2 py-1"
                   placeholder="Mô tả"
@@ -377,7 +419,10 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                     key={id || idx}
                     className="flex items-start gap-2 p-2.5 rounded-lg border border-border/60 bg-muted/30 hover:bg-muted/50 transition-colors"
                   >
-                    <GraduationCap className="text-primary mt-0.5 shrink-0" size={14} />
+                    <GraduationCap
+                      className="text-primary mt-0.5 shrink-0"
+                      size={14}
+                    />
                     {isEditing ? (
                       <div className="flex-1 flex gap-1 flex-wrap">
                         <input
@@ -385,7 +430,11 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                           onChange={(e) => setEditAchText(e.target.value)}
                           className="flex-1 min-w-0 text-sm bg-background border border-border rounded px-2 py-1"
                         />
-                        <button type="button" onClick={saveAch} className="p-1.5 rounded bg-primary text-primary-foreground">
+                        <button
+                          type="button"
+                          onClick={saveAch}
+                          className="p-1.5 rounded bg-primary text-primary-foreground"
+                        >
                           <Check size={12} />
                         </button>
                         <button
@@ -434,7 +483,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
               <div className="flex gap-2 flex-wrap items-center p-2.5 rounded-lg border border-dashed border-border">
                 <input
                   value={newAch.text}
-                  onChange={(e) => setNewAch((f) => ({ ...f, text: e.target.value }))}
+                  onChange={(e) =>
+                    setNewAch((f) => ({ ...f, text: e.target.value }))
+                  }
                   className="flex-1 min-w-0 text-sm bg-background border border-border rounded px-2 py-1"
                   placeholder="Tên giải thưởng - Đơn vị"
                 />
@@ -451,7 +502,11 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                   <option value="academic">Học thuật</option>
                   <option value="non_academic">Ngoại khóa</option>
                 </select>
-                <button type="button" onClick={addAch} className="p-1.5 rounded bg-primary text-primary-foreground text-xs">
+                <button
+                  type="button"
+                  onClick={addAch}
+                  className="p-1.5 rounded bg-primary text-primary-foreground text-xs"
+                >
                   Lưu
                 </button>
                 <button
