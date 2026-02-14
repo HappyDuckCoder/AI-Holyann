@@ -25,14 +25,8 @@ import {
 const STUDENT_BASE = "/student";
 
 const navItems = [
-  {
-    name: "Dashboard",
-    href: `${STUDENT_BASE}/dashboard`,
-    icon: LayoutDashboard,
-  },
+  { name: "Dashboard", href: `${STUDENT_BASE}/dashboard`, icon: LayoutDashboard },
   { name: "Profile", href: `${STUDENT_BASE}/profile`, icon: User },
-  { name: "Checklist", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
-  { name: "Tests", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
   { name: "Improve", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
   { name: "Target", href: `${STUDENT_BASE}/target`, icon: GraduationCap },
   { name: "Discussion", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
@@ -169,6 +163,22 @@ export default function StudentNavbar() {
                     </p>
                   </div>
                   <Link
+                    href={`${STUDENT_BASE}/checklist`}
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    Checklist
+                  </Link>
+                  <Link
+                    href={`${STUDENT_BASE}/tests`}
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                    Tests
+                  </Link>
+                  <Link
                     href={`${STUDENT_BASE}/settings`}
                     onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
@@ -269,6 +279,22 @@ export default function StudentNavbar() {
             {isAuthenticated && (
               <div className="mt-2 border-t border-primary-foreground/20 pt-2">
                 <Link
+                  href={`${STUDENT_BASE}/checklist`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <CheckSquare className="h-4 w-4" />
+                  Checklist
+                </Link>
+                <Link
+                  href={`${STUDENT_BASE}/tests`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  Tests
+                </Link>
+                <Link
                   href={`${STUDENT_BASE}/settings`}
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
@@ -285,13 +311,9 @@ export default function StudentNavbar() {
                   className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10 text-left"
                 >
                   {mounted && isDarkMode ? (
-                    <>
-                      <Sun className="h-4 w-4" /> Chế độ sáng
-                    </>
+                    <><Sun className="h-4 w-4" /> Chế độ sáng</>
                   ) : (
-                    <>
-                      <Moon className="h-4 w-4" /> Chế độ tối
-                    </>
+                    <><Moon className="h-4 w-4" /> Chế độ tối</>
                   )}
                 </button>
                 <button
