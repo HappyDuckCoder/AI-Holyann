@@ -69,17 +69,9 @@ export default function FileUpload({
             formData.append('userId', userId.trim())
             formData.append('category', category)
 
-            console.log('📤 Uploading file:', {
-                name: file.name,
-                size: (file.size / 1024 / 1024).toFixed(2) + 'MB',
-                userId: userId.trim(),
-                category
-            })
-
             const result = await uploadFileServerAction(formData)
 
             if (result.success && result.url) {
-                console.log('✅ Upload successful:', result.url)
                 setFileUrl(result.url)
                 setFilePath(result.path || null)
                 onUploadComplete(result.url)
@@ -109,7 +101,6 @@ export default function FileUpload({
 
         try {
             if (filePath) {
-                console.log('🗑️ Deleting file:', filePath)
                 const deleteResult = await deleteFileServerAction(filePath)
 
                 if (!deleteResult.success) {

@@ -19,6 +19,8 @@ export default function ProfilePageWrapper() {
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const analysisInFlightRef = useRef(false);
   const [isNewStudent, setIsNewStudent] = useState(false);
+  const [uploadDocumentLoading, setUploadDocumentLoading] = useState(false);
+  const [uploadAvatarLoading, setUploadAvatarLoading] = useState(false);
 
   // Get student ID from session - memoized to prevent unnecessary recalculations
   const studentId = useMemo(() => {
@@ -55,7 +57,6 @@ export default function ProfilePageWrapper() {
   useEffect(() => {
     // Skip if session is still loading (only for NextAuth)
     if (sessionLoading && !studentId) {
-      console.log('⏳ [Profile] Session still loading...');
       return;
     }
 
@@ -88,32 +89,22 @@ export default function ProfilePageWrapper() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        console.log('📡 [Profile] Fetching profile for student ID:', studentId);
 
         // Check if studentId is an email marker
         let actualStudentId = studentId;
         if (studentId.startsWith('email:')) {
           const email = studentId.substring(6);
-          console.log('🔍 [Profile] Need to fetch user by email first:', email);
-
           // Fetch user by email to get the actual ID
           const userResponse = await fetch(`/api/users/by-email?email=${encodeURIComponent(email)}`);
           if (userResponse.ok) {
             const userData = await userResponse.json();
             actualStudentId = userData.id;
-            console.log('✅ [Profile] Got user ID from email:', actualStudentId);
           } else {
             throw new Error('Không thể tìm thấy người dùng với email này');
           }
         }
 
         const response = await fetch(`/api/students/${actualStudentId}/profile`);
-
-        console.log('📊 [Profile] API Response:', {
-          status: response.status,
-          ok: response.ok,
-          url: response.url
-        });
 
         if (!response.ok) {
           const text = await response.text();
@@ -132,12 +123,10 @@ export default function ProfilePageWrapper() {
         }
 
         const data = await response.json();
-        console.log('✅ [Profile] Data received:', data);
 
         // Check if this is a new student (just created)
         const isNewStudent = data.status?.isNewStudent;
         if (isNewStudent) {
-          console.log('🆕 [Profile] New student detected - showing empty profile');
           setIsNewStudent(true);
         } else {
           setIsNewStudent(false);
@@ -654,6 +643,7 @@ export default function ProfilePageWrapper() {
     const studentId = getStudentId();
     if (!studentId) return;
 
+    setUploadDocumentLoading(true);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("documentType", type === "certificate" ? "certificate" : "cv");
@@ -690,6 +680,8 @@ export default function ProfilePageWrapper() {
       toast.error("Có lỗi xảy ra khi tải tài liệu", {
         description: "Vui lòng thử lại sau hoặc liên hệ hỗ trợ",
       });
+    } finally {
+      setUploadDocumentLoading(false);
     }
   };
 
@@ -720,6 +712,7 @@ export default function ProfilePageWrapper() {
   const handleUploadAvatar = async (file: File) => {
     const studentId = getStudentId();
     if (!studentId) return;
+    setUploadAvatarLoading(true);
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -736,6 +729,8 @@ export default function ProfilePageWrapper() {
       }
     } catch {
       toast.error("Có lỗi khi tải ảnh lên");
+    } finally {
+      setUploadAvatarLoading(false);
     }
   };
 
@@ -885,6 +880,8 @@ export default function ProfilePageWrapper() {
           onUploadDocument={handleUploadDocument}
           onDeleteDocument={handleDeleteDocument}
           onUploadAvatar={handleUploadAvatar}
+          uploadDocumentLoading={uploadDocumentLoading}
+          uploadAvatarLoading={uploadAvatarLoading}
           analysisResult={analysisResult}
           analysisLoading={analysisLoading}
           onAnalyzeProfile={handleAnalyzeProfile}

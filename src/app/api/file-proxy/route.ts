@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     // Extract bucket and file path from Supabase URL
     // Format: https://xxx.supabase.co/storage/v1/object/public/bucket-name/file-path
     const urlParts = fileUrl.split('/');
-    console.log('📍 URL parts:', urlParts);
 
     const storageIndex = urlParts.findIndex(part => part === 'storage');
 
@@ -38,14 +37,6 @@ export async function GET(request: NextRequest) {
     // Skip: storage/v1/object/public -> get bucket name and file path
     const bucketName = urlParts[storageIndex + 4]; // storage/v1/object/public/[bucket-name]
     const filePath = urlParts.slice(storageIndex + 5).join('/'); // everything after bucket name
-
-    console.log('🔄 Proxying file:', {
-      bucketName,
-      filePath,
-      originalUrl: fileUrl,
-      storageIndex,
-      urlParts: urlParts.slice(storageIndex, storageIndex + 6)
-    });
 
     if (!bucketName || !filePath) {
       return NextResponse.json({

@@ -17,7 +17,6 @@ export async function broadcastNewMessage(roomId: string, message: any) {
       event: 'new_message',
       payload: message,
     });
-    console.log('📤 Broadcasted message:', message.id);
   } catch (error) {
     console.error('Error broadcasting message:', error);
   }
@@ -33,7 +32,6 @@ export function useRealtimeMessages(roomId: string, onNewMessage: (payload: any)
       },
     })
     .on('broadcast', { event: 'new_message' }, ({ payload }) => {
-      console.log('📻 Broadcast message received:', payload);
       onNewMessage(payload);
     })
     .on(
@@ -45,7 +43,6 @@ export function useRealtimeMessages(roomId: string, onNewMessage: (payload: any)
         filter: `room_id=eq.${roomId}`,
       },
       (payload) => {
-        console.log('🔔 New message received:', payload.new);
         onNewMessage(payload.new);
       }
     )
@@ -58,16 +55,12 @@ export function useRealtimeMessages(roomId: string, onNewMessage: (payload: any)
         filter: `room_id=eq.${roomId}`,
       },
       (payload) => {
-        console.log('🔔 Message updated:', payload.new);
         onNewMessage(payload.new);
       }
     )
-    .subscribe((status) => {
-      console.log(`📡 Subscription status for room ${roomId}:`, status);
-    });
+    .subscribe(() => {});
 
   return () => {
-    console.log(`🔌 Unsubscribing from room ${roomId}`);
     supabase.removeChannel(channel);
   };
 }

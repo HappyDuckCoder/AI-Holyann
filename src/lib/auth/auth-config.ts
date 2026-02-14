@@ -17,14 +17,10 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log('🔐 [NextAuth] Starting authorization...');
-
         if (!credentials?.email || !credentials?.password) {
           console.error('❌ [NextAuth] Missing credentials');
           throw new Error('Email và mật khẩu không được để trống');
         }
-
-        console.log('📧 [NextAuth] Attempting login for:', credentials.email);
 
         try {
           const result = await AuthService.login({
@@ -32,18 +28,10 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password
           });
 
-          console.log('📊 [NextAuth] Login result:', {
-            success: result.success,
-            hasUser: !!result.user,
-            message: result.message
-          });
-
           if (!result.success || !result.user) {
             console.error('❌ [NextAuth] Login failed:', result.message);
             throw new Error(result.message || 'Đăng nhập thất bại');
           }
-
-          console.log('✅ [NextAuth] Login successful for user:', result.user.id);
 
           return {
             id: result.user.id,

@@ -65,8 +65,6 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       if (isDevelopment) {
-        console.log('⚠️  DEVELOPMENT MODE: Email không tồn tại trong users, nhưng OTP đã được xác thực');
-        console.log(`✅ Test thành công với email: ${email}`);
       } else {
         console.error('Error updating password:', updateError);
         return NextResponse.json(

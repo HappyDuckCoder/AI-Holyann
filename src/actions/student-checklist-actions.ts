@@ -9,14 +9,10 @@ import { TaskStatus } from '@prisma/client';
  */
 export async function getStudentChecklistData(studentId: string) {
   try {
-    console.log('🔍 Fetching checklist data for student:', studentId);
-
     // 1. Lấy tất cả stages
     const stages = await prisma.checklist_stages.findMany({
       orderBy: { order_index: 'asc' },
     });
-
-    console.log(`📊 Found ${stages.length} stages`);
 
     // 2. Lấy tất cả tasks
     const tasks = await prisma.checklist_tasks.findMany({
@@ -29,8 +25,6 @@ export async function getStudentChecklistData(studentId: string) {
       },
     });
 
-    console.log(`📋 Found ${tasks.length} tasks`);
-
     // 3. Lấy progress của student (nếu có)
     const progressRecords = await prisma.student_task_progress.findMany({
       where: { student_id: studentId },
@@ -38,8 +32,6 @@ export async function getStudentChecklistData(studentId: string) {
         task: true,
       },
     });
-
-    console.log(`✅ Found ${progressRecords.length} progress records for student`);
 
     // 4. Tạo map để dễ lookup progress
     const progressMap = new Map(

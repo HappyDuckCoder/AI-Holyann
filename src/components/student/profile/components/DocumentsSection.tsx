@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { FileText, UploadCloud, Trash2, File } from "lucide-react";
+import { FileText, UploadCloud, Trash2, File, Loader2 } from "lucide-react";
 import { StudentProfile, DocumentType } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -10,6 +10,7 @@ interface DocumentsSectionProps {
   isComplete: boolean;
   onUploadDocument: (file: File, type: DocumentType) => void;
   onDeleteDocument: (id: string) => void;
+  uploadDocumentLoading?: boolean;
 }
 
 const DOC_TYPES: { type: DocumentType; label: string }[] = [
@@ -29,6 +30,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
   isComplete,
   onUploadDocument,
   onDeleteDocument,
+  uploadDocumentLoading = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedType, setSelectedType] = useState<DocumentType>("transcript");
@@ -63,14 +65,23 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         <StatusBadge isComplete={isComplete} />
       </div>
 
-      <div className="p-5">
+      <div className="p-5 relative">
+        {uploadDocumentLoading && (
+          <div className="absolute inset-0 bg-background/80 z-10 flex items-center justify-center rounded-b-2xl">
+            <div className="flex flex-col items-center gap-2 text-primary">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="text-sm font-medium">Đang tải lên...</span>
+            </div>
+          </div>
+        )}
         <div className="flex flex-wrap gap-2 mb-4">
           {DOC_TYPES.map(({ type, label }) => (
             <button
               key={type}
               type="button"
+              disabled={uploadDocumentLoading}
               onClick={() => triggerUpload(type)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
               <UploadCloud size={14} />
               {label}

@@ -9,7 +9,6 @@ import { revalidatePath } from 'next/cache';
  */
 export async function autoCompleteChecklistTask(studentId: string, pathKeyword: string) {
   try {
-    console.log(`🤖 [ChecklistAuto] Searching for task with link containing: "${pathKeyword}" for student: ${studentId}`);
 
     // 1. Tìm task có link_to chứa keyword
     const task = await prisma.checklist_tasks.findFirst({
@@ -26,7 +25,6 @@ export async function autoCompleteChecklistTask(studentId: string, pathKeyword: 
       return { success: false, message: 'Task not found' };
     }
 
-    console.log(`✅ [ChecklistAuto] Found task: "${task.title}" (ID: ${task.id})`);
 
     // 2. Cập nhật trạng thái hoàn thành cho học viên
     const progress = await prisma.student_task_progress.upsert({
@@ -48,7 +46,6 @@ export async function autoCompleteChecklistTask(studentId: string, pathKeyword: 
       },
     });
 
-    console.log(`🎉 [ChecklistAuto] Marked task "${task.title}" as COMPLETED for student ${studentId}`);
 
     // 3. Revalidate cache để UI cập nhật ngay lập tức
     // Lưu ý: Path có thể khác tùy thuộc vào cấu trúc routing của bạn

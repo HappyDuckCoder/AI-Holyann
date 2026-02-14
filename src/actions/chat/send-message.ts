@@ -141,7 +141,6 @@ export async function sendMessage(input: SendMessageInput) {
         payload: messagePayload,
       });
 
-      console.log('📤 Message broadcasted successfully:', message.id);
 
       // Cleanup channel sau khi send
       setTimeout(() => {

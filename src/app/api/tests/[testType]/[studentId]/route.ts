@@ -38,7 +38,6 @@ export async function DELETE(
       );
     }
 
-    console.log(`✅ ${testType.toUpperCase()} test reset successfully`);
 
     return NextResponse.json({
       success: true,

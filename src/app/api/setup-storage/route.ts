@@ -13,8 +13,6 @@ export async function GET() {
       }
     });
 
-    console.log('🔍 Checking Supabase Storage setup...');
-
     // Test 1: List all buckets
     const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
 
@@ -27,17 +25,12 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    console.log('📦 Available buckets:', buckets?.map(b => b.name));
-
     // Test 2: Check if hoex-documents bucket exists
     const targetBucket = 'hoex-documents';
     const bucketExists = buckets?.find(b => b.name === targetBucket);
 
-    console.log(`📁 Bucket '${targetBucket}' exists:`, !!bucketExists);
-
     // Test 3: If bucket doesn't exist, create it
     if (!bucketExists) {
-      console.log('🔨 Creating bucket:', targetBucket);
       const { data: newBucket, error: createError } = await supabase.storage.createBucket(targetBucket, {
         public: true,
         allowedMimeTypes: [
@@ -59,8 +52,6 @@ export async function GET() {
           step: 'create_bucket'
         }, { status: 500 });
       }
-
-      console.log('✅ Bucket created successfully:', newBucket);
     }
 
     // Test 4: Try to list files in the bucket
@@ -71,8 +62,6 @@ export async function GET() {
     if (filesError) {
       console.warn('⚠️ Could not list files:', filesError.message);
     }
-
-    console.log(`📄 Files in ${targetBucket}:`, bucketFiles?.length || 0);
 
     return NextResponse.json({
       success: true,

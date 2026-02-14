@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
     try {
-        console.log('🔍 Admin: Fetching all submissions for review...');
 
         // Get all submitted files with student and task information
         const submissions = await prisma.student_task_progress.findMany({
@@ -42,7 +41,6 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        console.log(`📋 Found ${submissions.length} submissions for review`);
 
         // Group by status for statistics
         const stats = {

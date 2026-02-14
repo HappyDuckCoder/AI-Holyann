@@ -78,8 +78,6 @@ function CareerAssessmentResults({
     setError(null);
 
     try {
-      console.log("🎯 Getting career recommendations for student:", studentId);
-
       // Call real API - Module 2
       const response = await fetch("/api/module2/career-assessment", {
         method: "POST",
@@ -143,11 +141,6 @@ function CareerAssessmentResults({
           );
         }
         setCareerGroups(transformedGroups);
-        console.log(
-          "✅ Career groups received:",
-          Object.keys(transformedGroups).length,
-          "groups"
-        );
       } else if (transformedRecs.length > 0) {
         // Nếu không có career_groups nhưng có recommendations, group theo category nếu có
         const groups: ComponentCareerGroups = {};
@@ -167,14 +160,6 @@ function CareerAssessmentResults({
         setCareerGroups(null);
       }
 
-      if (data.note) {
-        console.log("ℹ️ Note:", data.note);
-      }
-
-      console.log(
-        "✅ Career recommendations received:",
-        data.recommendations?.length || 0
-      );
     } catch (error: any) {
       console.error("❌ Career assessment error:", error);
 

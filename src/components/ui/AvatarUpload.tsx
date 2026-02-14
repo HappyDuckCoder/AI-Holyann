@@ -1,5 +1,6 @@
 "use client"
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface AvatarUploadProps {
@@ -127,7 +128,7 @@ export default function AvatarUpload({
             >
               {isUploading ? (
                 <>
-                  <i className="fas fa-spinner animate-spin mr-2"></i>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Đang tải...
                 </>
               ) : (

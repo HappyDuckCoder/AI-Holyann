@@ -106,7 +106,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         toast.loading('Đang tải file...', { id: 'file-preview' });
 
         try {
-            console.log('📂 Opening file:', attachment.name);
 
             // Get signed URL from server
             const result = await getSignedUrlFromFullUrl(attachment.url);
@@ -115,7 +114,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                 throw new Error(result.error || 'Failed to generate signed URL');
             }
 
-            console.log('✅ Signed URL generated');
             toast.success('File đã sẵn sàng!', { id: 'file-preview' });
 
             // Set preview data and open modal
@@ -127,7 +125,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             toast.error('Không thể mở file', { id: 'file-preview' });
 
             // Fallback: Try to open original URL in new tab
-            console.log('⚠️ Fallback: Opening original URL');
             window.open(attachment.url, '_blank', 'noopener,noreferrer');
         } finally {
             setIsLoadingPreview(false);

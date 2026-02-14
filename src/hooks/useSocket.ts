@@ -110,7 +110,6 @@ export function useSocket() {
     // Leave conversation room
     const leaveConversation = useCallback((conversationId: string) => {
         // Disabled - Socket functionality not available
-        console.log('[Socket Disabled] Would leave conversation:', conversationId);
     }, []);
 
     // Send message

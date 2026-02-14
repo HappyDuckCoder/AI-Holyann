@@ -80,7 +80,6 @@ export const ChatPage: React.FC = () => {
             // Only refresh if the last message time is very recent (to avoid unnecessary fetches on mount)
             const diffInfo = Math.abs(new Date().getTime() - new Date(selectedConversation.lastMessageTime).getTime());
             if (diffInfo < 10000) { // If update happened in last 10 seconds
-                // console.log("Syncing messages from sidebar update...");
                 refreshMessages();
             }
         }

@@ -32,22 +32,10 @@ interface UploadResult {
  */
 export async function uploadFileServerAction(formData: FormData): Promise<UploadResult> {
     try {
-        console.log('🚀 [ServerAction] Starting file upload...')
-
         // Extract data from FormData
         const file = formData.get('file') as File
         const userId = formData.get('userId') as string
-        const category = formData.get('category') as string || 'applications'
-
-        // Debug formData contents
-        console.log('📝 FormData contents:')
-        for (const [key, value] of formData.entries()) {
-            if (value instanceof File) {
-                console.log(`   ${key}: File (${value.name}, ${value.size} bytes, ${value.type})`)
-            } else {
-                console.log(`   ${key}: ${value}`)
-            }
-        }
+        const category = (formData.get('category') || formData.get('folder') || 'applications') as string
 
         // Enhanced validation
         if (!file) {
@@ -91,7 +79,8 @@ export async function uploadFileServerAction(formData: FormData): Promise<Upload
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'text/plain',
             'image/jpeg',
-            'image/png'
+            'image/png',
+            'image/webp'
         ]
 
         if (!allowedTypes.includes(file.type)) {
@@ -101,20 +90,10 @@ export async function uploadFileServerAction(formData: FormData): Promise<Upload
             }
         }
 
-        console.log('📄 File info:', {
-            name: file.name,
-            size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-            type: file.type,
-            userId,
-            category
-        })
-
         // Generate unique filename with timestamp
         const timestamp = Date.now()
         const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_').toLowerCase()
         const filePath = `${userId}/${category}/${timestamp}_${cleanFileName}`
-
-        console.log('📁 Upload path:', filePath)
 
         // Convert File to ArrayBuffer for Supabase
         const fileArrayBuffer = await file.arrayBuffer()
@@ -137,8 +116,6 @@ export async function uploadFileServerAction(formData: FormData): Promise<Upload
             }
         }
 
-        console.log('✅ Upload successful:', data)
-
         // Get public URL
         const { data: urlData } = supabaseAdmin.storage
             .from(BUCKET_NAME)
@@ -153,7 +130,6 @@ export async function uploadFileServerAction(formData: FormData): Promise<Upload
         }
 
         const publicUrl = urlData.publicUrl
-        console.log('🔗 Public URL:', publicUrl)
 
         return {
             success: true,
@@ -170,13 +146,72 @@ export async function uploadFileServerAction(formData: FormData): Promise<Upload
     }
 }
 
+export type DocumentType = 'transcript' | 'certificate' | 'letter' | 'essay' | 'other'
+
+export interface StudentDocItem {
+  id: string
+  name: string
+  type: DocumentType
+  uploadDate: string
+  size: string
+  mtime: number
+  /** Public URL to open/download the file (Supabase) */
+  url?: string
+}
+
+/**
+ * List student documents from Supabase Storage (cvs + certificates)
+ */
+export async function listStudentDocuments(studentId: string): Promise<StudentDocItem[]> {
+  try {
+    const items: StudentDocItem[] = []
+    const prefixes = [
+      { prefix: `${studentId}/cvs`, docType: 'transcript' as DocumentType },
+      { prefix: `${studentId}/certificates`, docType: 'certificate' as DocumentType },
+    ]
+    for (const { prefix, docType } of prefixes) {
+      const { data, error } = await supabaseAdmin.storage
+        .from(BUCKET_NAME)
+        .list(prefix, { limit: 100 })
+      if (error) {
+        console.warn(`[listStudentDocuments] list ${prefix}:`, error.message)
+        continue
+      }
+      if (!data?.length) continue
+      for (const file of data) {
+        if (!file.name || file.name === '.emptyFolderPlaceholder') continue
+        const fullPath = `${prefix}/${file.name}`
+        const mtime = file.updated_at ? new Date(file.updated_at).getTime() : Date.now()
+        const sizeBytes = (file.metadata as { size?: number })?.size ?? 0
+        const sizeKB = Math.round(sizeBytes / 1024)
+        const sizeStr = sizeKB >= 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`
+        const { data: urlData } = supabaseAdmin.storage
+          .from(BUCKET_NAME)
+          .getPublicUrl(fullPath)
+        items.push({
+          id: fullPath,
+          name: file.name,
+          type: docType,
+          uploadDate: new Date(mtime).toLocaleDateString('vi-VN'),
+          size: sizeStr,
+          mtime,
+          url: urlData?.publicUrl,
+        })
+      }
+    }
+    items.sort((a, b) => b.mtime - a.mtime)
+    return items
+  } catch (error) {
+    console.error('❌ [listStudentDocuments]', error)
+    return []
+  }
+}
+
 /**
  * Server Action: Delete file from Supabase Storage
  */
 export async function deleteFileServerAction(filePath: string): Promise<{success: boolean, error?: string}> {
     try {
-        console.log('🗑️ [ServerAction] Deleting file:', filePath)
-
         const { error } = await supabaseAdmin.storage
             .from(BUCKET_NAME)
             .remove([filePath])
@@ -189,7 +224,6 @@ export async function deleteFileServerAction(filePath: string): Promise<{success
             }
         }
 
-        console.log('✅ File deleted successfully')
         return { success: true }
 
     } catch (error) {

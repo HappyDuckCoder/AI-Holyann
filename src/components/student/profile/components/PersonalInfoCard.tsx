@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Mail, Phone, Calendar, MapPin, Camera, Pencil, Check, X } from "lucide-react";
+import { Mail, Phone, Calendar, MapPin, Camera, Pencil, Check, X, Loader2 } from "lucide-react";
 import { StudentProfile } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -9,6 +9,7 @@ interface PersonalInfoCardProps {
   profile: StudentProfile;
   isComplete: boolean;
   onUploadAvatar?: (file: File) => void;
+  uploadAvatarLoading?: boolean;
   onSave?: (data: { name: string; email: string; phone: string; dob: string; address: string }) => void;
 }
 
@@ -16,6 +17,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
   profile,
   isComplete,
   onUploadAvatar,
+  uploadAvatarLoading = false,
   onSave,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +85,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
         <div className="flex flex-col items-center -mt-12 mb-4">
           <div
             className="relative group w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-lg bg-muted"
-            onClick={() => onUploadAvatar && inputRef.current?.click()}
+            onClick={() => onUploadAvatar && !uploadAvatarLoading && inputRef.current?.click()}
           >
             {showImage ? (
               <img
@@ -97,7 +99,13 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                 {initials}
               </div>
             )}
-            {onUploadAvatar && (
+            {uploadAvatarLoading && (
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center cursor-wait">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+                <span className="text-[10px] font-medium text-white mt-1 drop-shadow">Đang tải...</span>
+              </div>
+            )}
+            {onUploadAvatar && !uploadAvatarLoading && (
               <>
                 <input
                   ref={inputRef}

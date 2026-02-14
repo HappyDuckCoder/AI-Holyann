@@ -57,7 +57,6 @@ export default function CreateMentorForm() {
         // Nếu có lỗi chi tiết từ server trả về (ngoài validation client)
         if (result.errors) {
             // Có thể hiển thị lỗi cụ thể từng field nếu muốn, ở đây toast error chung
-            console.log(result.errors)
         }
       }
     })

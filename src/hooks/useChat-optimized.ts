@@ -199,7 +199,6 @@ export function useChat({ roomId, userId, onNewMessage }: UseChatOptions) {
   useEffect(() => {
     if (!roomId) return;
 
-    console.log('🔌 Setting up Realtime subscription for room:', roomId);
 
     // Subscribe to new messages
     const channel = supabase

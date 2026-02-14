@@ -60,7 +60,6 @@ export default function TestProfileAvatarPage() {
 
   const handleProfileUpdate = async (updatedFields: Partial<StudentProfile>): Promise<void> => {
     try {
-      console.log('Updating profile with:', updatedFields)
 
       // Update local state
       setProfile(prev => ({ ...prev, ...updatedFields }))

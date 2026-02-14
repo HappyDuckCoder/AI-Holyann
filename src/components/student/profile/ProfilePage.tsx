@@ -17,6 +17,8 @@ export interface ProfilePageProps {
   onUploadDocument: (file: File, type: DocumentType) => void;
   onDeleteDocument: (id: string) => void;
   onUploadAvatar?: (file: File) => void;
+  uploadDocumentLoading?: boolean;
+  uploadAvatarLoading?: boolean;
   analysisResult?: AnalysisResult | null;
   analysisLoading?: boolean;
   onAnalyzeProfile?: () => void;
@@ -49,6 +51,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onUploadDocument,
   onDeleteDocument,
   onUploadAvatar,
+  uploadDocumentLoading = false,
+  uploadAvatarLoading = false,
   analysisResult = null,
   analysisLoading = false,
   onAnalyzeProfile,
@@ -91,6 +95,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             profile={profile}
             isComplete={isPersonalComplete}
             onUploadAvatar={onUploadAvatar}
+            uploadAvatarLoading={uploadAvatarLoading}
             onSave={onSaveBasicInfo}
           />
           <RadarChartCard profile={profile} chartData={chartData} />
@@ -117,6 +122,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             isComplete={isDocumentsComplete}
             onUploadDocument={onUploadDocument}
             onDeleteDocument={onDeleteDocument}
+            uploadDocumentLoading={uploadDocumentLoading}
           />
           {onAnalyzeProfile && (
             <ProfileEvaluationSection

@@ -59,6 +59,7 @@ const ChecklistPage: React.FC = () => {
     const [activeStageId, setActiveStageId] = useState<number>(1);
     const [expandedTaskIds, setExpandedTaskIds] = useState<Set<string>>(new Set());
     const [uploadingCV, setUploadingCV] = useState(false);
+    const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
     const [scanningCV, setScanningCV] = useState(false);
     const [scannedProfile, setScannedProfile] = useState<StudentProfile | null>(null);
     const [cvScanError, setCvScanError] = useState<string>('');
@@ -70,7 +71,6 @@ const ChecklistPage: React.FC = () => {
     const fetchChecklistData = useCallback(async () => {
         try {
             setLoadingProgress(true);
-            console.log('📋 Loading real checklist data from API...');
 
             const response = await fetch('/api/student/checklist', {
                 method: 'GET',
@@ -83,8 +83,6 @@ const ChecklistPage: React.FC = () => {
 
             if (result.success && result.data) {
                 const { stages: apiStages, tasks: apiTasks, progress } = result.data;
-
-                console.log('✅ Real data loaded:', { stages: apiStages.length, tasks: apiTasks.length, progress: progress.length });
 
                 // Transform API stages to UI format
                 const transformedStages: Stage[] = apiStages.map((stage: any, index: number) => ({
@@ -146,12 +144,10 @@ const ChecklistPage: React.FC = () => {
     // Sync with test completion status
     const fetchProgress = useCallback(async () => {
         if (!session?.user?.id) {
-            console.log('⏭️ Skipping fetchProgress - no session user ID');
             return;
         }
 
         try {
-            console.log('🔄 Fetching test progress...');
             // Check test completion status
             const testResponse = await fetch('/api/tests/status', {
                 method: 'GET',
@@ -163,7 +159,6 @@ const ChecklistPage: React.FC = () => {
             if (testResponse.ok) {
                 const testResult = await testResponse.json();
                 if (testResult.success) {
-                    console.log('📊 Test status received:', testResult.data);
                     // Update task completion based on test status
                     setTasks(prev => prev.map(task => {
                         let isCompleted = task.isCompleted;
@@ -206,7 +201,6 @@ const ChecklistPage: React.FC = () => {
 
         const handleVisibilityChange = () => {
             if (!document.hidden) {
-                console.log('📍 Page visible again, scheduling refresh...');
                 // Debounce refresh để tránh quá nhiều calls
                 clearTimeout(refreshTimeout);
                 refreshTimeout = setTimeout(() => {
@@ -221,7 +215,6 @@ const ChecklistPage: React.FC = () => {
         const handleFocus = () => {
             // Chỉ refresh khi really cần thiết và không spam
             if (document.visibilityState === 'visible') {
-                console.log('📍 Page focused, scheduling refresh...');
                 clearTimeout(refreshTimeout);
                 refreshTimeout = setTimeout(() => {
                     fetchChecklistData();
@@ -273,8 +266,6 @@ const ChecklistPage: React.FC = () => {
                     t.id === taskId ? { ...t, isCompleted: task.isCompleted } : t
                 ));
                 console.error('Failed to toggle task');
-            } else {
-                console.log('✅ Task toggled successfully');
             }
         } catch (error) {
             // Revert if API call failed
@@ -316,6 +307,7 @@ const ChecklistPage: React.FC = () => {
         if (!file || !studentId) return;
 
         setUploadingCV(true);
+        setUploadingTaskId(taskId);
         setScanningCV(true);
         setCvScanError('');
 
@@ -375,6 +367,7 @@ const ChecklistPage: React.FC = () => {
             ));
         } finally {
             setUploadingCV(false);
+            setUploadingTaskId(null);
             setScanningCV(false);
         }
         event.target.value = '';
@@ -417,7 +410,6 @@ const ChecklistPage: React.FC = () => {
             ));
             setActiveStageId(nextStageId);
             localStorage.setItem('activeStageId', nextStageId.toString());
-            console.log(`🔓 Unlocked and moved to stage: ${nextStageId}`);
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
     };
@@ -430,7 +422,6 @@ const ChecklistPage: React.FC = () => {
             const savedId = parseInt(savedStageId);
             // Validate that saved stage exists and is reasonable
             if (stagesData.find(s => s.id === savedId)) {
-                console.log(`📍 Using saved stage from localStorage: ${savedId}`);
                 return savedId;
             }
         }
@@ -463,9 +454,6 @@ const ChecklistPage: React.FC = () => {
                 break;
             }
         }
-
-        console.log('📊 Stage progress analysis:', stageProgress);
-        console.log(`📍 Auto-selected latest available stage: ${latestStage}`);
 
         return latestStage;
     }, []);
@@ -504,7 +492,6 @@ const ChecklistPage: React.FC = () => {
 
     // Handle stage change with localStorage persistence
     const handleStageChange = useCallback((stageId: number) => {
-        console.log(`📍 User selected stage: ${stageId}`);
         setActiveStageId(stageId);
         localStorage.setItem('activeStageId', stageId.toString());
     }, []);
@@ -796,9 +783,9 @@ const ChecklistPage: React.FC = () => {
                                                                                             type="button"
                                                                                             onClick={() => document.getElementById(`cv-replace-${task.id}`)?.click()}
                                                                                             disabled={uploadingCV}
-                                                                                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium hover:bg-muted"
+                                                                                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium hover:bg-muted disabled:opacity-50"
                                                                                         >
-                                                                                            <RefreshCw size={14}/> Đổi file
+                                                                                            {uploadingTaskId === task.id ? <Loader2 size={14} className="animate-spin"/> : <RefreshCw size={14}/>} Đổi file
                                                                                         </button>
                                                                                         <button
                                                                                             type="button"
@@ -825,7 +812,13 @@ const ChecklistPage: React.FC = () => {
                                                                             </div>
                                                                         ) : (
                                                                             <label htmlFor={`cv-upload-${task.id}`}
-                                                                                   className="relative border-2 border-dashed border-border bg-muted/30 hover:bg-primary/5 hover:border-primary/40 rounded-xl p-6 transition-colors cursor-pointer group/upload block">
+                                                                                   className={`relative border-2 border-dashed border-border bg-muted/30 hover:bg-primary/5 hover:border-primary/40 rounded-xl p-6 transition-colors block ${uploadingTaskId === task.id ? 'cursor-wait' : 'cursor-pointer group/upload'}`}>
+                                                                                {uploadingTaskId === task.id && (
+                                                                                    <div className="absolute inset-0 bg-background/80 z-10 flex flex-col items-center justify-center rounded-xl">
+                                                                                        <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
+                                                                                        <span className="text-sm font-medium text-foreground">Đang tải lên...</span>
+                                                                                    </div>
+                                                                                )}
                                                                                 <input
                                                                                     id={`cv-upload-${task.id}`}
                                                                                     type="file"

@@ -9,11 +9,9 @@ import { getMentorStudents } from '@/actions/mentor';
  */
 export async function GET() {
   try {
-    console.log('[API] /api/mentor/students called');
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
-      console.log('[API] /api/mentor/students - Unauthorized: No session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -21,11 +19,9 @@ export async function GET() {
     if (!mentorId) {
       return NextResponse.json({ error: 'User ID not found' }, { status: 400 });
     }
-    console.log(`[API] /api/mentor/students - Fetching for mentor: ${mentorId}`);
 
     // Sử dụng server action để lấy danh sách học viên với progress được tính toán
     const students = await getMentorStudents(mentorId);
-    console.log(`[API] /api/mentor/students - Found ${students.length} students`);
 
     return NextResponse.json(students);
   } catch (error) {

@@ -1,19 +1,13 @@
 /**
  * Centralized logging utility
- * Only logs warnings and errors in production
+ * Only warn and error are output; info/debug are no-op.
  */
-
-const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const logger = {
   /**
-   * Log info (only in development)
+   * Log info (disabled - use warn/error only)
    */
-  info: (...args: any[]) => {
-    if (isDevelopment) {
-      console.log(...args);
-    }
-  },
+  info: () => {},
 
   /**
    * Log warning (always)
@@ -30,11 +24,7 @@ export const logger = {
   },
 
   /**
-   * Log debug (only in development)
+   * Log debug (disabled - use warn/error only)
    */
-  debug: (...args: any[]) => {
-    if (isDevelopment) {
-      console.log('[DEBUG]', ...args);
-    }
-  },
+  debug: () => {},
 };

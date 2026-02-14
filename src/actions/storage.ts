@@ -34,8 +34,6 @@ interface SignedUrlResult {
  */
 export async function getSignedUrl(filePath: string): Promise<SignedUrlResult> {
   try {
-    console.log('🔐 [getSignedUrl] Generating signed URL for:', filePath)
-
     // Validate input
     if (!filePath || filePath.trim() === '') {
       return {
@@ -67,8 +65,6 @@ export async function getSignedUrl(filePath: string): Promise<SignedUrlResult> {
         error: 'No signed URL returned from storage',
       }
     }
-
-    console.log('✅ [getSignedUrl] Success:', data.signedUrl.substring(0, 80) + '...')
 
     return {
       success: true,

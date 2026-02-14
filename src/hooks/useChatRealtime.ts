@@ -100,15 +100,8 @@ export function useChatRealtime<T extends FormattedMessage>(
     const newMessage = payload.new;
     const messageId = newMessage.id;
 
-    console.log('📩 [REALTIME INSERT]', {
-      messageId,
-      senderId: newMessage.sender_id,
-      isFromCurrentUser: newMessage.sender_id === currentUserId,
-    });
-
     // Prevent duplicate processing
     if (processedIdsRef.current.has(messageId)) {
-      console.log('⏭️ [SKIP] Already processed:', messageId);
       return;
     }
 
@@ -125,7 +118,6 @@ export function useChatRealtime<T extends FormattedMessage>(
       const exists = prev.some((msg) => msg.id === messageId);
 
       if (exists) {
-        console.log('⏭️ [SKIP] Message already in state:', messageId);
         return prev;
       }
 
@@ -148,7 +140,6 @@ export function useChatRealtime<T extends FormattedMessage>(
         return prev;
       }
 
-      console.log('✅ [ADD MESSAGE]', messageId);
       return [...prev, fullMessage as T];
     });
 
@@ -162,8 +153,6 @@ export function useChatRealtime<T extends FormattedMessage>(
   const handleUpdate = useCallback((payload: { new: ChatMessage; old: ChatMessage }) => {
     const updatedMessage = payload.new;
     const messageId = updatedMessage.id;
-
-    console.log('📝 [REALTIME UPDATE]', messageId);
 
     setMessages((prev) =>
       prev.map((msg) => {
@@ -192,8 +181,6 @@ export function useChatRealtime<T extends FormattedMessage>(
     const deletedMessage = payload.old;
     const messageId = deletedMessage.id;
 
-    console.log('🗑️ [REALTIME DELETE]', messageId);
-
     setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
 
     // Trigger callback
@@ -205,11 +192,8 @@ export function useChatRealtime<T extends FormattedMessage>(
   // Setup Supabase Realtime subscription
   useEffect(() => {
     if (!enabled || !roomId || !currentUserId) {
-      console.log('⏸️ [REALTIME] Disabled or missing required params');
       return;
     }
-
-    console.log('🔌 [REALTIME] Setting up subscription for room:', roomId);
 
     // Create unique channel name
     const channelName = `chat-room:${roomId}:${Date.now()}`;
@@ -237,13 +221,7 @@ export function useChatRealtime<T extends FormattedMessage>(
         handleDelete
       )
       .subscribe((status: string) => {
-        console.log(`📡 [REALTIME] Subscription status:`, status);
-
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ [REALTIME] Successfully subscribed');
-        } else if (status === 'CLOSED') {
-          console.log('❌ [REALTIME] Subscription closed');
-        } else if (status === 'CHANNEL_ERROR') {
+        if (status === 'CHANNEL_ERROR') {
           console.error('❌ [REALTIME] Channel error');
         }
       });
@@ -252,8 +230,6 @@ export function useChatRealtime<T extends FormattedMessage>(
 
     // Cleanup function
     return () => {
-      console.log(`🔌 [REALTIME] Cleaning up subscription for room: ${roomId}`);
-
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;

@@ -391,7 +391,6 @@ const SchoolCategorySection: React.FC<{ category: School['category'] }> = ({cate
                                         value={school.status || 'Đang tìm hiểu'}
                                         onChange={(e) => {
                                             // Handle status change
-                                            console.log('Status changed:', e.target.value);
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-1 ${getStatusBadgeColor(school.status)}`}
                                     >

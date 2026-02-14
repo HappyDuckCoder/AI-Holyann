@@ -16,8 +16,6 @@ export async function createBucketIfNotExists() {
 
     const bucketName = 'hoex-documents';
 
-    console.log('🔍 Checking if bucket exists:', bucketName);
-
     // Check if bucket exists
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
 
@@ -29,7 +27,6 @@ export async function createBucketIfNotExists() {
     const bucketExists = buckets?.find(bucket => bucket.name === bucketName);
 
     if (bucketExists) {
-      console.log('✅ Bucket already exists:', bucketName);
       return {
         success: true,
         message: `Bucket '${bucketName}' already exists`,
@@ -39,8 +36,6 @@ export async function createBucketIfNotExists() {
     }
 
     // Create bucket if it doesn't exist
-    console.log('🔨 Creating bucket:', bucketName);
-
     const { data: newBucket, error: createError } = await supabase.storage.createBucket(bucketName, {
       public: true, // Make it public so files can be accessed directly
       allowedMimeTypes: [
@@ -58,8 +53,6 @@ export async function createBucketIfNotExists() {
       console.error('❌ Error creating bucket:', createError);
       return { success: false, error: `Failed to create bucket: ${createError.message}` };
     }
-
-    console.log('✅ Bucket created successfully:', newBucket);
 
     return {
       success: true,

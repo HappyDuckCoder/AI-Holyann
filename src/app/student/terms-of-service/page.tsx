@@ -22,19 +22,8 @@ export default function TermsOfServicePage() {
       const scrollPosition = scrollTop + clientHeight
       const isAtBottom = scrollPosition >= scrollHeight - 50
 
-      // Debug logging
-      console.log('📜 Scroll Debug:', {
-        scrollTop,
-        clientHeight,
-        scrollHeight,
-        scrollPosition,
-        threshold: scrollHeight - 50,
-        isAtBottom
-      })
-
       if (isAtBottom) {
         setHasScrolledToBottom(true)
-        console.log('✅ Reached bottom!')
       }
     }
 

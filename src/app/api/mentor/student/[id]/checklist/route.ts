@@ -12,7 +12,6 @@ export async function GET(
   try {
     const { id: studentId } = await params;
 
-    console.log('🔍 API: Getting checklist for student:', studentId);
 
     const result = await getStudentChecklist(studentId);
 

@@ -56,7 +56,6 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log('✅ Test message created:', message.id);
 
     return NextResponse.json({
       success: true,

@@ -3,8 +3,6 @@ import { uploadFileServerAction } from '@/actions/upload'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🖼️ Avatar Upload API called...')
-
     const formData = await request.formData()
     const avatar = formData.get('avatar') as File
     const userId = formData.get('userId') as string
@@ -45,19 +43,10 @@ export async function POST(request: NextRequest) {
     uploadFormData.append('folder', 'avatars') // Store avatars in avatars folder
     uploadFormData.append('userId', userId)
 
-    console.log('📁 Uploading avatar for user:', userId)
-    console.log('📄 File details:', {
-      name: avatar.name,
-      size: avatar.size,
-      type: avatar.type
-    })
-
     // Use existing upload action
     const result = await uploadFileServerAction(uploadFormData)
 
     if (result.success) {
-      console.log('✅ Avatar upload successful:', result.url)
-
       // TODO: Update user avatar_url in database
       // You can add database update logic here
       // For example:

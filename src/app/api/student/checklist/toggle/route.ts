@@ -49,7 +49,6 @@ export async function POST(request: Request) {
             }
         })
 
-        console.log('✅ Task progress updated:', taskProgress)
 
         return NextResponse.json({
             success: true,

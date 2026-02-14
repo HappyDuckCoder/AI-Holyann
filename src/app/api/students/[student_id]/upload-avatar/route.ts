@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import { existsSync } from 'fs';
+import { uploadFileServerAction } from '@/actions/upload';
 import { prisma } from '@/lib/prisma';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -29,28 +27,30 @@ export async function POST(
       );
     }
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'avatars');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+    uploadFormData.append('userId', student_id);
+    uploadFormData.append('folder', 'avatars');
+
+    const result = await uploadFileServerAction(uploadFormData);
+
+    if (!result.success || !result.url) {
+      return NextResponse.json(
+        { error: result.error || 'Lỗi khi tải ảnh lên' },
+        { status: 500 }
+      );
     }
 
-    const ext = path.extname(file.name) || '.jpg';
-    const fileName = `avatar_${student_id}_${Date.now()}${ext}`;
-    const filePath = path.join(uploadDir, fileName);
-
-    const bytes = await file.arrayBuffer();
-    await writeFile(filePath, Buffer.from(bytes));
-
-    const fileUrl = `/uploads/avatars/${fileName}`;
+    const avatarUrl = result.url;
 
     await prisma.users.update({
       where: { id: student_id },
-      data: { avatar_url: fileUrl },
+      data: { avatar_url: avatarUrl },
     });
 
     return NextResponse.json({
       success: true,
-      avatarUrl: fileUrl,
+      avatarUrl,
       message: 'Cập nhật ảnh đại diện thành công',
     });
   } catch (error) {

@@ -61,7 +61,6 @@ export default function TestsPage() {
     const sessionUserId =
       (session?.user as any)?.id || (session?.user as any)?.user_id;
     if (sessionUserId) {
-      console.log("✅ Got student ID from NextAuth session:", sessionUserId);
       return sessionUserId as string;
     }
 
@@ -108,8 +107,6 @@ export default function TestsPage() {
       return;
     }
 
-    console.log("🚀 Starting test:", type, "for student:", studentId);
-
     try {
       const res = await fetch("/api/tests", {
         method: "POST",
@@ -119,8 +116,6 @@ export default function TestsPage() {
           test_type: type.toLowerCase(),
         }),
       });
-
-      console.log("API Responseeeeeee:", res);
 
       if (!res.ok) {
         const errorText = await res.text();
@@ -132,7 +127,6 @@ export default function TestsPage() {
       }
 
       const data = await res.json();
-      console.log("API Response:", data);
 
       if (!data.success) {
         console.error("Test creation failed:", data.error);
@@ -184,12 +178,6 @@ export default function TestsPage() {
       return;
     }
 
-    console.log("📤 [Submit] Submitting all answers at once:", {
-      test_id: currentTestId,
-      test_type: testType,
-      count: Object.keys(answers).length,
-    });
-
     // Gửi TẤT CẢ đáp án trong 1 API call duy nhất
     const response = await fetch("/api/tests/submit", {
       method: "POST",
@@ -213,7 +201,6 @@ export default function TestsPage() {
       throw new Error(data.error || "Failed to submit test");
     }
 
-    console.log("✅ [Submit] Success:", data.result);
     toast.success("Nộp bài test thành công", {
       description: "Đáp án của bạn đã được lưu. Đang xử lý kết quả...",
     });
@@ -232,12 +219,6 @@ export default function TestsPage() {
     // Sử dụng hàm tính điểm từ file mbti-questions.ts
     const result = calculateMBTIScores(numericAnswers);
     const typeInfo = MBTI_TYPE_DESCRIPTIONS[result.type];
-
-    console.log("📊 [MBTI Result]", {
-      type: result.type,
-      percentages: result.percentages,
-      rawScores: result.scores,
-    });
 
     return {
       type: "MBTI",
@@ -260,13 +241,6 @@ export default function TestsPage() {
 
     // Sử dụng hàm tính điểm từ file grit-questions.ts
     const result = calculateGritScores(numericAnswers);
-
-    console.log("📊 [GRIT Result]", {
-      gritScore: result.gritScore,
-      passionScore: result.passionScore,
-      perseveranceScore: result.perseveranceScore,
-      level: result.level.level,
-    });
 
     // Tạo description chi tiết
     const passionInfo = GRIT_COMPONENTS.passion;
@@ -305,12 +279,6 @@ export default function TestsPage() {
     const result = calculateRIASECScores(booleanAnswers);
     const codeInfo = getHollandCodeDescription(result.hollandCode);
 
-    console.log("📊 [RIASEC Result]", {
-      hollandCode: result.hollandCode,
-      percentages: result.percentages,
-      topThree: result.topThree,
-    });
-
     // Tạo description từ top 3 categories
     const topCategoriesDesc = result.topThree
       .map((t) => `${RIASEC_CATEGORIES[t.category].name_vi} (${t.category})`)
@@ -346,11 +314,6 @@ export default function TestsPage() {
       // For MBTI, API submit đã gọi MBTI API và lưu scores vào DB
       if (currentTestType === "MBTI") {
         if (apiResult && apiResult.result_type && apiResult.scores) {
-          console.log(
-            "✅ [MBTI] AI prediction received from submit API:",
-            apiResult.result_type
-          );
-
           const typeInfo = MBTI_TYPE_DESCRIPTIONS[apiResult.result_type] || {
             title: apiResult.result_type,
             description: "Đang cập nhật mô tả...",

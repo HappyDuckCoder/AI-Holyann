@@ -19,14 +19,11 @@ export async function GET(
     try {
         const { student_id } = await params;
 
-        console.log('📋 [API] Fetching profile for student_id:', student_id);
-
         if (!student_id) {
              throw new Error('Student ID is missing');
         }
 
         // Lấy thông tin từ users
-        console.log('🔍 [API] Querying database for user...');
         let user: any;
         try {
             // Step 1: Fetch basic user info
@@ -43,7 +40,6 @@ export async function GET(
             }
 
             // Step 2: Fetch student details separately to avoid nested include issues
-            console.log('🔍 [API] Fetching student record directly...');
             const studentRecordPromise = prisma.students.findUnique({
                 where: { user_id: student_id }
             });
@@ -53,7 +49,6 @@ export async function GET(
 
             if (studentRecord) {
                 // Fetch background
-                console.log('🔍 [API] Fetching background...');
                 const background = await prisma.student_backgrounds.findUnique({
                     where: { student_id: student_id },
                     include: {
@@ -69,19 +64,16 @@ export async function GET(
                 });
 
                 // Fetch Academic Profile
-                console.log('🔍 [API] Fetching academic profile...');
                 const academicProfile = await prisma.student_academic_profiles.findUnique({
                     where: { student_id: student_id }
                 });
 
                 // Fetch Parents
-                console.log('🔍 [API] Fetching parents...');
                 const parents = await prisma.student_parents.findMany({
                     where: { student_id: student_id }
                 });
 
                 // Fetch Skills
-                console.log('🔍 [API] Fetching skills...');
                 const skills = await prisma.student_skills.findMany({
                     where: { student_id: student_id }
                 });
@@ -105,18 +97,10 @@ export async function GET(
             throw new Error(`Database error: ${dbError.message}`);
         }
 
-        console.log('✅ [API] User processing:', {
-            id: user.id,
-            email: user.email,
-            hasStudentRecord: !!user.students
-        });
-
         // Nếu chưa có student record, tự động tạo
         if (!user.students) {
-            console.log('⚠️ [API] No student record found, creating one...');
 
             try {
-                console.log('🛠️ [API] Creating new student record...');
                 const newStudent = await prisma.students.create({
                     data: {
                         user_id: student_id,
@@ -141,18 +125,14 @@ export async function GET(
                     }
                 });
 
-                console.log('✅ [API] Student record created successfully');
                 // Update user object with new student record
                 // @ts-ignore
                 user.students = newStudent;
-                console.log('✅ [API] User object updated with new student');
             } catch (createError) {
                 console.error('❌ [API] Failed to create student record detailed:', createError);
                 // Continue with user data only
             }
         }
-
-        console.log('📊 [API] Processing profile data...');
 
         // Kiểm tra thông tin cơ bản đã đủ chưa
         const basicInfoComplete = !!(
@@ -214,13 +194,6 @@ export async function GET(
             }
         };
 
-        console.log('📤 [API] Returning profile data:', {
-            hasBasicInfo: basicInfoComplete,
-            hasAcademicInfo,
-            hasExtracurriculars,
-            isNewStudent: response.status.isNewStudent
-        });
-
         return NextResponse.json(response);
     } catch (error: any) {
         console.error('❌ Error fetching student profile:', error);
@@ -241,9 +214,6 @@ export async function PATCH(
         const { student_id } = await params;
         const body = await request.json();
 
-        console.log('🔄 [Profile Update] Updating profile for student_id:', student_id);
-        console.log('📝 [Profile Update] Fields to update:', body);
-
         if (!student_id) {
             return NextResponse.json(
                 { success: false, error: 'Student ID is required' },
@@ -255,7 +225,6 @@ export async function PATCH(
 
         // Handle avatar update (new functionality)
         if (avatarUrl !== undefined) {
-            console.log('📸 [Profile Update] Updating avatar URL...');
             await prisma.users.update({
                 where: { id: student_id },
                 data: {
@@ -327,8 +296,6 @@ export async function PATCH(
                 }
             });
         }
-
-        console.log('✅ [Profile Update] Profile updated successfully');
 
         return NextResponse.json({
             success: true,

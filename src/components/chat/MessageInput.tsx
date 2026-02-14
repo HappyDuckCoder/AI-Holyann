@@ -72,7 +72,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             }
 
             setUploadProgress(50);
-            console.log('✅ File uploaded:', uploadResult.url);
 
             // Step 2: Send message with attachment
             const messageType = await getMessageTypeFromMime(file.type);
@@ -107,7 +106,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 onMessageSent();
             }
 
-            console.log('✅ Message sent with attachment:', result.message);
         } catch (error) {
             console.error('❌ Upload/send error:', error);
             toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra!', { id: 'upload' });

@@ -1206,7 +1206,7 @@ export default function ImprovePage() {
                             </div>
                           </div>
                           <a
-                            href={`/uploads/cvs/${doc.id}`}
+                            href={(doc as { url?: string }).url || `/uploads/cvs/${doc.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="shrink-0 flex items-center gap-1 text-xs font-medium text-primary hover:underline"
@@ -1219,7 +1219,14 @@ export default function ImprovePage() {
                   ) : null}
 
                   {cvList.length === 0 ? (
-                    <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                    <div className="relative border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                      {cvUploading && (
+                        <div className="absolute inset-0 bg-background/80 z-10 flex flex-col items-center justify-center rounded-2xl">
+                          <Loader2 className="h-12 w-12 text-primary animate-spin mb-3" />
+                          <p className="text-sm font-medium text-foreground">Đang tải lên...</p>
+                          <p className="text-xs text-muted-foreground mt-1">Vui lòng đợi</p>
+                        </div>
+                      )}
                       <input
                         id="improve-cv-upload"
                         type="file"
@@ -1228,14 +1235,13 @@ export default function ImprovePage() {
                         onChange={handleCVUpload}
                         disabled={cvUploading}
                       />
-                      <label htmlFor="improve-cv-upload" className="cursor-pointer block">
-                        {cvUploading ? (
-                          <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin mb-3" />
-                        ) : (
-                          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                        )}
+                      <label
+                        htmlFor="improve-cv-upload"
+                        className={`block ${cvUploading ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
+                      >
+                        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                         <p className="text-sm font-medium text-foreground mb-1">
-                          {cvUploading ? 'Đang tải lên...' : 'Chọn file CV (PDF, DOC, DOCX hoặc ảnh)'}
+                          Chọn file CV (PDF, DOC, DOCX hoặc ảnh)
                         </p>
                         <p className="text-xs text-muted-foreground">Tối đa 5MB. Sẽ đồng bộ với Checklist.</p>
                       </label>

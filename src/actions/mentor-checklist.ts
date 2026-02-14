@@ -71,8 +71,6 @@ interface UpdateTaskStatusResult {
  */
 export async function getStudentChecklist(studentId: string): Promise<StudentChecklistResult> {
   try {
-    console.log('🔍 Getting student checklist for:', studentId)
-
     // Validate input
     if (!studentId) {
       return {
@@ -171,13 +169,6 @@ export async function getStudentChecklist(studentId: string): Promise<StudentChe
 
     const stages = Array.from(stagesMap.values()).sort((a, b) => a.order_index - b.order_index)
 
-    console.log('✅ Successfully loaded checklist:', {
-      studentId,
-      totalTasks: flatTasks.length,
-      totalStages: stages.length,
-      tasksWithProgress: flatTasks.filter(t => t.progress).length
-    })
-
     return {
       success: true,
       data: {
@@ -215,8 +206,6 @@ export async function updateStudentTaskStatus(
   mentorNote?: string
 ): Promise<UpdateTaskStatusResult> {
   try {
-    console.log('🔄 Updating task status:', { studentId, taskId, newStatus, mentorNote })
-
     // Validate inputs
     if (!studentId) {
       return {
@@ -303,15 +292,6 @@ export async function updateStudentTaskStatus(
     revalidatePath(`/mentor/students/${studentId}`)
     revalidatePath('/student/checklist') // For student view if they're logged in
 
-    console.log('✅ Successfully updated task status:', {
-      studentId,
-      taskId,
-      taskTitle: task.title,
-      oldStatus: 'unknown', // We don't have old status in this context
-      newStatus,
-      progressId: updatedProgress.id
-    })
-
     return {
       success: true,
       data: {
@@ -338,8 +318,6 @@ export async function updateStudentTaskStatus(
  */
 export async function getStudentProgressStats(studentId: string) {
   try {
-    console.log('📊 Getting progress stats for student:', studentId)
-
     if (!studentId) {
       return {
         success: false,
@@ -370,13 +348,6 @@ export async function getStudentProgressStats(studentId: string) {
     const pendingTasks = totalTasks - (completedTasks + submittedTasks + inProgressTasks + needsRevisionTasks)
 
     const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-
-    console.log('✅ Progress stats calculated:', {
-      studentId,
-      totalTasks,
-      completedTasks,
-      completionPercentage
-    })
 
     return {
       success: true,

@@ -71,7 +71,6 @@ export default function StudentDetail({ studentId }: StudentDetailProps) {
         })
 
         // Optionally show success message
-        console.log('Avatar updated successfully!')
       } else {
         throw new Error(result.error || 'Upload failed')
       }

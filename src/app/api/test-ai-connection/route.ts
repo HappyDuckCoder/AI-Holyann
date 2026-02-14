@@ -7,9 +7,6 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   const AI_SERVER_URL = process.env.AI_SERVER_URL || "http://127.0.0.1:8000";
   
-  console.log("🔍 [Test AI Connection] Starting connection test...");
-  console.log("🔍 [Test AI Connection] AI_SERVER_URL:", AI_SERVER_URL);
-  
   const tests = [
     {
       name: "Root endpoint",
@@ -33,9 +30,6 @@ export async function GET(request: NextRequest) {
 
   for (const test of tests) {
     try {
-      console.log(`\n🧪 Testing: ${test.name}`);
-      console.log(`📍 URL: ${test.url}`);
-      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
@@ -57,9 +51,6 @@ export async function GET(request: NextRequest) {
       } catch (e) {
         body = "Could not read response body";
       }
-      
-      console.log(`✅ Response status: ${status}`);
-      console.log(`📄 Response body (first 200 chars):`, body.substring(0, 200));
       
       results.push({
         test: test.name,

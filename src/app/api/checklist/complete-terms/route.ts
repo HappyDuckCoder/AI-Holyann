@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📜 [Terms] Student ${student_id} completed reading terms`);
 
     // Auto-complete the checklist task with link containing 'terms'
     const result = await autoCompleteChecklistTask(student_id, 'terms');

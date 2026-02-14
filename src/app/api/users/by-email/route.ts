@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        console.log('🔍 [API] Fetching user by email:', email);
 
         const user = await prisma.users.findUnique({
             where: { email },
@@ -38,7 +37,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        console.log('✅ [API] User found:', user.id);
 
         return NextResponse.json(user);
     } catch (error) {

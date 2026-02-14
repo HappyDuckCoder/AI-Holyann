@@ -71,12 +71,12 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
 
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.1);
-        } catch (err) {
-          console.log('Could not play notification sound');
+        } catch (_err) {
+          // Could not play notification sound
         }
       });
-    } catch (err) {
-      console.log('Could not play notification sound');
+    } catch (_err) {
+      // Could not play notification sound
     }
   }, [playSound]);
 
@@ -145,8 +145,6 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
         tempId, // Store temp ID for tracking
       };
 
-      console.log('📤 [OPTIMISTIC UI] Adding message immediately:', tempId);
-
       // Add to state immediately for instant feedback
       setMessages((prev) => [...prev, optimisticMessage]);
 
@@ -177,8 +175,6 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             isFromMe: true,
             isPending: false,
           };
-
-          console.log('✅ [SERVER CONFIRM] Message sent successfully:', realMessage.id);
 
           // Map temp ID to real ID
           pendingMessagesRef.current.set(tempId, realMessage.id);
@@ -263,8 +259,6 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
   useEffect(() => {
     if (!roomId) return;
 
-    console.log('🔌 [REALTIME] Setting up subscription for room:', roomId);
-
     let retryCount = 0;
     const maxRetries = 3;
     let retryTimeout: NodeJS.Timeout;
@@ -287,13 +281,10 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             filter: `room_id=eq.${roomId}`,
           },
           async (payload) => {
-            console.log('📩 [REALTIME] New message received:', payload.new);
-
             const newMessageId = payload.new.id as string;
 
             // Skip if already processed (from optimistic UI)
             if (processedMessagesRef.current.has(newMessageId)) {
-              console.log('⏭️ [SKIP] Message already processed (optimistic UI):', newMessageId);
               return;
             }
 
@@ -301,7 +292,6 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             if (payload.new.sender_id === userId) {
               const hasPendingMessages = Array.from(pendingMessagesRef.current.values()).includes(newMessageId);
               if (hasPendingMessages) {
-                console.log('⏭️ [SKIP] Own message already shown via optimistic UI');
                 return;
               }
             }
@@ -310,12 +300,8 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             setMessages((prev) => {
               const exists = prev.some(m => m.id === newMessageId);
               if (exists) {
-                console.log('⏭️ [SKIP] Message already in state:', newMessageId);
                 return prev;
               }
-
-              // This is a new message from another user
-              console.log('📥 [ADD] Adding new message from other user');
 
               // Mark as processed
               processedMessagesRef.current.add(newMessageId);
@@ -369,8 +355,6 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             filter: `room_id=eq.${roomId}`,
           },
           (payload) => {
-            console.log('📝 [REALTIME] Message updated:', payload.new);
-
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === payload.new.id
@@ -386,18 +370,12 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
           }
         )
         .subscribe((status) => {
-          console.log(`📡 [REALTIME] Subscription status for room ${roomId}:`, status);
-
           if (status === 'SUBSCRIBED') {
-            console.log('✅ [REALTIME] Successfully subscribed to room');
             retryCount = 0; // Reset retry count on success
           } else if (status === 'CLOSED') {
-            console.log('⚠️ [REALTIME] Subscription closed');
-
             // Attempt to reconnect
             if (retryCount < maxRetries) {
               retryCount++;
-              console.log(`🔄 [REALTIME] Attempting to reconnect (${retryCount}/${maxRetries})...`);
 
               retryTimeout = setTimeout(() => {
                 if (channelRef.current) {
@@ -417,7 +395,6 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             // Attempt retry on channel error
             if (retryCount < maxRetries) {
               retryCount++;
-              console.log(`🔄 [REALTIME] Retrying after channel error (${retryCount}/${maxRetries})...`);
 
               retryTimeout = setTimeout(() => {
                 if (channelRef.current) {
@@ -441,8 +418,6 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
 
     // Cleanup
     return () => {
-      console.log(`🔌 [REALTIME] Cleaning up subscription for room ${roomId}`);
-
       if (retryTimeout) {
         clearTimeout(retryTimeout);
       }

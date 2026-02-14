@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
             }, {status: 400})
         }
 
-        console.log('🔍 Creating student profile for user_id:', user_id)
 
         // Check if student already exists using Prisma
         const existingStudent = await prisma.students.findUnique({
@@ -20,7 +19,6 @@ export async function POST(request: NextRequest) {
         })
 
         if (existingStudent) {
-            console.log('✅ Student profile already exists')
             return NextResponse.json({
                 success: true,
                 message: 'Student profile already exists',
@@ -37,7 +35,6 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        console.log('✅ Student profile created:', newStudent)
 
         return NextResponse.json({
             success: true,

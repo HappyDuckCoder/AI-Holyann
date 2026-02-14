@@ -28,14 +28,6 @@ export async function sendMessageWithAttachment(
   fileData?: FileData
 ): Promise<SendMessageResult> {
   try {
-    console.log('📤 [sendMessageWithAttachment] Starting...', {
-      roomId,
-      senderId,
-      type,
-      hasContent: !!content,
-      hasFile: !!fileData,
-    })
-
     // Validate required fields
     if (!roomId || !senderId) {
       return {
@@ -80,8 +72,6 @@ export async function sendMessageWithAttachment(
         },
       })
 
-      console.log('✅ Message created:', message.id)
-
       // 2. Create attachment if fileData provided
       let attachment = null
       if (fileData) {
@@ -95,8 +85,6 @@ export async function sendMessageWithAttachment(
             thumbnail_url: fileData.thumbnail || null,
           },
         })
-
-        console.log('✅ Attachment created:', attachment.id)
       }
 
       // 3. Update room's updated_at timestamp
@@ -159,8 +147,6 @@ export async function sendMessageWithAttachment(
         thumbnail: att.thumbnail_url,
       })),
     }
-
-    console.log('✅ [sendMessageWithAttachment] Success')
 
     return {
       success: true,

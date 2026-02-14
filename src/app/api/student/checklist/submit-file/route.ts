@@ -57,7 +57,6 @@ export async function POST(request: Request) {
             }
         })
 
-        console.log('✅ File task submitted:', taskProgress)
 
         return NextResponse.json({
             success: true,

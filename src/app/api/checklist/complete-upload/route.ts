@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📁 [FileUpload] Student ${student_id} uploaded file for task ${task_id}`);
 
     // For now, we'll use a generic approach to complete any file upload task
     // In the future, you might want to be more specific about which tasks can be auto-completed

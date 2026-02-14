@@ -140,7 +140,6 @@ export async function POST(request: NextRequest) {
       throw createError; // Re-throw other errors
     }
 
-    console.log(`✅ Created new ${testType.toUpperCase()} test:`, newTest?.id);
 
     return NextResponse.json({
       success: true,

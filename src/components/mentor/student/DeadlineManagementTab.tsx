@@ -61,7 +61,6 @@ export default function DeadlineManagementTab({ studentId }: DeadlineManagementT
 
   const handleDeadlineChange = async (taskId: string, newDeadline: string) => {
     // TODO: Implement API call to update deadline
-    console.log('Update deadline for task:', taskId, 'to:', newDeadline);
     
     setTasks((prev) =>
       prev.map((task) =>
@@ -74,7 +73,6 @@ export default function DeadlineManagementTab({ studentId }: DeadlineManagementT
 
   const handleStatusChange = async (taskId: string, newStatus: Task['status']) => {
     // TODO: Implement API call to update status
-    console.log('Update status for task:', taskId, 'to:', newStatus);
     
     setTasks((prev) =>
       prev.map((task) =>
@@ -87,7 +85,6 @@ export default function DeadlineManagementTab({ studentId }: DeadlineManagementT
     if (!confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này?')) return;
     
     // TODO: Implement API call to delete task
-    console.log('Delete task:', taskId);
     
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
   };

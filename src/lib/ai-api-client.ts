@@ -59,15 +59,6 @@ export async function callAIAPI<T = any>(
   }
 
   try {
-    // Log request details for debugging
-    console.log(`🔄 [AI API] ${method} ${url}`);
-    if (body) {
-      console.log(
-        `📤 [AI API] Request body:`,
-        JSON.stringify(body).substring(0, 200),
-      );
-    }
-
     const response = await fetch(url, fetchOptions);
 
     if (!response.ok) {
@@ -107,7 +98,6 @@ export async function callAIAPI<T = any>(
     }
 
     const data = await response.json();
-    console.log(`✅ [AI API] Success ${response.status}`);
     return data;
   } catch (error) {
     console.error(`❌ [AI API] Request failed:`, error);

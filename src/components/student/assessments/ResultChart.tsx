@@ -12,7 +12,6 @@ interface ResultChartProps {
 
 const ResultChart: React.FC<ResultChartProps> = ({result}) => {
     // Debug log
-    console.log('📊 [ResultChart] Received result:', result);
 
     // --- Data Preparation Logic ---
 

@@ -26,21 +26,10 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
     const isRedirecting = useRef(false)
 
     useEffect(() => {
-        console.log('🛡️ [RoleGuard] Auth Check:', {
-            authReady,
-            isAuthenticated,
-            user,
-            userRole: user?.role,
-            allowedRoles,
-            pathname,
-            hasRole: hasRole(allowedRoles)
-        });
-
         if (!authReady) return // wait until auth status is known
         if (isRedirecting.current) return // avoid triggering multiple redirects
 
         if (!isAuthenticated) {
-            console.log('❌ [RoleGuard] Not authenticated, redirecting to:', redirectTo);
             if (pathname !== redirectTo) {
                 isRedirecting.current = true
                 router.replace(redirectTo)

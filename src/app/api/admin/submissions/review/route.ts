@@ -5,7 +5,6 @@ export async function POST(request: NextRequest) {
     try {
         const { submissionId, status, mentorNote } = await request.json();
 
-        console.log('📝 Admin: Reviewing submission:', { submissionId, status, mentorNote });
 
         // Validate input
         if (!submissionId || !status) {
@@ -54,7 +53,6 @@ export async function POST(request: NextRequest) {
         });
 
         const action = status === 'COMPLETED' ? 'approved' : 'requested revision for';
-        console.log(`✅ Successfully ${action} submission for student: ${updatedSubmission.student.users.full_name}`);
 
         // TODO: Send notification to student about the review result
         // This could be email, in-app notification, etc.

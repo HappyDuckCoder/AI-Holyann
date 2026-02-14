@@ -15,8 +15,6 @@ export class SyncService {
         message: string
     }> {
         try {
-            console.log('🔄 [SyncService] Starting user sync from Supabase to Local DB...')
-
             // Lấy tất cả users từ Supabase
             const {data: supabaseUsers, error} = await supabase
                 .from('users')
@@ -74,7 +72,6 @@ export class SyncService {
                         }
                     })
                     synced++
-                    console.log(`✅ [SyncService] Synced user: ${user.email}`)
                 } catch (error: unknown) {
                     failed++
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -82,7 +79,6 @@ export class SyncService {
                 }
             }
 
-            console.log(`✅ [SyncService] Sync completed: ${synced} synced, ${failed} failed`)
             return {
                 success: true,
                 synced,
@@ -111,8 +107,6 @@ export class SyncService {
         message: string
     }> {
         try {
-            console.log('🔄 [SyncService] Starting user sync from Local DB to Supabase...')
-
             // Lấy tất cả users từ Local DB
             const localUsers = await prisma.users.findMany()
 
@@ -180,7 +174,6 @@ export class SyncService {
                     }
 
                     synced++
-                    console.log(`✅ [SyncService] Synced user to Supabase: ${user.email}`)
                 } catch (error: unknown) {
                     failed++
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -188,7 +181,6 @@ export class SyncService {
                 }
             }
 
-            console.log(`✅ [SyncService] Sync completed: ${synced} synced, ${failed} failed`)
             return {
                 success: true,
                 synced,

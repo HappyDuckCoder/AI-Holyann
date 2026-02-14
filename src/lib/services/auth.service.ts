@@ -32,10 +32,6 @@ export class AuthService {
                 // Wait a bit for student creation to complete
                 await new Promise(resolve => setTimeout(resolve, 500));
                 studentData = await DatabaseService.findStudentByUserId(user.id);
-                console.log('📋 [Auth] Student data created:', {
-                    hasStudent: !!studentData,
-                    userId: user.id
-                });
             }
 
             // Tạo JWT token
@@ -121,10 +117,6 @@ export class AuthService {
             let studentData = null;
             if (user.role === 'STUDENT') {
                 studentData = await DatabaseService.findStudentByUserId(user.id);
-                console.log('📋 [Auth] Student data fetched:', {
-                    hasStudent: !!studentData,
-                    userId: user.id
-                });
             }
 
             // Tạo JWT token
@@ -175,19 +167,11 @@ export class AuthService {
         avatarUrl?: string
     ): Promise<AuthResponse> {
         try {
-            console.log('🔵 [AuthService] Starting OAuth login:', {email, provider});
-            
             // Kiểm tra user đã tồn tại
             let user = await DatabaseService.findUserByEmail(email)
-            console.log('🔍 [AuthService] User lookup result:', {
-                found: !!user,
-                userId: user?.id,
-                userProvider: user?.auth_provider
-            });
 
             // Nếu chưa tồn tại, tạo mới
             if (!user) {
-                console.log('📝 [AuthService] Creating new OAuth user...');
                 user = await DatabaseService.createOAuthUser(
                     email,
                     full_name,
@@ -203,7 +187,6 @@ export class AuthService {
                         message: 'Không thể tạo tài khoản'
                     }
                 }
-                console.log('✅ [AuthService] OAuth user created:', user.id);
             } else {
                 // Kiểm tra provider có khớp không
                 if (user.auth_provider !== provider) {
@@ -216,7 +199,6 @@ export class AuthService {
                         message: `Tài khoản này đã đăng ký bằng ${user.auth_provider}. Vui lòng sử dụng phương thức đó để đăng nhập.`
                     }
                 }
-                console.log('✅ [AuthService] User already exists:', user.id);
             }
 
             // Tạo JWT token
@@ -225,8 +207,6 @@ export class AuthService {
                 email: user.email,
                 role: user.role
             })
-
-            console.log('✅ [AuthService] JWT token generated for:', user.email);
 
             return {
                 success: true,

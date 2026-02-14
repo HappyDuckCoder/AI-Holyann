@@ -9,14 +9,10 @@ import { TaskStatus } from '@prisma/client'
  */
 export async function getMentorStudents(mentorId: string): Promise<AssignedStudent[]> {
   try {
-    console.log(`[getMentorStudents] Starting for mentorId: ${mentorId}`);
-
     // 1. Lấy tổng số lượng task trong hệ thống
     const totalTasks = await prisma.checklist_tasks.count();
-    console.log(`[getMentorStudents] Total tasks: ${totalTasks}`);
 
     // 2. Lấy danh sách assignments với thông tin học viên và checklist progress
-    console.log(`[getMentorStudents] Fetching assignments for mentor ${mentorId}`);
     const assignments = await prisma.mentor_assignments.findMany({
       where: {
         mentor_id: mentorId,
@@ -48,7 +44,6 @@ export async function getMentorStudents(mentorId: string): Promise<AssignedStude
         assigned_at: 'desc',
       },
     });
-    console.log(`[getMentorStudents] Found ${assignments.length} assignments`);
 
     // 3. Transform data và tính toán progress
     const students: AssignedStudent[] = assignments.map((assignment) => {
@@ -91,8 +86,6 @@ export async function getMentorStudents(mentorId: string): Promise<AssignedStude
  */
 export async function getMentorDashboardStats(mentorId: string) {
   try {
-    console.log(`[getMentorDashboardStats] Starting for mentorId: ${mentorId}`);
-
     // Đếm tổng số học viên active
     const totalActiveStudents = await prisma.mentor_assignments.count({
       where: {

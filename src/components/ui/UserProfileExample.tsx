@@ -27,7 +27,6 @@ export default function UserProfileExample() {
 
     try {
       // Mock upload process - replace with actual API call
-      console.log('Uploading file:', file.name)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000))
@@ -41,7 +40,6 @@ export default function UserProfileExample() {
         avatar_url: localUrl
       }))
 
-      console.log('Upload successful!')
 
     } catch (error) {
       console.error('Upload failed:', error)

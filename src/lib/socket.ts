@@ -76,7 +76,6 @@ export function initSocketIO(httpServer: HTTPServer) {
 
     io.on('connection', (socket) => {
         const userId = socket.data.userId;
-        console.log(`User connected: ${userId} (Socket: ${socket.id})`);
 
         // Store user socket mapping
         userSockets.set(userId, socket.id);
@@ -96,24 +95,18 @@ export function initSocketIO(httpServer: HTTPServer) {
                 conversationMembers.set(conversationId, new Set());
             }
             conversationMembers.get(conversationId)?.add(userId);
-
-            console.log(`User ${userId} joined conversation ${conversationId}`);
         });
 
         // Leave conversation
         socket.on('conversation:leave', (conversationId: string) => {
             socket.leave(`conversation:${conversationId}`);
             conversationMembers.get(conversationId)?.delete(userId);
-            
-            console.log(`User ${userId} left conversation ${conversationId}`);
         });
 
         // Handle new message
         socket.on('message:send', (message: ChatMessage) => {
             // Broadcast to conversation room
             socket.to(`conversation:${message.conversationId}`).emit('message:new', message);
-            
-            console.log(`Message sent in conversation ${message.conversationId}`);
         });
 
         // Handle typing indicator
@@ -138,8 +131,6 @@ export function initSocketIO(httpServer: HTTPServer) {
 
         // Handle disconnect
         socket.on('disconnect', () => {
-            console.log(`User disconnected: ${userId} (Socket: ${socket.id})`);
-            
             // Remove from user sockets
             userSockets.delete(userId);
             

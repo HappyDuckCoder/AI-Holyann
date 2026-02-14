@@ -108,12 +108,6 @@ export async function GET() {
             }
         })
 
-        console.log('📊 [Checklist API] Fetched data summary:', {
-            stages: stagesWithLockStatus.length,
-            tasks: transformedTasks.length,
-            progress: taskProgress.length
-        })
-
         return NextResponse.json({
             success: true,
             data: {

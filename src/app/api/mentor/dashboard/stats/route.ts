@@ -9,11 +9,9 @@ import { getMentorDashboardStats } from '@/actions/mentor';
  */
 export async function GET() {
   try {
-    console.log('[API] /api/mentor/dashboard/stats called');
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
-      console.log('[API] /api/mentor/dashboard/stats - Unauthorized: No session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -21,11 +19,9 @@ export async function GET() {
     if (!mentorId) {
       return NextResponse.json({ error: 'User ID not found' }, { status: 400 });
     }
-    console.log(`[API] /api/mentor/dashboard/stats - Fetching for mentor: ${mentorId}`);
 
     // Sử dụng server action để lấy thống kê
     const stats = await getMentorDashboardStats(mentorId);
-    console.log('[API] /api/mentor/dashboard/stats - Stats retrieved:', stats);
 
     return NextResponse.json(stats);
   } catch (error) {

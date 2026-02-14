@@ -150,7 +150,6 @@ export class DatabaseService {
                     throw new Error(`Supabase insert failed: ${supabaseError.message}${supabaseError.code ? ` (code: ${supabaseError.code})` : ''}`);
                 }
 
-                console.log('✅ [DatabaseService] User created in Supabase:', supabaseUser?.id);
                 createdUser = supabaseUser as User;
 
                 // 2. Đồng bộ vào Local Database (Prisma) với retry
@@ -168,7 +167,6 @@ export class DatabaseService {
                             data: insertData
                         });
 
-                        console.log('✅ [DatabaseService] User created in Local DB (Prisma):', prismaUser.id);
                         createdUser = prismaUser as User;
 
                         // Thử sync ngược lên Supabase (best effort)
@@ -313,7 +311,6 @@ export class DatabaseService {
                             is_active: user.is_active
                         }
                     })
-                    console.log('✅ [DatabaseService] Synced user from Supabase to Local DB:', user.id)
                 } catch (syncError: any) {
                     console.warn('⚠️ [DatabaseService] Failed to sync user to Local DB:', syncError.message)
                 }
@@ -392,7 +389,6 @@ export class DatabaseService {
                             is_active: user.is_active
                         }
                     })
-                    console.log('✅ [DatabaseService] Synced user from Supabase to Local DB:', user.id)
                 } catch (syncError: any) {
                     const errorMsg = syncError.message || '';
                     if (errorMsg.includes('Circuit breaker open')) {

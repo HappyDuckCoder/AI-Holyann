@@ -535,7 +535,6 @@ export async function POST(
         },
       });
 
-      console.log("✅ Profile analysis saved to database");
     } catch (dbError) {
       console.error("❌ Error saving analysis to database:", dbError);
       // Continue even if DB save fails - still return the analysis result
