@@ -1,10 +1,10 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Trophy, ArrowRight, ClipboardList } from 'lucide-react';
-import TestCard from './TestCard';
-import { TestType, TestResult } from '../types';
-import { TEST_DESCRIPTIONS } from '@/constants';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { motion } from "framer-motion";
+import { Trophy, ArrowRight, ClipboardList } from "lucide-react";
+import TestCard from "./TestCard";
+import { TestType, TestResult } from "../types";
+import { TEST_DESCRIPTIONS } from "@/constants";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface TestSelectionProps {
   onStartTest: (type: TestType) => void;
@@ -14,8 +14,17 @@ interface TestSelectionProps {
   onViewRecommendations?: () => void;
 }
 
-const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.1 } } };
-const itemVariant = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+};
+const itemVariant = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0 },
+};
 
 const TestSelection: React.FC<TestSelectionProps> = ({
   onStartTest,
@@ -47,14 +56,17 @@ const TestSelection: React.FC<TestSelectionProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                Hoàn thành: <span className="font-semibold text-primary">{completedCount}/3</span>
+                Hoàn thành:{" "}
+                <span className="font-semibold text-primary">
+                  {completedCount}/3
+                </span>
               </span>
               {completedCount > 0 && (
                 <div className="flex gap-1">
                   {[1, 2, 3].map((i) => (
                     <div
                       key={i}
-                      className={`w-2.5 h-2.5 rounded-full ${i <= completedCount ? 'bg-emerald-500' : 'bg-muted'}`}
+                      className={`w-2.5 h-2.5 rounded-full ${i <= completedCount ? "bg-emerald-500" : "bg-muted"}`}
                     />
                   ))}
                 </div>
@@ -75,10 +87,10 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                 description={TEST_DESCRIPTIONS.MBTI.desc}
                 colorClass={TEST_DESCRIPTIONS.MBTI.color}
                 iconType="MBTI"
-                onClick={() => onStartTest('MBTI')}
-                onViewResult={() => onViewResult('MBTI')}
-                isCompleted={completedTests.includes('MBTI')}
-                result={testResults['MBTI']}
+                onClick={() => onStartTest("MBTI")}
+                onViewResult={() => onViewResult("MBTI")}
+                isCompleted={completedTests.includes("MBTI")}
+                result={testResults["MBTI"]}
               />
             </motion.div>
             <motion.div variants={itemVariant}>
@@ -87,10 +99,10 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                 description={TEST_DESCRIPTIONS.GRIT.desc}
                 colorClass={TEST_DESCRIPTIONS.GRIT.color}
                 iconType="GRIT"
-                onClick={() => onStartTest('GRIT')}
-                onViewResult={() => onViewResult('GRIT')}
-                isCompleted={completedTests.includes('GRIT')}
-                result={testResults['GRIT']}
+                onClick={() => onStartTest("GRIT")}
+                onViewResult={() => onViewResult("GRIT")}
+                isCompleted={completedTests.includes("GRIT")}
+                result={testResults["GRIT"]}
               />
             </motion.div>
             <motion.div variants={itemVariant}>
@@ -99,10 +111,10 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                 description={TEST_DESCRIPTIONS.RIASEC.desc}
                 colorClass={TEST_DESCRIPTIONS.RIASEC.color}
                 iconType="RIASEC"
-                onClick={() => onStartTest('RIASEC')}
-                onViewResult={() => onViewResult('RIASEC')}
-                isCompleted={completedTests.includes('RIASEC')}
-                result={testResults['RIASEC']}
+                onClick={() => onStartTest("RIASEC")}
+                onViewResult={() => onViewResult("RIASEC")}
+                isCompleted={completedTests.includes("RIASEC")}
+                result={testResults["RIASEC"]}
               />
             </motion.div>
           </motion.div>
@@ -126,7 +138,8 @@ const TestSelection: React.FC<TestSelectionProps> = ({
                   Đề xuất nghề nghiệp
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
-                  Dựa trên kết quả MBTI, GRIT và Holland, chúng tôi phân tích và đề xuất những nghề nghiệp phù hợp nhất với bạn.
+                  Dựa trên kết quả MBTI, GRIT và Holland, chúng tôi phân tích và
+                  đề xuất những nghề nghiệp phù hợp nhất với bạn.
                 </p>
               </div>
             </div>

@@ -252,3 +252,20 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Reports: when printing, only show #report-print */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #report-print,
+  #report-print * {
+    visibility: visible;
+  }
+  #report-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

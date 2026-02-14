@@ -40,7 +40,7 @@ export default function TestsPage() {
   const [currentTestType, setCurrentTestType] = useState<TestType | null>(null);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [recommendations, setRecommendations] = useState<MajorRecommendation[]>(
-    []
+    [],
   );
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const { data: session } = useSession();
@@ -73,7 +73,8 @@ export default function TestsPage() {
   // No need to create it here - if missing, it's a data sync issue that should be fixed at the source
 
   // Hook để quản lý tiến độ test - giờ lấy từ database
-  const { progress, isLoaded, saveTestResult, refreshProgress } = useTestProgress(studentId);
+  const { progress, isLoaded, saveTestResult, refreshProgress } =
+    useTestProgress(studentId);
 
   const getStudentId = () => studentId;
 
@@ -82,7 +83,7 @@ export default function TestsPage() {
     setCurrentAllCompleted(progress.allCompleted);
     const allTests: TestType[] = ["MBTI", "GRIT", "RIASEC"];
     setCurrentRemainingTests(
-      allTests.filter((t) => !progress.completedTests.includes(t))
+      allTests.filter((t) => !progress.completedTests.includes(t)),
     );
   }, [progress]);
 
@@ -103,7 +104,8 @@ export default function TestsPage() {
     // Check if test is already completed - prevent retaking
     if (progress.completedTests.includes(type)) {
       toast.info("Bài test đã hoàn thành", {
-        description: "Bạn chỉ có thể xem kết quả, không thể làm lại bài test này.",
+        description:
+          "Bạn chỉ có thể xem kết quả, không thể làm lại bài test này.",
       });
       handleViewResult(type);
       return;
@@ -171,7 +173,7 @@ export default function TestsPage() {
 
   const submitAnswersToApi = async (
     answers: Record<number, string | number | boolean>,
-    testType: TestType
+    testType: TestType,
   ) => {
     if (!currentTestId) return;
     const studentId = getStudentId();
@@ -210,7 +212,7 @@ export default function TestsPage() {
   };
 
   const calculateMBTIResult = (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ): TestResult => {
     // Chuyển đổi answers sang Record<number, number> cho hàm tính điểm
     const numericAnswers: Record<number, number> = {};
@@ -233,7 +235,7 @@ export default function TestsPage() {
   };
 
   const calculateGritResult = (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ): TestResult => {
     // Chuyển đổi answers sang Record<number, number> cho hàm tính điểm
     const numericAnswers: Record<number, number> = {};
@@ -267,7 +269,7 @@ export default function TestsPage() {
   };
 
   const calculateRIASECResult = (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ): TestResult => {
     // Chuyển đổi answers sang Record<number, boolean> cho hàm tính điểm
     const booleanAnswers: Record<number, boolean> = {};
@@ -295,7 +297,7 @@ export default function TestsPage() {
   };
 
   const handleTestComplete = async (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ) => {
     if (!currentTestType) return;
     const studentId = getStudentId();
@@ -341,7 +343,7 @@ export default function TestsPage() {
           // API submit failed - don't use fallback, show error
           throw new Error(
             apiResult?.error ||
-              "Không thể phân tích MBTI. Vui lòng thử lại sau."
+              "Không thể phân tích MBTI. Vui lòng thử lại sau.",
           );
         }
       }
@@ -352,7 +354,9 @@ export default function TestsPage() {
         if (apiResult) {
           if (currentTestType === "RIASEC" && apiResult.result_code) {
             const top3Desc = Array.isArray(apiResult.top3)
-              ? apiResult.top3.map((t: string[] | unknown) => (Array.isArray(t) ? t[0] : t)).join(", ")
+              ? apiResult.top3
+                  .map((t: string[] | unknown) => (Array.isArray(t) ? t[0] : t))
+                  .join(", ")
               : "";
             computedResult = {
               type: "RIASEC",
@@ -366,7 +370,7 @@ export default function TestsPage() {
           ) {
             // API không trả Đam mê/Kiên trì → tính từ đáp án để hiển thị breakdown
             const numericAnswers = Object.fromEntries(
-              Object.entries(answers).map(([k, v]) => [Number(k), Number(v)])
+              Object.entries(answers).map(([k, v]) => [Number(k), Number(v)]),
             ) as Record<number, number>;
             const localGrit = calculateGritScores(numericAnswers);
             computedResult = {
@@ -374,7 +378,8 @@ export default function TestsPage() {
               scores: {
                 Grit: apiResult.total_score,
                 "Đam mê": apiResult.passion_score ?? localGrit.passionScore,
-                "Kiên trì": apiResult.perseverance_score ?? localGrit.perseveranceScore,
+                "Kiên trì":
+                  apiResult.perseverance_score ?? localGrit.perseveranceScore,
               },
               rawLabel: apiResult.level,
               description: apiResult.description || "",
@@ -407,7 +412,7 @@ export default function TestsPage() {
         ? progress.completedTests
         : [...progress.completedTests, currentTestType];
       const remaining = allTests.filter(
-        (t) => !newCompleted.includes(t)
+        (t) => !newCompleted.includes(t),
       ) as TestType[];
       setCurrentRemainingTests(remaining);
       const newAllCompleted = newCompleted.length >= 3;
@@ -470,7 +475,7 @@ export default function TestsPage() {
             careerPaths: [],
             requiredSkills: [],
             matchPercentage: r.match_percentage,
-          })
+          }),
         );
         setCareerRecs(recs);
         setRecommendations(recs);
@@ -628,7 +633,8 @@ export default function TestsPage() {
                     Khám phá bản thân
                   </h1>
                   <p className="text-muted-foreground mt-2 text-base sm:text-lg max-w-xl leading-relaxed">
-                    MBTI, GRIT và Holland – hiểu rõ tính cách, nghị lực và xu hướng nghề nghiệp phù hợp với bạn.
+                    MBTI, GRIT và Holland – hiểu rõ tính cách, nghị lực và xu
+                    hướng nghề nghiệp phù hợp với bạn.
                   </p>
                 </div>
                 <motion.div
@@ -652,47 +658,47 @@ export default function TestsPage() {
             </motion.header>
 
             <TestSelection
-                onStartTest={handleStartTest}
-                onViewResult={handleViewResult}
-                completedTests={progress.completedTests}
-                testResults={progress.results}
-                onViewRecommendations={handleViewAllRecommendations}
-              />
+              onStartTest={handleStartTest}
+              onViewResult={handleViewResult}
+              completedTests={progress.completedTests}
+              testResults={progress.results}
+              onViewRecommendations={handleViewAllRecommendations}
+            />
 
-              {/* Đánh giá nghề nghiệp: luôn hiện khi đủ 3 test */}
-              {currentAllCompleted && studentId && showCareerAssessment && (
-                <div id="career-assessment-results" className="mt-8">
-                  <CareerAssessmentResults
-                    studentId={studentId}
-                    onClose={() => setShowCareerAssessment(false)}
-                    autoLoad={true}
-                    refreshTrigger={careerRefreshTrigger}
-                  />
-                </div>
-              )}
+            {/* Đánh giá nghề nghiệp: luôn hiện khi đủ 3 test */}
+            {currentAllCompleted && studentId && showCareerAssessment && (
+              <div id="career-assessment-results" className="mt-8">
+                <CareerAssessmentResults
+                  studentId={studentId}
+                  onClose={() => setShowCareerAssessment(false)}
+                  autoLoad={true}
+                  refreshTrigger={careerRefreshTrigger}
+                />
+              </div>
+            )}
           </>
         )}
 
         {viewState === "test" && currentTestType && (
-            <TestView
-              testType={currentTestType}
-              questions={getQuestionsForTest(currentTestType)}
-              onBack={handleBackToSelection}
-              onComplete={handleTestComplete}
-            />
-          )}
+          <TestView
+            testType={currentTestType}
+            questions={getQuestionsForTest(currentTestType)}
+            onBack={handleBackToSelection}
+            onComplete={handleTestComplete}
+          />
+        )}
 
         {viewState === "result" && (
-            <ResultView
-              result={testResult}
-              recommendations={careerRecs.length ? careerRecs : recommendations}
-              loadingRecommendations={loadingRecommendations}
-              onBackToDashboard={handleBackToSelection}
-              remainingTests={currentRemainingTests}
-              onStartNextTest={handleStartNextTest}
-              allTestsCompleted={currentAllCompleted}
-              onViewAllRecommendations={handleViewAllRecommendations}
-            />
+          <ResultView
+            result={testResult}
+            recommendations={careerRecs.length ? careerRecs : recommendations}
+            loadingRecommendations={loadingRecommendations}
+            onBackToDashboard={handleBackToSelection}
+            remainingTests={currentRemainingTests}
+            onStartNextTest={handleStartNextTest}
+            allTestsCompleted={currentAllCompleted}
+            onViewAllRecommendations={handleViewAllRecommendations}
+          />
         )}
       </div>
     </StudentPageContainer>
