@@ -3,49 +3,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { StudentPageContainer } from '@/components/student';
-import { FileText, PenLine, Upload, Sparkles, Bold, Italic, List, ListOrdered, AlignLeft, Loader2, ExternalLink, BarChart3, Wand2, UserCircle, MessageSquare, Save, Star, Target, Shield } from 'lucide-react';
+import { FileText, PenLine, Upload, Bold, Italic, List, ListOrdered, AlignLeft, Loader2, ExternalLink, BarChart3, Wand2, UserCircle, MessageSquare, Save, Star, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { sanitizeText } from '@/lib/utils/validation';
-
-type TabId = 'profile' | 'cv' | 'essay';
-
-/** Theo server-ai feature4: Essay giới hạn từ (mặc định 650) */
-const ESSAY_LIMIT_WORDS = 650;
-const ESSAY_MIN_WORDS = 10;
-
-/** Trả về chuỗi an toàn để hiển thị (tránh render object làm React child) */
-function safeText(v: unknown): string {
-  if (v == null) return '';
-  if (typeof v === 'string') return v;
-  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
-  if (typeof v === 'object' && v !== null) {
-    const o = v as Record<string, unknown>;
-    if (typeof o.description === 'string') return o.description;
-    if (typeof o.text === 'string') return o.text;
-    if (typeof o.summary === 'string') return o.summary;
-    if (typeof o.feedback === 'string') return o.feedback;
-    if (typeof o.specific_rec_name === 'string') return o.specific_rec_name;
-    if (typeof o.reason === 'string') return o.reason;
-    if (typeof o.priority === 'string') return o.priority;
-    return JSON.stringify(v);
-  }
-  return String(v);
-}
-
-interface CvDoc {
-  id: string;
-  name: string;
-  type: string;
-  uploadDate: string;
-  size: string;
-}
-
-interface EssayComment {
-  id: string;
-  content: string;
-  author: { id: string; full_name: string | null; email: string };
-  created_at: string;
-}
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import type { TabId, CvDoc, EssayComment } from './types';
+import { ESSAY_LIMIT_WORDS, ESSAY_MIN_WORDS } from './types';
+import { safeText } from './utils';
+import {
+  FormattedText,
+  ModalSection,
+  CollapsibleSection,
+  ImproveDetailModal,
+  ImproveBanner,
+  ProfileTab,
+} from './components';
 
 export default function ImprovePage() {
   const { data: session } = useSession();
@@ -104,6 +79,8 @@ export default function ImprovePage() {
   const [cvTextLoading, setCvTextLoading] = useState(false);
   const [cvAnalysisRating, setCvAnalysisRating] = useState<number | null>(null);
   const [cvEnhanceRating, setCvEnhanceRating] = useState<number | null>(null);
+
+  const [detailModal, setDetailModal] = useState<{ title: string; content: React.ReactNode } | null>(null);
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Profile', icon: <UserCircle className="h-4 w-4" /> },
@@ -776,402 +753,56 @@ export default function ImprovePage() {
 
   return (
     <StudentPageContainer>
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Sparkles className="h-7 w-7 text-primary" />
-            Improve
-          </h1>
-          <p className="text-muted-foreground mt-2">Nâng cao CV và bài luận của bạn.</p>
-        </div>
+      <ImproveDetailModal
+        open={!!detailModal}
+        onOpenChange={(open) => !open && setDetailModal(null)}
+        title={detailModal?.title ?? ''}
+        content={detailModal?.content ?? null}
+      />
 
-        <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-          <div className="flex border-b border-border/60 bg-muted/30">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors ${
-                  activeTab === tab.id
-                    ? 'text-primary border-b-2 border-primary bg-card'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
+      <div className="max-w-6xl mx-auto pb-8">
+        <ImproveBanner />
 
-          <div className="p-8 min-h-[520px]">
+        <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
+          <CardHeader className="border-b border-border bg-gradient-to-r from-amber-500/10 via-primary/10 to-orange-500/10 px-6 py-0">
+            <div className="flex border-b-0">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors -mb-px ${
+                    activeTab === tab.id
+                      ? 'text-primary border-b-2 border-primary bg-transparent'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-8 min-h-[520px]">
             {activeTab === 'profile' && (
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
-                    <UserCircle className="h-5 w-5 text-primary" />
-                    Profile của bạn
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-8">
-                      Dữ liệu từ Module 1, 2, 3 (phân tích hồ sơ, bài test, gợi ý trường). Hiển thị bên dưới trước khi Phân tích hoặc Đề xuất cải thiện.
-                    </p>
-
-                    {profileDataLoading ? (
-                      <div className="flex items-center justify-center py-16 text-muted-foreground">
-                        <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                        Đang tải thông tin profile...
-                      </div>
-                    ) : profileData ? (
-                      <div className="space-y-8">
-                        {profileData.feature1_output?.summary?.total_pillar_scores && (
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground mb-4">4 trụ điểm (từ phân tích hồ sơ)</p>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                              {[
-                                { key: 'aca', label: 'Học thuật' },
-                                { key: 'lan', label: 'Ngôn ngữ' },
-                                { key: 'hdnk', label: 'Hoạt động' },
-                                { key: 'skill', label: 'Kỹ năng' },
-                              ].map(({ key, label }) => {
-                                const score = profileData.feature1_output?.summary?.total_pillar_scores?.[key];
-                                return (
-                                  <div key={key} className="rounded-2xl border border-border/60 bg-muted/20 p-5">
-                                    <p className="text-sm text-muted-foreground mb-1">{label}</p>
-                                    <p className="text-xl font-semibold text-primary">{score != null ? Number(score) : '—'}</p>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            {(profileData.feature1_output.summary.main_spike || profileData.feature1_output.summary.sharpness) && (
-                              <p className="text-sm text-muted-foreground mt-4">
-                                Spike: {profileData.feature1_output.summary.main_spike ?? '—'} · Mức: {profileData.feature1_output.summary.sharpness ?? '—'}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        {profileData.feature2_output?.assessment && (
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground mb-4">Bài test (MBTI, Grit, RIASEC)</p>
-                            <div className="flex flex-wrap gap-4">
-                              {profileData.feature2_output.assessment.mbti?.personality_type && (
-                                <div className="rounded-2xl border border-border/60 bg-muted/20 px-5 py-3">
-                                  <span className="text-sm text-muted-foreground">MBTI </span>
-                                  <span className="text-base font-medium text-foreground">{profileData.feature2_output.assessment.mbti.personality_type}</span>
-                                </div>
-                              )}
-                              {(profileData.feature2_output.assessment.grit?.score != null || profileData.feature2_output.assessment.grit?.level) && (
-                                <div className="rounded-2xl border border-border/60 bg-muted/20 px-5 py-3">
-                                  <span className="text-sm text-muted-foreground">Grit </span>
-                                  <span className="text-base font-medium text-foreground">
-                                    {profileData.feature2_output.assessment.grit?.score ?? '—'} ({profileData.feature2_output.assessment.grit?.level ?? ''})
-                                  </span>
-                                </div>
-                              )}
-                              {profileData.feature2_output.assessment.riasec?.code && (
-                                <div className="rounded-2xl border border-border/60 bg-muted/20 px-5 py-3">
-                                  <span className="text-sm text-muted-foreground">RIASEC </span>
-                                  <span className="text-base font-medium text-foreground">{profileData.feature2_output.assessment.riasec.code}</span>
-                                </div>
-                              )}
-                              {!profileData.feature2_output.assessment.mbti?.personality_type &&
-                                !profileData.feature2_output.assessment.grit?.score &&
-                                !profileData.feature2_output.assessment.riasec?.code && (
-                                  <p className="text-sm text-muted-foreground">Chưa có kết quả test (làm bài test trong trang đánh giá).</p>
-                                )}
-                            </div>
-                          </div>
-                        )}
-                        {profileData.feature3_output && (
-                          <div>
-                            <p className="text-sm font-medium text-muted-foreground mb-4">Gợi ý trường (Module 3)</p>
-                            {profileData.feature3_output.universities && typeof profileData.feature3_output.universities === 'object' && Object.keys(profileData.feature3_output.universities as object).length > 0 ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                {[
-                                  { key: 'REACH' as const, label: 'Reach', Icon: Star },
-                                  { key: 'MATCH' as const, label: 'Match', Icon: Target },
-                                  { key: 'SAFETY' as const, label: 'Safety', Icon: Shield },
-                                ].map(({ key, label, Icon }) => {
-                                  const block = profileData.feature3_output?.universities?.[key];
-                                  const list = block?.universities ?? [];
-                                  return (
-                                    <div key={key} className="rounded-2xl border border-border/60 bg-muted/20 overflow-hidden border-l-4 border-l-primary">
-                                      <div className="flex items-center gap-3 px-5 py-4 bg-card/80 border-b border-border/60">
-                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                          <Icon className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <div>
-                                          <span className="text-base font-semibold text-foreground">{label}</span>
-                                          <p className="text-xs text-muted-foreground">{list.length} trường</p>
-                                        </div>
-                                      </div>
-                                      <ul className="p-5 space-y-3 max-h-44 overflow-y-auto">
-                                        {list.length === 0 ? (
-                                          <li className="text-sm text-muted-foreground py-2">—</li>
-                                        ) : (
-                                          list.map((uni, i) => (
-                                            <li key={uni.id ?? i} className="text-sm text-foreground" title={[uni.name, uni.country].filter(Boolean).join(' · ')}>
-                                              <span className="font-medium">{uni.name}</span>
-                                              {(uni.country || uni.ranking != null) && (
-                                                <span className="text-muted-foreground block text-xs mt-0.5">
-                                                  {[uni.country, uni.ranking != null ? `#${uni.ranking}` : null].filter(Boolean).join(' · ')}
-                                                </span>
-                                              )}
-                                            </li>
-                                          ))
-                                        )}
-                                      </ul>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">Chưa có gợi ý trường. Hoàn thành gợi ý trường để dữ liệu đầy đủ hơn.</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl border border-border/60 bg-muted/20 p-6">
-                        <p className="text-sm text-muted-foreground">Chưa có dữ liệu. Hoàn thành phân tích hồ sơ và bài test (MBTI, Grit, RIASEC) để xem thông tin profile tại đây.</p>
-                      </div>
-                    )}
-
-                    {resultsLoading && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Đang tải kết quả đã lưu...
-                      </p>
-                    )}
-                    <div className="flex flex-wrap items-center gap-4 pt-8 mt-8 border-t border-border/60">
-                      <span className="text-sm text-muted-foreground">Hành động:</span>
-                      <button
-                        type="button"
-                        onClick={handleProfileAnalysis}
-                        disabled={profileAnalysisLoading || profileEnhanceLoading}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border/60 bg-card text-foreground text-sm font-medium hover:bg-muted/50 hover:border-primary/40 transition-colors disabled:opacity-50"
-                      >
-                        {profileAnalysisLoading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <BarChart3 className="h-4 w-4 text-primary" />}
-                        {profileAnalysis ? 'Phân tích lại' : 'Phân tích profile'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleProfileEnhance}
-                        disabled={profileEnhanceLoading || profileAnalysisLoading}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border/60 bg-card text-foreground text-sm font-medium hover:bg-muted/50 hover:border-primary/40 transition-colors disabled:opacity-50"
-                      >
-                        {profileEnhanceLoading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Wand2 className="h-4 w-4 text-primary" />}
-                        {profileEnhance ? 'Cải thiện lại' : 'Đề xuất cải thiện'}
-                      </button>
-                    </div>
-                    {(profileAnalysisLoading || profileEnhanceLoading) && (
-                      <p className="text-sm text-muted-foreground mt-4 flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                        {profileAnalysisLoading ? 'Đang phân tích profile...' : 'Đang tạo đề xuất cải thiện...'} Có thể mất 1–2 phút, vui lòng không đóng trang.
-                      </p>
-                    )}
-                </div>
-
-                {profileAnalysis && typeof profileAnalysis === 'object' && (
-                  <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-8 space-y-6">
-                    <h3 className="text-base font-semibold text-foreground">Kết quả phân tích</h3>
-                    {(() => {
-                      const scores = (profileAnalysis.pillar_scores && typeof profileAnalysis.pillar_scores === 'object'
-                        ? profileAnalysis.pillar_scores
-                        : (profileAnalysis.feature1_output as Record<string, unknown>)?.summary && typeof (profileAnalysis.feature1_output as Record<string, unknown>).summary === 'object'
-                          ? ((profileAnalysis.feature1_output as Record<string, unknown>).summary as Record<string, unknown>).total_pillar_scores
-                          : null) as Record<string, number> | null;
-                      const pillarLabels: Record<string, string> = { aca: 'Học thuật', lan: 'Ngôn ngữ', hdnk: 'Hoạt động', skill: 'Kỹ năng' };
-                      if (scores && Object.keys(scores).length > 0) {
-                        return (
-                          <>
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground mb-2">Điểm 4 trụ (Pillar Scores)</p>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {['aca', 'lan', 'hdnk', 'skill'].map((key) => (
-                                  <div key={key} className="rounded-2xl border border-border/60 bg-muted/20 p-5">
-                                    <p className="text-sm text-muted-foreground">{pillarLabels[key] || key}</p>
-                                    <p className="text-xl font-semibold text-primary mt-1">{scores[key] != null ? Number(scores[key]) : '—'}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            {profileAnalysis.pillars && typeof profileAnalysis.pillars === 'object' && (
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground mb-2">Chi tiết từng trụ</p>
-                                <div className="space-y-3">
-                                  {['aca', 'lan', 'hdnk', 'skill'].map((key) => {
-                                    const data = (profileAnalysis.pillars as Record<string, unknown>)[key];
-                                    if (!data || typeof data !== 'object') return null;
-                                    const d = data as Record<string, unknown>;
-                                    const score = typeof d.score === 'number' ? d.score : scores?.[key];
-                                    const feedback = safeText(d.feedback);
-                                    const strengths = Array.isArray(d.strengths) ? d.strengths : [];
-                                    const weaknesses = Array.isArray(d.weaknesses) ? d.weaknesses : [];
-                                    const suggestions = Array.isArray(d.suggestions) ? d.suggestions : [];
-                                    return (
-                                      <div key={key} className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-                                        <p className="text-sm font-semibold text-foreground">{pillarLabels[key]} — {score != null ? Number(score) : '—'}/100</p>
-                                        {feedback ? <p className="text-sm text-foreground mt-2">{feedback}</p> : null}
-                                        {strengths.length > 0 && <p className="text-xs text-muted-foreground mt-2">Điểm mạnh: {strengths.map((s: unknown) => safeText(s)).join(' • ')}</p>}
-                                        {weaknesses.length > 0 && <p className="text-xs text-muted-foreground mt-1">Điểm yếu: {weaknesses.map((w: unknown) => safeText(w)).join(' • ')}</p>}
-                                        {suggestions.length > 0 && <p className="text-xs text-primary mt-1">Gợi ý: {suggestions.map((g: unknown) => safeText(g)).join(' • ')}</p>}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        );
-                      }
-                      return null;
-                    })()}
-                    {Boolean(profileAnalysis.overall && typeof profileAnalysis.overall === 'object') && (
-                      <div className="rounded-2xl border border-border/60 bg-muted/20 p-6">
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Tổng quát và ưu tiên cải thiện</p>
-                        {(profileAnalysis.overall as { overall_score?: number }).overall_score != null && (
-                          <p className="text-sm font-medium text-primary">Điểm tổng quát: {(profileAnalysis.overall as { overall_score?: number }).overall_score}/100</p>
-                        )}
-                        <p className="text-sm text-foreground leading-relaxed mt-2">
-                          {String(safeText((profileAnalysis.overall as { feedback?: unknown }).feedback) || safeText((profileAnalysis.overall as { summary?: unknown }).summary) || 'Đã hoàn thành phân tích.')}
-                        </p>
-                        {Boolean((profileAnalysis.overall as { summary?: unknown }).summary && (profileAnalysis.overall as { feedback?: unknown }).feedback !== (profileAnalysis.overall as { summary?: unknown }).summary) && (
-                          <p className="text-sm text-muted-foreground mt-2">{safeText((profileAnalysis.overall as { summary?: unknown }).summary)}</p>
-                        )}
-                        {((profileAnalysis.overall as { priority_suggestions?: unknown[] }).priority_suggestions?.length ?? 0) > 0 && (
-                          <div className="mt-4">
-                            <p className="text-xs font-medium text-muted-foreground mb-2">Gợi ý ưu tiên</p>
-                            <ol className="text-sm text-foreground space-y-1 list-decimal list-inside">
-                              {((profileAnalysis.overall as { priority_suggestions?: unknown[] }).priority_suggestions ?? []).slice(0, 6).map((p, i) => (
-                                <li key={i}>{safeText(p)}</li>
-                              ))}
-                            </ol>
-                          </div>
-                        )}
-                        {(Boolean((profileAnalysis.overall as { personal_fit_score?: number }).personal_fit_score != null) || Boolean(safeText((profileAnalysis.overall as { personal_fit_feedback?: unknown }).personal_fit_feedback))) && (
-                          <div className="mt-4 pt-4 border-t border-border/60">
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Phù hợp với bản thân</p>
-                            {(profileAnalysis.overall as { personal_fit_score?: number }).personal_fit_score != null && (
-                              <p className="text-sm font-medium text-primary">Điểm: {(profileAnalysis.overall as { personal_fit_score?: number }).personal_fit_score}/100</p>
-                            )}
-                            {safeText((profileAnalysis.overall as { personal_fit_feedback?: unknown }).personal_fit_feedback) && (
-                              <p className="text-sm text-muted-foreground mt-1">{safeText((profileAnalysis.overall as { personal_fit_feedback?: unknown }).personal_fit_feedback)}</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {!profileAnalysis.overall && !profileAnalysis.pillar_scores && (
-                      <p className="text-sm text-muted-foreground">Đã nhận kết quả. Dữ liệu tổng quan đang được cập nhật.</p>
-                    )}
-                    <div className="pt-4 border-t border-border/60 flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Đánh giá kết quả phân tích:</span>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => saveRating('analysis', n)}
-                          className="p-0.5 rounded hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          title={`${n} sao`}
-                        >
-                          <Star className={`h-5 w-5 ${analysisRating != null && n <= analysisRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                        </button>
-                      ))}
-                      {analysisRating != null && <span className="text-xs text-muted-foreground ml-1">{analysisRating}/5</span>}
-                    </div>
-                  </div>
-                )}
-
-                {profileEnhance && typeof profileEnhance === 'object' && (
-                  <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-8 space-y-6">
-                    <h3 className="text-base font-semibold text-foreground">Đề xuất cải thiện</h3>
-                    {Boolean(profileEnhance.recommendations && Array.isArray(profileEnhance.recommendations) && profileEnhance.recommendations.length > 0) && (
-                      <ul className="space-y-4">
-                        {(profileEnhance.recommendations as Record<string, unknown>[]).slice(0, 10).map((r, i) => {
-                          const priority = safeText(r.priority);
-                          const name = safeText(r.specific_rec_name);
-                          const type = safeText(r.type);
-                          const reason = safeText(r.reason);
-                          const resourceLink = safeText(r.resource_link);
-                          const estimatedTime = safeText(r.estimated_time);
-                          const actionPlan = Array.isArray(r.action_plan_details) ? (r.action_plan_details as unknown[]).map((a) => safeText(a)) : [];
-                          return (
-                            <li key={i} className="rounded-2xl border border-border/60 bg-muted/20 p-5">
-                              <span className="text-sm font-medium text-primary">{priority || `#${i + 1}`}</span>
-                              <p className="text-base font-medium text-foreground mt-2">{name || 'Khuyến nghị'}</p>
-                              {type ? <p className="text-xs text-muted-foreground mt-1">Loại: {type}</p> : null}
-                              {reason ? <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{reason}</p> : null}
-                              {actionPlan.length > 0 && (
-                                <ul className="text-sm text-foreground mt-2 list-disc list-inside space-y-0.5">
-                                  {actionPlan.filter(Boolean).map((step, j) => <li key={j}>{step}</li>)}
-                                </ul>
-                              )}
-                              {(resourceLink || estimatedTime) && (
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  {resourceLink ? <a href={resourceLink} target="_blank" rel="noopener noreferrer" className="text-primary underline">Tài liệu tham khảo</a> : null}
-                                  {resourceLink && estimatedTime ? ' • ' : null}
-                                  {estimatedTime ? `Thời gian ước tính: ${estimatedTime}` : null}
-                                </p>
-                              )}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                    {Boolean(profileEnhance.improvements && Array.isArray(profileEnhance.improvements) && profileEnhance.improvements.length > 0) && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Cải thiện theo trụ</p>
-                        <ul className="space-y-2">
-                          {(profileEnhance.improvements as Record<string, unknown>[]).slice(0, 8).map((imp, i) => (
-                            <li key={i} className="text-sm text-foreground">
-                              {safeText(imp.pillar)}: {safeText(imp.current_score)} → {safeText(imp.target_score)}
-                              {safeText(imp.what_improved) ? ` — ${safeText(imp.what_improved)}` : ''}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {Boolean(profileEnhance.target_pillar_scores && typeof profileEnhance.target_pillar_scores === 'object' && Object.keys(profileEnhance.target_pillar_scores as Record<string, unknown>).length > 0) && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Điểm trụ mục tiêu</p>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {['aca', 'lan', 'hdnk', 'skill'].map((key) => {
-                            const v = (profileEnhance.target_pillar_scores as Record<string, unknown>)[key];
-                            const num = typeof v === 'number' ? v : (typeof v === 'string' ? parseFloat(v) : null);
-                            const labels: Record<string, string> = { aca: 'Học thuật', lan: 'Ngôn ngữ', hdnk: 'Hoạt động', skill: 'Kỹ năng' };
-                            return <div key={key} className="rounded-xl border border-border/60 bg-muted/20 p-3"><span className="text-xs text-muted-foreground">{labels[key] || key}</span><p className="text-lg font-semibold text-primary">{num != null ? num : '—'}</p></div>;
-                          })}
-                        </div>
-                      </div>
-                    )}
-                    {Boolean(profileEnhance.enhanced_summary) && (
-                      <div className="rounded-2xl border border-border/60 bg-muted/20 p-6">
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Tóm tắt cải thiện</p>
-                        <p className="text-sm text-foreground leading-relaxed">{safeText(profileEnhance.enhanced_summary)}</p>
-                      </div>
-                    )}
-                    {(!Array.isArray(profileEnhance.recommendations) || profileEnhance.recommendations.length === 0) && !profileEnhance.enhanced_summary && (!Array.isArray(profileEnhance.improvements) || profileEnhance.improvements.length === 0) && (
-                      <p className="text-sm text-muted-foreground">Đã nhận kết quả. Nội dung gợi ý đang được cập nhật.</p>
-                    )}
-                    <div className="pt-4 border-t border-border/60 flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Đánh giá đề xuất cải thiện:</span>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => saveRating('enhance', n)}
-                          className="p-0.5 rounded hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          title={`${n} sao`}
-                        >
-                          <Star className={`h-5 w-5 ${enhanceRating != null && n <= enhanceRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                        </button>
-                      ))}
-                      {enhanceRating != null && <span className="text-xs text-muted-foreground ml-1">{enhanceRating}/5</span>}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ProfileTab
+                profileData={profileData}
+                profileDataLoading={profileDataLoading}
+                resultsLoading={resultsLoading}
+                profileAnalysis={profileAnalysis}
+                profileEnhance={profileEnhance}
+                profileAnalysisLoading={profileAnalysisLoading}
+                profileEnhanceLoading={profileEnhanceLoading}
+                analysisRating={analysisRating}
+                enhanceRating={enhanceRating}
+                onAnalysis={handleProfileAnalysis}
+                onEnhance={handleProfileEnhance}
+                setDetailModal={setDetailModal}
+                saveRating={saveRating}
+              />
             )}
+
 
             {activeTab === 'cv' && (
               <div className="space-y-8">
@@ -1280,164 +911,215 @@ export default function ImprovePage() {
                     Đang xử lý... Có thể mất 1–2 phút. (Chỉ hỗ trợ CV PDF)
                   </p>
                 )}
-                {cvAnalysis && typeof cvAnalysis === 'object' && (
-                  <div className="rounded-2xl border border-border/60 bg-card p-6 mt-6 space-y-6">
-                    <h3 className="text-base font-semibold text-foreground">Kết quả phân tích CV</h3>
-                    {(cvAnalysis as { overall?: Record<string, unknown> }).overall && (
-                      <>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground mb-2">Phân tích tổng quát</p>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                            <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                              <p className="text-xs text-muted-foreground">Điểm tổng quát</p>
-                              <p className="text-lg font-semibold text-primary">{(cvAnalysis as { overall?: { overall_score?: number } }).overall?.overall_score ?? '—'}/10</p>
-                            </div>
-                            {(cvAnalysis as { overall?: { personal_fit_score?: number } }).overall?.personal_fit_score != null && (
-                              <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                                <p className="text-xs text-muted-foreground">Phù hợp bản thân</p>
-                                <p className="text-lg font-semibold text-primary">{Number((cvAnalysis as { overall: { personal_fit_score?: number } }).overall.personal_fit_score).toFixed(1)}/10</p>
+                {cvAnalysis && typeof cvAnalysis === 'object' && (() => {
+                  const overall = (cvAnalysis as { overall?: Record<string, unknown> }).overall;
+                  const sections = (cvAnalysis as { sections?: Record<string, Record<string, unknown>> }).sections;
+                  const sectionNames: Record<string, string> = { introduction: 'Giới thiệu', study: 'Học vấn', skills: 'Kỹ năng', information: 'Thông tin cá nhân', project: 'Dự án', experience: 'Kinh nghiệm' };
+                  const openCvDetail = () => {
+                    setDetailModal({
+                      title: 'Kết quả phân tích CV',
+                      content: (
+                        <div className="space-y-4">
+                          {overall && (
+                            <>
+                              <ModalSection title="Tổng quát" accent="violet">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-500/10 p-3">
+                                    <p className="text-xs text-muted-foreground">Điểm</p>
+                                    <p className="text-lg font-semibold text-violet-600 dark:text-violet-400">{String(overall.overall_score ?? '—')}/10</p>
+                                  </div>
+                                  {overall.personal_fit_score != null && (
+                                    <div className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-500/10 p-3">
+                                      <p className="text-xs text-muted-foreground">Phù hợp</p>
+                                      <p className="text-lg font-semibold text-violet-600 dark:text-violet-400">{Number(overall.personal_fit_score).toFixed(1)}/10</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </ModalSection>
+                              {(safeText(overall.feedback) || safeText(overall.summary) || safeText(overall.personal_fit_feedback)) && (
+                                <CollapsibleSection title="Nhận xét & tóm tắt" summary="Bấm để xem" accent="violet">
+                                  {safeText(overall.feedback) && <FormattedText text={safeText(overall.feedback)} />}
+                                  {safeText(overall.personal_fit_feedback) && <p className="text-xs text-muted-foreground mt-2">Phù hợp: {safeText(overall.personal_fit_feedback)}</p>}
+                                  {safeText(overall.summary) && <div className="mt-3 rounded-lg border border-border/40 bg-background/60 p-3"><FormattedText text={safeText(overall.summary)} /></div>}
+                                </CollapsibleSection>
+                              )}
+                            </>
+                          )}
+                          {sections && Object.keys(sections).length > 0 && (
+                            <CollapsibleSection title="Phân tích từng phần" summary={`${Object.keys(sections).length} phần · bảng điểm`} accent="emerald">
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                  <thead>
+                                    <tr className="border-b border-border/60">
+                                      <th className="py-2 pr-4 text-muted-foreground font-medium">Phần</th>
+                                      <th className="py-2 text-emerald-600 dark:text-emerald-400 font-medium">Điểm</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {Object.entries(sections).map(([key, section]) => (
+                                      <tr key={key} className="border-b border-border/60">
+                                        <td className="py-2 pr-4 text-foreground">{sectionNames[key] || key}</td>
+                                        <td className="py-2 text-emerald-600 dark:text-emerald-400">{section?.score != null ? Number(section.score).toFixed(1) : '—'}/10</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
                               </div>
-                            )}
-                          </div>
-                          <p className="text-sm text-foreground">{safeText((cvAnalysis as { overall?: { feedback?: unknown } }).overall?.feedback)}</p>
-                          {safeText((cvAnalysis as { overall?: { personal_fit_feedback?: unknown } }).overall?.personal_fit_feedback) && (
-                            <p className="text-xs text-muted-foreground mt-1">Phù hợp bản thân: {safeText((cvAnalysis as { overall?: { personal_fit_feedback?: unknown } }).overall?.personal_fit_feedback)}</p>
+                              <div className="mt-4 space-y-2">
+                                {Object.entries(sections).map(([key, section]) => {
+                                  const feedback = safeText(section?.feedback);
+                                  const strengths = Array.isArray(section?.strengths) ? (section.strengths as unknown[]) : [];
+                                  const weaknesses = Array.isArray(section?.weaknesses) ? (section.weaknesses as unknown[]) : [];
+                                  const suggestions = Array.isArray(section?.suggestions) ? (section.suggestions as unknown[]) : [];
+                                  return (
+                                    <details key={key} className="group rounded-lg border border-border/40 bg-background/60 overflow-hidden mt-2">
+                                      <summary className="p-3 cursor-pointer font-medium text-foreground list-none flex items-center gap-2">
+                                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" /> {sectionNames[key] || key} — <span className="text-emerald-600 dark:text-emerald-400">{section?.score != null ? Number(section.score).toFixed(1) : '—'}/10</span>
+                                      </summary>
+                                      <div className="px-3 pb-3 pt-0 space-y-2 text-sm">
+                                        {feedback && <FormattedText text={feedback} />}
+                                        {strengths.length > 0 && <p className="text-emerald-700 dark:text-emerald-300">Điểm mạnh: {strengths.map((s: unknown) => safeText(s)).join(' • ')}</p>}
+                                        {weaknesses.length > 0 && <p className="text-rose-600 dark:text-rose-400">Điểm yếu: {weaknesses.map((w: unknown) => safeText(w)).join(' • ')}</p>}
+                                        {suggestions.length > 0 && <p className="text-amber-600 dark:text-amber-400">Gợi ý: {suggestions.map((g: unknown) => safeText(g)).join(' • ')}</p>}
+                                      </div>
+                                    </details>
+                                  );
+                                })}
+                              </div>
+                            </CollapsibleSection>
+                          )}
+                          {overall && ((Array.isArray(overall.quantification_suggestions) && overall.quantification_suggestions.length > 0) || (Array.isArray(overall.grammar_suggestions) && overall.grammar_suggestions.length > 0) || (Array.isArray(overall.priority_improvements) && overall.priority_improvements.length > 0)) ? (
+                            <CollapsibleSection title="Gợi ý cải thiện" summary="Định lượng, ngữ pháp, ưu tiên" accent="amber">
+                              {Array.isArray(overall.quantification_suggestions) && (overall.quantification_suggestions as unknown[]).length > 0 && (
+                                <div className="mb-3">
+                                  <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">Định lượng hóa</p>
+                                  <ul className="list-disc list-inside text-sm space-y-0.5">
+                                    {(overall.quantification_suggestions as unknown[]).map((q: unknown, i: number) => <li key={i}>{safeText(q)}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {Array.isArray(overall.grammar_suggestions) && (overall.grammar_suggestions as unknown[]).length > 0 && (
+                                <div className="mb-3">
+                                  <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">Ngữ pháp</p>
+                                  <ul className="list-disc list-inside text-sm space-y-0.5">
+                                    {(overall.grammar_suggestions as unknown[]).map((g: unknown, i: number) => <li key={i}>{safeText(g)}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {Array.isArray(overall.priority_improvements) && (overall.priority_improvements as unknown[]).length > 0 && (
+                                <div>
+                                  <p className="text-xs font-medium text-amber-700 dark:text-amber-300 mb-1">Ưu tiên cải thiện</p>
+                                  <ul className="list-disc list-inside text-sm space-y-0.5">
+                                    {(overall.priority_improvements as unknown[]).map((p: unknown, i: number) => <li key={i}>{safeText(p)}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                            </CollapsibleSection>
+                          ) : null}
+                        </div>
+                      ),
+                    });
+                  };
+                  const feedbackLine = overall ? safeText(overall.feedback) : '';
+                  return (
+                    <Card className="rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <h3 className="text-base font-semibold text-foreground">Kết quả phân tích CV</h3>
+                          <button type="button" onClick={openCvDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
+                            Xem chi tiết <ChevronRight className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0 space-y-4">
+                        {overall && (
+                          <>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                                <p className="text-xs text-muted-foreground">Điểm tổng quát</p>
+                                <p className="text-lg font-semibold text-primary">{String(overall.overall_score ?? '—')}/10</p>
+                              </div>
+                              {overall.personal_fit_score != null && (
+                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                                  <p className="text-xs text-muted-foreground">Phù hợp bản thân</p>
+                                  <p className="text-lg font-semibold text-primary">{Number(overall.personal_fit_score).toFixed(1)}/10</p>
+                                </div>
+                              )}
+                            </div>
+                            {feedbackLine && <p className="text-sm text-muted-foreground line-clamp-2">{feedbackLine}</p>}
+                          </>
+                        )}
+                        <div className="pt-4 border-t border-border/60 flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Đánh giá:</span>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <button key={n} type="button" onClick={() => saveCvRating('analysis', n)} className="p-0.5 rounded hover:bg-muted/50">
+                              <Star className={`h-5 w-5 ${cvAnalysisRating != null && n <= cvAnalysisRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
+                            </button>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+                {cvEnhance && typeof cvEnhance === 'object' && (() => {
+                  const overall = (cvEnhance as { overall?: Record<string, unknown> }).overall;
+                  const openCvEnhanceDetail = () => {
+                    setDetailModal({
+                      title: 'Đề xuất cải thiện CV',
+                      content: (
+                        <div className="space-y-4">
+                          {overall && (
+                            <>
+                              {safeText(overall.feedback) && (
+                                <CollapsibleSection title="Nhận xét" summary="Bấm để xem" accent="sky">
+                                  <FormattedText text={safeText(overall.feedback)} />
+                                </CollapsibleSection>
+                              )}
+                              {Array.isArray(overall.quantification_suggestions) && (overall.quantification_suggestions as unknown[]).length > 0 && (
+                                <CollapsibleSection title="Gợi ý định lượng hóa" summary={`${(overall.quantification_suggestions as unknown[]).length} mục`} accent="amber">
+                                  <ul className="list-disc list-inside text-sm space-y-0.5">
+                                    {(overall.quantification_suggestions as unknown[]).map((q: unknown, i: number) => <li key={i}>{safeText(q)}</li>)}
+                                  </ul>
+                                </CollapsibleSection>
+                              )}
+                              {Array.isArray(overall.grammar_suggestions) && (overall.grammar_suggestions as unknown[]).length > 0 && (
+                                <CollapsibleSection title="Gợi ý ngữ pháp" summary={`${(overall.grammar_suggestions as unknown[]).length} mục`} accent="violet">
+                                  <ul className="list-disc list-inside text-sm space-y-0.5">
+                                    {(overall.grammar_suggestions as unknown[]).map((g: unknown, i: number) => <li key={i}>{safeText(g)}</li>)}
+                                  </ul>
+                                </CollapsibleSection>
+                              )}
+                            </>
                           )}
                         </div>
-                        {safeText((cvAnalysis as { overall?: { summary?: unknown } }).overall?.summary) && (
-                          <div className="rounded-xl border border-border/60 bg-primary/5 p-4">
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Tóm tắt</p>
-                            <p className="text-sm text-foreground">{safeText((cvAnalysis as { overall?: { summary?: unknown } }).overall?.summary)}</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {(cvAnalysis as { sections?: Record<string, Record<string, unknown>> }).sections && Object.keys((cvAnalysis as { sections: Record<string, unknown> }).sections).length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Phân tích từng phần</p>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm text-left">
-                            <thead>
-                              <tr className="border-b border-border/60">
-                                <th className="py-2 pr-4 text-muted-foreground font-medium">Phần</th>
-                                <th className="py-2 text-muted-foreground font-medium">Điểm</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {Object.entries((cvAnalysis as { sections: Record<string, Record<string, unknown>> }).sections).map(([key, section]) => {
-                                const names: Record<string, string> = { introduction: 'Giới thiệu', study: 'Học vấn', skills: 'Kỹ năng', information: 'Thông tin cá nhân', project: 'Dự án', experience: 'Kinh nghiệm' };
-                                const score = section?.score != null ? Number(section.score).toFixed(1) : '—';
-                                return (
-                                  <tr key={key} className="border-b border-border/60">
-                                    <td className="py-2 pr-4 text-foreground">{names[key] || key}</td>
-                                    <td className="py-2 text-foreground">{score}/10</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                      ),
+                    });
+                  };
+                  const feedbackLine = overall ? safeText(overall.feedback) : '';
+                  return (
+                    <Card className="rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <h3 className="text-base font-semibold text-foreground">Đề xuất cải thiện CV</h3>
+                          <button type="button" onClick={openCvEnhanceDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
+                            Xem chi tiết <ChevronRight className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                        <div className="mt-4 space-y-3">
-                          {Object.entries((cvAnalysis as { sections: Record<string, Record<string, unknown>> }).sections).map(([key, section]) => {
-                            const names: Record<string, string> = { introduction: 'Giới thiệu', study: 'Học vấn', skills: 'Kỹ năng', information: 'Thông tin cá nhân', project: 'Dự án', experience: 'Kinh nghiệm' };
-                            const score = section?.score != null ? Number(section.score).toFixed(1) : '—';
-                            const feedback = safeText(section?.feedback);
-                            const strengths = Array.isArray(section?.strengths) ? (section.strengths as unknown[]) : [];
-                            const weaknesses = Array.isArray(section?.weaknesses) ? (section.weaknesses as unknown[]) : [];
-                            const suggestions = Array.isArray(section?.suggestions) ? (section.suggestions as unknown[]) : [];
-                            const sectionText = safeText(section?.section_text);
-                            return (
-                              <details key={key} className="rounded-xl border border-border/60 bg-muted/10 overflow-hidden">
-                                <summary className="p-3 cursor-pointer font-medium text-foreground list-none flex items-center gap-2">
-                                  <span className="text-primary">📄</span> {names[key] || key} — {score}/10
-                                </summary>
-                                <div className="px-3 pb-3 pt-0 space-y-2 text-sm">
-                                  {feedback ? <p><span className="text-muted-foreground">Nhận xét: </span>{feedback}</p> : null}
-                                  {strengths.length > 0 && <p className="text-muted-foreground">Điểm mạnh: {strengths.map((s: unknown) => safeText(s)).join(' • ')}</p>}
-                                  {weaknesses.length > 0 && <p className="text-muted-foreground">Điểm yếu: {weaknesses.map((w: unknown) => safeText(w)).join(' • ')}</p>}
-                                  {suggestions.length > 0 && <p className="text-primary">Gợi ý: {suggestions.map((g: unknown) => safeText(g)).join(' • ')}</p>}
-                                  {sectionText ? <p className="text-xs text-muted-foreground mt-2 border-t border-border/60 pt-2">Nội dung phần: {sectionText.slice(0, 300)}{sectionText.length > 300 ? '...' : ''}</p> : null}
-                                </div>
-                              </details>
-                            );
-                          })}
+                      </CardHeader>
+                      <CardContent className="pt-0 space-y-4">
+                        {feedbackLine && <p className="text-sm text-muted-foreground line-clamp-2">{feedbackLine}</p>}
+                        <div className="pt-4 border-t border-border/60 flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Đánh giá:</span>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <button key={n} type="button" onClick={() => saveCvRating('enhance', n)} className="p-0.5 rounded hover:bg-muted/50">
+                              <Star className={`h-5 w-5 ${cvEnhanceRating != null && n <= cvEnhanceRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
+                            </button>
+                          ))}
                         </div>
-                      </div>
-                    )}
-                    {(cvAnalysis as { overall?: Record<string, unknown> }).overall && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-2">Gợi ý cải thiện tổng quát</p>
-                        {Array.isArray((cvAnalysis as { overall?: { quantification_suggestions?: unknown[] } }).overall?.quantification_suggestions) && ((cvAnalysis as { overall: { quantification_suggestions: unknown[] } }).overall.quantification_suggestions.length > 0) && (
-                          <div className="mb-3">
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Gợi ý định lượng hóa</p>
-                            <ul className="list-disc list-inside text-sm text-foreground space-y-0.5">
-                              {((cvAnalysis as { overall: { quantification_suggestions: unknown[] } }).overall.quantification_suggestions).map((q: unknown, i: number) => <li key={i}>{safeText(q)}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {Array.isArray((cvAnalysis as { overall?: { grammar_suggestions?: unknown[] } }).overall?.grammar_suggestions) && ((cvAnalysis as { overall: { grammar_suggestions: unknown[] } }).overall.grammar_suggestions.length > 0) && (
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Gợi ý cải thiện ngữ pháp</p>
-                            <ul className="list-disc list-inside text-sm text-foreground space-y-0.5">
-                              {((cvAnalysis as { overall: { grammar_suggestions: unknown[] } }).overall.grammar_suggestions).map((g: unknown, i: number) => <li key={i}>{safeText(g)}</li>)}
-                            </ul>
-                          </div>
-                        )}
-                        {Array.isArray((cvAnalysis as { overall?: { priority_improvements?: unknown[] } }).overall?.priority_improvements) && (
-                          <ul className="list-disc list-inside text-sm text-foreground mt-2">
-                            {((cvAnalysis as { overall: { priority_improvements: unknown[] } }).overall.priority_improvements).map((p: unknown, i: number) => <li key={i}>{safeText(p)}</li>)}
-                          </ul>
-                        )}
-                      </div>
-                    )}
-                    <div className="pt-4 border-t border-border/60 flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Đánh giá:</span>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <button key={n} type="button" onClick={() => saveCvRating('analysis', n)} className="p-0.5 rounded hover:bg-muted/50">
-                          <Star className={`h-5 w-5 ${cvAnalysisRating != null && n <= cvAnalysisRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {cvEnhance && typeof cvEnhance === 'object' && (
-                  <div className="rounded-2xl border border-border/60 bg-card p-6 mt-6">
-                    <h3 className="text-base font-semibold text-foreground mb-3">Đề xuất cải thiện CV</h3>
-                    {(cvEnhance as { overall?: Record<string, unknown> }).overall && (
-                      <div className="text-sm text-foreground space-y-2">
-                        <p>{safeText((cvEnhance as { overall?: { feedback?: unknown } }).overall?.feedback)}</p>
-                        {Array.isArray((cvEnhance as { overall?: { quantification_suggestions?: unknown[] } }).overall?.quantification_suggestions) && (
-                          <>
-                            <p className="text-xs font-medium text-muted-foreground mt-2">Gợi ý định lượng hóa:</p>
-                            <ul className="list-disc list-inside">
-                              {((cvEnhance as { overall: { quantification_suggestions: unknown[] } }).overall.quantification_suggestions.slice(0, 5)).map((q: unknown, i: number) => (
-                                <li key={i}>{safeText(q)}</li>
-                              ))}
-                            </ul>
-                          </>
-                        )}
-                        {Array.isArray((cvEnhance as { overall?: { grammar_suggestions?: unknown[] } }).overall?.grammar_suggestions) && (
-                          <>
-                            <p className="text-xs font-medium text-muted-foreground mt-2">Gợi ý ngữ pháp:</p>
-                            <ul className="list-disc list-inside">
-                              {((cvEnhance as { overall: { grammar_suggestions: unknown[] } }).overall.grammar_suggestions.slice(0, 5)).map((g: unknown, i: number) => (
-                                <li key={i}>{safeText(g)}</li>
-                              ))}
-                            </ul>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    <div className="pt-4 mt-4 border-t border-border/60 flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Đánh giá:</span>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <button key={n} type="button" onClick={() => saveCvRating('enhance', n)} className="p-0.5 rounded hover:bg-muted/50">
-                          <Star className={`h-5 w-5 ${cvEnhanceRating != null && n <= cvEnhanceRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
               </div>
             )}
 
@@ -1550,261 +1232,281 @@ export default function ImprovePage() {
                           Đang xử lý... Có thể mất 1–2 phút.
                         </p>
                       )}
-                      {essayAnalysis && typeof essayAnalysis === 'object' && (
-                        <div className="rounded-2xl border border-border/60 bg-card p-6 mt-6">
-                          <h3 className="text-base font-semibold text-foreground mb-4">Kết quả phân tích essay</h3>
-                          {(() => {
-                            const analysis = (essayAnalysis as { analysis?: Record<string, unknown> }).analysis;
-                            const overall = analysis?.overall as Record<string, unknown> | undefined;
-                            const assessment = analysis?.overall_assessment as Record<string, unknown> | undefined;
-                            const aspectNames: Record<string, string> = { content: 'Nội dung', structure: 'Cấu trúc', language: 'Ngôn ngữ', grammar: 'Ngữ pháp', personal_fit: 'Phù hợp' };
-                            return (
-                              <>
+                      {essayAnalysis && typeof essayAnalysis === 'object' && (() => {
+                        const analysis = (essayAnalysis as { analysis?: Record<string, unknown> }).analysis;
+                        const overall = analysis?.overall as Record<string, unknown> | undefined;
+                        const assessment = analysis?.overall_assessment as Record<string, unknown> | undefined;
+                        const aspectNames: Record<string, string> = { content: 'Nội dung', structure: 'Cấu trúc', language: 'Ngôn ngữ', grammar: 'Ngữ pháp', personal_fit: 'Phù hợp' };
+                        const weakPoints = (essayAnalysis as { weak_points?: Record<string, unknown>[] }).weak_points ?? [];
+                        const openEssayAnalysisDetail = () => {
+                          setDetailModal({
+                            title: 'Kết quả phân tích essay',
+                            content: (
+                              <div className="space-y-4">
                                 {overall && (
-                                  <>
-                                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+                                  <ModalSection title="Điểm từng khía cạnh" accent="violet">
+                                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                                       {['content', 'structure', 'language', 'grammar', 'personal_fit'].map((key) => {
                                         const val = (overall[key] as Record<string, unknown>)?.score ?? (overall.aspect_scores as Record<string, unknown>)?.[key];
                                         const num = typeof val === 'number' ? val : null;
                                         return (
-                                          <div key={key} className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                                          <div key={key} className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-500/10 p-2">
                                             <p className="text-xs text-muted-foreground">{aspectNames[key] || key}</p>
-                                            <p className="text-lg font-semibold text-primary">{num != null ? `${Number(num).toFixed(1)}` : '—'}/10</p>
+                                            <p className="font-semibold text-violet-600 dark:text-violet-400">{num != null ? Number(num).toFixed(1) : '—'}/10</p>
                                           </div>
                                         );
                                       })}
                                       {overall.overall_score != null && (
-                                        <div className="rounded-xl border border-primary/40 bg-primary/5 p-3">
-                                          <p className="text-xs text-muted-foreground">Điểm tổng</p>
-                                          <p className="text-lg font-semibold text-primary">{Number(overall.overall_score).toFixed(1)}/10</p>
+                                        <div className="rounded-lg border-2 border-violet-400 dark:border-violet-500 bg-violet-500/20 p-2">
+                                          <p className="text-xs text-muted-foreground">Tổng</p>
+                                          <p className="font-semibold text-violet-600 dark:text-violet-400">{Number(overall.overall_score).toFixed(1)}/10</p>
                                         </div>
                                       )}
                                     </div>
-                                    {assessment && (
-                                      <div className="space-y-3 text-sm border-t border-border/60 pt-4">
-                                        {safeText(assessment.summary) && (
-                                          <p className="text-foreground"><span className="font-medium text-muted-foreground">Tóm tắt: </span>{safeText(assessment.summary)}</p>
-                                        )}
-                                        {safeText(assessment.essay_level_feedback) && (
-                                          <p className="text-foreground"><span className="font-medium text-muted-foreground">Nhận xét toàn bài: </span>{safeText(assessment.essay_level_feedback)}</p>
-                                        )}
-                                        {Array.isArray(assessment.strengths_from_essay) && assessment.strengths_from_essay.length > 0 && (
-                                          <div>
-                                            <p className="font-medium text-muted-foreground mb-1">Điểm mạnh toàn bài:</p>
-                                            <ul className="list-disc list-inside text-foreground space-y-0.5">
-                                              {(assessment.strengths_from_essay as unknown[]).slice(0, 6).map((s: unknown, i: number) => <li key={i}>{safeText(s)}</li>)}
-                                            </ul>
-                                          </div>
-                                        )}
-                                        {Array.isArray(assessment.weaknesses_from_essay) && assessment.weaknesses_from_essay.length > 0 && (
-                                          <div>
-                                            <p className="font-medium text-muted-foreground mb-1">Điểm yếu cần cải thiện:</p>
-                                            <ul className="list-disc list-inside text-foreground space-y-0.5">
-                                              {(assessment.weaknesses_from_essay as unknown[]).slice(0, 6).map((w: unknown, i: number) => <li key={i}>{safeText(w)}</li>)}
-                                            </ul>
-                                          </div>
-                                        )}
-                                        {Array.isArray(assessment.priority_improvements) && assessment.priority_improvements.length > 0 && (
-                                          <div>
-                                            <p className="font-medium text-muted-foreground mb-1">Ưu tiên cải thiện:</p>
-                                            <ol className="list-decimal list-inside text-foreground space-y-0.5">
-                                              {(assessment.priority_improvements as unknown[]).slice(0, 6).map((imp: unknown, i: number) => (
-                                                <li key={i}>{safeText(typeof imp === 'object' && imp && 'action' in imp ? (imp as { action?: unknown }).action : imp)}</li>
-                                              ))}
-                                            </ol>
-                                          </div>
-                                        )}
-                                        {safeText(assessment.personal_fit_feedback) && (
-                                          <p className="text-muted-foreground"><span className="font-medium">Phù hợp bản thân: </span>{safeText(assessment.personal_fit_feedback)}</p>
-                                        )}
-                                      </div>
-                                    )}
-                                  </>
+                                  </ModalSection>
                                 )}
-                                {Array.isArray((essayAnalysis as { weak_points?: unknown[] }).weak_points) && ((essayAnalysis as { weak_points: unknown[] }).weak_points.length > 0) && (
-                                  <div className="mt-4 pt-4 border-t border-border/60">
-                                    <p className="text-sm font-medium text-muted-foreground mb-2">Các điểm yếu cần cải thiện</p>
-                                    <ul className="space-y-2 text-sm text-foreground">
-                                      {((essayAnalysis as { weak_points: Record<string, unknown>[] }).weak_points).map((wp: Record<string, unknown>, i: number) => {
+                                {assessment && (safeText(assessment.summary) || safeText(assessment.essay_level_feedback) || (assessment.strengths_from_essay as unknown[])?.length || (assessment.weaknesses_from_essay as unknown[])?.length || (assessment.priority_improvements as unknown[])?.length) && (
+                                  <CollapsibleSection title="Đánh giá toàn bài" summary="Tóm tắt, điểm mạnh/yếu" accent="emerald">
+                                    <div className="space-y-3 text-sm">
+                                      {safeText(assessment.summary) && <FormattedText text={safeText(assessment.summary)} />}
+                                      {safeText(assessment.essay_level_feedback) && <FormattedText text={safeText(assessment.essay_level_feedback)} />}
+                                      {Array.isArray(assessment.strengths_from_essay) && (assessment.strengths_from_essay as unknown[]).length > 0 && (
+                                        <div>
+                                          <p className="font-medium text-emerald-700 dark:text-emerald-300 mb-1">Điểm mạnh</p>
+                                          <ul className="list-disc list-inside space-y-0.5">
+                                            {(assessment.strengths_from_essay as unknown[]).map((s: unknown, i: number) => <li key={i}>{safeText(s)}</li>)}
+                                          </ul>
+                                        </div>
+                                      )}
+                                      {Array.isArray(assessment.weaknesses_from_essay) && (assessment.weaknesses_from_essay as unknown[]).length > 0 && (
+                                        <div>
+                                          <p className="font-medium text-rose-600 dark:text-rose-400 mb-1">Điểm yếu</p>
+                                          <ul className="list-disc list-inside space-y-0.5">
+                                            {(assessment.weaknesses_from_essay as unknown[]).map((w: unknown, i: number) => <li key={i}>{safeText(w)}</li>)}
+                                          </ul>
+                                        </div>
+                                      )}
+                                      {Array.isArray(assessment.priority_improvements) && (assessment.priority_improvements as unknown[]).length > 0 && (
+                                        <div>
+                                          <p className="font-medium text-amber-600 dark:text-amber-400 mb-1">Ưu tiên cải thiện</p>
+                                          <ol className="list-decimal list-inside space-y-0.5">
+                                            {(assessment.priority_improvements as unknown[]).map((imp: unknown, i: number) => (
+                                              <li key={i}>{safeText(typeof imp === 'object' && imp && 'action' in imp ? (imp as { action?: unknown }).action : imp)}</li>
+                                            ))}
+                                          </ol>
+                                        </div>
+                                      )}
+                                      {safeText(assessment.personal_fit_feedback) && <p className="text-muted-foreground">Phù hợp: {safeText(assessment.personal_fit_feedback)}</p>}
+                                    </div>
+                                  </CollapsibleSection>
+                                )}
+                                {Array.isArray(weakPoints) && weakPoints.length > 0 && (
+                                  <CollapsibleSection title="Điểm yếu theo đoạn" summary={`${weakPoints.length} đoạn`} accent="rose">
+                                    <ul className="space-y-2 text-sm">
+                                      {weakPoints.map((wp: Record<string, unknown>, i: number) => {
                                         const paraIdx = wp.paragraph_index as number | undefined;
                                         const aspectName = aspectNames[String(wp.aspect || '')] || String(wp.aspect || '');
                                         const issue = safeText(wp.issue);
                                         const score = wp.score != null ? Number(wp.score).toFixed(1) : '—';
                                         const fix = safeText(wp.suggested_fix);
                                         return (
-                                          <li key={i} className="rounded-xl border border-border/60 bg-muted/10 p-3">
-                                            <p>
-                                              {paraIdx != null ? `Đoạn ${paraIdx + 1} — ` : ''}<span className="font-medium">{aspectName}</span>: {issue || 'Cần cải thiện'} (Điểm: {score})
-                                            </p>
-                                            {fix ? <p className="text-muted-foreground text-xs mt-1">💡 Gợi ý sửa: {fix}</p> : null}
+                                          <li key={i} className="rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-500/10 p-3">
+                                            <p>{paraIdx != null ? `Đoạn ${paraIdx + 1} — ` : ''}<span className="font-medium text-rose-700 dark:text-rose-300">{aspectName}</span>: {issue || 'Cần cải thiện'} ({score})</p>
+                                            {fix ? <p className="text-muted-foreground text-xs mt-1">Gợi ý: {fix}</p> : null}
                                           </li>
                                         );
                                       })}
                                     </ul>
-                                  </div>
+                                  </CollapsibleSection>
                                 )}
-                                {!(essayAnalysis as { weak_points?: unknown[] }).weak_points?.length && !overall?.overall_score && (
-                                  <p className="text-sm text-muted-foreground">Đã nhận kết quả. Đang cập nhật hiển thị.</p>
-                                )}
-                              </>
-                            );
-                          })()}
-                          <div className="pt-4 mt-4 border-t border-border/60 flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Đánh giá:</span>
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <button key={n} type="button" onClick={() => saveEssayRating('analysis', n)} className="p-0.5 rounded hover:bg-muted/50">
-                                <Star className={`h-5 w-5 ${essayAnalysisRating != null && n <= essayAnalysisRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {essayEnhance && typeof essayEnhance === 'object' && (
-                        <div className="rounded-2xl border border-border/60 bg-card p-6 mt-6 space-y-6">
-                          <h3 className="text-base font-semibold text-foreground">Essay đã được cải thiện</h3>
-                          {(essayEnhance as { enhanced_essay?: string }).enhanced_essay && (
-                            <>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-2">Essay gốc</p>
-                                  <div className="rounded-xl border border-border/60 bg-muted/20 p-4 max-h-64 overflow-y-auto">
-                                    <p className="text-sm text-foreground whitespace-pre-wrap">{safeText((essayEnhance as { original_essay?: string }).original_essay || essayContent)}</p>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-1">Độ dài: {(essayEnhance as { statistics?: { original_words?: number } }).statistics?.original_words ?? (String((essayEnhance as { original_essay?: string }).original_essay || essayContent).split(/\s+/).filter(Boolean).length)} từ</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-2">Essay đã cải thiện</p>
-                                  <div className="rounded-xl border border-border/60 bg-muted/20 p-4 max-h-64 overflow-y-auto">
-                                    <p className="text-sm text-foreground whitespace-pre-wrap">{safeText((essayEnhance as { enhanced_essay?: string }).enhanced_essay)}</p>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-1">Độ dài: {(essayEnhance as { statistics?: { enhanced_words?: number } }).statistics?.enhanced_words ?? (String((essayEnhance as { enhanced_essay?: string }).enhanced_essay).split(/\s+/).filter(Boolean).length)} từ</p>
-                                </div>
                               </div>
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground mb-2">Thống kê</p>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                  <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                                    <p className="text-xs text-muted-foreground">Từ gốc</p>
-                                    <p className="text-lg font-semibold text-foreground">{(essayEnhance as { statistics?: { original_words?: number } }).statistics?.original_words ?? '—'}</p>
-                                  </div>
-                                  <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                                    <p className="text-xs text-muted-foreground">Từ sau enhance</p>
-                                    <p className="text-lg font-semibold text-foreground">{(essayEnhance as { statistics?: { enhanced_words?: number } }).statistics?.enhanced_words ?? '—'}</p>
-                                  </div>
-                                  <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                                    <p className="text-xs text-muted-foreground">Chênh lệch</p>
-                                    <p className="text-lg font-semibold text-primary">
-                                      {((essayEnhance as { statistics?: { enhanced_words?: number; original_words?: number } }).statistics?.enhanced_words != null && (essayEnhance as { statistics?: { original_words?: number } }).statistics?.original_words != null)
-                                        ? `${Number((essayEnhance as { statistics: { enhanced_words: number; original_words: number } }).statistics.enhanced_words - (essayEnhance as { statistics: { original_words: number } }).statistics.original_words) >= 0 ? '+' : ''}${(essayEnhance as { statistics: { enhanced_words: number; original_words: number } }).statistics.enhanced_words - (essayEnhance as { statistics: { original_words: number } }).statistics.original_words}`
-                                        : '—'}
-                                    </p>
-                                  </div>
-                                  <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                                    <p className="text-xs text-muted-foreground">Giới hạn</p>
-                                    <p className="text-sm font-medium">
-                                      {((essayEnhance as { statistics?: { enhanced_words?: number; limit_words?: number } }).statistics?.limit_words != null && (essayEnhance as { statistics?: { enhanced_words?: number } }).statistics?.enhanced_words != null)
-                                        ? Number((essayEnhance as { statistics: { enhanced_words: number; limit_words: number } }).statistics.enhanced_words) <= Number((essayEnhance as { statistics: { limit_words: number } }).statistics.limit_words)
-                                          ? '✅ Trong giới hạn'
-                                          : '⚠️ Vượt giới hạn'
-                                        : '—'}
-                                    </p>
-                                  </div>
-                                </div>
+                            ),
+                          });
+                        };
+                        const summaryLine = assessment ? safeText(assessment.summary) : '';
+                        return (
+                          <Card className="rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between gap-4">
+                                <h3 className="text-base font-semibold text-foreground">Kết quả phân tích essay</h3>
+                                <button type="button" onClick={openEssayAnalysisDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
+                                  Xem chi tiết <ChevronRight className="h-3.5 w-3.5" />
+                                </button>
                               </div>
-                              {(() => {
-                                const changesList = Array.isArray((essayEnhance as { changes?: unknown[] }).changes) ? (essayEnhance as { changes: unknown[] }).changes : Array.isArray((essayEnhance as { changes_log?: unknown[] }).changes_log) ? (essayEnhance as { changes_log: unknown[] }).changes_log : [];
-                                return changesList.length > 0 ? (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-2">Các thay đổi đã thực hiện</p>
-                                  <div className="space-y-2">
-                                    {(changesList as Record<string, unknown>[]).map((change: Record<string, unknown>, i: number) => {
-                                      const paraIdx = change?.paragraph_index;
-                                      const aspects = Array.isArray(change?.changes) ? (change.changes as Record<string, unknown>[]).map((c: Record<string, unknown>) => safeText(c?.aspect)).filter(Boolean) : [];
-                                      const original = safeText(change?.original);
-                                      const enhanced = safeText(change?.enhanced);
-                                      if (paraIdx != null) {
-                                        return (
-                                          <details key={i} className="rounded-xl border border-border/60 bg-muted/10 overflow-hidden">
-                                            <summary className="p-3 cursor-pointer font-medium text-foreground list-none">Đoạn {Number(paraIdx) + 1} — Đã thay đổi</summary>
-                                            <div className="px-3 pb-3 pt-0 space-y-2 text-sm">
-                                              {aspects.length > 0 && <p className="text-muted-foreground">Các khía cạnh đã cải thiện: {aspects.join(', ')}</p>}
-                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                                                <div><p className="text-xs font-medium text-muted-foreground mb-1">Trước</p><p className="text-foreground whitespace-pre-wrap rounded border border-border/60 p-2 bg-muted/20 max-h-32 overflow-y-auto">{original || '—'}</p></div>
-                                                <div><p className="text-xs font-medium text-muted-foreground mb-1">Sau</p><p className="text-foreground whitespace-pre-wrap rounded border border-border/60 p-2 bg-muted/20 max-h-32 overflow-y-auto">{enhanced || '—'}</p></div>
-                                              </div>
-                                            </div>
-                                          </details>
-                                        );
-                                      }
-                                      return (
-                                        <details key={i} className="rounded-xl border border-border/60 bg-muted/10 overflow-hidden">
-                                          <summary className="p-3 cursor-pointer font-medium text-foreground list-none">Cải thiện toàn diện</summary>
-                                          <div className="px-3 pb-3 pt-0 text-sm text-muted-foreground">Đã thực hiện cải thiện toàn diện cho toàn bộ essay.</div>
-                                        </details>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                                ) : null;
-                              })()}
-                              {(essayEnhance as { analysis?: { before?: Record<string, unknown>; after?: Record<string, unknown> } }).analysis && (
-                                <div>
-                                  <p className="text-sm font-medium text-muted-foreground mb-2">So sánh phân tích trước và sau Enhance</p>
-                                  {(() => {
-                                    const analysis = (essayEnhance as { analysis: { before?: Record<string, unknown>; after?: Record<string, unknown> } }).analysis;
-                                    const beforeOverall = (analysis?.before as { overall?: Record<string, unknown> })?.overall ?? analysis?.before ?? {};
-                                    const afterOverall = (analysis?.after as { overall?: Record<string, unknown> })?.overall ?? analysis?.after ?? {};
-                                    const aspectNames: Record<string, string> = { content: 'Nội dung', structure: 'Cấu trúc', language: 'Ngôn ngữ', grammar: 'Ngữ pháp' };
-                                    const aspects = ['content', 'structure', 'language', 'grammar'];
+                            </CardHeader>
+                            <CardContent className="pt-0 space-y-4">
+                              {overall && (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                  {['content', 'structure', 'language', 'grammar'].map((key) => {
+                                    const val = (overall[key] as Record<string, unknown>)?.score ?? (overall.aspect_scores as Record<string, unknown>)?.[key];
+                                    const num = typeof val === 'number' ? val : null;
                                     return (
-                                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                                        {aspects.map((aspect) => {
-                                          const beforeScore = typeof (beforeOverall as Record<string, unknown>)[aspect] === 'object' && (beforeOverall as Record<string, unknown>)[aspect] != null ? (beforeOverall as Record<string, Record<string, unknown>>)[aspect]?.score : null;
-                                          const afterScore = typeof (afterOverall as Record<string, unknown>)[aspect] === 'object' && (afterOverall as Record<string, unknown>)[aspect] != null ? (afterOverall as Record<string, Record<string, unknown>>)[aspect]?.score : null;
-                                          const orig = beforeScore != null ? Number(beforeScore) : 0;
-                                          const after = afterScore != null ? Number(afterScore) : 0;
-                                          const delta = after - orig;
-                                          return (
-                                            <div key={aspect} className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                                              <p className="text-xs text-muted-foreground">{aspectNames[aspect] || aspect}</p>
-                                              <p className="text-lg font-semibold text-foreground">{after.toFixed(1)}/10</p>
-                                              <p className="text-xs text-primary">{delta >= 0 ? '+' : ''}{delta.toFixed(1)}</p>
-                                            </div>
-                                          );
-                                        })}
-                                        <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
-                                          <p className="text-xs text-muted-foreground">Điểm tổng</p>
-                                          <p className="text-lg font-semibold text-foreground">{typeof (afterOverall as { overall_score?: number }).overall_score === 'number' ? (afterOverall as { overall_score: number }).overall_score.toFixed(1) : '—'}/10</p>
-                                          {typeof (beforeOverall as { overall_score?: number }).overall_score === 'number' && typeof (afterOverall as { overall_score?: number }).overall_score === 'number' && (
-                                            <p className="text-xs text-primary">{(Number((afterOverall as { overall_score: number }).overall_score) - Number((beforeOverall as { overall_score: number }).overall_score)) >= 0 ? '+' : ''}{(Number((afterOverall as { overall_score: number }).overall_score) - Number((beforeOverall as { overall_score: number }).overall_score)).toFixed(1)}</p>
-                                          )}
-                                        </div>
+                                      <div key={key} className="rounded-lg border border-border/60 bg-muted/20 p-2">
+                                        <p className="text-xs text-muted-foreground">{aspectNames[key] || key}</p>
+                                        <p className="font-semibold text-primary">{num != null ? Number(num).toFixed(1) : '—'}/10</p>
                                       </div>
                                     );
-                                  })()}
+                                  })}
                                 </div>
                               )}
-                              {(essayEnhance as { analysis?: { after?: Record<string, unknown> } }).analysis?.after && (() => {
-                                const afterData = (essayEnhance as { analysis: { after: Record<string, unknown> } }).analysis.after;
-                                const assessment = (afterData?.overall_assessment as Record<string, unknown>) ?? {};
-                                const summary = safeText(assessment?.summary);
-                                const feedback = safeText(assessment?.essay_level_feedback);
-                                if (!summary && !feedback) return null;
-                                return (
-                                  <details className="rounded-xl border border-border/60 bg-muted/10 overflow-hidden">
-                                    <summary className="p-3 cursor-pointer font-medium text-foreground list-none">Đánh giá tổng thể (sau Enhance)</summary>
-                                    <div className="px-3 pb-3 pt-0 space-y-2 text-sm">
-                                      {summary && <p><span className="text-muted-foreground">Tóm tắt: </span>{summary}</p>}
-                                      {feedback && <p><span className="text-muted-foreground">Nhận xét toàn bài: </span>{feedback}</p>}
+                              {summaryLine && <p className="text-sm text-muted-foreground line-clamp-2">{summaryLine}</p>}
+                              <div className="pt-4 border-t border-border/60 flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">Đánh giá:</span>
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <button key={n} type="button" onClick={() => saveEssayRating('analysis', n)} className="p-0.5 rounded hover:bg-muted/50">
+                                    <Star className={`h-5 w-5 ${essayAnalysisRating != null && n <= essayAnalysisRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
+                                  </button>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })()}
+                      {essayEnhance && typeof essayEnhance === 'object' && (() => {
+                        const enh = essayEnhance as {
+                          enhanced_essay?: string; original_essay?: string;
+                          statistics?: { original_words?: number; enhanced_words?: number; limit_words?: number };
+                          changes?: unknown[]; changes_log?: unknown[];
+                          analysis?: { before?: Record<string, unknown>; after?: Record<string, unknown> };
+                        };
+                        const stats = enh.statistics ?? {};
+                        const origWords = stats.original_words ?? (String(enh.original_essay || essayContent).split(/\s+/).filter(Boolean).length);
+                        const enhWords = stats.enhanced_words ?? (String(enh.enhanced_essay).split(/\s+/).filter(Boolean).length);
+                        const changesList = Array.isArray(enh.changes) ? enh.changes : Array.isArray(enh.changes_log) ? enh.changes_log : [];
+                        const analysis = enh.analysis;
+                        const afterData = analysis?.after;
+                        const assessment = (afterData?.overall_assessment as Record<string, unknown>) ?? {};
+                        const aspectNames: Record<string, string> = { content: 'Nội dung', structure: 'Cấu trúc', language: 'Ngôn ngữ', grammar: 'Ngữ pháp' };
+                        const openEssayEnhanceDetail = () => {
+                          setDetailModal({
+                            title: 'Essay đã được cải thiện',
+                            content: (
+                              <div className="space-y-4">
+                                {analysis?.before != null && analysis?.after != null && (
+                                  <ModalSection title="So sánh điểm trước / sau" accent="amber">
+                                    {(() => {
+                                      const beforeOverall = (analysis.before as { overall?: Record<string, unknown> })?.overall ?? analysis.before ?? {};
+                                      const afterOverall = (analysis.after as { overall?: Record<string, unknown> })?.overall ?? analysis.after ?? {};
+                                      const aspects = ['content', 'structure', 'language', 'grammar'];
+                                      return (
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                          {aspects.map((aspect) => {
+                                            const afterScore = typeof (afterOverall as Record<string, unknown>)[aspect] === 'object' && (afterOverall as Record<string, unknown>)[aspect] != null ? (afterOverall as Record<string, Record<string, unknown>>)[aspect]?.score : null;
+                                            const beforeScore = typeof (beforeOverall as Record<string, unknown>)[aspect] === 'object' && (beforeOverall as Record<string, unknown>)[aspect] != null ? (beforeOverall as Record<string, Record<string, unknown>>)[aspect]?.score : null;
+                                            const after = afterScore != null ? Number(afterScore) : 0;
+                                            const orig = beforeScore != null ? Number(beforeScore) : 0;
+                                            const delta = after - orig;
+                                            return (
+                                              <div key={aspect} className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-500/10 p-2">
+                                                <p className="text-xs text-muted-foreground">{aspectNames[aspect] || aspect}</p>
+                                                <p className="font-semibold text-amber-700 dark:text-amber-300">{after.toFixed(1)}/10 <span className="text-xs">{delta >= 0 ? '+' : ''}{delta.toFixed(1)}</span></p>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      );
+                                    })()}
+                                  </ModalSection>
+                                )}
+                                <CollapsibleSection title="So sánh essay (gốc vs đã cải thiện)" summary={`${origWords} → ${enhWords} từ`} accent="sky">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-medium text-sky-700 dark:text-sky-300 mb-1">Gốc</p>
+                                      <ScrollArea className="h-40 rounded-lg border border-sky-200 dark:border-sky-800 bg-sky-500/10 p-3">
+                                        <FormattedText text={safeText(enh.original_essay || essayContent)} className="text-sm" />
+                                      </ScrollArea>
+                                      <p className="text-xs text-muted-foreground mt-1">{origWords} từ</p>
                                     </div>
-                                  </details>
-                                );
-                              })()}
-                              <div className="flex flex-wrap items-center gap-4 pt-2">
+                                    <div>
+                                      <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300 mb-1">Đã cải thiện</p>
+                                      <ScrollArea className="h-40 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-500/10 p-3">
+                                        <FormattedText text={safeText(enh.enhanced_essay)} className="text-sm" />
+                                      </ScrollArea>
+                                      <p className="text-xs text-muted-foreground mt-1">{enhWords} từ</p>
+                                    </div>
+                                  </div>
+                                </CollapsibleSection>
+                                {changesList.length > 0 && (
+                                  <CollapsibleSection title="Các thay đổi theo đoạn" summary={`${changesList.length} mục`} accent="emerald">
+                                    <div className="space-y-2">
+                                      {(changesList as Record<string, unknown>[]).map((change: Record<string, unknown>, i: number) => {
+                                        const paraIdx = change?.paragraph_index;
+                                        const aspects = Array.isArray(change?.changes) ? (change.changes as Record<string, unknown>[]).map((c: Record<string, unknown>) => safeText(c?.aspect)).filter(Boolean) : [];
+                                        const original = safeText(change?.original);
+                                        const enhanced = safeText(change?.enhanced);
+                                        if (paraIdx != null) {
+                                          return (
+                                            <details key={i} className="group rounded-lg border border-border/40 bg-background/60 overflow-hidden">
+                                              <summary className="p-3 cursor-pointer font-medium text-foreground list-none flex items-center gap-2">
+                                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" /> Đoạn {Number(paraIdx) + 1}
+                                              </summary>
+                                              <div className="px-3 pb-3 pt-0 space-y-2 text-sm">
+                                                {aspects.length > 0 && <p className="text-emerald-700 dark:text-emerald-300 text-xs">{aspects.join(', ')}</p>}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                  <div><p className="text-xs text-muted-foreground mb-1">Trước</p><p className="whitespace-pre-wrap rounded border p-2 bg-muted/20 text-xs max-h-24 overflow-y-auto">{original || '—'}</p></div>
+                                                  <div><p className="text-xs text-muted-foreground mb-1">Sau</p><p className="whitespace-pre-wrap rounded border p-2 bg-emerald-500/10 text-xs max-h-24 overflow-y-auto">{enhanced || '—'}</p></div>
+                                                </div>
+                                              </div>
+                                            </details>
+                                          );
+                                        }
+                                        return (
+                                          <details key={i} className="rounded-lg border border-border/40 bg-background/60 overflow-hidden">
+                                            <summary className="p-3 cursor-pointer font-medium text-foreground list-none">Cải thiện toàn diện</summary>
+                                            <div className="px-3 pb-3 pt-0 text-sm text-muted-foreground">Đã cải thiện toàn bộ essay.</div>
+                                          </details>
+                                        );
+                                      })}
+                                    </div>
+                                  </CollapsibleSection>
+                                )}
+                                {(safeText(assessment?.summary) || safeText(assessment?.essay_level_feedback)) && (
+                                  <CollapsibleSection title="Đánh giá sau cải thiện" summary="Bấm để xem" accent="violet">
+                                    {safeText(assessment.summary) && <FormattedText text={safeText(assessment.summary)} />}
+                                    {safeText(assessment.essay_level_feedback) && <FormattedText text={safeText(assessment.essay_level_feedback)} />}
+                                  </CollapsibleSection>
+                                )}
+                              </div>
+                            ),
+                          });
+                        };
+                        if (!enh.enhanced_essay) return null;
+                        return (
+                          <Card className="rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between gap-4">
+                                <h3 className="text-base font-semibold text-foreground">Essay đã được cải thiện</h3>
+                                <button type="button" onClick={openEssayEnhanceDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
+                                  Xem chi tiết <ChevronRight className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="pt-0 space-y-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                                  <p className="text-xs text-muted-foreground">Từ gốc</p>
+                                  <p className="text-lg font-semibold text-foreground">{origWords}</p>
+                                </div>
+                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                                  <p className="text-xs text-muted-foreground">Từ sau</p>
+                                  <p className="text-lg font-semibold text-foreground">{enhWords}</p>
+                                </div>
+                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                                  <p className="text-xs text-muted-foreground">Chênh lệch</p>
+                                  <p className="text-lg font-semibold text-primary">{enhWords - origWords >= 0 ? '+' : ''}{enhWords - origWords}</p>
+                                </div>
+                                <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+                                  <p className="text-xs text-muted-foreground">Giới hạn</p>
+                                  <p className="text-sm font-medium">
+                                    {stats.limit_words != null && enhWords <= stats.limit_words ? '✅ Trong giới hạn' : stats.limit_words != null ? '⚠️ Vượt' : '—'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-3 pt-2">
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const text = safeText((essayEnhance as { enhanced_essay?: string }).enhanced_essay);
+                                    const text = safeText(enh.enhanced_essay);
                                     const blob = new Blob([text], { type: 'text/plain' });
                                     const url = URL.createObjectURL(blob);
                                     const a = document.createElement('a');
@@ -1817,19 +1519,19 @@ export default function ImprovePage() {
                                 >
                                   Tải essay đã cải thiện
                                 </button>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-muted-foreground">Đánh giá:</span>
+                                  {[1, 2, 3, 4, 5].map((n) => (
+                                    <button key={n} type="button" onClick={() => saveEssayRating('enhance', n)} className="p-0.5 rounded hover:bg-muted/50">
+                                      <Star className={`h-5 w-5 ${essayEnhanceRating != null && n <= essayEnhanceRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </>
-                          )}
-                          <div className="pt-4 border-t border-border/60 flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Đánh giá:</span>
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <button key={n} type="button" onClick={() => saveEssayRating('enhance', n)} className="p-0.5 rounded hover:bg-muted/50">
-                                <Star className={`h-5 w-5 ${essayEnhanceRating != null && n <= essayEnhanceRating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })()}
                     </>
                   )}
                 </div>
@@ -1853,8 +1555,8 @@ export default function ImprovePage() {
                 )}
               </div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </StudentPageContainer>
   );
