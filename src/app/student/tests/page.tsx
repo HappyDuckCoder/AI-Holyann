@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { StudentPageContainer } from "@/components/student";
 import TestSelection from "@/components/Test/TestSelection";
@@ -594,15 +596,61 @@ export default function TestsPage() {
 
   return (
     <StudentPageContainer>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto pb-8">
         {viewState === "selection" && (
           <>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <span className="text-primary">Bài test</span>
-              </h1>
-              <p className="text-muted-foreground mt-1">Khám phá bản thân qua MBTI, GRIT và Holland.</p>
-            </div>
+            {/* Welcome banner – giống student dashboard */}
+            <motion.header
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="relative rounded-2xl overflow-hidden mb-8 border border-primary/20 shadow-lg"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-primary/10 to-sky-500/10" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,var(--tw-gradient-from),transparent)] from-primary/25 to-transparent" />
+              <div
+                className="absolute inset-0 opacity-[0.06]"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 4L4 20v20l26 16 26-16V20L30 4z' fill='none' stroke='%230f4c81' stroke-width='1'/%3E%3C/svg%3E")`,
+                }}
+              />
+              <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-6 py-8 sm:px-8 sm:py-10">
+                <div className="flex-1 min-w-0">
+                  <motion.p
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.15, duration: 0.4 }}
+                    className="text-sm font-medium text-primary uppercase tracking-wider"
+                  >
+                    Bài test của bạn
+                  </motion.p>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">
+                    Khám phá bản thân
+                  </h1>
+                  <p className="text-muted-foreground mt-2 text-base sm:text-lg max-w-xl leading-relaxed">
+                    MBTI, GRIT và Holland – hiểu rõ tính cách, nghị lực và xu hướng nghề nghiệp phù hợp với bạn.
+                  </p>
+                </div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.25, duration: 0.5 }}
+                  className="relative w-full md:w-56 h-36 md:h-40 rounded-xl overflow-hidden border border-white/20 shadow-xl shrink-0"
+                >
+                  {/* Thêm ảnh vào public/images/HOEX_IMAGES/tests-banner.jpg để dùng ảnh giáo dục; hiện dùng ảnh auth */}
+                  <Image
+                    src="/images/auth/left.jpg"
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 14rem"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-violet-600/50 to-transparent" />
+                </motion.div>
+              </div>
+            </motion.header>
+
             <TestSelection
                 onStartTest={handleStartTest}
                 onViewResult={handleViewResult}

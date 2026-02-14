@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {useRouter} from 'next/navigation';
-import {useSession} from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 import {
     CheckSquare,
     Square,
@@ -21,12 +23,13 @@ import {
     Sparkles,
     AlertTriangle,
     Trash2,
-    RefreshCw
+    RefreshCw,
 } from 'lucide-react';
-import {Task, Stage, StudentProfile} from '@/components/types';
+import { Task, Stage, StudentProfile } from '@/components/types';
 import ProgressBar from './ProgressBar';
 import StageNavigation from './StageNavigation';
-import {scanCVWithAI} from '@/service/geminiService';
+import { scanCVWithAI } from '@/service/geminiService';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Helper to calculate days remaining
 /** Lấy tên file hiển thị từ submission_url (path) hoặc tên đã lưu */
@@ -498,18 +501,74 @@ const ChecklistPage: React.FC = () => {
 
     const orderedCategories = ['Khởi động', 'Khám phá bản thân', 'Chung', 'Hồ sơ học thuật', 'Tài liệu cần thiết', 'Cá nhân hóa (Mục tiêu Mỹ)'];
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+    };
+    const itemVariants = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
+
     return (
-        <div className="w-full max-w-7xl mx-auto p-4 md:p-8">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-foreground">Checklist Hồ sơ</h1>
-                <p className="text-muted-foreground mt-1">Quản lý các đầu việc cần làm để hoàn thiện hồ sơ du học của bạn.</p>
-            </div>
+        <div className="w-full max-w-7xl mx-auto p-4 md:p-8 pb-8" aria-label="Checklist hồ sơ du học">
+            {/* Welcome banner – giống student dashboard */}
+            <motion.header
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="relative rounded-2xl overflow-hidden mb-8 border border-primary/20 shadow-lg"
+            >
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-primary/10 to-sky-500/10" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,var(--tw-gradient-from),transparent)] from-primary/25 to-transparent" />
+                <div
+                    className="absolute inset-0 opacity-[0.06]"
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 4L4 20v20l26 16 26-16V20L30 4z' fill='none' stroke='%230f4c81' stroke-width='1'/%3E%3C/svg%3E")`,
+                    }}
+                />
+                <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-6 py-8 sm:px-8 sm:py-10">
+                    <div className="flex-1 min-w-0">
+                        <motion.p
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.15, duration: 0.4 }}
+                            className="text-sm font-medium text-primary uppercase tracking-wider"
+                        >
+                            Checklist của bạn
+                        </motion.p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">
+                            Checklist Hồ sơ
+                        </h1>
+                        <p className="text-muted-foreground mt-2 text-base sm:text-lg max-w-xl leading-relaxed">
+                            Quản lý các đầu việc cần làm để hoàn thiện hồ sơ du học. Theo dõi tiến độ từng giai đoạn.
+                        </p>
+                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.25, duration: 0.5 }}
+                        className="relative w-full md:w-56 h-36 md:h-40 rounded-xl overflow-hidden border border-white/20 shadow-xl shrink-0"
+                    >
+                        <Image
+                            src="/images/auth/left.jpg"
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 14rem"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-emerald-600/50 to-transparent" />
+                    </motion.div>
+                </div>
+            </motion.header>
 
             {loadingProgress ? (
-                <div className="flex items-center justify-center py-20">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center py-20 rounded-2xl border border-border bg-card"
+                >
                     <Loader2 className="animate-spin text-primary" size={40} />
                     <span className="ml-3 text-muted-foreground">Đang tải tiến độ...</span>
-                </div>
+                </motion.div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     <div className="lg:col-span-1">
@@ -522,20 +581,19 @@ const ChecklistPage: React.FC = () => {
                     </div>
 
                     <div className="lg:col-span-3 space-y-6">
-                        <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-                            <div className="p-6 border-b border-border/60 bg-muted/30">
+                        <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
+                            <CardHeader className="border-b border-border bg-gradient-to-r from-emerald-500/10 via-primary/10 to-sky-500/10 px-6 py-5">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                            {activeStageId === 1 ? <Rocket size={24}/> : activeStageId === 2 ?
-                                                <AlertCircle size={24}/> : <Trophy size={24}/>}
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm">
+                                            {activeStageId === 1 ? <Rocket size={24} /> : activeStageId === 2 ? <AlertCircle size={24} /> : <Trophy size={24} />}
                                         </div>
                                         <div>
-                                            <h2 className="text-xl font-bold text-foreground">
-                                                Giai đoạn {activeStageId}: {stages[activeStageId - 1].name}
-                                            </h2>
-                                            <p className="text-sm text-muted-foreground hidden md:block">
-                                                {stages[activeStageId - 1].description}
+                                            <CardTitle className="text-xl m-0">
+                                                Giai đoạn {activeStageId}: {stages[activeStageId - 1]?.name}
+                                            </CardTitle>
+                                            <p className="text-sm text-muted-foreground hidden md:block mt-0.5">
+                                                {stages[activeStageId - 1]?.description}
                                             </p>
                                         </div>
                                     </div>
@@ -543,27 +601,28 @@ const ChecklistPage: React.FC = () => {
                                     {canAdvance && (
                                         <button
                                             onClick={handleUnlockNextStage}
-                                            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all font-medium"
+                                            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-all font-medium shadow-sm"
                                         >
-                                            Mở khóa Giai đoạn {activeStageId + 1} <ArrowRight size={18}/>
+                                            Mở khóa Giai đoạn {activeStageId + 1} <ArrowRight size={18} />
                                         </button>
                                     )}
 
                                     {!canAdvance && isNextStageAlreadyUnlocked && (
                                         <button
                                             onClick={() => setActiveStageId(activeStageId + 1)}
-                                            className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 border border-border rounded-lg transition-all font-medium text-sm text-foreground"
+                                            className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 border border-border rounded-xl transition-all font-medium text-sm text-foreground"
                                         >
-                                            Đến Giai đoạn {activeStageId + 1} <ArrowRight size={16}/>
+                                            Đến Giai đoạn {activeStageId + 1} <ArrowRight size={16} />
                                         </button>
                                     )}
                                 </div>
-                                <ProgressBar percentage={currentProgress}/>
-                            </div>
+                                <ProgressBar percentage={currentProgress} />
+                            </CardHeader>
 
-                            <div className="p-6 bg-muted/20 min-h-[400px]">
+                            <CardContent className="p-6 bg-gradient-to-b from-muted/20 to-muted/5 min-h-[400px]">
+                                <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-8">
                                 {orderedCategories.filter(cat => tasksByCategory[cat]).map((category) => (
-                                    <div key={category} className="mb-8 last:mb-0">
+                                    <motion.div key={category} variants={itemVariants} className="mb-8 last:mb-0">
                                         {category !== 'Chung' && (
                                             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 ml-1 flex items-center gap-2">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
@@ -578,13 +637,14 @@ const ChecklistPage: React.FC = () => {
                                                 const needsFile = task.requiresFile;
 
                                                 return (
-                                                    <div
+                                                    <motion.div
                                                         key={task.id}
+                                                        variants={itemVariants}
                                                         className={`group rounded-xl border transition-all duration-300 cursor-pointer ${
                                                             task.isCompleted
                                                                 ? 'border-border/60 bg-muted/10'
-                                                                : `border-border/60 bg-card hover:border-primary/40 hover:shadow-md ${isExpanded ? 'ring-1 ring-primary/30 shadow-sm' : 'hover:-translate-y-0.5'}`
-                                                        } ${task.linkTo && !task.isCompleted ? 'hover:border-primary/50' : ''}`}
+                                                                : `border-border bg-card hover:border-primary/30 hover:shadow-md ${isExpanded ? 'ring-1 ring-primary/20 shadow-sm' : 'hover:-translate-y-0.5'}`
+                                                        } ${task.linkTo && !task.isCompleted ? 'hover:border-primary/40' : ''}`}
                                                         onClick={() => handleTaskClick(task)}
                                                     >
                                                         <div className="flex items-center justify-between p-4">
@@ -916,36 +976,42 @@ const ChecklistPage: React.FC = () => {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </motion.div>
                                                 );
                                             })}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))}
+                                </motion.div>
 
                                 {currentStageTasks.length === 0 && (
                                     <div className="text-center py-12">
                                         <p className="text-muted-foreground">Không có công việc nào trong giai đoạn này.</p>
                                     </div>
                                 )}
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
-                        <div className="rounded-xl border border-border/60 bg-muted/20 p-5">
-                            <div className="flex items-start gap-3">
-                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                    <Flag size={20}/>
+                        <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-gradient-to-br from-amber-500/5 to-transparent"
+                        >
+                            <div className="flex items-start gap-3 p-5">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                                    <Flag size={20} />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-foreground text-sm mb-1">Lời khuyên Giai đoạn {activeStageId}</h4>
                                     <p className="text-sm text-muted-foreground leading-relaxed">
-                                        {activeStageId === 1 && "Đây là giai đoạn nền tảng. Hãy dành thời gian hiểu rõ bản thân và tìm hiểu kỹ về các trường đại học mục tiêu."}
-                                        {activeStageId === 2 && "Chất lượng hơn số lượng. Tập trung vào bài luận cá nhân và các hoạt động ngoại khóa có chiều sâu lãnh đạo."}
-                                        {activeStageId === 3 && "Kiểm tra kỹ hạn visa và yêu cầu nhập cảnh. Đừng quên mang theo bản sao các giấy tờ quan trọng."}
+                                        {activeStageId === 1 && 'Đây là giai đoạn nền tảng. Hãy dành thời gian hiểu rõ bản thân và tìm hiểu kỹ về các trường đại học mục tiêu.'}
+                                        {activeStageId === 2 && 'Chất lượng hơn số lượng. Tập trung vào bài luận cá nhân và các hoạt động ngoại khóa có chiều sâu lãnh đạo.'}
+                                        {activeStageId === 3 && 'Kiểm tra kỹ hạn visa và yêu cầu nhập cảnh. Đừng quên mang theo bản sao các giấy tờ quan trọng.'}
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             )}

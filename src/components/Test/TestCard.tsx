@@ -14,6 +14,12 @@ interface TestCardProps {
   result?: TestResult;
 }
 
+const accentByType = {
+  MBTI: { border: 'border-l-violet-500/60', bg: 'from-violet-500/5 to-transparent', badge: 'bg-violet-500/10 text-violet-700 dark:text-violet-300' },
+  GRIT: { border: 'border-l-amber-500/60', bg: 'from-amber-500/5 to-transparent', badge: 'bg-amber-500/10 text-amber-700 dark:text-amber-300' },
+  RIASEC: { border: 'border-l-emerald-500/60', bg: 'from-emerald-500/5 to-transparent', badge: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' },
+};
+
 const TestCard: React.FC<TestCardProps> = ({
   title,
   description,
@@ -25,6 +31,8 @@ const TestCard: React.FC<TestCardProps> = ({
   isCompleted,
   result,
 }) => {
+  const accent = accentByType[iconType] || accentByType.MBTI;
+
   const getIcon = () => {
     switch (iconType) {
       case 'MBTI':
@@ -40,19 +48,19 @@ const TestCard: React.FC<TestCardProps> = ({
 
   return (
     <div
-      className={`rounded-2xl border shadow-sm overflow-hidden flex flex-col h-full transition-all duration-200 ${
+      className={`rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col h-full transition-all duration-200 border-l-4 ${accent.border} bg-gradient-to-br ${accent.bg} ${
         isCompleted
-          ? 'border-primary/40 bg-primary/5'
-          : 'border-border/60 bg-card hover:border-primary/30 hover:shadow-md'
+          ? 'border-primary/30'
+          : 'bg-card hover:border-primary/30 hover:shadow-md'
       }`}
     >
       <div className="p-6 flex flex-col h-full">
         <div className="flex items-start justify-between mb-4">
-          <div className={`w-12 h-12 rounded-xl ${colorClass} flex items-center justify-center shrink-0`}>
+          <div className={`w-12 h-12 rounded-xl ${colorClass} flex items-center justify-center shrink-0 shadow-sm`}>
             {getIcon()}
           </div>
           {isCompleted && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold">
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${accent.badge}`}>
               <CheckCircle2 className="w-3.5 h-3.5" />
               Đã hoàn thành
             </div>

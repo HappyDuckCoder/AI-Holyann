@@ -1,6 +1,7 @@
 import React from 'react';
-import {CheckCircle2, Lock, Circle} from 'lucide-react';
-import {Stage} from '@/components/types';
+import { CheckCircle2, Lock, Circle, MapPin } from 'lucide-react';
+import { Stage } from '@/components/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface StageNavigationProps {
     stages: Stage[];
@@ -9,13 +10,21 @@ interface StageNavigationProps {
     completedStages: number[];
 }
 
-const StageNavigation: React.FC<StageNavigationProps> = ({stages, currentStageId, onSelectStage, completedStages}) => {
+const StageNavigation: React.FC<StageNavigationProps> = ({ stages, currentStageId, onSelectStage, completedStages }) => {
     return (
-        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-6 h-fit sticky top-6">
-            <h3 className="text-lg font-bold text-foreground mb-6 uppercase tracking-wide">Lộ trình hồ sơ</h3>
-            <div className="space-y-0 relative">
-                <div className="absolute left-3.5 top-2 bottom-6 w-0.5 bg-border -z-10"></div>
-                {stages.map((stage) => {
+        <Card className="rounded-2xl border border-border shadow-sm h-fit sticky top-6 overflow-hidden">
+            <CardHeader className="border-b border-border bg-gradient-to-b from-emerald-500/10 to-primary/5 px-5 py-4">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
+                        <MapPin className="size-4" aria-hidden />
+                    </div>
+                    <CardTitle className="text-base font-semibold m-0 uppercase tracking-wide">Lộ trình hồ sơ</CardTitle>
+                </div>
+            </CardHeader>
+            <CardContent className="p-5 pt-4">
+                <div className="space-y-0 relative">
+                    <div className="absolute left-3.5 top-2 bottom-6 w-0.5 bg-border -z-10"></div>
+                    {stages.map((stage) => {
                     const isActive = stage.id === currentStageId;
                     const isCompleted = completedStages.includes(stage.id);
                     const isLocked = !stage.isUnlocked;
@@ -66,9 +75,10 @@ const StageNavigation: React.FC<StageNavigationProps> = ({stages, currentStageId
                             </div>
                         </div>
                     );
-                })}
-            </div>
-        </div>
+                    })}
+                </div>
+            </CardContent>
+        </Card>
     );
 };
 export default StageNavigation;

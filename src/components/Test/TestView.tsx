@@ -13,9 +13,9 @@ interface TestViewProps {
 const ProgressBar: React.FC<{ current: number; total: number }> = ({ current, total }) => {
   const percentage = Math.round(((current + 1) / total) * 100);
   return (
-    <div className="w-full bg-muted rounded-full h-2.5 mb-6">
+    <div className="w-full bg-muted/80 rounded-full h-2.5 mb-6 overflow-hidden">
       <div
-        className="bg-primary h-2.5 rounded-full transition-all duration-300 ease-out"
+        className="h-2.5 rounded-full transition-all duration-300 ease-out bg-gradient-to-r from-violet-500 to-primary"
         style={{ width: `${percentage}%` }}
       />
     </div>
@@ -90,12 +90,12 @@ const TestView: React.FC<TestViewProps> = ({testType, questions, onBack, onCompl
                     className={`
                     fixed lg:sticky top-0 left-0 h-screen lg:h-auto z-50 lg:z-auto
                     w-80 lg:w-72 shrink-0
-                    rounded-2xl border border-border/60 bg-card shadow-lg overflow-hidden
+                    rounded-2xl border border-border bg-card shadow-lg overflow-hidden
                     transition-transform duration-300 ease-in-out
                     ${showQuestionList ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     `}
                 >
-                    <div className="p-4 border-b border-border/60 bg-muted/30">
+                    <div className="p-4 border-b border-border bg-gradient-to-r from-violet-500/10 to-primary/5">
                         <div className="flex items-center justify-between">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
                                 <List size={20} className="text-primary" />
@@ -171,7 +171,7 @@ const TestView: React.FC<TestViewProps> = ({testType, questions, onBack, onCompl
                         </button>
                     </div>
 
-                    <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-8 md:p-12">
+                    <div className="rounded-2xl border border-border bg-card shadow-sm p-8 md:p-12">
                         <div className="flex justify-between items-center mb-4 text-sm text-muted-foreground font-medium">
                             <span>{TEST_DESCRIPTIONS[testType].title}</span>
                             <div className="flex items-center gap-4">

@@ -1,8 +1,54 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
+import { Briefcase, ExternalLink } from "lucide-react";
 import { ONETDatasetInfo } from "./CareerAssessmentResults/ONETDatasetInfo";
+import { getCareerLearnMoreUrl } from "@/lib/career-images";
+
+/** Fetches career image from API and displays with fallback if image fails */
+function CareerCardImage({ name, category }: { name: string; category: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const q = new URLSearchParams({ title: name, category });
+    fetch(`/api/career-image?${q}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data?.url) setSrc(data.url);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [name, category]);
+
+  if (failed || !src) {
+    return (
+      <div className="w-full h-36 bg-muted/50 flex items-center justify-center rounded-t-2xl border-b border-border/60">
+        <Briefcase className="w-10 h-10 text-muted-foreground/60" aria-hidden />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-36 rounded-t-2xl overflow-hidden border-b border-border/60 bg-muted/30">
+      <Image
+        src={src}
+        alt=""
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, 400px"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
 
 // Component-specific interface (camelCase for React)
 interface CareerRecommendation {
@@ -214,7 +260,7 @@ function CareerAssessmentResults({
   };
 
   const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return "text-primary bg-primary/10";
+    if (percentage >= 80) return "text-emerald-700 dark:text-emerald-300 bg-emerald-500/15";
     if (percentage >= 60) return "text-primary bg-primary/10";
     if (percentage >= 40) return "text-foreground bg-muted/50";
     return "text-muted-foreground bg-muted/30";
@@ -233,6 +279,17 @@ function CareerAssessmentResults({
       .split("")
       .map((c) => descriptions[c] || c)
       .join(" + ");
+  };
+
+  /** Ẩn dòng "Điểm RIASEC: R=..., I=..., ..." trong mô tả; chỉ trả về phần còn lại (nếu có). */
+  const getDisplayMatchReason = (matchReason: string): string => {
+    if (!matchReason?.trim()) return "";
+    const trimmed = matchReason.trim();
+    const without = trimmed
+      .replace(/Điểm RIASEC:[^\n]*/gi, "")
+      .replace(/\n\n+/g, "\n")
+      .trim();
+    return without;
   };
 
   if (loading) {
@@ -529,12 +586,12 @@ function CareerAssessmentResults({
               {Object.entries(careerGroups).map(([groupName, groupRecs]) => (
                 <div
                   key={groupName}
-                  className="rounded-2xl border border-border/60 bg-muted/20 p-6"
+                  className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
                 >
-                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/60">
-                    <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
+                  <div className="flex items-center gap-3 px-6 py-4 border-b border-border bg-gradient-to-r from-emerald-500/10 to-primary/5">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                       <svg
-                        className="w-6 h-6 text-primary"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -548,7 +605,7 @@ function CareerAssessmentResults({
                       </svg>
                     </div>
                     <div>
-                      <h4 className="text-2xl font-bold text-foreground">
+                      <h4 className="text-xl font-bold text-foreground">
                         {groupName}
                       </h4>
                       <p className="text-sm text-muted-foreground">
@@ -556,173 +613,115 @@ function CareerAssessmentResults({
                       </p>
                     </div>
                   </div>
+                  <div className="p-6">
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {groupRecs.map((rec, index) => (
+                    {groupRecs.map((rec, index) => {
+                      const displayReason = getDisplayMatchReason(rec.matchReason);
+                      return (
                       <div
                         key={index}
-                        className="rounded-xl border border-border/60 bg-card p-5 hover:shadow-md transition-all flex flex-col"
+                        className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col border-l-4 border-l-emerald-500/50 bg-gradient-to-br from-emerald-500/[0.04] to-transparent hover:shadow-md transition-all duration-200"
                       >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h5 className="font-bold text-lg text-foreground mb-2">
+                        <CareerCardImage name={rec.name} category={rec.category} />
+                        <div className="p-5 flex flex-col flex-1">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <h5 className="font-bold text-lg text-foreground leading-tight flex-1 min-w-0">
                               {rec.name}
                             </h5>
-                            {rec.category && (
-                              <div className="mb-2">
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                                  <svg
-                                    className="w-3 h-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                                    />
-                                  </svg>
-                                  {rec.category}
-                                </span>
-                              </div>
-                            )}
-                            {rec.riasecCode && (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">
-                                  {rec.riasecCode}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {getRIASECDescription(rec.riasecCode)}
-                                </span>
-                              </div>
-                            )}
+                            <span
+                              className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold ${getMatchColor(rec.matchPercentage)}`}
+                              title="Độ phù hợp"
+                            >
+                              {rec.matchPercentage}%
+                            </span>
                           </div>
-                          <div
-                            className={`px-3 py-1.5 rounded-full text-sm font-bold ${getMatchColor(
-                              rec.matchPercentage
-                            )} whitespace-nowrap ml-2 shrink-0`}
+                          {rec.category && (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground mb-2 w-fit">
+                              {rec.category}
+                            </span>
+                          )}
+                          {displayReason && (
+                            <p className="text-sm text-muted-foreground leading-snug line-clamp-2 mt-1">
+                              {displayReason}
+                            </p>
+                          )}
+                          {rec.riasecCode && (
+                            <div className="mt-3 pt-3 border-t border-border/40">
+                              <span className="text-xs text-muted-foreground">
+                                Mã Holland: <span className="font-semibold text-foreground">{rec.riasecCode}</span>
+                              </span>
+                            </div>
+                          )}
+                          <a
+                            href={getCareerLearnMoreUrl(rec.name)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 hover:underline"
                           >
-                            {rec.matchPercentage}%
-                          </div>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            Tìm hiểu thêm
+                          </a>
                         </div>
-
-                        {rec.riasecScores && (
-                          <div className="mt-auto pt-3 border-t border-border/60">
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="text-xs font-semibold text-muted-foreground">
-                                Điểm RIASEC
-                              </p>
-                            </div>
-                            <div className="grid grid-cols-6 gap-1.5">
-                              {Object.entries(rec.riasecScores).map(
-                                ([code, score]) => (
-                                  <div
-                                    key={code}
-                                    className="text-center rounded-lg p-1.5 border border-border/60 bg-muted/30"
-                                  >
-                                    <div className="text-xs font-bold text-foreground mb-0.5">
-                                      {code}
-                                    </div>
-                                    <div className="text-xs font-semibold text-primary">
-                                      {typeof score === "number"
-                                        ? score.toFixed(1)
-                                        : score}
-                                    </div>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    ))}
+                    );
+                    })}
+                  </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {recommendations.map((rec, index) => (
+              {recommendations.map((rec, index) => {
+                const displayReason = getDisplayMatchReason(rec.matchReason);
+                return (
                 <div
                   key={index}
-                  className="rounded-xl border border-border/60 bg-card p-5 hover:shadow-md transition-all flex flex-col"
+                  className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col border-l-4 border-l-emerald-500/50 bg-gradient-to-br from-emerald-500/[0.04] to-transparent hover:shadow-md transition-all duration-200"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-lg text-foreground mb-2">
+                  <CareerCardImage name={rec.name} category={rec.category} />
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h4 className="font-bold text-lg text-foreground leading-tight flex-1 min-w-0">
                         {rec.name}
                       </h4>
-                      {rec.category && (
-                        <div className="mb-2">
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                              />
-                            </svg>
-                            {rec.category}
-                          </span>
-                        </div>
-                      )}
-                      {rec.riasecCode && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">
-                            {rec.riasecCode}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {getRIASECDescription(rec.riasecCode)}
-                          </span>
-                        </div>
-                      )}
+                      <span
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold ${getMatchColor(rec.matchPercentage)}`}
+                        title="Độ phù hợp"
+                      >
+                        {rec.matchPercentage}%
+                      </span>
                     </div>
-                    <div
-                      className={`px-3 py-1.5 rounded-full text-sm font-bold ${getMatchColor(
-                        rec.matchPercentage
-                      )} whitespace-nowrap ml-2 shrink-0`}
+                    {rec.category && (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground mb-2 w-fit">
+                        {rec.category}
+                      </span>
+                    )}
+                    {displayReason && (
+                      <p className="text-sm text-muted-foreground leading-snug line-clamp-2 mt-1">
+                        {displayReason}
+                      </p>
+                    )}
+                    {rec.riasecCode && (
+                      <div className="mt-3 pt-3 border-t border-border/40">
+                        <span className="text-xs text-muted-foreground">
+                          Mã Holland: <span className="font-semibold text-foreground">{rec.riasecCode}</span>
+                        </span>
+                      </div>
+                    )}
+                    <a
+                      href={getCareerLearnMoreUrl(rec.name)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 hover:underline"
                     >
-                      {rec.matchPercentage}%
-                    </div>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Tìm hiểu thêm
+                    </a>
                   </div>
-
-                  {rec.riasecScores && (
-                    <div className="mt-auto pt-3 border-t border-border/60">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-muted-foreground">
-                          Điểm RIASEC
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-6 gap-1.5">
-                        {Object.entries(rec.riasecScores).map(
-                          ([code, score]) => (
-                            <div
-                              key={code}
-                              className="text-center rounded-lg p-1.5 border border-border/60 bg-muted/30"
-                            >
-                              <div className="text-xs font-bold text-foreground mb-0.5">
-                                {code}
-                              </div>
-                              <div className="text-xs font-semibold text-primary">
-                                {typeof score === "number"
-                                  ? score.toFixed(1)
-                                  : score}
-                              </div>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
