@@ -211,14 +211,24 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
               </button>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center gap-2">
-              <Globe size={16} className="text-primary shrink-0" />
+            <div className="flex items-start gap-3">
+              <Globe size={16} className="text-primary shrink-0 mt-0.5" />
               {profile.englishCertificates && profile.englishCertificates.length > 0 ? (
-                <div className="flex flex-wrap gap-x-2 gap-y-1">
-                  {profile.englishCertificates.map((c, i) => (
-                    <span key={i} className="font-medium text-foreground">
-                      {[c.type, c.score].filter(Boolean).join(" ")}
-                    </span>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  {/* Chia thành các cột, mỗi cột 3 chứng chỉ */}
+                  {Array.from({ length: Math.ceil(profile.englishCertificates.length / 3) }).map((_, colIndex) => (
+                    <div key={colIndex} className="flex flex-col gap-1">
+                      {profile.englishCertificates
+                        .slice(colIndex * 3, colIndex * 3 + 3)
+                        .map((c, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                            <span className="font-medium text-foreground whitespace-nowrap">
+                              {c.type} {c.score}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
                   ))}
                 </div>
               ) : (

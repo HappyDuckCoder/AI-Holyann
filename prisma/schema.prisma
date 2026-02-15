@@ -176,27 +176,27 @@ model students {
   updated_at            DateTime? @default(now()) @db.Timestamp(6)
 
   // Relations
-  academic_profile     student_academic_profiles?
-  background           student_backgrounds?
-  parents              student_parents[]
-  student_skills       student_skills[]
-  profile_analyses     profile_analyses[]
-  mbti_tests           mbti_tests?
-  riasec_tests         riasec_tests?
-  grit_tests           grit_tests?
-  career_matches       career_matches[]
-  student_match_school student_match_school[]
+  academic_profile                   student_academic_profiles?
+  background                         student_backgrounds?
+  parents                            student_parents[]
+  student_skills                     student_skills[]
+  profile_analyses                   profile_analyses[]
+  mbti_tests                         mbti_tests?
+  riasec_tests                       riasec_tests?
+  grit_tests                         grit_tests?
+  career_matches                     career_matches[]
+  student_match_school               student_match_school[]
   student_university_recommendations student_university_recommendations[]
-  mentors              mentor_assignments[]
+  mentors                            mentor_assignments[]
 
   // Quan hệ với bảng Task Progress
   checklist_progress student_task_progress[]
 
   // Improve: Essay & CV
-  essays                   essays[]
-  student_cvs              student_cv_documents[]
-  profile_improve_result   profile_improve_results?
-  cv_improve_result        cv_improve_results?
+  essays                 essays[]
+  student_cvs            student_cv_documents[]
+  profile_improve_result profile_improve_results?
+  cv_improve_result      cv_improve_results?
 }
 
 // ==================== 4b. IMPROVE – ESSAY & CV ====================
@@ -210,22 +210,23 @@ model essays {
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @default(now()) @db.Timestamp(6)
 
-  comments            essay_comments[]
-  improve_result      essay_improve_results?
+  comments       essay_comments[]
+  improve_result essay_improve_results?
+
   @@index([student_id])
 }
 
 model essay_comments {
-  id          String   @id @default(uuid()) @db.Uuid
-  essay_id    String   @db.Uuid
-  essay       essays   @relation(fields: [essay_id], references: [id], onDelete: Cascade)
-  author_id   String   @db.Uuid
-  author      users    @relation(fields: [author_id], references: [id], onDelete: Cascade)
-  content     String   @db.Text
-  start_offset Int?    // Vị trí ký tự đầu (comment inline)
-  end_offset   Int?    // Vị trí ký tự cuối
-  created_at  DateTime @default(now()) @db.Timestamp(6)
-  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  id           String   @id @default(uuid()) @db.Uuid
+  essay_id     String   @db.Uuid
+  essay        essays   @relation(fields: [essay_id], references: [id], onDelete: Cascade)
+  author_id    String   @db.Uuid
+  author       users    @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  content      String   @db.Text
+  start_offset Int? // Vị trí ký tự đầu (comment inline)
+  end_offset   Int? // Vị trí ký tự cuối
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  updated_at   DateTime @default(now()) @db.Timestamp(6)
 
   @@index([essay_id])
   @@index([author_id])
@@ -244,50 +245,52 @@ model student_cv_documents {
 
 /// Kết quả Phân tích & Đề xuất cải thiện (Improve – Feature 4). Mỗi student một bản ghi, cập nhật khi chạy lại.
 model profile_improve_results {
-  id               String    @id @default(uuid()) @db.Uuid
-  student_id       String    @unique @db.Uuid
-  student          students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  analysis_result  Json?     // Full response từ /profile-improver/analysis
-  enhance_result   Json?     // Full response từ /profile-improver/enhance
-  analysis_rating  Int?      // 1–5, do học sinh đánh giá
-  enhance_rating   Int?      // 1–5
-  analysis_at      DateTime? @db.Timestamp(6)
-  enhance_at       DateTime? @db.Timestamp(6)
-  created_at       DateTime  @default(now()) @db.Timestamp(6)
-  updated_at       DateTime  @default(now()) @db.Timestamp(6)
+  id              String    @id @default(uuid()) @db.Uuid
+  student_id      String    @unique @db.Uuid
+  student         students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  analysis_result Json? // Full response từ /profile-improver/analysis
+  enhance_result  Json? // Full response từ /profile-improver/enhance
+  analysis_rating Int? // 1–5, do học sinh đánh giá
+  enhance_rating  Int? // 1–5
+  analysis_at     DateTime? @db.Timestamp(6)
+  enhance_at      DateTime? @db.Timestamp(6)
+  created_at      DateTime  @default(now()) @db.Timestamp(6)
+  updated_at      DateTime  @default(now()) @db.Timestamp(6)
 
   @@index([student_id])
 }
 
 /// Kết quả Phân tích & Enhance theo từng essay (mỗi essay một bản ghi).
 model essay_improve_results {
-  id               String    @id @default(uuid()) @db.Uuid
-  essay_id         String    @unique @db.Uuid
-  essay            essays    @relation(fields: [essay_id], references: [id], onDelete: Cascade)
-  analysis_result  Json?
-  enhance_result   Json?
-  analysis_rating  Int?
-  enhance_rating   Int?
-  analysis_at      DateTime? @db.Timestamp(6)
-  enhance_at       DateTime? @db.Timestamp(6)
-  created_at       DateTime  @default(now()) @db.Timestamp(6)
-  updated_at       DateTime  @default(now()) @db.Timestamp(6)
+  id              String    @id @default(uuid()) @db.Uuid
+  essay_id        String    @unique @db.Uuid
+  essay           essays    @relation(fields: [essay_id], references: [id], onDelete: Cascade)
+  analysis_result Json?
+  enhance_result  Json?
+  analysis_rating Int?
+  enhance_rating  Int?
+  analysis_at     DateTime? @db.Timestamp(6)
+  enhance_at      DateTime? @db.Timestamp(6)
+  created_at      DateTime  @default(now()) @db.Timestamp(6)
+  updated_at      DateTime  @default(now()) @db.Timestamp(6)
+
   @@index([essay_id])
 }
 
 /// Kết quả Phân tích & Enhance CV (mỗi student một bản ghi).
 model cv_improve_results {
-  id               String    @id @default(uuid()) @db.Uuid
-  student_id       String    @unique @db.Uuid
-  student          students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  analysis_result  Json?
-  enhance_result   Json?
-  analysis_rating  Int?
-  enhance_rating   Int?
-  analysis_at      DateTime? @db.Timestamp(6)
-  enhance_at       DateTime? @db.Timestamp(6)
-  created_at       DateTime  @default(now()) @db.Timestamp(6)
-  updated_at       DateTime  @default(now()) @db.Timestamp(6)
+  id              String    @id @default(uuid()) @db.Uuid
+  student_id      String    @unique @db.Uuid
+  student         students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  analysis_result Json?
+  enhance_result  Json?
+  analysis_rating Int?
+  enhance_rating  Int?
+  analysis_at     DateTime? @db.Timestamp(6)
+  enhance_at      DateTime? @db.Timestamp(6)
+  created_at      DateTime  @default(now()) @db.Timestamp(6)
+  updated_at      DateTime  @default(now()) @db.Timestamp(6)
+
   @@index([student_id])
 }
 
@@ -619,21 +622,54 @@ model career_matches {
 }
 
 model profile_analyses {
-  id                    String    @id @default(uuid()) @db.Uuid
-  student_id            String    @db.Uuid
-  students              students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  analysis_date         DateTime  @default(now()) @db.Timestamp(6)
-  academic_data         Json      @default("{}")
-  extracurricular_data  Json      @default("{}")
-  skill_data            Json      @default("{}")
+  id            String   @id @default(uuid()) @db.Uuid
+  student_id    String   @db.Uuid
+  students      students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  analysis_date DateTime @default(now()) @db.Timestamp(6)
+
+  // Input data (data sent to AI)
+  input_data Json @default("{}")
+
+  // Full AI response
+  full_result Json @default("{}")
+
+  // Pillar Scores (quick access)
+  score_aca   Float? // Học thuật
+  score_lan   Float? // Ngôn ngữ
+  score_hdnk  Float? // Hoạt động ngoại khóa
+  score_skill Float? // Kỹ năng
+
+  // Regional Scores (quick access)
+  score_usa    Float? // Điểm khu vực Mỹ
+  score_asia   Float? // Điểm khu vực Châu Á
+  score_europe Float? // Điểm khu vực Âu/Úc/Canada
+
+  // Spike Info
+  main_spike      String? @db.VarChar(100)
+  spike_sharpness String? @db.VarChar(50)
+  spike_score     Float?
+
+  // SWOT Analysis
+  swot_data Json? @default("{}")
+
+  // All Spike Scores (for detailed analysis)
+  all_spike_scores Json? @default("{}")
+
+  // Legacy fields (kept for backward compatibility)
+  academic_data         Json    @default("{}")
+  extracurricular_data  Json    @default("{}")
+  skill_data            Json    @default("{}")
   overall_score         Float?
   academic_score        Float?
   extracurricular_score Float?
   summary               String?
-  swot_data             Json?     @default("{}")
-  created_at            DateTime? @default(now()) @db.Timestamp(6)
+
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
 
   @@index([student_id])
+  @@index([main_spike])
+  @@index([analysis_date])
 }
 
 // ==================== 8. UNIVERSITIES & APPLICATIONS ====================
@@ -718,13 +754,13 @@ model student_match_school {
 
 // Kết quả gợi ý trường (Module 3) từ server-ai: summary, roadmap, snapshot universities
 model student_university_recommendations {
-  id          String   @id @default(uuid()) @db.Uuid
-  student_id  String   @db.Uuid
-  students    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  summary     Json     @default("{}")  // total_matched, reach_count, match_count, safety_count
-  roadmap     Json     @default("{}")  // start_date, duration_months, overall_goals, key_milestones, monthly_plans
-  universities Json?   @default("{}")  // optional snapshot: REACH/MATCH/SAFETY
-  created_at  DateTime @default(now()) @db.Timestamp(6)
+  id           String   @id @default(uuid()) @db.Uuid
+  student_id   String   @db.Uuid
+  students     students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  summary      Json     @default("{}") // total_matched, reach_count, match_count, safety_count
+  roadmap      Json     @default("{}") // start_date, duration_months, overall_goals, key_milestones, monthly_plans
+  universities Json?    @default("{}") // optional snapshot: REACH/MATCH/SAFETY
+  created_at   DateTime @default(now()) @db.Timestamp(6)
 
   @@index([student_id])
 }
