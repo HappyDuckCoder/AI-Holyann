@@ -213,12 +213,12 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
           ) : (
             <div className="flex items-start gap-3">
               <Globe size={16} className="text-primary shrink-0 mt-0.5" />
-              {profile.englishCertificates && profile.englishCertificates.length > 0 ? (
+              {(profile.englishCertificates?.length ?? 0) > 0 ? (
                 <div className="flex flex-wrap gap-x-6 gap-y-1">
                   {/* Chia thành các cột, mỗi cột 3 chứng chỉ */}
-                  {Array.from({ length: Math.ceil(profile.englishCertificates.length / 3) }).map((_, colIndex) => (
+                  {Array.from({ length: Math.ceil((profile.englishCertificates ?? []).length / 3) }).map((_, colIndex) => (
                     <div key={colIndex} className="flex flex-col gap-1">
-                      {profile.englishCertificates
+                      {(profile.englishCertificates ?? [])
                         .slice(colIndex * 3, colIndex * 3 + 3)
                         .map((c, i) => (
                           <div key={i} className="flex items-center gap-2">

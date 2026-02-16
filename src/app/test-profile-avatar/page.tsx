@@ -151,7 +151,6 @@ export default function TestProfileAvatarPage() {
         onEditClick={handleEditClick}
         onUploadDocument={handleUploadDocument}
         onDeleteDocument={handleDeleteDocument}
-        onAnalyzeProfile={handleAnalyzeProfile}
         onProfileUpdate={handleProfileUpdate}
       />
     </div>

@@ -514,10 +514,10 @@ export default function ReportsPage() {
                       {hasSummary && typeof summary === "string" && <p className="line-clamp-2 text-foreground">{summary}</p>}
                       {hasSummary && typeof summary === "object" && ("total_matched" in summary || "reach_count" in summary) && (
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="text-[10px]">Tổng: {(summary as Record<string, unknown>).total_matched ?? 0}</Badge>
-                          <Badge variant="outline" className="text-violet-600 border-violet-300 text-[10px]">Reach: {(summary as Record<string, unknown>).reach_count ?? 0}</Badge>
-                          <Badge variant="outline" className="text-emerald-600 border-emerald-300 text-[10px]">Match: {(summary as Record<string, unknown>).match_count ?? 0}</Badge>
-                          <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">Safety: {(summary as Record<string, unknown>).safety_count ?? 0}</Badge>
+                          <Badge variant="outline" className="text-[10px]">Tổng: {Number((summary as Record<string, unknown>).total_matched) || 0}</Badge>
+                          <Badge variant="outline" className="text-violet-600 border-violet-300 text-[10px]">Reach: {Number((summary as Record<string, unknown>).reach_count) || 0}</Badge>
+                          <Badge variant="outline" className="text-emerald-600 border-emerald-300 text-[10px]">Match: {Number((summary as Record<string, unknown>).match_count) || 0}</Badge>
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">Safety: {Number((summary as Record<string, unknown>).safety_count) || 0}</Badge>
                         </div>
                       )}
                       {hasUnis && (

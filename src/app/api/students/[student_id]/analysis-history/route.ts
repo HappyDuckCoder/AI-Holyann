@@ -20,7 +20,7 @@ export async function GET(
     // Auth check - try to get session, but allow if API is called internally
     let session: any = null;
     try {
-      const { authOptions } = await import('@/lib/auth/authOptions');
+      const { authOptions } = await import('@/lib/auth/auth-config');
       session = await getServerSession(authOptions);
     } catch {
       // authOptions may not exist, allow internal calls
