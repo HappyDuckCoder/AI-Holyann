@@ -7,3 +7,4 @@ export { default as ProfileAnalysisModal } from './ProfileAnalysisModal';
 export { default as AcademicInfoModal } from './AcademicInfoModal';
 export { TargetSchoolsPage } from './TargetSchoolsPage';
 export { ProfileEnhancerPage } from './ProfileEnhancerPage';
+export { ProfileAnalysisResultCard } from './ProfileAnalysisResultCard';

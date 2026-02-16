@@ -8,8 +8,24 @@ import { RadarChartCard } from "./components/RadarChartCard";
 import { AcademicInfoSection } from "./components/AcademicInfoSection";
 import { ActivitiesSection } from "./components/ActivitiesSection";
 import { DocumentsSection } from "./components/DocumentsSection";
-import { ProfileEvaluationSection } from "./ProfileEvaluationSection";
-import type { AnalysisResult } from "./ProfileAnalysisContent";
+import { ProfileAnalysisResultCard } from "./ProfileAnalysisResultCard";
+
+interface AnalysisResult {
+  analysisDate?: Date | string;
+  pillarScores?: {
+    aca: number | null;
+    lan: number | null;
+    hdnk: number | null;
+    skill: number | null;
+  } | null;
+  regionalScores?: {
+    usa: number | null;
+    asia: number | null;
+    europe: number | null;
+  } | null;
+  mainSpike?: string | null;
+  spikeSharpness?: string | null;
+}
 
 export interface ProfilePageProps {
   profile: StudentProfile;
@@ -125,10 +141,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             uploadDocumentLoading={uploadDocumentLoading}
           />
           {onAnalyzeProfile && (
-            <ProfileEvaluationSection
-              analysisResult={analysisResult ?? null}
-              analysisLoading={analysisLoading}
-              onAnalyze={onAnalyzeProfile}
+            <ProfileAnalysisResultCard
+              analysisDate={analysisResult?.analysisDate}
+              pillarScores={analysisResult?.pillarScores}
+              regionalScores={analysisResult?.regionalScores}
+              mainSpike={analysisResult?.mainSpike}
+              spikeSharpness={analysisResult?.spikeSharpness}
+              onReanalyze={onAnalyzeProfile}
+              loading={analysisLoading}
             />
           )}
         </div>
