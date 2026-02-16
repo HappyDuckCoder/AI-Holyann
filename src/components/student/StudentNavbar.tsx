@@ -21,6 +21,7 @@ import {
   Sparkles,
   ClipboardList,
   FileBarChart,
+  BarChart3,
 } from "lucide-react";
 
 const STUDENT_BASE = "/student";
@@ -188,6 +189,14 @@ export default function StudentNavbar() {
                     Reports
                   </Link>
                   <Link
+                    href={`${STUDENT_BASE}/profile-analysis`}
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Phân tích hồ sơ
+                  </Link>
+                  <Link
                     href={`${STUDENT_BASE}/settings`}
                     onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
@@ -310,6 +319,14 @@ export default function StudentNavbar() {
                 >
                   <FileBarChart className="h-4 w-4" />
                   Reports
+                </Link>
+                <Link
+                  href={`${STUDENT_BASE}/profile-analysis`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Phân tích hồ sơ
                 </Link>
                 <Link
                   href={`${STUDENT_BASE}/settings`}
