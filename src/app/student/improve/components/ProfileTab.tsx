@@ -262,9 +262,26 @@ export function ProfileTab({
                 )}
                 {overall && Array.isArray(overall.priority_suggestions) && overall.priority_suggestions.length > 0 && (
                   <CollapsibleSection title="Gợi ý ưu tiên" summary={`${overall.priority_suggestions.length} mục`} accent="amber">
-                    <ol className="text-sm text-foreground space-y-1 list-decimal list-inside">
-                      {(overall.priority_suggestions as unknown[]).map((p, i) => <li key={i}>{safeText(p)}</li>)}
-                    </ol>
+                    <ul className="space-y-4">
+                      {(overall.priority_suggestions as unknown[]).map((p, i) => {
+                        const raw = safeText(p);
+                        const match = raw.match(/^\s*\*{0,2}(\d+)\.\s*(.+?)\*{0,2}:\s*(.*)/s);
+                        const num = match ? match[1] : String(i + 1);
+                        const title = match ? match[2].replace(/\*+/g, '').trim() : null;
+                        const body = match ? match[3].trim() : raw;
+                        return (
+                          <li key={i} className="flex gap-3 rounded-xl border border-amber-200/60 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/30 p-4">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-semibold text-sm">
+                              {num}
+                            </span>
+                            <div className="min-w-0 flex-1 space-y-1">
+                              {title && <p className="font-semibold text-foreground text-sm">{title}</p>}
+                              <FormattedText text={body} className="text-sm text-muted-foreground leading-relaxed" />
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </CollapsibleSection>
                 )}
               </div>
