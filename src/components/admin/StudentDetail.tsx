@@ -66,7 +66,7 @@ export default function StudentDetail({ studentId }: StudentDetailProps) {
           if (!prev) return prev
           return {
             ...prev,
-            avatar_url: result.url ?? null,
+            avatar_url: result.url
           }
         })
 

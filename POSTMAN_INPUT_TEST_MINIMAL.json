@@ -1,0 +1,40 @@
+{
+  "academic": {
+    "gpa": 8.0,
+    "subject_scores": [
+      {
+        "subject": "Toán",
+        "score": 8.5
+      }
+    ],
+    "academic_awards": []
+  },
+  "language_and_standardized": {
+    "languages": [
+      {
+        "language_name": "IELTS",
+        "score": "7.0"
+      }
+    ],
+    "standardized_tests": []
+  },
+  "action": {
+    "actions": [
+      {
+        "action_name": "Thành Viên Câu Lạc Bộ",
+        "role": "MEMBER",
+        "scale": 20,
+        "region": "school"
+      }
+    ]
+  },
+  "skill": {
+    "skills": [
+      {
+        "skill_name": "Python",
+        "proficiency": "INTERMEDIATE"
+      }
+    ]
+  }
+}
+
