@@ -493,15 +493,48 @@ export default function SwotCardPage() {
                   <span>Điểm mạnh</span>
                 </h4>
                 <ul className="space-y-2">
-                  {swotData.strengths.map((strength, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="text-green-600 mt-1">•</span>
-                      <span>{strength}</span>
-                    </li>
-                  ))}
+                  {swotData.strengths.map((raw, idx) => {
+                    const strength = (raw ?? '') as string;
+                    const [before, after] = strength.split(/⇒\s*Kết luận:/);
+                    let pillar: string | null = null;
+                    let tier: string | null = null;
+                    let evidence: string | null = null;
+                    let conclusion = (after ?? strength).trim();
+                    if (before && /Tier/i.test(before) && /Evidence:/i.test(before)) {
+                      const segs = before.split('—').map((s) => s.trim());
+                      pillar = segs[0] || null;
+                      const tierSeg = segs.find((s) => /Tier/i.test(s));
+                      tier = tierSeg ? tierSeg.replace(/Tier/i, '').trim() : null;
+                      const evidSeg = segs.find((s) => /Evidence:/i.test(s));
+                      evidence = evidSeg ? evidSeg.replace(/Evidence:/i, '').trim() : null;
+                    }
+                    return (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        <span className="text-green-600 mt-1">•</span>
+                        <div className="space-y-0.5">
+                          {(pillar || tier) && (
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              {pillar && <span className="font-semibold text-foreground">{pillar}</span>}
+                              {tier && (
+                                <span className="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-[10px] font-semibold uppercase tracking-wide text-green-700 dark:text-green-300">
+                                  Tier {tier}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {evidence && (
+                            <p className="text-xs text-muted-foreground">
+                              Evidence: {evidence}
+                            </p>
+                          )}
+                          <p>{conclusion}</p>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
 
@@ -515,15 +548,48 @@ export default function SwotCardPage() {
                   <span>Điểm yếu</span>
                 </h4>
                 <ul className="space-y-2">
-                  {swotData.weaknesses.map((weakness, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="text-red-600 mt-1">•</span>
-                      <span>{weakness}</span>
-                    </li>
-                  ))}
+                  {swotData.weaknesses.map((raw, idx) => {
+                    const weakness = (raw ?? '') as string;
+                    const [before, after] = weakness.split(/⇒\s*Kết luận:/);
+                    let pillar: string | null = null;
+                    let tier: string | null = null;
+                    let evidence: string | null = null;
+                    let conclusion = (after ?? weakness).trim();
+                    if (before && /Tier/i.test(before) && /Evidence:/i.test(before)) {
+                      const segs = before.split('—').map((s) => s.trim());
+                      pillar = segs[0] || null;
+                      const tierSeg = segs.find((s) => /Tier/i.test(s));
+                      tier = tierSeg ? tierSeg.replace(/Tier/i, '').trim() : null;
+                      const evidSeg = segs.find((s) => /Evidence:/i.test(s));
+                      evidence = evidSeg ? evidSeg.replace(/Evidence:/i, '').trim() : null;
+                    }
+                    return (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        <span className="text-red-600 mt-1">•</span>
+                        <div className="space-y-0.5">
+                          {(pillar || tier) && (
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              {pillar && <span className="font-semibold text-foreground">{pillar}</span>}
+                              {tier && (
+                                <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-[10px] font-semibold uppercase tracking-wide text-red-700 dark:text-red-300">
+                                  Tier {tier}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {evidence && (
+                            <p className="text-xs text-muted-foreground">
+                              Evidence: {evidence}
+                            </p>
+                          )}
+                          <p>{conclusion}</p>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
 
@@ -537,15 +603,54 @@ export default function SwotCardPage() {
                   <span>Cơ hội</span>
                 </h4>
                 <ul className="space-y-2">
-                  {swotData.opportunities.map((opportunity, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="text-yellow-600 mt-1">•</span>
-                      <span>{opportunity}</span>
-                    </li>
-                  ))}
+                  {swotData.opportunities.map((raw, idx) => {
+                    const opportunity = (raw ?? '') as string;
+                    const [before, after] = opportunity.split(/⇒\s*Kết luận:/);
+                    let pillar: string | null = null;
+                    let tier: string | null = null;
+                    let evidence: string | null = null;
+                    let conclusion = (after ?? opportunity).trim();
+
+                    if (before && /Tier/i.test(before) && /Evidence:/i.test(before)) {
+                      const segs = before.split('—').map((s) => s.trim());
+                      pillar = segs[0] || null;
+                      const tierSeg = segs.find((s) => /Tier/i.test(s));
+                      tier = tierSeg ? tierSeg.replace(/Tier/i, '').trim() : null;
+                      const evidSeg = segs.find((s) => /Evidence:/i.test(s));
+                      evidence = evidSeg ? evidSeg.replace(/Evidence:/i, '').trim() : null;
+                    }
+
+                    return (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        <span className="text-yellow-600 mt-1">•</span>
+                        <div className="space-y-0.5">
+                          {(pillar || tier) && (
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              {pillar && (
+                                <span className="font-semibold text-foreground">
+                                  {pillar}
+                                </span>
+                              )}
+                              {tier && (
+                                <span className="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-[10px] font-semibold uppercase tracking-wide text-yellow-700 dark:text-yellow-300">
+                                  Tier {tier}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {evidence && (
+                            <p className="text-xs text-muted-foreground">
+                              Evidence: {evidence}
+                            </p>
+                          )}
+                          <p>{conclusion}</p>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
 
@@ -559,15 +664,54 @@ export default function SwotCardPage() {
                   <span>Thách thức</span>
                 </h4>
                 <ul className="space-y-2">
-                  {swotData.threats.map((threat, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="text-orange-600 mt-1">•</span>
-                      <span>{threat}</span>
-                    </li>
-                  ))}
+                  {swotData.threats.map((raw, idx) => {
+                    const threat = (raw ?? '') as string;
+                    const [before, after] = threat.split(/⇒\s*Kết luận:/);
+                    let pillar: string | null = null;
+                    let tier: string | null = null;
+                    let evidence: string | null = null;
+                    let conclusion = (after ?? threat).trim();
+
+                    if (before && /Tier/i.test(before) && /Evidence:/i.test(before)) {
+                      const segs = before.split('—').map((s) => s.trim());
+                      pillar = segs[0] || null;
+                      const tierSeg = segs.find((s) => /Tier/i.test(s));
+                      tier = tierSeg ? tierSeg.replace(/Tier/i, '').trim() : null;
+                      const evidSeg = segs.find((s) => /Evidence:/i.test(s));
+                      evidence = evidSeg ? evidSeg.replace(/Evidence:/i, '').trim() : null;
+                    }
+
+                    return (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                      >
+                        <span className="text-orange-600 mt-1">•</span>
+                        <div className="space-y-0.5">
+                          {(pillar || tier) && (
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              {pillar && (
+                                <span className="font-semibold text-foreground">
+                                  {pillar}
+                                </span>
+                              )}
+                              {tier && (
+                                <span className="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/40 text-[10px] font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">
+                                  Tier {tier}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {evidence && (
+                            <p className="text-xs text-muted-foreground">
+                              Evidence: {evidence}
+                            </p>
+                          )}
+                          <p>{conclusion}</p>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             </div>
