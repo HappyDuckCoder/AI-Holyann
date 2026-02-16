@@ -12,6 +12,8 @@ export interface RegionScore {
     'Hoạt động ngoại khóa (HDNK)': number;
     'Kỹ năng (Skill)': number;
   };
+  /** Lý do phù hợp / không phù hợp vùng đó */
+  'Lý do'?: string;
 }
 
 export interface SpikeDetail {
@@ -48,6 +50,12 @@ export interface AnalysisData {
     'Hoạt động ngoại khóa (HDNK)': number;
     'Kỹ năng (Skill)': number;
   };
+  'E. Điểm từng trụ (Pillar Tiers)'?: Array<{
+    'Trụ cột': string;
+    'Điểm số': number;
+    'Tier': string;
+    'Nhận xét': string;
+  }>;
   summary: {
     success: boolean;
     total_pillar_scores: { aca: number; lan: number; hdnk: number; skill: number };
@@ -292,10 +300,43 @@ export function ProfileAnalysisContent({ result, loading, onRetry }: ProfileAnal
                         );
                       })}
                     </div>
+                    {region['Lý do'] && (
+                      <p className="mt-3 text-sm text-muted-foreground border-t border-border/60 pt-3">
+                        <span className="font-medium text-foreground">Lý do: </span>
+                        {region['Lý do']}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
+            {data['E. Điểm từng trụ (Pillar Tiers)'] && data['E. Điểm từng trụ (Pillar Tiers)'].length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2 mb-3">
+                  <span>🏆</span> Tier từng trụ cột
+                </h3>
+                <div className="grid gap-3">
+                  {data['E. Điểm từng trụ (Pillar Tiers)'].map((item, idx) => (
+                    <div key={idx} className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-foreground">{item['Trụ cột']}</span>
+                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-medium ${
+                          item['Tier'] === 'Hero' ? 'text-green-600 bg-green-100 dark:bg-green-900/30' :
+                          item['Tier'] === 'Excellent' ? 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30' :
+                          item['Tier'] === 'Very Good' ? 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' :
+                          item['Tier'] === 'Good' ? 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30' :
+                          'text-muted-foreground bg-muted'
+                        }`}>
+                          {item['Tier']}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{item['Nhận xét']}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Điểm: {item['Điểm số'].toFixed(1)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
