@@ -105,6 +105,8 @@ export interface RegionScore {
   "Điểm số (Score)": number;
   "Xếp loại (Rating)": string;
   "Chi tiết": RegionScoreDetail;
+  /** Lý do phù hợp / không phù hợp vùng đó */
+  "Lý do"?: string;
 }
 
 export interface SpikeDetail {
@@ -140,6 +142,14 @@ export interface PillarScores {
   "Kỹ năng (Skill)": number;
 }
 
+/** Tier và nhận xét cho một trụ cột (Hero, Excellent, Very Good, Good, Average) */
+export interface PillarTierItem {
+  "Trụ cột": string;
+  "Điểm số": number;
+  "Tier": string;
+  "Nhận xét": string;
+}
+
 export interface AnalysisSummary {
   success: boolean;
   total_pillar_scores: {
@@ -159,6 +169,8 @@ export interface Feature1OutputData {
   "B. Phân tích SWOT": SWOTAnalysis;
   "C. Nhận diện Spike (Yếu tố cốt lõi)": SpikeAnalysis;
   "D. Điểm số gốc (Pillar Scores)": PillarScores;
+  /** Tier và nhận xét từng trụ (Hero, Excellent, Very Good, Good, Average) */
+  "E. Điểm từng trụ (Pillar Tiers)"?: PillarTierItem[];
   summary: AnalysisSummary;
 }
 
@@ -653,6 +665,19 @@ export function normalizeFeature1OutputData(
         : "Low",
     };
 
+    const sectionE = data["E. Điểm từng trụ (Pillar Tiers)"];
+    const normalizedTiers: PillarTierItem[] = Array.isArray(sectionE)
+      ? sectionE.filter(
+          (item): item is PillarTierItem =>
+            item &&
+            typeof item === "object" &&
+            isNonEmptyString((item as Record<string, unknown>)["Trụ cột"]) &&
+            isValidNumber((item as Record<string, unknown>)["Điểm số"]) &&
+            isNonEmptyString((item as Record<string, unknown>)["Tier"]) &&
+            isNonEmptyString((item as Record<string, unknown>)["Nhận xét"])
+        )
+      : [];
+
     const normalized: Feature1OutputData = {
       "A. Đánh giá điểm số (Weighted Score Evaluation)": {
         "Khu vực": normalizedKhuVuc,
@@ -660,6 +685,7 @@ export function normalizeFeature1OutputData(
       "B. Phân tích SWOT": normalizedSWOT,
       "C. Nhận diện Spike (Yếu tố cốt lõi)": normalizedSpike,
       "D. Điểm số gốc (Pillar Scores)": normalizedPillars,
+      ...(normalizedTiers.length > 0 ? { "E. Điểm từng trụ (Pillar Tiers)": normalizedTiers } : {}),
       summary: normalizedSummary,
     };
 

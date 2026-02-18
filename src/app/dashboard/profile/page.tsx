@@ -459,9 +459,6 @@ export default function ProfilePageWrapper() {
           onEditClick={handleEditClick}
           onUploadDocument={handleUploadDocument}
           onDeleteDocument={handleDeleteDocument}
-          analysisResult={analysisResult}
-          analysisLoading={analysisLoading}
-          onAnalyzeProfile={handleAnalyzeProfile}
         />
         {isModalOpen && profile && (
           <AcademicInfoModal

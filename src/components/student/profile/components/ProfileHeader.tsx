@@ -2,15 +2,19 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Edit3, User } from "lucide-react";
+import { Edit3, User, BarChart3 } from "lucide-react";
 
 interface ProfileHeaderProps {
   onEditClick: () => void;
+  /** Link to profile analysis page. If set, shows "Đánh giá hồ sơ" button. */
+  analyzeHref?: string;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onEditClick,
+  analyzeHref,
 }) => {
   return (
     <motion.header
@@ -43,6 +47,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {analyzeHref && (
+            <Link
+              href={analyzeHref}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200"
+            >
+              <BarChart3 size={16} />
+              Đánh giá hồ sơ
+            </Link>
+          )}
           <button
             type="button"
             onClick={onEditClick}

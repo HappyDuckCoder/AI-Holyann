@@ -882,9 +882,6 @@ export default function ProfilePageWrapper() {
           onUploadAvatar={handleUploadAvatar}
           uploadDocumentLoading={uploadDocumentLoading}
           uploadAvatarLoading={uploadAvatarLoading}
-          analysisResult={analysisResult}
-          analysisLoading={analysisLoading}
-          onAnalyzeProfile={handleAnalyzeProfile}
           onSaveBasicInfo={handleSaveBasicInfo}
           onSaveAcademic={handleSaveAcademic}
           onUpdateActivity={handleUpdateActivity}

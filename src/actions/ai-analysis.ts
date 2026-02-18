@@ -10,6 +10,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { callProfileAnalysis } from "@/lib/ai-api-client";
 import { revalidatePath } from "next/cache";
 
@@ -277,76 +278,47 @@ async function callAIAndSave(
 
   let savedRecord;
 
+  const updateData = {
+    analysis_date: new Date(),
+    input_data: payload,
+    full_result: aiResult,
+    score_aca: pillarScores["Học thuật (Aca)"] || 0,
+    score_lan: pillarScores["Ngôn ngữ (Lan)"] || 0,
+    score_hdnk: pillarScores["Hoạt động ngoại khóa (HDNK)"] || 0,
+    score_skill: pillarScores["Kỹ năng (Skill)"] || 0,
+    score_usa: usaScore,
+    score_asia: asiaScore,
+    score_europe: europeScore,
+    main_spike: spike["Loại Spike hiện tại"] || null,
+    spike_sharpness: spike["Độ sắc (Sharpness)"] || null,
+    spike_score: spike["Điểm số"] || 0,
+    swot_data: swot,
+    all_spike_scores: spike["Tất cả Spike Scores"] || {},
+    academic_data: payload.academic || {},
+    extracurricular_data: { actions: payload.action?.actions || [] },
+    skill_data: { skills: payload.skill?.skills || [] },
+    overall_score:
+      (aiResult.summary?.total_pillar_scores?.aca || 0) +
+      (aiResult.summary?.total_pillar_scores?.lan || 0) +
+      (aiResult.summary?.total_pillar_scores?.hdnk || 0) +
+      (aiResult.summary?.total_pillar_scores?.skill || 0),
+    academic_score: aiResult.summary?.total_pillar_scores?.aca || 0,
+    extracurricular_score: aiResult.summary?.total_pillar_scores?.hdnk || 0,
+    summary: `Spike: ${aiResult.summary?.main_spike || "N/A"}, Sharpness: ${aiResult.summary?.sharpness || "N/A"}`,
+    updated_at: new Date(),
+  };
+
   if (existingRecord) {
-    // Update record hiện có
     savedRecord = await prisma.profile_analyses.update({
       where: { id: existingRecord.id },
-      data: {
-        analysis_date: new Date(),
-        input_data: payload,
-        full_result: aiResult,
-        score_aca: pillarScores["Học thuật (Aca)"] || 0,
-        score_lan: pillarScores["Ngôn ngữ (Lan)"] || 0,
-        score_hdnk: pillarScores["Hoạt động ngoại khóa (HDNK)"] || 0,
-        score_skill: pillarScores["Kỹ năng (Skill)"] || 0,
-        score_usa: usaScore,
-        score_asia: asiaScore,
-        score_europe: europeScore,
-        main_spike: spike["Loại Spike hiện tại"] || null,
-        spike_sharpness: spike["Độ sắc (Sharpness)"] || null,
-        spike_score: spike["Điểm số"] || 0,
-        swot_data: swot,
-        all_spike_scores: spike["Tất cả Spike Scores"] || {},
-        // Legacy fields
-        academic_data: payload.academic || {},
-        extracurricular_data: { actions: payload.action?.actions || [] },
-        skill_data: { skills: payload.skill?.skills || [] },
-        overall_score:
-          (aiResult.summary?.total_pillar_scores?.aca || 0) +
-          (aiResult.summary?.total_pillar_scores?.lan || 0) +
-          (aiResult.summary?.total_pillar_scores?.hdnk || 0) +
-          (aiResult.summary?.total_pillar_scores?.skill || 0),
-        academic_score: aiResult.summary?.total_pillar_scores?.aca || 0,
-        extracurricular_score:
-          aiResult.summary?.total_pillar_scores?.hdnk || 0,
-        summary: `Spike: ${aiResult.summary?.main_spike || "N/A"}, Sharpness: ${aiResult.summary?.sharpness || "N/A"}`,
-        updated_at: new Date(),
-      },
+      data: updateData as Prisma.profile_analysesUpdateInput,
     });
   } else {
-    // Create new record
     savedRecord = await prisma.profile_analyses.create({
       data: {
         student_id: studentId,
-        analysis_date: new Date(),
-        input_data: payload,
-        full_result: aiResult,
-        score_aca: pillarScores["Học thuật (Aca)"] || 0,
-        score_lan: pillarScores["Ngôn ngữ (Lan)"] || 0,
-        score_hdnk: pillarScores["Hoạt động ngoại khóa (HDNK)"] || 0,
-        score_skill: pillarScores["Kỹ năng (Skill)"] || 0,
-        score_usa: usaScore,
-        score_asia: asiaScore,
-        score_europe: europeScore,
-        main_spike: spike["Loại Spike hiện tại"] || null,
-        spike_sharpness: spike["Độ sắc (Sharpness)"] || null,
-        spike_score: spike["Điểm số"] || 0,
-        swot_data: swot,
-        all_spike_scores: spike["Tất cả Spike Scores"] || {},
-        // Legacy fields
-        academic_data: payload.academic || {},
-        extracurricular_data: { actions: payload.action?.actions || [] },
-        skill_data: { skills: payload.skill?.skills || [] },
-        overall_score:
-          (aiResult.summary?.total_pillar_scores?.aca || 0) +
-          (aiResult.summary?.total_pillar_scores?.lan || 0) +
-          (aiResult.summary?.total_pillar_scores?.hdnk || 0) +
-          (aiResult.summary?.total_pillar_scores?.skill || 0),
-        academic_score: aiResult.summary?.total_pillar_scores?.aca || 0,
-        extracurricular_score:
-          aiResult.summary?.total_pillar_scores?.hdnk || 0,
-        summary: `Spike: ${aiResult.summary?.main_spike || "N/A"}, Sharpness: ${aiResult.summary?.sharpness || "N/A"}`,
-      },
+        ...updateData,
+      } as Prisma.profile_analysesUncheckedCreateInput,
     });
   }
 

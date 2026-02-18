@@ -514,10 +514,10 @@ export default function ReportsPage() {
                       {hasSummary && typeof summary === "string" && <p className="line-clamp-2 text-foreground">{summary}</p>}
                       {hasSummary && typeof summary === "object" && ("total_matched" in summary || "reach_count" in summary) && (
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant="outline" className="text-[10px]">Tổng: {(summary as Record<string, unknown>).total_matched ?? 0}</Badge>
-                          <Badge variant="outline" className="text-violet-600 border-violet-300 text-[10px]">Reach: {(summary as Record<string, unknown>).reach_count ?? 0}</Badge>
-                          <Badge variant="outline" className="text-emerald-600 border-emerald-300 text-[10px]">Match: {(summary as Record<string, unknown>).match_count ?? 0}</Badge>
-                          <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">Safety: {(summary as Record<string, unknown>).safety_count ?? 0}</Badge>
+                          <Badge variant="outline" className="text-[10px]">Tổng: {Number((summary as Record<string, unknown>).total_matched) || 0}</Badge>
+                          <Badge variant="outline" className="text-violet-600 border-violet-300 text-[10px]">Reach: {Number((summary as Record<string, unknown>).reach_count) || 0}</Badge>
+                          <Badge variant="outline" className="text-emerald-600 border-emerald-300 text-[10px]">Match: {Number((summary as Record<string, unknown>).match_count) || 0}</Badge>
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">Safety: {Number((summary as Record<string, unknown>).safety_count) || 0}</Badge>
                         </div>
                       )}
                       {hasUnis && (
@@ -569,7 +569,27 @@ export default function ReportsPage() {
                             {scores && ["aca", "lan", "hdnk", "skill"].map((k) => <Badge key={k} variant="outline" className="text-[10px]">{k}: {scores[k] ?? "—"}</Badge>)}
                           </div>
                           {feedbackText !== "—" && <p className="text-foreground line-clamp-2">{feedbackText}</p>}
-                          {prio.length > 0 && <ol className="list-decimal list-inside space-y-0.5">{prio.slice(0, 5).map((p, i) => <li key={i}>{safeStr(p)}</li>)}{prio.length > 5 ? <li className="text-muted-foreground">+{prio.length - 5} gợi ý</li> : null}</ol>}
+                          {prio.length > 0 && (
+                            <ul className="space-y-2">
+                              {prio.slice(0, 5).map((p, i) => {
+                                const raw = safeStr(p);
+                                const match = raw.match(/^\s*\*{0,2}(\d+)\.\s*(.+?)\*{0,2}:\s*(.*)/s);
+                                const num = match ? match[1] : String(i + 1);
+                                const title = match ? match[2].replace(/\*+/g, '').trim() : null;
+                                const body = match ? match[3].trim() : raw;
+                                return (
+                                  <li key={i} className="flex gap-2 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1.5">
+                                    <span className="shrink-0 font-semibold text-amber-600 dark:text-amber-400 text-[10px]">{num}.</span>
+                                    <span className="min-w-0 text-foreground">
+                                      {title && <span className="font-medium">{title}: </span>}
+                                      <span className="text-muted-foreground">{body}</span>
+                                    </span>
+                                  </li>
+                                );
+                              })}
+                              {prio.length > 5 && <li className="text-muted-foreground text-[10px] pl-4">+{prio.length - 5} gợi ý</li>}
+                            </ul>
+                          )}
                         </div>
                       );
                     })()}

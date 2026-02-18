@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/lib/auth/auth-config';
 import { analyzeAndSaveProfile, buildAnalysisPayloadFromStudent } from '@/services/profile-analysis.service';
 
 export async function POST(request: NextRequest) {

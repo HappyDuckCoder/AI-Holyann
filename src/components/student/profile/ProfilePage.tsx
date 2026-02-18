@@ -4,28 +4,9 @@ import React from "react";
 import { StudentProfile, DocumentType, Extracurricular } from "../../types";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { PersonalInfoCard } from "./components/PersonalInfoCard";
-import { RadarChartCard } from "./components/RadarChartCard";
 import { AcademicInfoSection } from "./components/AcademicInfoSection";
 import { ActivitiesSection } from "./components/ActivitiesSection";
 import { DocumentsSection } from "./components/DocumentsSection";
-import { ProfileAnalysisResultCard } from "./ProfileAnalysisResultCard";
-
-interface AnalysisResult {
-  analysisDate?: Date | string;
-  pillarScores?: {
-    aca: number | null;
-    lan: number | null;
-    hdnk: number | null;
-    skill: number | null;
-  } | null;
-  regionalScores?: {
-    usa: number | null;
-    asia: number | null;
-    europe: number | null;
-  } | null;
-  mainSpike?: string | null;
-  spikeSharpness?: string | null;
-}
 
 export interface ProfilePageProps {
   profile: StudentProfile;
@@ -35,9 +16,6 @@ export interface ProfilePageProps {
   onUploadAvatar?: (file: File) => void;
   uploadDocumentLoading?: boolean;
   uploadAvatarLoading?: boolean;
-  analysisResult?: AnalysisResult | null;
-  analysisLoading?: boolean;
-  onAnalyzeProfile?: () => void;
   onSaveBasicInfo?: (data: {
     name: string;
     email: string;
@@ -69,9 +47,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onUploadAvatar,
   uploadDocumentLoading = false,
   uploadAvatarLoading = false,
-  analysisResult = null,
-  analysisLoading = false,
-  onAnalyzeProfile,
   onSaveBasicInfo,
   onSaveAcademic,
   onUpdateActivity,
@@ -82,14 +57,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onDeleteAchievement,
   onProfileUpdate,
 }) => {
-  const chartData = [
-    { subject: "Học thuật", A: profile.gpaScale ? (profile.gpa / profile.gpaScale) * 100 : 0, fullMark: 100 },
-    { subject: "Ngoại ngữ", A: 85, fullMark: 100 },
-    { subject: "Hoạt động", A: Math.min(profile.extracurriculars.length * 20, 100), fullMark: 100 },
-    { subject: "Thành tích", A: Math.min(profile.achievements.length * 25, 100), fullMark: 100 },
-    { subject: "Kỹ năng", A: 70, fullMark: 100 },
-  ];
-
   const isPersonalComplete = Boolean(
     profile.name && profile.email && profile.phone && profile.address && profile.dob
   );
@@ -103,7 +70,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   return (
     <div className="w-full max-w-6xl mx-auto pb-8 overflow-x-hidden">
-      <ProfileHeader onEditClick={onEditClick} />
+      <ProfileHeader onEditClick={onEditClick} analyzeHref="/student/profile-analysis" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 overflow-hidden">
         <div className="lg:col-span-4 space-y-4 sm:space-y-6">
@@ -114,7 +81,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             uploadAvatarLoading={uploadAvatarLoading}
             onSave={onSaveBasicInfo}
           />
-          <RadarChartCard profile={profile} chartData={chartData} />
         </div>
         <div className="lg:col-span-8 space-y-4 sm:space-y-6">
           <AcademicInfoSection
@@ -140,17 +106,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             onDeleteDocument={onDeleteDocument}
             uploadDocumentLoading={uploadDocumentLoading}
           />
-          {onAnalyzeProfile && (
-            <ProfileAnalysisResultCard
-              analysisDate={analysisResult?.analysisDate}
-              pillarScores={analysisResult?.pillarScores}
-              regionalScores={analysisResult?.regionalScores}
-              mainSpike={analysisResult?.mainSpike}
-              spikeSharpness={analysisResult?.spikeSharpness}
-              onReanalyze={onAnalyzeProfile}
-              loading={analysisLoading}
-            />
-          )}
         </div>
       </div>
     </div>
