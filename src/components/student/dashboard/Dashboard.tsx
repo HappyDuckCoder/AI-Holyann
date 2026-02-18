@@ -103,7 +103,7 @@ const listItemVariant = {
 export default function Dashboard({ userName }: DashboardProps) {
   return (
     <div
-      className="max-w-6xl mx-auto pb-8"
+      className="w-full max-w-6xl mx-auto pb-8 overflow-x-hidden"
       aria-label="Tổng quan dashboard học viên"
     >
       {/* Welcome banner – educational gradient, image, animation */}

@@ -14,11 +14,103 @@ import FileUpload from '@/components/ui/file-upload'
 import { submitTaskWithFile } from '@/actions/checklist'
 import { cn } from '@/lib/utils'
 
+// Helper function to calculate deadline status with color warnings
+interface DeadlineStatusResult {
+    text: string
+    colorClass: string
+    icon: React.ReactNode | null
+    isOverdue: boolean
+    isUrgent: boolean
+}
+
+function getDeadlineStatus(
+    deadline: string | Date | null | undefined,
+    status: string
+): DeadlineStatusResult {
+    // Default empty state
+    if (!deadline) {
+        return {
+            text: '',
+            colorClass: '',
+            icon: null,
+            isOverdue: false,
+            isUrgent: false
+        }
+    }
+
+    const deadlineDate = new Date(deadline)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    deadlineDate.setHours(0, 0, 0, 0)
+
+    const diffTime = deadlineDate.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    const formattedDate = deadlineDate.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    })
+
+    // If task is completed/submitted, show muted deadline without warning
+    if (status === 'COMPLETED' || status === 'SUBMITTED') {
+        return {
+            text: `Hạn chót: ${formattedDate}`,
+            colorClass: 'text-gray-400',
+            icon: <Calendar size={12} className="text-gray-400" />,
+            isOverdue: false,
+            isUrgent: false
+        }
+    }
+
+    // Overdue (deadline passed)
+    if (diffDays < 0) {
+        return {
+            text: `Quá hạn ${Math.abs(diffDays)} ngày (${formattedDate})`,
+            colorClass: 'text-red-600 font-bold',
+            icon: <AlertTriangle size={12} className="text-red-600 fill-red-100" />,
+            isOverdue: true,
+            isUrgent: false
+        }
+    }
+
+    // Today is deadline
+    if (diffDays === 0) {
+        return {
+            text: `Hôm nay là hạn chót!`,
+            colorClass: 'text-orange-600 font-semibold',
+            icon: <AlertTriangle size={12} className="text-orange-500" />,
+            isOverdue: false,
+            isUrgent: true
+        }
+    }
+
+    // 1-3 days remaining (urgent)
+    if (diffDays <= 3) {
+        return {
+            text: `Còn ${diffDays} ngày (${formattedDate})`,
+            colorClass: 'text-orange-500 font-medium',
+            icon: <Clock size={12} className="text-orange-500" />,
+            isOverdue: false,
+            isUrgent: true
+        }
+    }
+
+    // More than 3 days remaining (normal)
+    return {
+        text: `Hạn chót: ${formattedDate}`,
+        colorClass: 'text-gray-500',
+        icon: <Calendar size={12} className="text-gray-400" />,
+        isOverdue: false,
+        isUrgent: false
+    }
+}
+
 interface Task {
     id: string
     title: string
     description?: string
-    deadline?: string
+    deadline?: string | Date | null
     requiresFile?: boolean
     linkTo?: string
 }
@@ -29,6 +121,7 @@ interface ChecklistItemProps {
         status?: 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED' | 'NEEDS_REVISION'
         submission_url?: string
         mentor_note?: string
+        deadline?: string | Date | null
         completed_at?: Date
     }
     userId?: string
@@ -200,13 +293,25 @@ export default function ChecklistItem({
                         </p>
                     )}
 
-                    {/* Deadline */}
-                    {task.deadline && (
-                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                            <Calendar size={12} />
-                            Hạn: {task.deadline}
-                        </div>
-                    )}
+                    {/* Deadline with Color Warnings */}
+                    {(() => {
+                        const deadline = initialData?.deadline || task.deadline
+                        const deadlineStatus = getDeadlineStatus(deadline, status)
+
+                        if (!deadlineStatus.text) return null
+
+                        return (
+                            <div className={cn(
+                                "flex items-center gap-2 mt-2 text-xs",
+                                deadlineStatus.colorClass,
+                                deadlineStatus.isOverdue && "bg-red-50 px-2 py-1 rounded-md border border-red-200",
+                                deadlineStatus.isUrgent && !deadlineStatus.isOverdue && "bg-orange-50 px-2 py-1 rounded-md border border-orange-200"
+                            )}>
+                                {deadlineStatus.icon}
+                                {deadlineStatus.text}
+                            </div>
+                        )
+                    })()}
 
                     {/* Mentor Note */}
                     {mentorNote && status === 'NEEDS_REVISION' && (

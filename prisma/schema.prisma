@@ -335,6 +335,7 @@ model student_task_progress {
   task           checklist_tasks? @relation(fields: [task_id], references: [id], onDelete: Cascade)
   submission_url String?          @db.Text // Lưu URL file (CV, Bảng điểm...)
   status         TaskStatus       @default(PENDING)
+  deadline       DateTime?        @db.Timestamp(6)
   mentor_note    String?
   completed_at   DateTime?
   created_at     DateTime         @default(now()) @db.Timestamp(6)

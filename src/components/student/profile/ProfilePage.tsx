@@ -102,11 +102,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const isDocumentsComplete = profile.documents.length >= 2;
 
   return (
-    <div>
+    <div className="w-full max-w-6xl mx-auto pb-8 overflow-x-hidden">
       <ProfileHeader onEditClick={onEditClick} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-4 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 overflow-hidden">
+        <div className="lg:col-span-4 space-y-4 sm:space-y-6">
           <PersonalInfoCard
             profile={profile}
             isComplete={isPersonalComplete}
@@ -116,7 +116,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           />
           <RadarChartCard profile={profile} chartData={chartData} />
         </div>
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-4 sm:space-y-6">
           <AcademicInfoSection
             profile={profile}
             isComplete={isAcademicComplete}

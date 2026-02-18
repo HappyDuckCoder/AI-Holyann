@@ -41,16 +41,16 @@ export const RadarChartCard: React.FC<RadarChartCardProps> = ({
 
   return (
     <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-emerald-500/60 bg-card bg-gradient-to-br from-emerald-500/5 to-transparent">
-      <div className="px-5 py-4 border-b border-border bg-emerald-500/5 flex flex-row items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border bg-emerald-500/5 flex flex-row items-center gap-2 sm:gap-3">
+        <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
           <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
         </div>
-        <h3 className="text-base font-semibold text-foreground m-0">
+        <h3 className="text-sm sm:text-base font-semibold text-foreground m-0">
           Đánh giá tổng quan
         </h3>
       </div>
-      <div className="p-5">
-        <div className="h-52 w-full">
+      <div className="p-4 sm:p-5">
+        <div className="h-44 sm:h-52 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
             <PolarGrid stroke={gridStroke} />

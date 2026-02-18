@@ -108,9 +108,9 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
 
   return (
     <section className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-card bg-gradient-to-br from-amber-500/5 to-transparent">
-      <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-amber-500/5">
-        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-amber-500/5">
+        <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
+          <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
             <BookOpen className="size-4" aria-hidden />
           </span>
           Thông tin học thuật
@@ -147,8 +147,8 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
           <StatusBadge isComplete={isComplete} />
         </div>
       </div>
-      <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl border border-border/60 bg-muted/20">
+      <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-xl border border-border/60 bg-muted/20">
           <p className="text-xs font-medium text-muted-foreground mb-1">GPA (thang 10)</p>
           {editing ? (
             <div className="flex items-baseline gap-1 flex-wrap">
@@ -174,7 +174,7 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
             </div>
           )}
         </div>
-        <div className="p-4 rounded-xl border border-border/60 bg-muted/20 md:col-span-2">
+        <div className="p-3 sm:p-4 rounded-xl border border-border/60 bg-muted/20 sm:col-span-1 md:col-span-2">
           <p className="text-xs font-medium text-muted-foreground mb-1">Ngoại ngữ</p>
           {editing ? (
             <div className="space-y-2">
@@ -218,7 +218,7 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
                   {/* Chia thành các cột, mỗi cột 3 chứng chỉ */}
                   {Array.from({ length: Math.ceil(profile.englishCertificates.length / 3) }).map((_, colIndex) => (
                     <div key={colIndex} className="flex flex-col gap-1">
-                      {profile.englishCertificates
+                      {(profile.englishCertificates ?? [])
                         .slice(colIndex * 3, colIndex * 3 + 3)
                         .map((c, i) => (
                           <div key={i} className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
             </div>
           )}
         </div>
-        <div className="p-4 rounded-xl border border-border/60 bg-muted/20 md:col-span-3">
+        <div className="p-3 sm:p-4 rounded-xl border border-border/60 bg-muted/20 sm:col-span-2 md:col-span-3">
           <p className="text-xs font-medium text-muted-foreground mb-1">Mục tiêu</p>
           {editing ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

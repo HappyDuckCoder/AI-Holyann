@@ -21,6 +21,7 @@ import {
   Sparkles,
   ClipboardList,
   FileBarChart,
+  CalendarClock,
 } from "lucide-react";
 
 const STUDENT_BASE = "/student";
@@ -28,6 +29,7 @@ const STUDENT_BASE = "/student";
 const navItems = [
   { name: "Dashboard", href: `${STUDENT_BASE}/dashboard`, icon: LayoutDashboard },
   { name: "Profile", href: `${STUDENT_BASE}/profile`, icon: User },
+  { name: "Deadlines", href: `${STUDENT_BASE}/deadlines`, icon: CalendarClock },
   { name: "Improve", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
   { name: "Target", href: `${STUDENT_BASE}/target`, icon: GraduationCap },
   { name: "Discussion", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },

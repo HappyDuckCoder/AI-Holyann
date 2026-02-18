@@ -148,9 +148,9 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
 
   return (
     <section className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-violet-500/60 bg-card bg-gradient-to-br from-violet-500/5 to-transparent">
-      <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3 bg-violet-500/5">
-        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/20 text-violet-700 dark:text-violet-400 shrink-0">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-violet-500/5">
+        <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
+          <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-violet-500/20 text-violet-700 dark:text-violet-400 shrink-0">
             <Award className="size-4" aria-hidden />
           </span>
           Hoạt động & Thành tích
@@ -159,7 +159,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
       </div>
 
       {needSupplement && onEditClick && (
-        <div className="px-5 py-3 bg-muted/50 border-b border-border flex flex-wrap items-center justify-between gap-2">
+        <div className="px-4 sm:px-5 py-2 sm:py-3 bg-muted/50 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p className="text-sm text-muted-foreground">
             Cần bổ sung hoạt động hoặc thành tích.
           </p>
@@ -174,10 +174,10 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
         </div>
       )}
 
-      <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Hoạt động ngoại khóa */}
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+          <h4 className="text-xs sm:text-sm font-medium text-muted-foreground mb-2 sm:mb-3 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             Hoạt động ngoại khóa
           </h4>
