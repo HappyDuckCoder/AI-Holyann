@@ -13,10 +13,17 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  X
+  X,
+  CalendarDays
 } from 'lucide-react';
-import { getStudentChecklist, updateStudentTaskStatus } from '@/actions/mentor-checklist';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { getStudentChecklist, updateStudentTaskStatus, updateTaskDeadline } from '@/actions/mentor-checklist';
 import FilePreviewModal from '@/components/common/FilePreviewModal';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ChecklistTabProps {
   studentId: string;
@@ -31,6 +38,7 @@ interface Task {
   status: 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED' | 'NEEDS_REVISION';
   submissionUrl?: string | null;
   mentorNote?: string | null;
+  deadline?: Date | null;
   completedAt?: Date | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
@@ -110,6 +118,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
     fileUrl: '',
     fileName: ''
   });
+  const [updatingDeadlineTaskId, setUpdatingDeadlineTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChecklist = async () => {
@@ -132,6 +141,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
               status: task.progress?.status || 'PENDING',
               submissionUrl: task.progress?.submission_url,
               mentorNote: task.progress?.mentor_note,
+              deadline: task.progress?.deadline,
               completedAt: task.progress?.completed_at,
               createdAt: task.progress?.created_at,
               updatedAt: task.progress?.updated_at,
@@ -242,6 +252,38 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
 
   const closePreviewModal = () => {
     setPreviewModal(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const handleDeadlineChange = async (taskId: string, newDate: Date | undefined) => {
+    try {
+      setUpdatingDeadlineTaskId(taskId);
+      const result = await updateTaskDeadline(studentId, taskId, newDate || null);
+
+      if (result.success) {
+        // Update local state
+        setStages(prev =>
+          prev.map(stage => ({
+            ...stage,
+            tasks: stage.tasks.map(task =>
+              task.id === taskId
+                ? {
+                    ...task,
+                    deadline: newDate || null,
+                    updatedAt: new Date()
+                  }
+                : task
+            )
+          }))
+        );
+      } else {
+        alert('Lỗi khi cập nhật deadline: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error updating deadline:', error);
+      alert('Có lỗi xảy ra khi cập nhật deadline');
+    } finally {
+      setUpdatingDeadlineTaskId(null);
+    }
   };
 
   if (isLoading) {
@@ -370,6 +412,54 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
                                   {new Date(task.completedAt).toLocaleDateString('vi-VN')}
                                 </span>
                               )}
+                            </div>
+
+                            {/* Deadline Picker */}
+                            <div className="flex items-center gap-3 mt-3">
+                              <span className="text-sm text-gray-600">Hạn chót:</span>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={updatingDeadlineTaskId === task.id}
+                                    className={cn(
+                                      "justify-start text-left font-normal h-8 px-3",
+                                      !task.deadline && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarDays className="mr-2 h-4 w-4" />
+                                    {updatingDeadlineTaskId === task.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : task.deadline ? (
+                                      format(new Date(task.deadline), 'dd/MM/yyyy', { locale: vi })
+                                    ) : (
+                                      <span>Đặt hạn chót</span>
+                                    )}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={task.deadline ? new Date(task.deadline) : undefined}
+                                    onSelect={(date) => handleDeadlineChange(task.id, date)}
+                                    locale={vi}
+                                  />
+                                  {task.deadline && (
+                                    <div className="p-2 border-t">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => handleDeadlineChange(task.id, undefined)}
+                                      >
+                                        <X className="mr-2 h-4 w-4" />
+                                        Xóa hạn chót
+                                      </Button>
+                                    </div>
+                                  )}
+                                </PopoverContent>
+                              </Popover>
                             </div>
 
                             {/* Submission File */}

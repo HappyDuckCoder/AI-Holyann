@@ -5,7 +5,7 @@ import {useAuthSession} from '@/hooks/useAuthSession'
 import {signOut} from 'next-auth/react'
 import {useState, useEffect} from 'react'
 import {usePathname} from 'next/navigation'
-import {Menu, X} from 'lucide-react'
+import {Menu, X, LayoutDashboard, Users, User, MessageCircle, Sun, Moon, LogOut, GraduationCap, CalendarClock} from 'lucide-react'
 
 export default function MentorNavbar() {
     const {user, isAuthenticated} = useAuthSession()
@@ -14,23 +14,32 @@ export default function MentorNavbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false);
 
-    // Determine initial theme safely on first render
-    const getInitialDark = () => {
+    // State quản lý chế độ tối - khởi tạo false để tránh hydration mismatch
+    const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
+
+    // Effect: Set mounted và đọc theme từ localStorage
+    useEffect(() => {
+        setMounted(true);
+
+        // Đọc theme từ localStorage sau khi mounted
         try {
             const theme = localStorage.getItem('theme')
-            if (theme === 'dark') return true
-            if (theme === 'light') return false
-            return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+            if (theme === 'dark') {
+                setIsDarkMode(true)
+            } else if (theme === 'light') {
+                setIsDarkMode(false)
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                setIsDarkMode(true)
+            }
         } catch (e) {
-            return false
+            // noop
         }
-    }
-
-    // State quản lý chế độ tối
-    const [isDarkMode, setIsDarkMode] = useState<boolean>(() => getInitialDark())
+    }, []);
 
     // Effect: Sync document class when isDarkMode changes
     useEffect(() => {
+        if (!mounted) return
+
         if (isDarkMode) {
             document.documentElement.classList.add('dark')
         } else {
@@ -43,7 +52,7 @@ export default function MentorNavbar() {
         } catch (e) {
             // noop
         }
-    }, [isDarkMode])
+    }, [isDarkMode, mounted])
 
     // Hàm chuyển đổi
     const toggleTheme = () => {
@@ -52,27 +61,24 @@ export default function MentorNavbar() {
 
     // Menu items for MENTOR
     const navItems = [
-        {name: 'TỔNG QUAN', href: '/mentor/dashboard'},
-        {name: 'HỌC VIÊN', href: '/mentor/students'},
-        {name: 'HỒ SƠ', href: '/mentor/profile'},
-        {name: 'TRAO ĐỔI', href: '/mentor/chat'},
+        {name: 'Tổng quan', href: '/mentor/dashboard', icon: LayoutDashboard},
+        {name: 'Học viên', href: '/mentor/students', icon: Users},
+        {name: 'Deadlines', href: '/mentor/deadlines', icon: CalendarClock},
+        {name: 'Hồ sơ', href: '/mentor/profile', icon: User},
+        {name: 'Trao đổi', href: '/mentor/chat', icon: MessageCircle},
     ]
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     return (
         <header
-            className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 shadow-md flex justify-between items-center sticky top-0 z-50 transition-colors duration-300">
+            className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-4 sm:px-6 md:px-8 py-4 shadow-md flex justify-between items-center sticky top-0 z-50 transition-colors duration-300">
 
             {/* 1. LOGO KHU VỰC */}
             <div className="flex items-center gap-3">
                 <Link href="/mentor/dashboard" className="flex items-center gap-3 group">
                     <div
-                        className="relative w-10 h-10 md:w-12 md:h-12 bg-primary-foreground/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-foreground/10 border border-primary-foreground/20 transition-colors group-hover:border-accent md:h-10 md:w-10">
                         {/* Logo Icon */}
-                        <i className="fas fa-paper-plane text-accent text-lg md:text-xl transform -rotate-12 group-hover:scale-110 transition-transform"></i>
+                        <GraduationCap className="h-4 w-4 text-accent md:h-5 md:w-5" />
                     </div>
 
                     {/* Typography Logo */}
@@ -88,23 +94,27 @@ export default function MentorNavbar() {
             </div>
 
             {/* 2. NAVIGATION */}
-            <nav className="hidden md:flex items-center gap-8">
-                {navItems.map((item) => (
-                    <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`
-                            font-heading text-sm font-semibold tracking-wide transition-all duration-300 relative py-1
-                            ${pathname === item.href || pathname.startsWith(item.href + '/')
-                            ? 'text-primary-foreground after:w-full'
-                            : 'text-primary-foreground/80 hover:text-primary-foreground after:w-0 hover:after:w-full'
-                        }
-                            after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-accent after:transition-all after:duration-300
-                        `}
-                    >
-                        {item.name}
-                    </Link>
-                ))}
+            <nav className="hidden md:flex items-center gap-2 lg:gap-6">
+                {navItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                        <Link
+                            key={item.name}
+                            href={item.href}
+                            className={`
+                                relative flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold tracking-wide transition-all
+                                after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-accent after:transition-all
+                                ${pathname === item.href || pathname.startsWith(item.href + '/')
+                                ? 'text-primary-foreground after:w-full'
+                                : 'text-primary-foreground/80 hover:text-primary-foreground after:w-0 hover:after:w-full'
+                            }
+                            `}
+                        >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            {item.name}
+                        </Link>
+                    );
+                })}
             </nav>
 
             {/* 3. USER ACTION & THEME TOGGLE */}
@@ -116,9 +126,9 @@ export default function MentorNavbar() {
                     title={mounted && isDarkMode ? "Chuyển sang chế độ Sáng" : "Chuyển sang chế độ Tối"}
                 >
                     {mounted && isDarkMode ? (
-                        <i className="fas fa-sun text-accent text-sm sm:text-base md:text-lg group-hover:rotate-90 transition-transform"></i>
+                        <Sun className="h-4 w-4 sm:h-5 sm:w-5 text-accent group-hover:rotate-90 transition-transform" />
                     ) : (
-                        <i className="fas fa-moon text-primary-foreground text-sm sm:text-base md:text-lg group-hover:-rotate-12 transition-transform"></i>
+                        <Moon className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground group-hover:-rotate-12 transition-transform" />
                     )}
                 </button>
 
@@ -140,9 +150,9 @@ export default function MentorNavbar() {
                             <div className="absolute right-0 top-full mt-2 w-32 bg-popover dark:bg-card rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right text-foreground z-50">
                                 <button
                                     onClick={logout}
-                                    className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-lg font-medium"
+                                    className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-lg font-medium"
                                 >
-                                    <i className="fas fa-sign-out-alt mr-2"></i> Logout
+                                    <LogOut className="h-4 w-4" /> Đăng xuất
                                 </button>
                             </div>
                         </div>
@@ -159,7 +169,7 @@ export default function MentorNavbar() {
                             href="/register"
                             className="px-4 sm:px-6 py-2 text-xs sm:text-sm font-heading font-bold bg-accent text-accent-foreground rounded-full shadow-lg hover:bg-accent/90 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-1 sm:gap-2 whitespace-nowrap"
                         >
-                            Đăng ký <i className="fas fa-arrow-right text-xs"></i>
+                            Đăng ký →
                         </Link>
                     </div>
                 )}
@@ -182,22 +192,26 @@ export default function MentorNavbar() {
             {mobileMenuOpen && (
                 <div className="md:hidden absolute left-0 right-0 top-full border-t border-primary-foreground/20 bg-primary/95 backdrop-blur-md">
                     <nav className="px-4 py-4 flex flex-col gap-2">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                onClick={() => setMobileMenuOpen(false)}
-                                className={`
-                                    block px-4 py-3 rounded-lg font-heading text-sm font-semibold tracking-wide transition-all duration-300
-                                    ${pathname === item.href || pathname.startsWith(item.href + '/')
-                                    ? 'bg-primary-foreground/20 text-primary-foreground'
-                                    : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'
-                                }
-                                `}
-                            >
-                                {item.name}
-                            </Link>
-                        ))}
+                        {navItems.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className={`
+                                        flex items-center gap-3 px-4 py-3 rounded-lg font-heading text-sm font-semibold tracking-wide transition-all duration-300
+                                        ${pathname === item.href || pathname.startsWith(item.href + '/')
+                                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                                        : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground'
+                                    }
+                                    `}
+                                >
+                                    <Icon className="h-4 w-4 shrink-0" />
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
 
                         {isAuthenticated && (
                             <div className="mt-2 pt-2 border-t border-primary-foreground/20">
@@ -215,9 +229,9 @@ export default function MentorNavbar() {
                                         logout()
                                         setMobileMenuOpen(false)
                                     }}
-                                    className="w-full mt-2 px-4 py-3 rounded-lg text-sm text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 font-medium text-left"
+                                    className="w-full mt-2 px-4 py-3 rounded-lg text-sm text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 font-medium text-left flex items-center gap-2"
                                 >
-                                    <i className="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                                    <LogOut className="h-4 w-4" /> Đăng xuất
                                 </button>
                             </div>
                         )}

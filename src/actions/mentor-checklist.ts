@@ -25,6 +25,7 @@ interface TaskWithProgress {
     status: TaskStatus
     submission_url: string | null
     mentor_note: string | null
+    deadline: Date | null
     completed_at: Date | null
     created_at: Date
     updated_at: Date
@@ -120,6 +121,7 @@ export async function getStudentChecklist(studentId: string): Promise<StudentChe
             status: true,
             submission_url: true,
             mentor_note: true,
+            deadline: true,
             completed_at: true,
             created_at: true,
             updated_at: true
@@ -367,6 +369,108 @@ export async function getStudentProgressStats(studentId: string) {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Lỗi hệ thống khi tải thống kê tiến độ'
+    }
+  }
+}
+
+/**
+ * Cập nhật deadline cho task của học viên (dành cho mentor)
+ * @param studentId - UUID của học viên
+ * @param taskId - UUID của task
+ * @param deadline - Ngày deadline mới (null để xóa deadline)
+ * @returns UpdateTaskDeadlineResult
+ */
+export async function updateTaskDeadline(
+  studentId: string,
+  taskId: string,
+  deadline: Date | null
+): Promise<{ success: boolean; data?: { deadline: Date | null }; error?: string }> {
+  try {
+    // Validate inputs
+    if (!studentId) {
+      return {
+        success: false,
+        error: 'Student ID không hợp lệ'
+      }
+    }
+
+    if (!taskId) {
+      return {
+        success: false,
+        error: 'Task ID không hợp lệ'
+      }
+    }
+
+    // 1. Verify student exists
+    const student = await prisma.students.findUnique({
+      where: { user_id: studentId },
+      select: { user_id: true }
+    })
+
+    if (!student) {
+      return {
+        success: false,
+        error: 'Không tìm thấy học viên'
+      }
+    }
+
+    // 2. Verify task exists
+    const task = await prisma.checklist_tasks.findUnique({
+      where: { id: taskId },
+      select: { id: true }
+    })
+
+    if (!task) {
+      return {
+        success: false,
+        error: 'Không tìm thấy task'
+      }
+    }
+
+    // 3. Upsert student task progress with deadline
+    const updatedProgress = await prisma.student_task_progress.upsert({
+      where: {
+        student_id_task_id: {
+          student_id: studentId,
+          task_id: taskId
+        }
+      },
+      create: {
+        student_id: studentId,
+        task_id: taskId,
+        status: 'PENDING',
+        deadline: deadline,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      update: {
+        deadline: deadline,
+        updated_at: new Date()
+      },
+      select: {
+        deadline: true
+      }
+    })
+
+    // 4. Revalidate relevant paths
+    revalidatePath('/mentor/dashboard')
+    revalidatePath('/mentor/students')
+    revalidatePath(`/mentor/students/${studentId}`)
+    revalidatePath(`/mentor/student/${studentId}`)
+    revalidatePath('/student/checklist')
+
+    return {
+      success: true,
+      data: {
+        deadline: updatedProgress.deadline
+      }
+    }
+
+  } catch (error) {
+    console.error('❌ Error updating task deadline:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi hệ thống khi cập nhật deadline'
     }
   }
 }
