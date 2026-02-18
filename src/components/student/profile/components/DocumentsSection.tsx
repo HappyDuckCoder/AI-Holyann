@@ -57,9 +57,9 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         onChange={handleFileChange}
       />
 
-      <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3 bg-sky-500/5">
-        <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-700 dark:text-sky-400 shrink-0">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-sky-500/5">
+        <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
+          <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-700 dark:text-sky-400 shrink-0">
             <FileText size={18} className="size-4" aria-hidden />
           </span>
           Tài liệu đính kèm
@@ -67,7 +67,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         <StatusBadge isComplete={isComplete} />
       </div>
 
-      <div className="p-5 relative">
+      <div className="p-4 sm:p-5 relative">
         {uploadDocumentLoading && (
           <div className="absolute inset-0 bg-background/80 z-10 flex items-center justify-center rounded-b-2xl">
             <div className="flex flex-col items-center gap-2 text-primary">
@@ -76,22 +76,53 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
             </div>
           </div>
         )}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
           {DOC_TYPES.map(({ type, label }) => (
             <button
               key={type}
               type="button"
               disabled={uploadDocumentLoading}
               onClick={() => triggerUpload(type)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
             >
-              <UploadCloud size={14} />
+              <UploadCloud size={12} className="sm:w-3.5 sm:h-3.5" />
               {label}
             </button>
           ))}
         </div>
 
-        <div className="rounded-xl border border-border/60 overflow-hidden">
+        {/* Mobile: Card view */}
+        <div className="block sm:hidden space-y-3">
+          {profile.documents.length > 0 ? (
+            profile.documents.map((doc) => (
+              <div key={doc.id} className="p-3 rounded-xl border border-border/60 bg-muted/20 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                    <File size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{doc.name}</p>
+                    <p className="text-xs text-muted-foreground">{getDocTypeName(doc.type)} • {doc.uploadDate}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onDeleteDocument(doc.id)}
+                  className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-colors shrink-0"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              Chưa có tài liệu. Chọn loại phía trên để tải lên.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: Table view */}
+        <div className="hidden sm:block rounded-xl border border-border/60 overflow-hidden">
           <table className="min-w-full divide-y divide-border/60">
             <thead className="bg-muted/30">
               <tr>

@@ -10,6 +10,7 @@
 
 export * from './dashboard';
 export * from './chat';
+export { default as AdminNavbar } from './AdminNavbar';
 export { default as StudentDetail } from './StudentDetail';
 export { default as StudentManagement } from './StudentManagement';
 export { default as UserAvatar } from '../ui/UserAvatar';

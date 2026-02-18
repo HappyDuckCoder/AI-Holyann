@@ -103,7 +103,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
 
   return (
     <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-blue-500/60 bg-card bg-gradient-to-br from-blue-500/5 to-transparent">
-      <div className="h-24 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 relative overflow-hidden">
+      <div className="h-20 sm:h-24 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.05]"
           style={{
@@ -111,10 +111,10 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
           }}
         />
       </div>
-      <div className="px-5 pb-5 relative">
-        <div className="flex flex-col items-center -mt-12 mb-4">
+      <div className="px-4 sm:px-5 pb-4 sm:pb-5 relative">
+        <div className="flex flex-col items-center -mt-10 sm:-mt-12 mb-3 sm:mb-4">
           <div
-            className="relative group w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-lg bg-muted"
+            className="relative group w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-card overflow-hidden shadow-lg bg-muted"
             onClick={() =>
               onUploadAvatar &&
               !uploadAvatarLoading &&
