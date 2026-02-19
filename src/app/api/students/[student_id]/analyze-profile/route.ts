@@ -203,8 +203,8 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ student_id: string }> },
 ) {
+  const { student_id: studentIdStr } = await context.params;
   try {
-    const { student_id: studentIdStr } = await context.params;
     const student_id = parseInt(studentIdStr);
 
     // 1. Fetch toàn bộ dữ liệu học sinh từ database
