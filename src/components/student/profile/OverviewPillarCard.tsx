@@ -123,7 +123,7 @@ export function OverviewPillarCard({
 
         {hasData && chartData && (
           <div className="space-y-6">
-            {/* Biểu đồ 1: Radar */}
+            {/* Biểu đồ 1: Radar — tạm tắt
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Biểu đồ radar</p>
               <div className="h-[260px] w-full">
@@ -184,6 +184,7 @@ export function OverviewPillarCard({
                 </ResponsiveContainer>
               </div>
             </div>
+            */}
             {/* Biểu đồ 2: Cột */}
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Biểu đồ cột 4 trụ</p>
