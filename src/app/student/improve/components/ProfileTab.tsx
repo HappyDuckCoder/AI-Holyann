@@ -265,7 +265,7 @@ export function ProfileTab({
                     <ul className="space-y-4">
                       {(overall.priority_suggestions as unknown[]).map((p, i) => {
                         const raw = safeText(p);
-                        const match = raw.match(/^\s*\*{0,2}(\d+)\.\s*(.+?)\*{0,2}:\s*(.*)/s);
+                        const match = raw.match(/^\s*\*{0,2}(\d+)\.\s*(.+?)\*{0,2}:\s*([\s\S]*)/);
                         const num = match ? match[1] : String(i + 1);
                         const title = match ? match[2].replace(/\*+/g, '').trim() : null;
                         const body = match ? match[3].trim() : raw;
