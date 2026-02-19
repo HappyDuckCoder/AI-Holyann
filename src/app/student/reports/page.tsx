@@ -104,7 +104,7 @@ export default function ReportsPage() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [improveResults, setImproveResults] = useState<ImproveResults | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  // const [pdfLoading, setPdfLoading] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
   const studentId = useMemo(() => {
@@ -227,88 +227,35 @@ export default function ReportsPage() {
     window.print();
   };
 
-  const handleDownloadPdf = async () => {
-    const el = reportRef.current;
-    if (!el) {
-      toast.error("Không tìm thấy nội dung báo cáo");
-      return;
-    }
-    setPdfLoading(true);
-    const chartWrap = el.querySelector("[data-pdf-chart-wrap]");
-    const pillarScores = profileData?.feature1_output?.summary?.total_pillar_scores;
-    let originalChartHTML = "";
-    try {
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
-
-      // Replace Recharts (SVG) with static HTML bars so html2canvas doesn't fail on SVG
-      if (chartWrap && pillarScores) {
-        originalChartHTML = chartWrap.innerHTML;
-        const labels = ACCENT_CARDS.map((c) => c.label);
-        const colors = ["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b"];
-        chartWrap.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:6px;height:96px;justify-content:space-between;padding:4px 0;">
-            ${ACCENT_CARDS.map((_, i) => {
-              const v = pillarScores[ACCENT_CARDS[i].key] ?? 0;
-              return `<div style="display:flex;align-items:center;gap:8px;font-size:10px;">
-                <span style="width:52px;flex-shrink:0;">${labels[i]}</span>
-                <div style="flex:1;max-width:120px;height:12px;background:#e2e8f0;border-radius:2px;overflow:hidden;">
-                  <div style="width:${Math.min(100, v)}%;height:100%;background:${colors[i]};border-radius:2px;"></div>
-                </div>
-                <span style="font-weight:600;">${v}</span>
-              </div>`;
-            }).join("")}
-          </div>`;
-      }
-
-      const canvas = await html2canvas(el, {
-        scale: 1.25,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        imageTimeout: 0,
-        ignoreElements: (node) => node.tagName === "svg" || node.tagName === "SVG",
-        onclone(_, clonedEl) {
-          clonedEl.querySelectorAll("svg").forEach((svg) => svg.remove());
-          const wrap = clonedEl.querySelector("[data-pdf-chart-wrap]");
-          if (wrap && pillarScores) {
-            const labels = ACCENT_CARDS.map((c) => c.label);
-            const colors = ["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b"];
-            wrap.innerHTML = ACCENT_CARDS.map((_, i) => {
-              const v = pillarScores[ACCENT_CARDS[i].key] ?? 0;
-              return `<div style="display:flex;align-items:center;gap:8px;font-size:10px;"><span style="width:52px;">${labels[i]}</span><div style="flex:1;max-width:120px;height:12px;background:#e2e8f0;border-radius:2px;overflow:hidden;"><div style="width:${Math.min(100, v)}%;height:100%;background:${colors[i]};border-radius:2px;"></div></div><span style="font-weight:600;">${v}</span></div>`;
-            }).join("");
-          }
-        },
-      });
-
-      const img = canvas.toDataURL("image/png", 1.0);
-      const pdf = new jsPDF("p", "mm", "a4");
-      const w = pdf.internal.pageSize.getWidth();
-      const h = pdf.internal.pageSize.getHeight();
-      const ratio = canvas.height / canvas.width;
-      const imgH = w * ratio;
-      if (imgH <= h) {
-        pdf.addImage(img, "PNG", 0, 0, w, imgH);
-      } else {
-        let y = 0;
-        while (y < imgH) {
-          if (y > 0) pdf.addPage();
-          pdf.addImage(img, "PNG", 0, -y, w, imgH);
-          y += h;
-        }
-      }
-      pdf.save(`Bao-cao-ho-so-${profile?.name?.replace(/\s+/g, "-") || "student"}-${new Date().toISOString().slice(0, 10)}.pdf`);
-      toast.success("Đã tải PDF thành công");
-    } catch (e) {
-      console.error("PDF export error:", e);
-      toast.info("Mở hộp thoại In — chọn «Lưu dưới dạng PDF» hoặc «Microsoft Print to PDF» để lưu file.", { duration: 6000 });
-      setTimeout(() => window.print(), 300);
-    } finally {
-      if (chartWrap && originalChartHTML) chartWrap.innerHTML = originalChartHTML;
-      setPdfLoading(false);
-    }
-  };
+  // Nút Tải PDF và logic export PDF tạm tắt
+  // const handleDownloadPdf = async () => {
+  //   const el = reportRef.current;
+  //   if (!el) {
+  //     toast.error("Không tìm thấy nội dung báo cáo");
+  //     return;
+  //   }
+  //   setPdfLoading(true);
+  //   const chartWrap = el.querySelector("[data-pdf-chart-wrap]");
+  //   const pillarScores = profileData?.feature1_output?.summary?.total_pillar_scores;
+  //   let originalChartHTML = "";
+  //   try {
+  //     const html2canvas = (await import("html2canvas")).default;
+  //     const { jsPDF } = await import("jspdf");
+  //     if (chartWrap && pillarScores) {
+  //       originalChartHTML = chartWrap.innerHTML;
+  //       const labels = ACCENT_CARDS.map((c) => c.label);
+  //       const colors = ["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b"];
+  //       chartWrap.innerHTML = `...`;
+  //     }
+  //     const canvas = await html2canvas(el, { ... });
+  //     const pdf = new jsPDF("p", "mm", "a4");
+  //     pdf.save(`Bao-cao-ho-so-...`);
+  //     toast.success("Đã tải PDF thành công");
+  //   } catch (e) { ... } finally {
+  //     if (chartWrap && originalChartHTML) chartWrap.innerHTML = originalChartHTML;
+  //     setPdfLoading(false);
+  //   }
+  // };
 
   if (loading || sessionLoading) {
     return (
@@ -347,6 +294,7 @@ export default function ReportsPage() {
                 <Printer className="h-4 w-4" />
                 In báo cáo
               </button>
+              {/* Nút Tải PDF tạm tắt
               <button
                 type="button"
                 onClick={handleDownloadPdf}
@@ -356,6 +304,7 @@ export default function ReportsPage() {
                 {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                 Tải PDF
               </button>
+              */}
             </div>
           </div>
 
