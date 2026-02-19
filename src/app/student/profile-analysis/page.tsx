@@ -187,6 +187,21 @@ export default function ProfileAnalysisPage() {
         };
         setProfile(mappedProfile);
         setError(null);
+
+        // Load kết quả phân tích đã lưu từ DB (để xem lại khi quay lại trang)
+        if (!actualStudentId.startsWith("email:")) {
+          try {
+            const analysisRes = await fetch(
+              `/api/students/${actualStudentId}/analysis-history`
+            );
+            const analysisJson = await analysisRes.json();
+            if (analysisJson.success && analysisJson.latest?.fullResult) {
+              setAnalysisResult({ data: analysisJson.latest.fullResult });
+            }
+          } catch {
+            // Bỏ qua nếu không load được lịch sử phân tích
+          }
+        }
       } catch (err) {
         setError("Có lỗi xảy ra khi tải thông tin học sinh");
       } finally {
