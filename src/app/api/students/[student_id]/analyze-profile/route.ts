@@ -265,6 +265,31 @@ export async function POST(
       );
     }
 
+    // Ghi job "đang chạy" để user chuyển trang rồi quay lại vẫn thấy loading
+    const jobId = randomUUID();
+    try {
+      await prisma.profile_analysis_jobs.create({
+        data: {
+          id: jobId,
+          student_id: studentIdStr,
+          status: "in_progress",
+        },
+      });
+    } catch (jobErr) {
+      console.warn("Could not create profile_analysis_job:", jobErr);
+    }
+
+    const setJobCompleted = async (status: "completed" | "failed", errorMessage?: string) => {
+      try {
+        await prisma.profile_analysis_jobs.update({
+          where: { id: jobId },
+          data: { status, completed_at: new Date(), error_message: errorMessage ?? null },
+        });
+      } catch (e) {
+        console.warn("Could not update profile_analysis_job:", e);
+      }
+    };
+
     // 2. Map dữ liệu database sang format Feature 1 yêu cầu (theo POSTMAN format)
     const feature1Payload: Feature1InputPayload = {
       academic: {
@@ -447,6 +472,7 @@ export async function POST(
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
+      await setJobCompleted("failed", errorMessage);
       return NextResponse.json(
         {
           error: "Lỗi khi gọi API phân tích",
@@ -471,6 +497,7 @@ export async function POST(
       // Có wrapper với success/data
       const wrappedResponse = rawResponse as Feature1APIResponse;
       if (!wrappedResponse.success || !wrappedResponse.data) {
+        await setJobCompleted("failed", wrappedResponse.error || "Không có dữ liệu trả về");
         return NextResponse.json(
           {
             error: "Phân tích không thành công",
@@ -487,6 +514,7 @@ export async function POST(
       const normalized = normalizeFeature1OutputData(rawResponse);
       if (!normalized) {
         console.error("❌ Invalid output data structure:", rawResponse);
+        await setJobCompleted("failed", "Dữ liệu phân tích không hợp lệ");
         return NextResponse.json(
           {
             error: "Dữ liệu phân tích không hợp lệ",
@@ -500,6 +528,7 @@ export async function POST(
     }
 
     if (!outputData) {
+      await setJobCompleted("failed", "Không thể xử lý dữ liệu phân tích");
       return NextResponse.json(
         {
           error: "Không thể xử lý dữ liệu phân tích",
@@ -559,6 +588,7 @@ export async function POST(
       // Continue even if DB save fails - still return the analysis result
     }
 
+    await setJobCompleted("completed");
     return NextResponse.json({
       success: true,
       data: outputData,
@@ -567,6 +597,14 @@ export async function POST(
     console.error("Error in analyze-profile API:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
+    try {
+      await prisma.profile_analysis_jobs.updateMany({
+        where: { student_id: studentIdStr, status: "in_progress" },
+        data: { status: "failed", completed_at: new Date(), error_message: errorMessage },
+      });
+    } catch (e) {
+      console.warn("Could not update job to failed:", e);
+    }
     return NextResponse.json(
       {
         error: "Lỗi server khi phân tích hồ sơ",

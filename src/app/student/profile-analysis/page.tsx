@@ -32,6 +32,8 @@ export default function ProfileAnalysisPage() {
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [pollingForJob, setPollingForJob] = useState(false);
+  const pollingStudentIdRef = useRef<string | null>(null);
   const analysisInFlightRef = useRef(false);
 
   const studentId = useMemo(() => {
@@ -188,18 +190,34 @@ export default function ProfileAnalysisPage() {
         setProfile(mappedProfile);
         setError(null);
 
-        // Load kết quả phân tích đã lưu từ DB (để xem lại khi quay lại trang)
+        // Trạng thái phân tích: nếu đang chạy nền (user chuyển trang rồi quay lại) → loading + poll
         if (!actualStudentId.startsWith("email:")) {
           try {
-            const analysisRes = await fetch(
-              `/api/students/${actualStudentId}/analysis-history`
+            const statusRes = await fetch(
+              `/api/students/${actualStudentId}/analysis-status`
             );
-            const analysisJson = await analysisRes.json();
-            if (analysisJson.success && analysisJson.latest?.fullResult) {
-              setAnalysisResult({ data: analysisJson.latest.fullResult });
+            const statusJson = await statusRes.json();
+            if (statusJson.success && statusJson.inProgress) {
+              setAnalysisLoading(true);
+              setAnalysisResult(null);
+              pollingStudentIdRef.current = actualStudentId;
+              setPollingForJob(true);
+            } else if (statusJson.success && statusJson.latest) {
+              setAnalysisResult({ data: statusJson.latest });
             }
           } catch {
-            // Bỏ qua nếu không load được lịch sử phân tích
+            // Fallback: load từ history nếu analysis-status lỗi
+            try {
+              const analysisRes = await fetch(
+                `/api/students/${actualStudentId}/analysis-history`
+              );
+              const analysisJson = await analysisRes.json();
+              if (analysisJson.success && analysisJson.latest?.fullResult) {
+                setAnalysisResult({ data: analysisJson.latest.fullResult });
+              }
+            } catch {
+              // Bỏ qua
+            }
           }
         }
       } catch (err) {
@@ -211,6 +229,32 @@ export default function ProfileAnalysisPage() {
 
     fetchProfile();
   }, [studentId, sessionLoading, isAuthenticated]);
+
+  // Poll analysis-status khi có job đang chạy nền (user quay lại trang)
+  useEffect(() => {
+    if (!pollingForJob) return;
+    const sid = pollingStudentIdRef.current;
+    if (!sid) return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/students/${sid}/analysis-status`);
+        const json = await res.json();
+        if (!json.success || json.inProgress !== true) {
+          setAnalysisLoading(false);
+          setPollingForJob(false);
+          pollingStudentIdRef.current = null;
+          if (json.latest) setAnalysisResult({ data: json.latest });
+        }
+      } catch {
+        // Giữ nguyên loading, thử lại lần sau
+      }
+    };
+
+    const interval = setInterval(poll, 8000);
+    poll(); // gọi ngay lần đầu
+    return () => clearInterval(interval);
+  }, [pollingForJob]);
 
   const handleAnalyzeProfile = async () => {
     if (analysisInFlightRef.current || !studentId) return;
