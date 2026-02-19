@@ -182,6 +182,7 @@ model students {
   student_skills                     student_skills[]
   profile_analyses                   profile_analyses[]
   profile_analysis_jobs              profile_analysis_jobs[]
+  improve_jobs                       improve_jobs[]
   mbti_tests                         mbti_tests?
   riasec_tests                       riasec_tests?
   grit_tests                         grit_tests?
@@ -686,6 +687,24 @@ model profile_analysis_jobs {
 
   @@index([student_id])
   @@index([status])
+}
+
+/// Job theo dõi Improve đang chạy (profile/essay/cv analysis hoặc enhance) — user chuyển trang rồi quay lại vẫn thấy đang xử lý.
+model improve_jobs {
+  id               String    @id @default(uuid()) @db.Uuid
+  student_id       String    @db.Uuid
+  students         students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  job_type         String    @db.VarChar(50) // profile_analysis | profile_enhance | essay_analysis | essay_enhance | cv_analysis | cv_enhance
+  external_job_id  String?   @db.VarChar(255) // job_id từ Python backend
+  essay_id         String?   @db.Uuid
+  status           String    @db.VarChar(20) // in_progress | completed | failed
+  started_at       DateTime  @default(now()) @db.Timestamp(6)
+  completed_at     DateTime? @db.Timestamp(6)
+  error_message    String?   @db.Text
+
+  @@index([student_id])
+  @@index([status])
+  @@index([student_id, status])
 }
 
 // ==================== 8. UNIVERSITIES & APPLICATIONS ====================

@@ -82,6 +82,10 @@ export default function ImprovePage() {
 
   const [detailModal, setDetailModal] = useState<{ title: string; content: React.ReactNode } | null>(null);
 
+  // Job improve đang chạy nền (để quay lại trang vẫn thấy loading + polling)
+  type ImproveJob = { id: string; job_type: string; external_job_id: string; essay_id?: string | null };
+  const [inProgressJobs, setInProgressJobs] = useState<ImproveJob[]>([]);
+
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Profile', icon: <UserCircle className="h-4 w-4" /> },
     { id: 'cv', label: 'CV', icon: <FileText className="h-4 w-4" /> },
@@ -114,6 +118,34 @@ export default function ImprovePage() {
         console.error(e);
       } finally {
         setCvLoading(false);
+      }
+    };
+    load();
+  }, [studentId]);
+
+  // Khi vào trang (hoặc quay lại): kiểm tra job improve đang chạy → hiển thị loading và polling
+  useEffect(() => {
+    if (!studentId) return;
+    const load = async () => {
+      try {
+        const res = await fetch('/api/student/improve/status');
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.jobs) || data.jobs.length === 0) return;
+        const jobs: ImproveJob[] = data.jobs.map((j: { id: string; job_type: string; external_job_id: string | null; essay_id?: string | null }) => ({
+          id: j.id,
+          job_type: j.job_type,
+          external_job_id: j.external_job_id || '',
+          essay_id: j.essay_id ?? null,
+        })).filter((j: ImproveJob) => j.external_job_id);
+        setInProgressJobs(jobs);
+        if (jobs.some((j) => j.job_type === 'profile_analysis')) setProfileAnalysisLoading(true);
+        if (jobs.some((j) => j.job_type === 'profile_enhance')) setProfileEnhanceLoading(true);
+        if (jobs.some((j) => j.job_type === 'essay_analysis')) setEssayAnalysisLoading(true);
+        if (jobs.some((j) => j.job_type === 'essay_enhance')) setEssayEnhanceLoading(true);
+        if (jobs.some((j) => j.job_type === 'cv_analysis')) setCvAnalysisLoading(true);
+        if (jobs.some((j) => j.job_type === 'cv_enhance')) setCvEnhanceLoading(true);
+      } catch {
+        // bỏ qua
       }
     };
     load();
@@ -373,7 +405,7 @@ export default function ImprovePage() {
   const POLL_INTERVAL_MS = 4000;
   const POLL_MAX_WAIT_MS = 300000; // 5 phút tối đa poll
 
-  const pollJobResult = async (jobId: string, kind: 'analysis' | 'enhance'): Promise<Record<string, unknown>> => {
+  const pollJobResult = async (jobId: string, _kind: 'analysis' | 'enhance'): Promise<Record<string, unknown>> => {
     const start = Date.now();
     while (Date.now() - start < POLL_MAX_WAIT_MS) {
       const res = await fetch(`/api/module4/profile-improver/result/${encodeURIComponent(jobId)}`);
@@ -386,7 +418,100 @@ export default function ImprovePage() {
     throw new Error('Hết thời gian chờ. Vui lòng thử lại.');
   };
 
+  // Polling cho các job đang chạy nền (kể cả khi user quay lại trang)
+  useEffect(() => {
+    if (inProgressJobs.length === 0) return;
+    const run = async () => {
+      for (const job of inProgressJobs) {
+        try {
+          const res = await fetch(`/api/module4/profile-improver/result/${encodeURIComponent(job.external_job_id)}`);
+          const data = (await res.json()) as { status: string; result?: Record<string, unknown>; error?: string };
+          if (data.status !== 'done' && data.status !== 'error' && data.status !== 'missing') continue;
+          await fetch('/api/student/improve/complete-job', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              job_id: job.id,
+              status: data.status === 'done' ? 'completed' : 'failed',
+              error_message: data.status === 'error' ? (data.error || 'Lỗi') : undefined,
+            }),
+          });
+          setInProgressJobs((prev) => prev.filter((j) => j.id !== job.id));
+          if (data.status === 'done' && data.result) {
+            const result = data.result;
+            if (job.job_type === 'profile_analysis') {
+              setProfileAnalysis(result);
+              setProfileAnalysisLoading(false);
+              try {
+                await fetch('/api/student/improve/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis: result }) });
+              } catch (_) {}
+              toast.success('Phân tích profile thành công');
+            } else if (job.job_type === 'profile_enhance') {
+              setProfileEnhance(result);
+              setProfileEnhanceLoading(false);
+              try {
+                await fetch('/api/student/improve/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enhance: result }) });
+              } catch (_) {}
+              toast.success('Đề xuất cải thiện đã sẵn sàng');
+            } else if (job.job_type === 'essay_analysis') {
+              const analysisData = (result as { analysis?: Record<string, unknown>; weak_points?: unknown[] });
+              setEssayAnalysis(analysisData);
+              setEssayAnalysisLoading(false);
+              if (job.essay_id) {
+                try {
+                  await fetch('/api/student/improve/essay-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ essay_id: job.essay_id, analysis: analysisData }) });
+                } catch (_) {}
+              }
+              toast.success('Phân tích essay thành công');
+            } else if (job.job_type === 'essay_enhance') {
+              setEssayEnhance(result);
+              setEssayEnhanceLoading(false);
+              if (job.essay_id) {
+                try {
+                  await fetch('/api/student/improve/essay-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ essay_id: job.essay_id, enhance: result }) });
+                } catch (_) {}
+              }
+              toast.success('Cải thiện essay thành công');
+            } else if (job.job_type === 'cv_analysis') {
+              setCvAnalysis(result);
+              setCvAnalysisLoading(false);
+              try {
+                await fetch('/api/student/improve/cv-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis: result }) });
+              } catch (_) {}
+              toast.success('Phân tích CV thành công');
+            } else if (job.job_type === 'cv_enhance') {
+              setCvEnhance(result);
+              setCvEnhanceLoading(false);
+              try {
+                await fetch('/api/student/improve/cv-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enhance: result }) });
+              } catch (_) {}
+              toast.success('Đề xuất cải thiện CV đã sẵn sàng');
+            }
+          } else {
+            if (job.job_type === 'profile_analysis') setProfileAnalysisLoading(false);
+            else if (job.job_type === 'profile_enhance') setProfileEnhanceLoading(false);
+            else if (job.job_type === 'essay_analysis') setEssayAnalysisLoading(false);
+            else if (job.job_type === 'essay_enhance') setEssayEnhanceLoading(false);
+            else if (job.job_type === 'cv_analysis') setCvAnalysisLoading(false);
+            else if (job.job_type === 'cv_enhance') setCvEnhanceLoading(false);
+            toast.error(data.status === 'error' ? (data.error || 'Xử lý thất bại') : 'Không tìm thấy kết quả.');
+          }
+        } catch (_) {
+          // Giữ job trong list, thử lại lần sau
+        }
+      }
+    };
+    const interval = setInterval(run, POLL_INTERVAL_MS);
+    run();
+    return () => clearInterval(interval);
+  }, [inProgressJobs]);
+
   const handleProfileAnalysis = async () => {
+    if (profileAnalysisLoading) {
+      toast.info('Đang phân tích profile, vui lòng đợi kết quả.');
+      return;
+    }
+    let delegatedToBackground = false;
     setProfileAnalysisLoading(true);
     toast.info('Đang bắt đầu phân tích... Kết quả sẽ hiển thị trong 1–2 phút.', { duration: 5000 });
     try {
@@ -401,19 +526,33 @@ export default function ImprovePage() {
         throw new Error((errBody as { error?: string }).error || 'Phân tích thất bại');
       }
       const data = (await analysisRes.json()) as { job_id?: string } & Record<string, unknown>;
-      let result: Record<string, unknown>;
       if (analysisRes.status === 202 && data.job_id) {
-        result = await pollJobResult(data.job_id, 'analysis');
-      } else {
-        result = data;
+        try {
+          const reg = await fetch('/api/student/improve/register-job', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_type: 'profile_analysis', external_job_id: data.job_id }),
+          });
+          const regData = await reg.json();
+          if (regData.success && regData.id) {
+            setInProgressJobs((prev) => [...prev, { id: regData.id, job_type: 'profile_analysis', external_job_id: String(data.job_id) }]);
+            delegatedToBackground = true;
+            return;
+          }
+        } catch (_) {}
+        const result = await pollJobResult(data.job_id as string, 'analysis');
+        setProfileAnalysis(result);
+        try {
+          await fetch('/api/student/improve/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis: result }) });
+        } catch (_) {
+          toast.warning('Đã phân tích nhưng chưa lưu được. Thử tải lại trang.');
+        }
+        toast.success('Phân tích profile thành công');
+        return;
       }
-      setProfileAnalysis(result);
+      setProfileAnalysis(data as Record<string, unknown>);
       try {
-        await fetch('/api/student/improve/results', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ analysis: result }),
-        });
+        await fetch('/api/student/improve/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis: data }) });
       } catch (_) {
         toast.warning('Đã phân tích nhưng chưa lưu được. Thử tải lại trang.');
       }
@@ -421,7 +560,9 @@ export default function ImprovePage() {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Lỗi phân tích profile');
     } finally {
-      setProfileAnalysisLoading(false);
+      if (!delegatedToBackground) {
+        setProfileAnalysisLoading(false);
+      }
     }
   };
 
@@ -443,6 +584,11 @@ export default function ImprovePage() {
   };
 
   const handleProfileEnhance = async () => {
+    if (profileEnhanceLoading) {
+      toast.info('Đang tạo đề xuất, vui lòng đợi kết quả.');
+      return;
+    }
+    let delegatedToBackground = false;
     setProfileEnhanceLoading(true);
     toast.info('Đang bắt đầu tạo đề xuất... Kết quả sẽ hiển thị trong 1–2 phút.', { duration: 5000 });
     try {
@@ -457,19 +603,33 @@ export default function ImprovePage() {
         throw new Error((errBody as { error?: string }).error || 'Enhance thất bại');
       }
       const data = (await enhanceRes.json()) as { job_id?: string } & Record<string, unknown>;
-      let result: Record<string, unknown>;
       if (enhanceRes.status === 202 && data.job_id) {
-        result = await pollJobResult(data.job_id, 'enhance');
-      } else {
-        result = data;
+        try {
+          const reg = await fetch('/api/student/improve/register-job', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_type: 'profile_enhance', external_job_id: data.job_id }),
+          });
+          const regData = await reg.json();
+          if (regData.success && regData.id) {
+            setInProgressJobs((prev) => [...prev, { id: regData.id, job_type: 'profile_enhance', external_job_id: String(data.job_id) }]);
+            delegatedToBackground = true;
+            return;
+          }
+        } catch (_) {}
+        const result = await pollJobResult(data.job_id as string, 'enhance');
+        setProfileEnhance(result);
+        try {
+          await fetch('/api/student/improve/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enhance: result }) });
+        } catch (_) {
+          toast.warning('Đã tạo đề xuất nhưng chưa lưu được. Thử tải lại trang.');
+        }
+        toast.success('Đề xuất cải thiện đã sẵn sàng');
+        return;
       }
-      setProfileEnhance(result);
+      setProfileEnhance(data as Record<string, unknown>);
       try {
-        await fetch('/api/student/improve/results', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enhance: result }),
-        });
+        await fetch('/api/student/improve/results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enhance: data }) });
       } catch (_) {
         toast.warning('Đã tạo đề xuất nhưng chưa lưu được. Thử tải lại trang.');
       }
@@ -477,16 +637,23 @@ export default function ImprovePage() {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Lỗi đề xuất cải thiện');
     } finally {
-      setProfileEnhanceLoading(false);
+      if (!delegatedToBackground) {
+        setProfileEnhanceLoading(false);
+      }
     }
   };
 
   const handleEssayAnalysis = async () => {
+    if (essayAnalysisLoading) {
+      toast.info('Đang phân tích essay, vui lòng đợi kết quả.');
+      return;
+    }
     const plain = getEssayPlainText().trim();
     if (!plain) {
       toast.error('Chưa có nội dung essay để phân tích');
       return;
     }
+    let delegatedToBackground = false;
     setEssayAnalysisLoading(true);
     toast.info('Đang phân tích essay... Có thể mất 1–2 phút.', { duration: 5000 });
     try {
@@ -500,37 +667,59 @@ export default function ImprovePage() {
         throw new Error((err as { error?: string }).error || 'Phân tích thất bại');
       }
       const data = (await res.json()) as { job_id?: string } & Record<string, unknown>;
-      let result: Record<string, unknown>;
       if (res.status === 202 && data.job_id) {
-        result = await pollJobResult(data.job_id, 'analysis');
-      } else {
-        result = data;
+        try {
+          const reg = await fetch('/api/student/improve/register-job', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_type: 'essay_analysis', external_job_id: data.job_id, essay_id: currentEssayId ?? undefined }),
+          });
+          const regData = await reg.json();
+          if (regData.success && regData.id) {
+            setInProgressJobs((prev) => [...prev, { id: regData.id, job_type: 'essay_analysis', external_job_id: String(data.job_id), essay_id: currentEssayId ?? null }]);
+            delegatedToBackground = true;
+            return;
+          }
+        } catch (_) {}
+        const result = await pollJobResult(data.job_id as string, 'analysis');
+        const analysisData = (result as { analysis?: Record<string, unknown>; weak_points?: unknown[] });
+        setEssayAnalysis(analysisData);
+        if (currentEssayId) {
+          try {
+            await fetch('/api/student/improve/essay-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ essay_id: currentEssayId, analysis: analysisData }) });
+          } catch (_) {}
+        }
+        toast.success('Phân tích essay thành công');
+        return;
       }
-      const analysisData = (result as { analysis?: Record<string, unknown>; weak_points?: unknown[] });
+      const analysisData = (data as { analysis?: Record<string, unknown>; weak_points?: unknown[] });
       setEssayAnalysis(analysisData);
       if (currentEssayId) {
         try {
-          await fetch('/api/student/improve/essay-results', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ essay_id: currentEssayId, analysis: analysisData }),
-          });
+          await fetch('/api/student/improve/essay-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ essay_id: currentEssayId, analysis: analysisData }) });
         } catch (_) {}
       }
       toast.success('Phân tích essay thành công');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Lỗi phân tích essay');
     } finally {
-      setEssayAnalysisLoading(false);
+      if (!delegatedToBackground) {
+        setEssayAnalysisLoading(false);
+      }
     }
   };
 
   const handleEssayEnhance = async () => {
+    if (essayEnhanceLoading) {
+      toast.info('Đang cải thiện essay, vui lòng đợi kết quả.');
+      return;
+    }
     const plain = getEssayPlainText().trim();
     if (!plain) {
       toast.error('Chưa có nội dung essay để cải thiện');
       return;
     }
+    let delegatedToBackground = false;
     setEssayEnhanceLoading(true);
     toast.info('Đang cải thiện essay... Có thể mất 1–2 phút.', { duration: 5000 });
     try {
@@ -544,31 +733,51 @@ export default function ImprovePage() {
         throw new Error((err as { error?: string }).error || 'Enhance thất bại');
       }
       const data = (await res.json()) as { job_id?: string } & Record<string, unknown>;
-      let result: Record<string, unknown>;
       if (res.status === 202 && data.job_id) {
-        result = await pollJobResult(data.job_id, 'enhance');
-      } else {
-        result = data;
-      }
-      setEssayEnhance(result);
-      if (currentEssayId) {
         try {
-          await fetch('/api/student/improve/essay-results', {
+          const reg = await fetch('/api/student/improve/register-job', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ essay_id: currentEssayId, enhance: result }),
+            body: JSON.stringify({ job_type: 'essay_enhance', external_job_id: data.job_id, essay_id: currentEssayId ?? undefined }),
           });
+          const regData = await reg.json();
+          if (regData.success && regData.id) {
+            setInProgressJobs((prev) => [...prev, { id: regData.id, job_type: 'essay_enhance', external_job_id: String(data.job_id), essay_id: currentEssayId ?? null }]);
+            delegatedToBackground = true;
+            return;
+          }
+        } catch (_) {}
+        const result = await pollJobResult(data.job_id as string, 'enhance');
+        setEssayEnhance(result);
+        if (currentEssayId) {
+          try {
+            await fetch('/api/student/improve/essay-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ essay_id: currentEssayId, enhance: result }) });
+          } catch (_) {}
+        }
+        toast.success('Cải thiện essay thành công');
+        return;
+      }
+      setEssayEnhance(data as Record<string, unknown>);
+      if (currentEssayId) {
+        try {
+          await fetch('/api/student/improve/essay-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ essay_id: currentEssayId, enhance: data }) });
         } catch (_) {}
       }
       toast.success('Cải thiện essay thành công');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Lỗi cải thiện essay');
     } finally {
-      setEssayEnhanceLoading(false);
+      if (!delegatedToBackground) {
+        setEssayEnhanceLoading(false);
+      }
     }
   };
 
   const handleCvAnalysis = async () => {
+    if (cvAnalysisLoading) {
+      toast.info('Đang phân tích CV, vui lòng đợi kết quả.');
+      return;
+    }
     let text = cvText.trim();
     if (!text) {
       setCvTextLoading(true);
@@ -587,6 +796,7 @@ export default function ImprovePage() {
       toast.error('Chưa có nội dung CV (chỉ hỗ trợ PDF). Hãy tải CV PDF lên.');
       return;
     }
+    let delegatedToBackground = false;
     setCvAnalysisLoading(true);
     toast.info('Đang phân tích CV... Có thể mất 1–2 phút.', { duration: 5000 });
     try {
@@ -600,29 +810,47 @@ export default function ImprovePage() {
         throw new Error((err as { error?: string }).error || 'Phân tích thất bại');
       }
       const data = (await res.json()) as { job_id?: string } & Record<string, unknown>;
-      let result: Record<string, unknown>;
       if (res.status === 202 && data.job_id) {
-        result = await pollJobResult(data.job_id, 'analysis');
-      } else {
-        result = data;
+        try {
+          const reg = await fetch('/api/student/improve/register-job', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_type: 'cv_analysis', external_job_id: data.job_id }),
+          });
+          const regData = await reg.json();
+          if (regData.success && regData.id) {
+            setInProgressJobs((prev) => [...prev, { id: regData.id, job_type: 'cv_analysis', external_job_id: String(data.job_id) }]);
+            delegatedToBackground = true;
+            return;
+          }
+        } catch (_) {}
+        const result = await pollJobResult(data.job_id as string, 'analysis');
+        setCvAnalysis(result);
+        try {
+          await fetch('/api/student/improve/cv-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis: result }) });
+        } catch (_) {}
+        toast.success('Phân tích CV thành công');
+        return;
       }
-      setCvAnalysis(result);
+      setCvAnalysis(data as Record<string, unknown>);
       try {
-        await fetch('/api/student/improve/cv-results', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ analysis: result }),
-        });
+        await fetch('/api/student/improve/cv-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis: data }) });
       } catch (_) {}
       toast.success('Phân tích CV thành công');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Lỗi phân tích CV');
     } finally {
-      setCvAnalysisLoading(false);
+      if (!delegatedToBackground) {
+        setCvAnalysisLoading(false);
+      }
     }
   };
 
   const handleCvEnhance = async () => {
+    if (cvEnhanceLoading) {
+      toast.info('Đang đề xuất cải thiện CV, vui lòng đợi kết quả.');
+      return;
+    }
     let text = cvText.trim();
     if (!text) {
       setCvTextLoading(true);
@@ -641,6 +869,7 @@ export default function ImprovePage() {
       toast.error('Chưa có nội dung CV (chỉ hỗ trợ PDF). Hãy tải CV PDF lên.');
       return;
     }
+    let delegatedToBackground = false;
     setCvEnhanceLoading(true);
     toast.info('Đang tạo đề xuất cải thiện CV... Có thể mất 1–2 phút.', { duration: 5000 });
     try {
@@ -654,25 +883,39 @@ export default function ImprovePage() {
         throw new Error((err as { error?: string }).error || 'Enhance thất bại');
       }
       const data = (await res.json()) as { job_id?: string } & Record<string, unknown>;
-      let result: Record<string, unknown>;
       if (res.status === 202 && data.job_id) {
-        result = await pollJobResult(data.job_id, 'enhance');
-      } else {
-        result = data;
+        try {
+          const reg = await fetch('/api/student/improve/register-job', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_type: 'cv_enhance', external_job_id: data.job_id }),
+          });
+          const regData = await reg.json();
+          if (regData.success && regData.id) {
+            setInProgressJobs((prev) => [...prev, { id: regData.id, job_type: 'cv_enhance', external_job_id: String(data.job_id) }]);
+            delegatedToBackground = true;
+            return;
+          }
+        } catch (_) {}
+        const result = await pollJobResult(data.job_id as string, 'enhance');
+        setCvEnhance(result);
+        try {
+          await fetch('/api/student/improve/cv-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enhance: result }) });
+        } catch (_) {}
+        toast.success('Đề xuất cải thiện CV đã sẵn sàng');
+        return;
       }
-      setCvEnhance(result);
+      setCvEnhance(data as Record<string, unknown>);
       try {
-        await fetch('/api/student/improve/cv-results', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enhance: result }),
-        });
+        await fetch('/api/student/improve/cv-results', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enhance: data }) });
       } catch (_) {}
       toast.success('Đề xuất cải thiện CV đã sẵn sàng');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Lỗi đề xuất CV');
     } finally {
-      setCvEnhanceLoading(false);
+      if (!delegatedToBackground) {
+        setCvEnhanceLoading(false);
+      }
     }
   };
 
