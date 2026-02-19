@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { StudentPageContainer } from "@/components/student";
+import { PageLoading } from "@/components/ui/PageLoading";
 import RoleGuard from "@/components/auth/RoleGuard";
 import {
   FileBarChart,
@@ -261,10 +262,7 @@ export default function ReportsPage() {
     return (
       <RoleGuard allowedRoles={["user", "student", "STUDENT"]}>
         <StudentPageContainer>
-          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="text-muted-foreground">Đang tải báo cáo...</p>
-          </div>
+          <PageLoading fullPage={false} message="Đang tải báo cáo..." />
         </StudentPageContainer>
       </RoleGuard>
     );

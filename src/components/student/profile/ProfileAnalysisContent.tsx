@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { PageLoading } from '@/components/ui/PageLoading';
 
 export interface RegionScore {
   Vùng: string;
@@ -113,14 +114,8 @@ export function ProfileAnalysisContent({ result, loading, onRetry }: ProfileAnal
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 rounded-xl border border-border/60 bg-muted/30">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-14 w-14 border-2 border-muted border-t-primary" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-lg text-muted-foreground">⟳</span>
-          </div>
-        </div>
-        <p className="text-foreground font-medium mt-4">Đang phân tích hồ sơ của bạn...</p>
-        <p className="text-muted-foreground text-sm mt-1">AI đang đánh giá các yếu tố trong hồ sơ</p>
+        <PageLoading inline size="lg" message="Đang phân tích hồ sơ của bạn..." className="py-0" />
+        <p className="text-muted-foreground text-sm mt-2">AI đang đánh giá các yếu tố trong hồ sơ</p>
       </div>
     );
   }

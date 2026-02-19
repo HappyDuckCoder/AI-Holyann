@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ProfilePage } from "@/components/student/profile";
 import AcademicInfoModal from "@/components/student/profile/AcademicInfoModal";
 import { StudentPageContainer } from "@/components/student";
+import { PageLoading } from "@/components/ui/PageLoading";
 import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
@@ -429,14 +430,10 @@ export default function ProfilePageWrapper() {
   if (loading || sessionLoading) {
     return (
       <StudentPageContainer>
-        <div className="max-w-6xl mx-auto flex flex-col justify-center items-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary/30 border-t-primary mb-4" />
-          <p className="text-muted-foreground">
-            {sessionLoading
-              ? "Đang xác thực..."
-              : "Đang tải thông tin học sinh..."}
-          </p>
-        </div>
+        <PageLoading
+          fullPage={false}
+          message={sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
+        />
       </StudentPageContainer>
     );
   }

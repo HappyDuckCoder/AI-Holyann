@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { getStudentChecklist, updateStudentTaskStatus, updateTaskDeadline } from '@/actions/mentor-checklist';
 import FilePreviewModal from '@/components/common/FilePreviewModal';
+import { PageLoading } from '@/components/ui/PageLoading';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -289,10 +290,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-[#0f4c81]" />
-          <p className="text-sm text-gray-500">Đang tải checklist...</p>
-        </div>
+        <PageLoading inline size="md" message="Đang tải checklist..." className="py-0" />
       </div>
     );
   }

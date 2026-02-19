@@ -4,6 +4,7 @@ import {useRouter, usePathname} from 'next/navigation'
 import {useAuthSession} from '@/hooks/useAuthSession'
 import {signOut} from 'next-auth/react'
 import { getRoleDashboardPath } from '@/lib/utils/role-paths'
+import { PageLoading } from '@/components/ui/PageLoading'
 
 export type UserRole = 'STUDENT' | 'MENTOR' | 'ADMIN' | 'student' | 'mentor' | 'admin' | string;
 
@@ -49,15 +50,11 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
         }
     }, [authReady, isAuthenticated, user, hasRole, allowedRoles, router, redirectTo, pathname])
 
-    // While auth status is initializing, show loading
+    // While auth status is initializing, show loading (cùng background với các page)
     if (!authReady) {
         return (
-            <div
-                className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Đang kiểm tra quyền truy cập...</p>
-                </div>
+            <div className="min-h-screen bg-background">
+                <PageLoading message="Đang kiểm tra quyền truy cập..." />
             </div>
         )
     }
@@ -65,8 +62,8 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
     // If not authenticated: show friendly message and link to login
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="max-w-md w-full bg-white dark:bg-card rounded-xl shadow-lg p-8 text-center">
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="max-w-md w-full bg-card border border-border rounded-xl shadow-lg p-8 text-center">
                     <h3 className="text-xl font-semibold mb-4">Bạn chưa đăng nhập</h3>
                     <p className="text-sm text-muted-foreground mb-6">Bạn cần đăng nhập để truy cập trang này.</p>
                     <div className="flex justify-center gap-4">
@@ -82,8 +79,8 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
     // If authenticated but not authorized: show message and options
     if (!hasRole(allowedRoles)) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="max-w-md w-full bg-white dark:bg-card rounded-xl shadow-lg p-8 text-center">
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="max-w-md w-full bg-card border border-border rounded-xl shadow-lg p-8 text-center">
                     <h3 className="text-xl font-semibold mb-4">Bạn không có quyền truy cập</h3>
                     <p className="text-sm text-muted-foreground mb-6">Tài khoản của bạn không có quyền truy cập trang
                         này.</p>

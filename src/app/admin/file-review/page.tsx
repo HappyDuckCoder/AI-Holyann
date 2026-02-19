@@ -18,6 +18,7 @@ import {
     RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageLoading } from '@/components/ui/PageLoading';
 
 interface SubmittedFile {
     id: string;
@@ -119,12 +120,7 @@ export default function MentorReviewPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p>Đang tải danh sách file...</p>
-                </div>
-            </div>
+            <PageLoading message="Đang tải danh sách file..." />
         );
     }
 

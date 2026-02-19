@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import StudentDetailContent from '@/components/mentor/student/StudentDetailContent';
-import { Loader2 } from 'lucide-react';
+import { PageLoading } from '@/components/ui/PageLoading';
 
 export default async function StudentDetailPage({
   params,
@@ -14,7 +14,7 @@ export default async function StudentDetailPage({
       <Suspense
         fallback={
           <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-[#0f4c81]" />
+            <PageLoading inline size="md" className="py-0" />
           </div>
         }
       >

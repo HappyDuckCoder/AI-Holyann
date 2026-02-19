@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import MentorDashboardContent from '@/components/mentor/dashboard/MentorDashboardContent';
-import { Loader2 } from 'lucide-react';
+import { PageLoading } from '@/components/ui/PageLoading';
 
 export const metadata = {
   title: 'Mentor Dashboard | Holyann Explore',
@@ -22,7 +22,7 @@ export default function MentorDashboardPage() {
       <Suspense
         fallback={
           <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-[#0f4c81]" />
+            <PageLoading inline size="md" className="py-0" />
           </div>
         }
       >

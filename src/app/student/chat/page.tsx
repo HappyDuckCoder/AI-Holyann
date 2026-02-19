@@ -2,6 +2,7 @@
 
 import { ChatPage } from '@/components/chat/ChatPage';
 import RoleGuard from '@/components/auth/RoleGuard';
+import { PageLoading } from '@/components/ui/PageLoading';
 import { useAuthSession } from '@/hooks/useAuthSession';
 
 export default function ChatDashboard() {
@@ -9,8 +10,8 @@ export default function ChatDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[calc(100vh-theme(spacing.14))] items-center justify-center bg-background">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="h-[calc(100vh-theme(spacing.14))] bg-background">
+        <PageLoading fullPage={false} message="Đang xác thực..." className="min-h-[calc(100vh-theme(spacing.14))]" />
       </div>
     );
   }

@@ -17,6 +17,7 @@ import {
   Cell,
 } from "recharts";
 import { BarChart3, Sparkles } from "lucide-react";
+import { PageLoading } from "@/components/ui/PageLoading";
 
 export type PillarScores = {
   aca: number;
@@ -92,7 +93,13 @@ export function OverviewPillarCard({
       </div>
 
       <div className="p-5">
-        {!hasData && (
+        {analysisLoading && (
+          <div className="flex flex-col items-center justify-center py-12 rounded-xl border border-border/60 bg-muted/30">
+            <PageLoading inline size="lg" message="Đang phân tích hồ sơ của bạn..." className="py-0" />
+            <p className="text-muted-foreground text-sm mt-2">AI đang đánh giá các yếu tố trong hồ sơ</p>
+          </div>
+        )}
+        {!analysisLoading && !hasData && (
           <div className="flex flex-col items-center justify-center py-10 px-4 rounded-xl bg-muted/20 border border-dashed border-border/60 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground mb-4">
               <Sparkles className="size-7" />
@@ -107,14 +114,9 @@ export function OverviewPillarCard({
               <button
                 type="button"
                 onClick={onRunAnalysis}
-                disabled={analysisLoading}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {analysisLoading ? (
-                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                ) : (
-                  <Sparkles className="size-4" />
-                )}
+                <Sparkles className="size-4" />
                 Phân tích hồ sơ
               </button>
             )}

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ProfilePage } from "@/components/student/profile";
 import AcademicInfoModal from "@/components/student/profile/AcademicInfoModal";
 import AuthHeader from "@/components/auth/AuthHeader";
+import { PageLoading } from "@/components/ui/PageLoading";
 import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
@@ -371,12 +372,9 @@ export default function ProfilePageWrapper() {
       <>
         <AuthHeader />
         <main className="min-h-screen bg-white dark:bg-slate-900">
-          <div className="flex flex-col justify-center items-center h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">
-              {sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
-            </p>
-          </div>
+          <PageLoading
+            message={sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
+          />
         </main>
       </>
     );

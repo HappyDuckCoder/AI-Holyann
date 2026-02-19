@@ -6,6 +6,7 @@ import { ProfilePage } from "@/components/student/profile";
 import type { ProfilePageProps } from "@/components/student/profile/ProfilePage";
 import AcademicInfoModal from "@/components/student/profile/AcademicInfoModal";
 import { StudentPageContainer } from "@/components/student";
+import { PageLoading } from "@/components/ui/PageLoading";
 import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
@@ -796,12 +797,10 @@ export default function ProfilePageWrapper() {
   if (loading || sessionLoading) {
     return (
       <StudentPageContainer>
-        <div className="flex flex-col justify-center items-center min-h-[60vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-muted-foreground">
-              {sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
-            </p>
-          </div>
+        <PageLoading
+          fullPage={false}
+          message={sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
+        />
       </StudentPageContainer>
     );
   }

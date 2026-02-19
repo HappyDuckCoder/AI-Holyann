@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { BarChart3, ArrowRight } from "lucide-react";
 import { StudentPageContainer } from "@/components/student";
+import { PageLoading } from "@/components/ui/PageLoading";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { OverviewPillarCard, type PillarScores } from "@/components/student/profile/OverviewPillarCard";
 import { ProfileEvaluationSection } from "@/components/student/profile/ProfileEvaluationSection";
@@ -240,12 +241,10 @@ export default function ProfileAnalysisPage() {
   if (loading || sessionLoading) {
     return (
       <StudentPageContainer>
-        <div className="flex flex-col justify-center items-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4" />
-          <p className="text-muted-foreground">
-            {sessionLoading ? "Đang xác thực..." : "Đang tải thông tin..."}
-          </p>
-        </div>
+        <PageLoading
+          fullPage={false}
+          message={sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin...'}
+        />
       </StudentPageContainer>
     );
   }

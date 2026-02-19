@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { SwotData, StudentProfile } from "@/components/types";
 import { SwotCard } from "@/components/student/profile";
+import { PageLoading } from "@/components/ui/PageLoading";
 import { Feature1OutputData } from "@/lib/schemas/profile-analysis.schema";
 import {
   Radar,
@@ -290,12 +291,7 @@ export default function SwotCardPage() {
       <div className="min-h-screen flex flex-col font-sans bg-white dark:bg-slate-950">
         <AuthHeader />
         <main className="flex-grow flex items-center justify-center p-6">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 text-[var(--brand-deep)] animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">
-              Đang tải thông tin...
-            </p>
-          </div>
+          <PageLoading fullPage={false} message="Đang tải thông tin..." />
         </main>
       </div>
     );
@@ -389,12 +385,9 @@ export default function SwotCardPage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-8 sm:p-12 text-center">
-            <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 text-[var(--brand-deep)] animate-spin mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
-              Đang phân tích hồ sơ...
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-8 sm:p-12">
+            <PageLoading fullPage={false} size="lg" message="Đang phân tích hồ sơ..." className="py-0" />
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 text-center">
               Hệ thống đang tổng hợp dữ liệu và so sánh với tiêu chuẩn du học.
             </p>
           </div>

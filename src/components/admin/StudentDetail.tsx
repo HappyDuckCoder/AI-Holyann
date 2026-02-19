@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import UserAvatar from '@/components/ui/UserAvatar'
+import { PageLoading } from '@/components/ui/PageLoading'
 import { uploadAvatarToServer } from '@/utils/avatar-upload'
 
 interface StudentDetail {
@@ -191,10 +192,7 @@ export default function StudentDetail({ studentId }: StudentDetailProps) {
             Quay lại
           </button>
         </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-3 text-muted-foreground">Đang tải thông tin học viên...</span>
-        </div>
+        <PageLoading inline size="md" message="Đang tải thông tin học viên..." />
       </div>
     )
   }
