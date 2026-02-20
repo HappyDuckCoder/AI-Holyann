@@ -27,9 +27,19 @@ export function ModalSection({
   className?: string;
 }) {
   return (
-    <div className={cn('rounded-xl border border-border/60 p-4 border-l-4', MODAL_ACCENTS[accent], className)}>
-      {title && <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{title}</p>}
-      {children}
+    <div
+      className={cn(
+        'rounded-2xl border border-border/50 p-6 border-l-4 shadow-sm',
+        MODAL_ACCENTS[accent],
+        className
+      )}
+    >
+      {title && (
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          {title}
+        </p>
+      )}
+      <div className="text-sm leading-relaxed [&_.whitespace-pre-line]:text-foreground">{children}</div>
     </div>
   );
 }
@@ -49,17 +59,28 @@ export function CollapsibleSection({
 }) {
   return (
     <details
-      className={cn('group rounded-xl border border-border/60 border-l-4 overflow-hidden', MODAL_ACCENTS[accent])}
+      className={cn(
+        'group rounded-2xl border border-border/50 border-l-4 overflow-hidden shadow-sm transition-shadow hover:shadow-md',
+        MODAL_ACCENTS[accent]
+      )}
       open={defaultOpen}
     >
-      <summary className="list-none cursor-pointer select-none">
-        <span className="flex items-center justify-between gap-2 p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</span>
-          {summary && <span className="text-xs text-muted-foreground truncate max-w-[60%]">{summary}</span>}
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+      <summary className="list-none cursor-pointer select-none outline-none">
+        <span className="flex items-center justify-between gap-4 py-4 px-5 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] active:bg-black/[0.05] dark:active:bg-white/[0.06] transition-colors rounded-2xl">
+          <span className="text-sm font-semibold text-foreground">{title}</span>
+          <span className="flex items-center gap-2 shrink-0">
+            {summary && (
+              <span className="text-sm text-muted-foreground truncate max-w-[50%] sm:max-w-[60%]">
+                {summary}
+              </span>
+            )}
+            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+          </span>
         </span>
       </summary>
-      <div className="px-4 pb-4 pt-0">{children}</div>
+      <div className="px-5 pb-6 pt-0 text-sm leading-relaxed [&_.whitespace-pre-line]:text-foreground">
+        {children}
+      </div>
     </details>
   );
 }

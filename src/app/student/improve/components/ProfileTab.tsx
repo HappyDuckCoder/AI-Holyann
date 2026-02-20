@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { UserCircle, Loader2, BarChart3, Wand2, Star, Target, Shield, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { UserCircle, Loader2, BarChart3, Wand2, Star, Target, Shield, ChevronRight, ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -41,168 +41,178 @@ export function ProfileTab({
   setDetailModal,
   saveRating,
 }: ProfileTabProps) {
+  const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
+
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground mb-0.5 flex items-center gap-2">
           <UserCircle className="h-5 w-5 text-primary" />
-          Profile của bạn
+          Your profile
         </h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Dữ liệu từ phân tích hồ sơ, bài test và gợi ý trường. Dùng để Phân tích hoặc Đề xuất cải thiện bên dưới.
+          Run analysis or get improvement suggestions below.
         </p>
 
         {profileDataLoading ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground">
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin mr-2" />
-            Đang tải thông tin profile...
+            Loading...
           </div>
         ) : profileData ? (
-          <div className="space-y-8">
-            {profileData.feature1_output?.summary?.total_pillar_scores && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-4">4 trụ điểm (từ phân tích hồ sơ)</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {[
-                    { key: 'aca', label: 'Học thuật' },
-                    { key: 'lan', label: 'Ngôn ngữ' },
-                    { key: 'hdnk', label: 'Hoạt động' },
-                    { key: 'skill', label: 'Kỹ năng' },
-                  ].map(({ key, label }) => {
-                    const score = profileData.feature1_output?.summary?.total_pillar_scores?.[key];
-                    return (
-                      <div key={key} className="rounded-2xl border border-border/60 bg-muted/20 p-5">
-                        <p className="text-sm text-muted-foreground mb-1">{label}</p>
-                        <p className="text-xl font-semibold text-primary">{score != null ? Number(score) : '—'}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-                {(profileData.feature1_output.summary.main_spike || profileData.feature1_output.summary.sharpness) && (
-                  <p className="text-sm text-muted-foreground mt-4">
-                    Spike: {profileData.feature1_output.summary.main_spike ?? '—'} · Mức: {profileData.feature1_output.summary.sharpness ?? '—'}
-                  </p>
-                )}
-              </div>
-            )}
-            {profileData.feature2_output?.assessment && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-4">Bài test (MBTI, Grit, RIASEC)</p>
-                <div className="flex flex-wrap gap-4">
-                  {profileData.feature2_output.assessment.mbti?.personality_type && (
-                    <div className="rounded-2xl border border-border/60 bg-muted/20 px-5 py-3">
-                      <span className="text-sm text-muted-foreground">MBTI </span>
-                      <span className="text-base font-medium text-foreground">{profileData.feature2_output.assessment.mbti.personality_type}</span>
-                    </div>
-                  )}
-                  {(profileData.feature2_output.assessment.grit?.score != null || profileData.feature2_output.assessment.grit?.level) && (
-                    <div className="rounded-2xl border border-border/60 bg-muted/20 px-5 py-3">
-                      <span className="text-sm text-muted-foreground">Grit </span>
-                      <span className="text-base font-medium text-foreground">
-                        {profileData.feature2_output.assessment.grit?.score ?? '—'} ({profileData.feature2_output.assessment.grit?.level ?? ''})
-                      </span>
-                    </div>
-                  )}
-                  {profileData.feature2_output.assessment.riasec?.code && (
-                    <div className="rounded-2xl border border-border/60 bg-muted/20 px-5 py-3">
-                      <span className="text-sm text-muted-foreground">RIASEC </span>
-                      <span className="text-base font-medium text-foreground">{profileData.feature2_output.assessment.riasec.code}</span>
-                    </div>
-                  )}
-                  {!profileData.feature2_output.assessment.mbti?.personality_type &&
-                    !profileData.feature2_output.assessment.grit?.score &&
-                    !profileData.feature2_output.assessment.riasec?.code && (
-                      <p className="text-sm text-muted-foreground">Chưa có kết quả test (làm bài test trong trang đánh giá).</p>
-                    )}
-                </div>
-              </div>
-            )}
-            {profileData.feature3_output && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-4">Gợi ý trường (Module 3)</p>
-                {profileData.feature3_output.universities && typeof profileData.feature3_output.universities === 'object' && Object.keys(profileData.feature3_output.universities as object).length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    {[
-                      { key: 'REACH' as const, label: 'Reach', Icon: Star },
-                      { key: 'MATCH' as const, label: 'Match', Icon: Target },
-                      { key: 'SAFETY' as const, label: 'Safety', Icon: Shield },
-                    ].map(({ key, label, Icon }) => {
-                      const block = profileData.feature3_output?.universities?.[key];
-                      const list = block?.universities ?? [];
-                      return (
-                        <div key={key} className="rounded-2xl border border-border/60 bg-muted/20 overflow-hidden border-l-4 border-l-primary">
-                          <div className="flex items-center gap-3 px-5 py-4 bg-card/80 border-b border-border/60">
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                              <Icon className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <span className="text-base font-semibold text-foreground">{label}</span>
-                              <p className="text-xs text-muted-foreground">{list.length} trường</p>
-                            </div>
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={() => setProfileDetailsOpen((o) => !o)}
+              className="flex w-full items-center justify-between rounded-2xl border border-border/60 bg-card px-5 py-4 text-left shadow-sm hover:bg-muted/30 transition-colors"
+            >
+              <span className="text-sm font-medium text-foreground">
+                {profileData.feature1_output?.summary?.total_pillar_scores
+                  ? '4 pillars · '
+                  : ''}
+                {profileData.feature1_output?.summary?.main_spike
+                  ? `Spike: ${profileData.feature1_output.summary.main_spike}`
+                  : profileData.feature2_output?.assessment?.mbti?.personality_type
+                    ? `MBTI ${profileData.feature2_output.assessment.mbti.personality_type}`
+                    : 'Profile data'}
+              </span>
+              <ChevronDown className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform', profileDetailsOpen && 'rotate-180')} />
+            </button>
+            {profileDetailsOpen && (
+              <div className="space-y-6 rounded-2xl border border-border/60 bg-muted/20 p-6">
+                {profileData.feature1_output?.summary?.total_pillar_scores && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Pillars</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { key: 'aca', label: 'Academic' },
+                        { key: 'lan', label: 'Language' },
+                        { key: 'hdnk', label: 'Activities' },
+                        { key: 'skill', label: 'Skills' },
+                      ].map(({ key, label }) => {
+                        const score = profileData.feature1_output?.summary?.total_pillar_scores?.[key];
+                        return (
+                          <div key={key} className="rounded-xl border border-border/60 bg-card p-3">
+                            <p className="text-xs text-muted-foreground">{label}</p>
+                            <p className="text-lg font-semibold text-primary">{score != null ? Number(score) : '—'}</p>
                           </div>
-                          <ul className="p-5 space-y-3 max-h-44 overflow-y-auto">
-                            {list.length === 0 ? (
-                              <li className="text-sm text-muted-foreground py-2">—</li>
-                            ) : (
-                              list.map((uni, i) => (
-                                <li key={uni.id ?? i} className="text-sm text-foreground" title={[uni.name, uni.country].filter(Boolean).join(' · ')}>
-                                  <span className="font-medium">{uni.name}</span>
-                                  {(uni.country || uni.ranking != null) && (
-                                    <span className="text-muted-foreground block text-xs mt-0.5">
-                                      {[uni.country, uni.ranking != null ? `#${uni.ranking}` : null].filter(Boolean).join(' · ')}
-                                    </span>
-                                  )}
-                                </li>
-                              ))
-                            )}
-                          </ul>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                    {(profileData.feature1_output.summary.main_spike || profileData.feature1_output.summary.sharpness) && (
+                      <p className="text-xs text-muted-foreground mt-3">Spike: {profileData.feature1_output.summary.main_spike ?? '—'} · {profileData.feature1_output.summary.sharpness ?? '—'}</p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Chưa có gợi ý trường. Hoàn thành gợi ý trường để dữ liệu đầy đủ hơn.</p>
+                )}
+                {profileData.feature2_output?.assessment && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Assessments</p>
+                    <div className="flex flex-wrap gap-3">
+                      {profileData.feature2_output.assessment.mbti?.personality_type && (
+                        <div className="rounded-xl border border-border/60 bg-card px-4 py-2">
+                          <span className="text-xs text-muted-foreground">MBTI </span>
+                          <span className="text-sm font-medium">{profileData.feature2_output.assessment.mbti.personality_type}</span>
+                        </div>
+                      )}
+                      {(profileData.feature2_output.assessment.grit?.score != null || profileData.feature2_output.assessment.grit?.level) && (
+                        <div className="rounded-xl border border-border/60 bg-card px-4 py-2">
+                          <span className="text-xs text-muted-foreground">Grit </span>
+                          <span className="text-sm font-medium">{profileData.feature2_output.assessment.grit?.score ?? '—'} ({profileData.feature2_output.assessment.grit?.level ?? ''})</span>
+                        </div>
+                      )}
+                      {profileData.feature2_output.assessment.riasec?.code && (
+                        <div className="rounded-xl border border-border/60 bg-card px-4 py-2">
+                          <span className="text-xs text-muted-foreground">RIASEC </span>
+                          <span className="text-sm font-medium">{profileData.feature2_output.assessment.riasec.code}</span>
+                        </div>
+                      )}
+                      {!profileData.feature2_output.assessment.mbti?.personality_type &&
+                        !profileData.feature2_output.assessment.grit?.score &&
+                        !profileData.feature2_output.assessment.riasec?.code && (
+                          <p className="text-xs text-muted-foreground">No assessment results yet.</p>
+                        )}
+                    </div>
+                  </div>
+                )}
+                {profileData.feature3_output?.universities && typeof profileData.feature3_output.universities === 'object' && Object.keys(profileData.feature3_output.universities as object).length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Schools</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[
+                        { key: 'REACH' as const, label: 'Reach', Icon: Star },
+                        { key: 'MATCH' as const, label: 'Match', Icon: Target },
+                        { key: 'SAFETY' as const, label: 'Safety', Icon: Shield },
+                      ].map(({ key, label, Icon }) => {
+                        const block = profileData.feature3_output?.universities?.[key];
+                        const list = block?.universities ?? [];
+                        return (
+                          <div key={key} className="rounded-xl border border-border/60 bg-card overflow-hidden border-l-4 border-l-primary">
+                            <div className="flex items-center gap-2 px-4 py-3 border-b border-border/60">
+                              <Icon className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-semibold">{label}</span>
+                              <span className="text-xs text-muted-foreground">{list.length}</span>
+                            </div>
+                            <ul className="p-3 space-y-1.5 max-h-32 overflow-y-auto text-xs">
+                              {list.length === 0 ? (
+                                <li className="text-muted-foreground">—</li>
+                              ) : (
+                                list.map((uni, i) => (
+                                  <li key={uni.id ?? i} className="truncate" title={[uni.name, uni.country].filter(Boolean).join(' · ')}>
+                                    <span className="font-medium">{uni.name}</span>
+                                    {(uni.country || uni.ranking != null) && (
+                                      <span className="text-muted-foreground block truncate">
+                                        {[uni.country, uni.ranking != null ? `#${uni.ranking}` : null].filter(Boolean).join(' · ')}
+                                      </span>
+                                    )}
+                                  </li>
+                                ))
+                              )}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
           </div>
         ) : (
           <div className="rounded-2xl border border-border/60 bg-muted/20 p-6">
-            <p className="text-sm text-muted-foreground">Chưa có dữ liệu. Hoàn thành phân tích hồ sơ và bài test (MBTI, Grit, RIASEC) để xem thông tin profile tại đây.</p>
+            <p className="text-sm text-muted-foreground">Complete profile and assessments to see data here.</p>
           </div>
         )}
 
         {resultsLoading && (
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Đang tải kết quả đã lưu...
+            Loading saved results...
           </p>
         )}
-        <div className="flex flex-wrap items-center gap-4 pt-8 mt-8 border-t border-border/60">
-          <span className="text-sm text-muted-foreground">Hành động:</span>
+        <div className="flex flex-wrap items-center gap-3 pt-6 mt-6 border-t border-border/60">
           <button
             type="button"
             onClick={onAnalysis}
             disabled={profileAnalysisLoading || profileEnhanceLoading}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border/60 bg-card text-foreground text-sm font-medium hover:bg-muted/50 hover:border-primary/40 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border/60 bg-card text-sm font-medium hover:bg-muted/50 hover:border-primary/40 transition-colors disabled:opacity-50"
           >
             {profileAnalysisLoading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <BarChart3 className="h-4 w-4 text-primary" />}
-            {profileAnalysis ? 'Phân tích lại' : 'Phân tích profile'}
+            {profileAnalysis ? 'Re-analyze' : 'Analyze'}
           </button>
           <button
             type="button"
             onClick={onEnhance}
             disabled={profileEnhanceLoading || profileAnalysisLoading}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border/60 bg-card text-foreground text-sm font-medium hover:bg-muted/50 hover:border-primary/40 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/50 bg-primary/10 text-sm font-medium text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
           >
-            {profileEnhanceLoading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Wand2 className="h-4 w-4 text-primary" />}
-            {profileEnhance ? 'Cải thiện lại' : 'Đề xuất cải thiện'}
+            {profileEnhanceLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            {profileEnhance ? 'Re-enhance' : 'Get suggestions'}
           </button>
         </div>
         {(profileAnalysisLoading || profileEnhanceLoading) && (
-          <p className="text-sm text-muted-foreground mt-4 flex items-center gap-2">
+          <p className="text-xs text-muted-foreground mt-3 flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-            {profileAnalysisLoading ? 'Đang phân tích profile...' : 'Đang tạo đề xuất cải thiện...'} Có thể mất 1–2 phút, vui lòng không đóng trang.
+            Processing… 1–2 min. Don’t close this page.
           </p>
         )}
       </div>
@@ -288,34 +298,41 @@ export function ProfileTab({
             ),
           });
         };
+        const overallScore = profileAnalysis.overall && typeof profileAnalysis.overall === 'object'
+          ? (profileAnalysis.overall as { overall_score?: number }).overall_score
+          : null;
+        const oneLineFeedback = overallFeedback ? overallFeedback.trim().split(/\s+/).slice(0, 12).join(' ') + (overallFeedback.split(/\s+/).length > 12 ? '…' : '') : '';
         return (
           <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between gap-4">
-                <h3 className="text-base font-semibold text-foreground">Kết quả phân tích</h3>
-                <button type="button" onClick={openAnalysisDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
-                  Xem chi tiết <ChevronRight className="h-3.5 w-3.5" />
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Analysis</h3>
+                  <p className="text-3xl font-bold tabular-nums text-foreground mt-0.5">
+                    {overallScore != null ? Number(overallScore) : '—'}<span className="text-lg font-medium text-muted-foreground">/100</span>
+                  </p>
+                </div>
+                <button type="button" onClick={openAnalysisDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1 shrink-0">
+                  Details <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 pt-0">
+            <CardContent className="space-y-3 pt-0">
+              {oneLineFeedback && (
+                <p className="text-sm text-muted-foreground line-clamp-2">{oneLineFeedback}</p>
+              )}
               {scores && Object.keys(scores).length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {['aca', 'lan', 'hdnk', 'skill'].map((key) => (
-                    <div key={key} className="rounded-xl border border-border/60 bg-muted/20 p-4">
-                      <p className="text-xs text-muted-foreground">{pillarLabels[key] || key}</p>
-                      <p className="text-lg font-semibold text-primary mt-0.5">{scores[key] != null ? Number(scores[key]) : '—'}</p>
-                    </div>
-                  ))}
+                <div className="h-1.5 w-full rounded-full bg-muted/60 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    style={{ width: `${overallScore != null ? Math.min(100, Math.max(0, overallScore)) : 0}%` }}
+                  />
                 </div>
               )}
-              {overallFeedback && (
-                <p className="text-sm text-muted-foreground line-clamp-2">{overallFeedback}</p>
-              )}
-              <div className="pt-2 flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-muted-foreground">Đánh giá:</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-muted-foreground">Rate:</span>
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <button key={n} type="button" onClick={() => saveRating('analysis', n)} className="p-0.5 rounded hover:bg-muted/50" title={`${n} sao`}>
+                  <button key={n} type="button" onClick={() => saveRating('analysis', n)} className="p-0.5 rounded hover:bg-muted/50" title={`${n} stars`}>
                     <Star className={cn('h-4 w-4', analysisRating != null && n <= analysisRating ? 'fill-primary text-primary' : 'text-muted-foreground')} />
                   </button>
                 ))}
@@ -385,37 +402,43 @@ export function ProfileTab({
             ),
           });
         };
-        const showRecs = recs.slice(0, 3);
+        const firstRec = recs[0];
+        const insightLine = firstRec
+          ? (safeText(firstRec.specific_rec_name) || safeText(firstRec.reason) || '').trim().split(/\s+/).slice(0, 12).join(' ') + '…'
+          : safeText(profileEnhance.enhanced_summary)
+            ? safeText(profileEnhance.enhanced_summary).trim().split(/\s+/).slice(0, 12).join(' ') + '…'
+            : '';
         return (
           <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between gap-4">
-                <h3 className="text-base font-semibold text-foreground">Đề xuất cải thiện</h3>
-                <button type="button" onClick={openEnhanceDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1">
-                  Xem chi tiết <ChevronRight className="h-3.5 w-3.5" />
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Suggestions</h3>
+                  <p className="text-2xl font-bold tabular-nums text-foreground mt-0.5">
+                    {recs.length} <span className="text-base font-medium text-muted-foreground">recommendations</span>
+                  </p>
+                </div>
+                <button type="button" onClick={openEnhanceDetail} className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1 shrink-0">
+                  Details <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 pt-0">
-              {showRecs.length > 0 ? (
-                <div className="space-y-2">
-                  {showRecs.map((r, i) => (
-                    <div key={i} className="flex items-start gap-2 rounded-xl border border-border/60 bg-muted/20 p-3">
-                      <Badge variant="secondary" className="shrink-0 text-xs">{safeText(r.priority) || `#${i + 1}`}</Badge>
-                      <p className="text-sm text-foreground line-clamp-2">{safeText(r.specific_rec_name) || safeText(r.reason)}</p>
-                    </div>
-                  ))}
-                  {recs.length > 3 && <p className="text-xs text-muted-foreground">+{recs.length - 3} khuyến nghị khác</p>}
-                </div>
-              ) : safeText(profileEnhance.enhanced_summary) ? (
-                <p className="text-sm text-muted-foreground line-clamp-2">{safeText(profileEnhance.enhanced_summary)}</p>
-              ) : (
-                <p className="text-sm text-muted-foreground">Đã nhận kết quả. Bấm Xem chi tiết để cập nhật.</p>
+            <CardContent className="space-y-3 pt-0">
+              {insightLine && (
+                <p className="text-sm text-muted-foreground line-clamp-2">{insightLine}</p>
               )}
-              <div className="pt-2 flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-muted-foreground">Đánh giá:</span>
+              {recs.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {recs.slice(0, 3).map((r, i) => (
+                    <Badge key={i} variant="secondary" className="text-xs">{safeText(r.priority) || `#${i + 1}`}</Badge>
+                  ))}
+                  {recs.length > 3 && <span className="text-xs text-muted-foreground">+{recs.length - 3}</span>}
+                </div>
+              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-muted-foreground">Rate:</span>
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <button key={n} type="button" onClick={() => saveRating('enhance', n)} className="p-0.5 rounded hover:bg-muted/50" title={`${n} sao`}>
+                  <button key={n} type="button" onClick={() => saveRating('enhance', n)} className="p-0.5 rounded hover:bg-muted/50" title={`${n} stars`}>
                     <Star className={cn('h-4 w-4', enhanceRating != null && n <= enhanceRating ? 'fill-primary text-primary' : 'text-muted-foreground')} />
                   </button>
                 ))}
