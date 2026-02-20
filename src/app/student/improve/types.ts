@@ -1,4 +1,4 @@
-export type TabId = 'profile' | 'cv' | 'essay';
+export type TabId = 'overview' | 'profile' | 'cv' | 'essay';
 
 export const ESSAY_LIMIT_WORDS = 650;
 export const ESSAY_MIN_WORDS = 10;

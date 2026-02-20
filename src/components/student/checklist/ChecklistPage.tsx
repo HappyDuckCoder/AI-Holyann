@@ -3,56 +3,18 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
-import {
-    CheckSquare,
-    Square,
-    ArrowRight,
-    Flag,
-    Rocket,
-    Trophy,
-    AlertCircle,
-    ChevronDown,
-    UploadCloud,
-    FileText,
-    MessageSquare,
-    Clock,
-    Calendar,
-    Loader2,
-    Sparkles,
-    AlertTriangle,
-    Trash2,
-    RefreshCw,
-} from 'lucide-react';
+import { ArrowRight, Flag, Rocket, Trophy, AlertCircle, Loader2 } from 'lucide-react';
 import { Task, Stage, StudentProfile } from '@/components/types';
 import ProgressBar from './ProgressBar';
 import StageNavigation from './StageNavigation';
 import { scanCVWithAI } from '@/service/geminiService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-// Helper to calculate days remaining
-/** Lấy tên file hiển thị từ submission_url (path) hoặc tên đã lưu */
-const getCVDisplayName = (uploadedFile: string | undefined): string => {
-    if (!uploadedFile) return '';
-    if (uploadedFile.startsWith('/uploads/')) {
-        const parts = uploadedFile.split('/');
-        return parts[parts.length - 1] || 'CV';
-    }
-    return uploadedFile;
-};
-
-const getDaysRemaining = (deadline: string) => {
-    const parts = deadline.split('/');
-    const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-    const today = new Date();
-    const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) return {text: 'Quá hạn', color: 'bg-destructive/10 text-destructive ring-destructive/20'};
-    if (diffDays <= 7) return {text: `Còn ${diffDays} ngày`, color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'};
-    return {text: 'Đang thực hiện', color: 'bg-primary/10 text-primary ring-primary/20'};
-};
+import { ChecklistHeader } from './ChecklistHeader';
+import { ChecklistFilters } from './ChecklistFilters';
+import { ChecklistSkeleton } from './ChecklistSkeleton';
+import { TaskGroupSection } from './TaskGroupSection';
+import { groupTasksByDate, sortTasks } from './checklist-utils';
 
 const ChecklistPage: React.FC = () => {
     // Fixed: Removed setTaskProgress usage - v2.0
@@ -67,6 +29,9 @@ const ChecklistPage: React.FC = () => {
     const [scannedProfile, setScannedProfile] = useState<StudentProfile | null>(null);
     const [cvScanError, setCvScanError] = useState<string>('');
     const [loadingProgress, setLoadingProgress] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [subjectFilter, setSubjectFilter] = useState('');
+    const [sortBy, setSortBy] = useState<'due' | 'priority' | 'title'>('due');
 
     const router = useRouter();
     const initialLoadDone = useRef(false);
@@ -512,82 +477,49 @@ const ChecklistPage: React.FC = () => {
         return groups;
     }, [currentStageTasks]);
 
+    const filteredTasks = useMemo(() => {
+        let list = currentStageTasks;
+        if (searchQuery.trim()) {
+            const q = searchQuery.trim().toLowerCase();
+            list = list.filter(t => t.title.toLowerCase().includes(q));
+        }
+        if (subjectFilter) {
+            list = list.filter(t => (t.category || 'Chung') === subjectFilter);
+        }
+        return sortTasks(list, sortBy);
+    }, [currentStageTasks, searchQuery, subjectFilter, sortBy]);
+
+    const groupedTasks = useMemo(() => groupTasksByDate(filteredTasks), [filteredTasks]);
+
+    const overallProgressPercent = useMemo(() => {
+        if (tasks.length === 0) return 0;
+        const completed = tasks.filter(t => t.isCompleted).length;
+        return Math.round((completed / tasks.length) * 100);
+    }, [tasks]);
+
+    const subjectOptions = useMemo(() => {
+        const set = new Set<string>();
+        currentStageTasks.forEach(t => set.add(t.category || 'Chung'));
+        return Array.from(set).sort();
+    }, [currentStageTasks]);
+
     // Handle stage change with localStorage persistence
     const handleStageChange = useCallback((stageId: number) => {
         setActiveStageId(stageId);
         localStorage.setItem('activeStageId', stageId.toString());
     }, []);
 
-    const orderedCategories = ['Khởi động', 'Khám phá bản thân', 'Chung', 'Hồ sơ học thuật', 'Tài liệu cần thiết', 'Cá nhân hóa (Mục tiêu Mỹ)'];
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
-    };
-    const itemVariants = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
-
     return (
         <div className="w-full max-w-7xl mx-auto p-4 md:p-8 pb-8" aria-label="Checklist hồ sơ du học">
-            {/* Welcome banner – giống student dashboard */}
-            <motion.header
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="relative rounded-2xl overflow-hidden mb-8 border border-primary/20 shadow-lg"
-            >
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-primary/10 to-sky-500/10" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,var(--tw-gradient-from),transparent)] from-primary/25 to-transparent" />
-                <div
-                    className="absolute inset-0 opacity-[0.06]"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 4L4 20v20l26 16 26-16V20L30 4z' fill='none' stroke='%230f4c81' stroke-width='1'/%3E%3C/svg%3E")`,
-                    }}
+            <div className="mb-8">
+                <ChecklistHeader
+                    progressPercent={overallProgressPercent}
+                    subtitle="Hoàn thành các đầu việc để tiến gần hơn tới hồ sơ du học."
                 />
-                <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-6 py-8 sm:px-8 sm:py-10">
-                    <div className="flex-1 min-w-0">
-                        <motion.p
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.15, duration: 0.4 }}
-                            className="text-sm font-medium text-primary uppercase tracking-wider"
-                        >
-                            Checklist của bạn
-                        </motion.p>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">
-                            Checklist Hồ sơ
-                        </h1>
-                        <p className="text-muted-foreground mt-2 text-base sm:text-lg max-w-xl leading-relaxed">
-                            Quản lý các đầu việc cần làm để hoàn thiện hồ sơ du học. Theo dõi tiến độ từng giai đoạn.
-                        </p>
-                    </div>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.25, duration: 0.5 }}
-                        className="relative w-full md:w-56 h-36 md:h-40 rounded-xl overflow-hidden border border-white/20 shadow-xl shrink-0"
-                    >
-                        <Image
-                            src="/images/auth/left.jpg"
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 14rem"
-                            priority
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-emerald-600/50 to-transparent" />
-                    </motion.div>
-                </div>
-            </motion.header>
+            </div>
 
             {loadingProgress ? (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center justify-center py-20 rounded-2xl border border-border bg-card"
-                >
-                    <Loader2 className="animate-spin text-primary" size={40} />
-                    <span className="ml-3 text-muted-foreground">Đang tải tiến độ...</span>
-                </motion.div>
+                <ChecklistSkeleton />
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     <div className="lg:col-span-1">
@@ -601,7 +533,7 @@ const ChecklistPage: React.FC = () => {
 
                     <div className="lg:col-span-3 space-y-6">
                         <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
-                            <CardHeader className="border-b border-border bg-gradient-to-r from-emerald-500/10 via-primary/10 to-sky-500/10 px-6 py-5">
+                            <CardHeader className="border-b border-border bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-6 py-5">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm">
@@ -616,7 +548,6 @@ const ChecklistPage: React.FC = () => {
                                             </p>
                                         </div>
                                     </div>
-
                                     {canAdvance && (
                                         <button
                                             onClick={handleUnlockNextStage}
@@ -625,10 +556,9 @@ const ChecklistPage: React.FC = () => {
                                             Mở khóa Giai đoạn {activeStageId + 1} <ArrowRight size={18} />
                                         </button>
                                     )}
-
                                     {!canAdvance && isNextStageAlreadyUnlocked && (
                                         <button
-                                            onClick={() => setActiveStageId(activeStageId + 1)}
+                                            onClick={() => handleStageChange(activeStageId + 1)}
                                             className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 border border-border rounded-xl transition-all font-medium text-sm text-foreground"
                                         >
                                             Đến Giai đoạn {activeStageId + 1} <ArrowRight size={16} />
@@ -638,375 +568,41 @@ const ChecklistPage: React.FC = () => {
                                 <ProgressBar percentage={currentProgress} />
                             </CardHeader>
 
-                            <CardContent className="p-6 bg-gradient-to-b from-muted/20 to-muted/5 min-h-[400px]">
-                                <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-8">
-                                {orderedCategories.filter(cat => tasksByCategory[cat]).map((category) => (
-                                    <motion.div key={category} variants={itemVariants} className="mb-8 last:mb-0">
-                                        {category !== 'Chung' && (
-                                            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 ml-1 flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
-                                                {category}
-                                            </h3>
-                                        )}
+                            <CardContent className="p-6 bg-gradient-to-b from-muted/20 to-muted/5 min-h-[320px]">
+                                <div className="space-y-4 mb-6">
+                                    <ChecklistFilters
+                                        searchQuery={searchQuery}
+                                        onSearchChange={setSearchQuery}
+                                        subjectFilter={subjectFilter}
+                                        onSubjectFilterChange={setSubjectFilter}
+                                        sortBy={sortBy}
+                                        onSortChange={setSortBy}
+                                        subjectOptions={subjectOptions}
+                                    />
+                                </div>
 
-                                        <div className="space-y-3">
-                                            {tasksByCategory[category].map((task) => {
-                                                const deadlineStatus = getDaysRemaining(task.deadline);
-                                                const isExpanded = expandedTaskIds.has(task.id);
-                                                const needsFile = task.requiresFile;
-
-                                                return (
-                                                    <motion.div
-                                                        key={task.id}
-                                                        variants={itemVariants}
-                                                        className={`group rounded-xl border transition-all duration-300 cursor-pointer ${
-                                                            task.isCompleted
-                                                                ? 'border-border/60 bg-muted/10'
-                                                                : `border-border bg-card hover:border-primary/30 hover:shadow-md ${isExpanded ? 'ring-1 ring-primary/20 shadow-sm' : 'hover:-translate-y-0.5'}`
-                                                        } ${task.linkTo && !task.isCompleted ? 'hover:border-primary/40' : ''}`}
-                                                        onClick={() => handleTaskClick(task)}
-                                                    >
-                                                        <div className="flex items-center justify-between p-4">
-                                                            <div className="flex items-center gap-4 flex-1">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if (!task.isLocked) {
-                                                                            handleToggleTask(task.id);
-                                                                        }
-                                                                    }}
-                                                                    disabled={task.isLocked || (task.id === '1-2' && !task.uploadedFile)}
-                                                                    title={
-                                                                        task.isLocked
-                                                                            ? '✅ Đã xác nhận từ database - không thể thay đổi thủ công'
-                                                                            : task.id === '1-2' && !task.uploadedFile
-                                                                                ? 'Vui lòng upload CV trước để hoàn thành task này'
-                                                                                : ''
-                                                                    }
-                                                                    className={`flex-shrink-0 transition-all duration-300 transform ${
-                                                                        task.isCompleted
-                                                                            ? 'text-primary scale-100 rotate-0'
-                                                                            : task.status === 'SUBMITTED'
-                                                                                ? 'text-amber-500 scale-100 rotate-0'
-                                                                                : task.status === 'NEEDS_REVISION'
-                                                                                    ? 'text-destructive scale-100 rotate-0'
-                                                                                    : task.id === '1-2' && !task.uploadedFile
-                                                                                        ? 'text-muted cursor-not-allowed'
-                                                                                        : 'text-muted-foreground group-hover:text-primary hover:scale-110'
-                                                                    }`}
-                                                                >
-                                                                    {task.isCompleted ? (
-                                                                        <CheckSquare size={24}
-                                                                                     className={`transition-all duration-300 ease-out ${
-                                                                                         task.isLocked ? 'fill-primary/20' : 'fill-primary/20'
-                                                                                     }`}/>
-                                                                    ) : task.status === 'SUBMITTED' ? (
-                                                                        <Clock size={24} className="fill-amber-500/20"/>
-                                                                    ) : task.status === 'NEEDS_REVISION' ? (
-                                                                        <div className="relative">
-                                                                            <div className="w-6 h-6 rounded-full border-2 border-destructive bg-destructive/10 flex items-center justify-center">
-                                                                                <AlertTriangle size={14} className="text-destructive fill-destructive"/>
-                                                                            </div>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <Square size={24}/>
-                                                                    )}
-                                                                </button>
-
-                                                                <span
-                                                                    className={`font-medium text-base transition-all duration-300 ${
-                                                                        task.isCompleted ? 'text-muted-foreground line-through decoration-border' : 'text-foreground'
-                                                                    }`}>
-                                                                {task.title}
-                                                            </span>
-                                                                {task.isLocked && task.isCompleted && (
-                                                                    <span
-                                                                        className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary"
-                                                                        title="Task này đã được xác nhận từ database">
-                                                                    <CheckSquare size={12}/>
-                                                                    Đã xác nhận
-                                                                </span>
-                                                                )}
-                                                                {task.linkTo && !task.isCompleted && (
-                                                                    <span
-                                                                        className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                                                                    <Sparkles size={12}/>
-                                                                    Làm bài test
-                                                                </span>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="flex items-center ml-4">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleToggleTaskExpansion(task.id);
-                                                                    }}
-                                                                    className={`p-1.5 rounded-full transition-all duration-200 ${
-                                                                        isExpanded
-                                                                            ? 'bg-primary/10 text-primary rotate-180'
-                                                                            : 'bg-muted text-muted-foreground group-hover:bg-muted/80 group-hover:text-foreground'
-                                                                    }`}
-                                                                >
-                                                                    <ChevronDown size={20}/>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        <div
-                                                            className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                                                            <div className="px-4 pb-6 md:px-6 md:pl-14 pt-0 space-y-5">
-                                                                <div
-                                                                    className="flex flex-wrap items-center gap-y-2 gap-x-6 pb-4 border-b border-border/60">
-                                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                                        <Calendar size={16} className="text-muted-foreground"/>
-                                                                        <span>Hạn chót: <span className="font-semibold text-foreground">{task.deadline}</span></span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <div
-                                                                            className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ring-1 ring-inset ${
-                                                                                task.isCompleted 
-                                                                                    ? 'bg-primary/10 text-primary ring-primary/20' 
-                                                                                    : task.status === 'SUBMITTED'
-                                                                                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
-                                                                                        : task.status === 'NEEDS_REVISION'
-                                                                                            ? 'bg-destructive/10 text-destructive ring-destructive/20'
-                                                                                            : deadlineStatus.color
-                                                                            }`}>
-                                                                            {task.isCompleted ? (
-                                                                                <CheckSquare size={12}/>
-                                                                            ) : task.status === 'SUBMITTED' ? (
-                                                                                <Clock size={12}/>
-                                                                            ) : task.status === 'NEEDS_REVISION' ? (
-                                                                                <AlertTriangle size={12}/>
-                                                                            ) : (
-                                                                                <Clock size={12}/>
-                                                                            )}
-                                                                            {task.isCompleted
-                                                                                ? 'Đã hoàn thành'
-                                                                                : task.status === 'SUBMITTED'
-                                                                                    ? 'Đang review'
-                                                                                    : task.status === 'NEEDS_REVISION'
-                                                                                        ? 'Cần sửa lại'
-                                                                                        : deadlineStatus.text
-                                                                            }
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Mentor Note */}
-                                                                {task.feedback && (task.status === 'NEEDS_REVISION' || task.status === 'SUBMITTED' || task.status === 'COMPLETED') && (
-                                                                    <div className={`p-3 rounded-lg border-l-4 ${
-                                                                        task.status === 'NEEDS_REVISION' 
-                                                                            ? 'bg-destructive/10 border-destructive' 
-                                                                            : task.status === 'SUBMITTED'
-                                                                                ? 'bg-amber-500/10 border-amber-500'
-                                                                                : 'bg-primary/10 border-primary'
-                                                                    }`}>
-                                                                        <div className="flex items-start gap-2">
-                                                                            <MessageSquare size={16} className={`mt-0.5 ${
-                                                                                task.status === 'NEEDS_REVISION' ? 'text-destructive' 
-                                                                                    : task.status === 'SUBMITTED' ? 'text-amber-600' : 'text-primary'
-                                                                            }`}/>
-                                                                            <div className="flex-1">
-                                                                                <p className="text-xs font-semibold mb-1 text-foreground">
-                                                                                    {task.status === 'NEEDS_REVISION' ? '💬 Nhận xét từ mentor - Cần sửa lại:' : '💬 Nhận xét từ mentor:'}
-                                                                                </p>
-                                                                                <p className="text-sm text-muted-foreground">
-                                                                                    {task.feedback}
-                                                                                </p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {needsFile && (
-                                                                    <div>
-                                                                        {task.id === '1-2' && !task.uploadedFile && !scanningCV && (
-                                                                            <div className="mb-4 p-3 bg-primary/5 border-l-4 border-primary rounded">
-                                                                                <p className="text-sm text-foreground font-medium">
-                                                                                    ℹ️ Task này sẽ hoàn thành khi bạn upload CV.
-                                                                                </p>
-                                                                            </div>
-                                                                        )}
-                                                                        {scanningCV && task.id === '1-2' ? (
-                                                                            <div className="flex items-center justify-center p-8 bg-muted/30 border border-border/60 rounded-xl">
-                                                                                <div className="flex flex-col items-center gap-4">
-                                                                                    <Loader2 className="w-10 h-10 text-primary animate-spin"/>
-                                                                                    <div className="text-center">
-                                                                                        <p className="text-base font-bold text-foreground">Đang xử lý CV...</p>
-                                                                                        <p className="text-sm text-muted-foreground mt-1">Vui lòng đợi trong giây lát</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        ) : task.uploadedFile ? (
-                                                                            <div className="p-4 bg-primary/5 border border-border/60 rounded-xl">
-                                                                                <div className="flex items-center gap-3 mb-3 flex-wrap">
-                                                                                    <div className="p-2 bg-card rounded-lg border border-border/60 text-primary shrink-0">
-                                                                                        <FileText size={20}/>
-                                                                                    </div>
-                                                                                    <div className="flex-1 min-w-0">
-                                                                                        <span className="text-sm font-bold text-foreground block truncate">{getCVDisplayName(task.uploadedFile as string)}</span>
-                                                                                        <span className="text-xs text-muted-foreground">CV đã tải lên</span>
-                                                                                    </div>
-                                                                                    <div className="flex items-center gap-2 shrink-0">
-                                                                                        <input
-                                                                                            id={`cv-replace-${task.id}`}
-                                                                                            type="file"
-                                                                                            accept=".pdf,.doc,.docx,.txt"
-                                                                                            className="hidden"
-                                                                                            onChange={(e) => handleCVUpload(e, task.id)}
-                                                                                            disabled={uploadingCV}
-                                                                                        />
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={() => document.getElementById(`cv-replace-${task.id}`)?.click()}
-                                                                                            disabled={uploadingCV}
-                                                                                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium hover:bg-muted disabled:opacity-50"
-                                                                                        >
-                                                                                            {uploadingTaskId === task.id ? <Loader2 size={14} className="animate-spin"/> : <RefreshCw size={14}/>} Đổi file
-                                                                                        </button>
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={(e) => { e.stopPropagation(); handleCVDelete(task.id); }}
-                                                                                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-destructive/50 text-destructive text-xs font-medium hover:bg-destructive/10"
-                                                                                        >
-                                                                                            <Trash2 size={14}/> Xóa file
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                                {scannedProfile && task.requiresFile && (
-                                                                                    <div className="bg-card rounded-lg p-4 border border-border/60">
-                                                                                        <p className="text-xs font-bold text-primary mb-2">✨ Thông tin đã trích xuất:</p>
-                                                                                        <div className="grid grid-cols-2 gap-2 text-xs">
-                                                                                            <div><span className="text-muted-foreground">Họ tên:</span> <span className="font-semibold text-foreground"> {scannedProfile.name}</span></div>
-                                                                                            <div><span className="text-muted-foreground">Email:</span> <span className="font-semibold text-foreground"> {scannedProfile.email}</span></div>
-                                                                                            <div><span className="text-muted-foreground">GPA:</span> <span className="font-semibold text-foreground"> {scannedProfile.gpa}/{scannedProfile.gpaScale}</span></div>
-                                                                                            <div><span className="text-muted-foreground">Tiếng Anh:</span> <span className="font-semibold text-foreground"> {scannedProfile.englishLevel}</span></div>
-                                                                                            <div className="col-span-2"><span className="text-muted-foreground">Hoạt động:</span> <span className="font-semibold text-foreground"> {scannedProfile.extracurriculars.length} hoạt động</span></div>
-                                                                                            <div className="col-span-2"><span className="text-muted-foreground">Thành tích:</span> <span className="font-semibold text-foreground"> {scannedProfile.achievements.length} thành tích</span></div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        ) : (
-                                                                            <label htmlFor={`cv-upload-${task.id}`}
-                                                                                   className={`relative border-2 border-dashed border-border bg-muted/30 hover:bg-primary/5 hover:border-primary/40 rounded-xl p-6 transition-colors block ${uploadingTaskId === task.id ? 'cursor-wait' : 'cursor-pointer group/upload'}`}>
-                                                                                {uploadingTaskId === task.id && (
-                                                                                    <div className="absolute inset-0 bg-background/80 z-10 flex flex-col items-center justify-center rounded-xl">
-                                                                                        <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
-                                                                                        <span className="text-sm font-medium text-foreground">Đang tải lên...</span>
-                                                                                    </div>
-                                                                                )}
-                                                                                <input
-                                                                                    id={`cv-upload-${task.id}`}
-                                                                                    type="file"
-                                                                                    accept=".pdf,.doc,.docx,.txt"
-                                                                                    className="hidden"
-                                                                                    onChange={(e) => handleCVUpload(e, task.id)}
-                                                                                    disabled={uploadingCV}
-                                                                                />
-                                                                                <div
-                                                                                    className="flex flex-col items-center justify-center text-center gap-2">
-                                                                                    <div
-                                                                                        className="p-3 bg-card rounded-full shadow-sm text-muted-foreground group-hover/upload:text-primary transition-colors">
-                                                                                        <UploadCloud size={24}/>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <p className="text-sm font-medium text-foreground group-hover/upload:text-primary">
-                                                                                            {task.id === '1-2' ? 'Upload CV' : 'Upload file'}
-                                                                                        </p>
-                                                                                        <p className="text-xs text-muted-foreground mt-1">PDF,
-                                                                                            DOCX, TXT lên tới 10MB</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </label>
-                                                                        )}
-                                                                        {cvScanError && (
-                                                                            <div
-                                                                                className="mt-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                                                                                <p className="text-xs text-destructive">{cvScanError}</p>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-
-
-                                                                {task.category === 'Tài liệu cần thiết' && task.feedback && (
-                                                                    <div className="mt-2">
-                                                                        <div className="flex items-center gap-2 mb-2">
-                                                                            <MessageSquare size={16}
-                                                                                           className="text-primary"/>
-                                                                            <span
-                                                                                className="text-sm font-bold text-foreground">Nhận xét từ người hướng dẫn</span>
-                                                                        </div>
-                                                                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 relative">
-                                                                            <div className="text-sm text-foreground leading-relaxed">
-                                                                                {task.feedback}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {task.category === 'Khám phá bản thân' && (
-                                                                    <div className="mt-2">
-                                                                        {task.feedback && (
-                                                                            <div className="mb-4 p-4 bg-primary/5 border border-border/60 rounded-xl">
-                                                                                <div className="flex items-center gap-2 mb-2">
-                                                                                    <Sparkles size={16} className="text-primary"/>
-                                                                                    <span className="text-sm font-bold text-foreground">Mô tả bài test</span>
-                                                                                </div>
-                                                                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                                                                    {task.feedback}
-                                                                                </p>
-                                                                            </div>
-                                                                        )}
-                                                                        {task.linkTo && !task.isCompleted && (
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    router.push(task.linkTo!);
-                                                                                }}
-                                                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold transition-all"
-                                                                            >
-                                                                                <Sparkles size={18}/>
-                                                                                Làm bài test ngay
-                                                                                <ArrowRight size={18}/>
-                                                                            </button>
-                                                                        )}
-                                                                        {task.isCompleted && (
-                                                                            <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <CheckSquare size={18} className="text-primary"/>
-                                                                                    <span className="text-sm font-bold text-primary">
-                                                                                        {task.isLocked
-                                                                                            ? '✅ Bài test đã hoàn thành và được xác nhận từ database!'
-                                                                                            : 'Bạn đã hoàn thành bài test này!'}
-                                                                                    </span>
-                                                                                </div>
-                                                                                {task.isLocked && (
-                                                                                    <p className="text-xs text-primary mt-2 ml-6">
-                                                                                        Tiến độ này được đồng bộ tự động từ hệ thống. Không thể thay đổi thủ công.
-                                                                                    </p>
-                                                                                )}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                                </motion.div>
-
-                                {currentStageTasks.length === 0 && (
-                                    <div className="text-center py-12">
-                                        <p className="text-muted-foreground">Không có công việc nào trong giai đoạn này.</p>
+                                {filteredTasks.length === 0 ? (
+                                    <div className="text-center py-12 rounded-2xl border border-dashed border-border bg-muted/20">
+                                        <p className="text-muted-foreground">
+                                            {currentStageTasks.length === 0
+                                                ? 'Không có công việc nào trong giai đoạn này.'
+                                                : 'Không có task nào khớp với bộ lọc.'}
+                                        </p>
                                     </div>
+                                ) : (
+                                    <TaskGroupSection
+                                        groups={groupedTasks}
+                                        expandedTaskIds={expandedTaskIds}
+                                        onToggle={handleToggleTask}
+                                        onExpand={handleToggleTaskExpansion}
+                                        onTaskClick={handleTaskClick}
+                                        onCVUpload={handleCVUpload}
+                                        onCVDelete={handleCVDelete}
+                                        scanningCV={scanningCV}
+                                        uploadingTaskId={uploadingTaskId}
+                                        cvScanError={cvScanError}
+                                        scannedProfile={scannedProfile}
+                                    />
                                 )}
                             </CardContent>
                         </Card>

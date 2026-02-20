@@ -429,7 +429,7 @@ export default function ProfilePageWrapper() {
   // Loading state
   if (loading || sessionLoading) {
     return (
-      <StudentPageContainer>
+      <StudentPageContainer fullWidth>
         <PageLoading
           fullPage={false}
           message={sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
@@ -441,8 +441,8 @@ export default function ProfilePageWrapper() {
   // Error state
   if (error || !profile) {
     return (
-      <StudentPageContainer>
-        <div className="max-w-6xl mx-auto flex flex-col justify-center items-center min-h-[60vh] px-4">
+      <StudentPageContainer fullWidth>
+        <div className="flex flex-col justify-center items-center min-h-[60vh] px-4">
           <div className="max-w-md w-full rounded-2xl border border-border shadow-sm bg-card overflow-hidden border-l-4 border-l-destructive">
             <div className="px-6 py-5 bg-destructive/5 border-b border-border">
               <h2 className="text-lg font-semibold text-destructive flex items-center gap-2">
@@ -473,8 +473,8 @@ export default function ProfilePageWrapper() {
   }
 
   return (
-    <StudentPageContainer>
-      <div className="min-h-[60vh] max-w-6xl mx-auto pb-8">
+    <StudentPageContainer fullWidth>
+      <div className="min-h-[60vh] pb-8">
         {/* Welcome Banner for New Students - dashboard style */}
         {isNewStudent && (
           <div className="relative rounded-2xl overflow-hidden mb-8 border border-primary/20 shadow-lg">

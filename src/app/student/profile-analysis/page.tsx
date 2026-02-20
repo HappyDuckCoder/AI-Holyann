@@ -8,7 +8,10 @@ import { BarChart3, ArrowRight } from "lucide-react";
 import { StudentPageContainer } from "@/components/student";
 import { PageLoading } from "@/components/ui/PageLoading";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { OverviewPillarCard, type PillarScores } from "@/components/student/profile/OverviewPillarCard";
+import {
+  OverviewPillarCard,
+  type PillarScores,
+} from "@/components/student/profile/OverviewPillarCard";
 import { ProfileEvaluationSection } from "@/components/student/profile/ProfileEvaluationSection";
 import { StudentProfile } from "@/components/types";
 
@@ -26,7 +29,11 @@ const listItemVariant = {
 };
 
 export default function ProfileAnalysisPage() {
-  const { session, isLoading: sessionLoading, isAuthenticated } = useAuthSession();
+  const {
+    session,
+    isLoading: sessionLoading,
+    isAuthenticated,
+  } = useAuthSession();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +107,7 @@ export default function ProfileAnalysisPage() {
         if (studentId.startsWith("email:")) {
           const email = studentId.substring(6);
           const userResponse = await fetch(
-            `/api/users/by-email?email=${encodeURIComponent(email)}`
+            `/api/users/by-email?email=${encodeURIComponent(email)}`,
           );
           if (userResponse.ok) {
             const userData = await userResponse.json();
@@ -110,7 +117,9 @@ export default function ProfileAnalysisPage() {
           }
         }
 
-        const response = await fetch(`/api/students/${actualStudentId}/profile`);
+        const response = await fetch(
+          `/api/students/${actualStudentId}/profile`,
+        );
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
           throw new Error(data.error || "Không thể tải thông tin học sinh");
@@ -132,10 +141,14 @@ export default function ProfileAnalysisPage() {
             if (!gpaDetails) return 0;
             if (gpaDetails.grade12) return parseFloat(gpaDetails.grade12) || 0;
             if (gpaDetails.grade11) return parseFloat(gpaDetails.grade11) || 0;
-            return parseFloat(gpaDetails.grade10 || gpaDetails.grade9 || "0") || 0;
+            return (
+              parseFloat(gpaDetails.grade10 || gpaDetails.grade9 || "0") || 0
+            );
           })(),
           gpaScale: 10,
-          englishCertificates: Array.isArray(data.academicProfile?.english_certificates)
+          englishCertificates: Array.isArray(
+            data.academicProfile?.english_certificates,
+          )
             ? data.academicProfile.english_certificates.map((c: any) => ({
                 type: c.type || "",
                 score: String(c.score ?? ""),
@@ -143,11 +156,14 @@ export default function ProfileAnalysisPage() {
             : [],
           englishLevel: (() => {
             const certs = data.academicProfile?.english_certificates;
-            if (!Array.isArray(certs) || certs.length === 0) return "Chưa cập nhật";
-            return certs
-              .map((c: any) => `${c.type || ""} ${c.score ?? ""}`.trim())
-              .filter(Boolean)
-              .join(", ") || "Chưa cập nhật";
+            if (!Array.isArray(certs) || certs.length === 0)
+              return "Chưa cập nhật";
+            return (
+              certs
+                .map((c: any) => `${c.type || ""} ${c.score ?? ""}`.trim())
+                .filter(Boolean)
+                .join(", ") || "Chưa cập nhật"
+            );
           })(),
           targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
           targetCountry: data.studentInfo?.target_country || "Chưa xác định",
@@ -162,16 +178,18 @@ export default function ProfileAnalysisPage() {
               description: act.description || "",
               category: "academic" as const,
             })) || []),
-            ...(data.background?.non_academic_extracurriculars?.map((act: any) => ({
-              id: act.id,
-              title: act.activity_name || "Hoạt động",
-              role: act.role || "Thành viên",
-              year: act.start_date
-                ? new Date(act.start_date).getFullYear().toString()
-                : "—",
-              description: act.description || "",
-              category: "non_academic" as const,
-            })) || []),
+            ...(data.background?.non_academic_extracurriculars?.map(
+              (act: any) => ({
+                id: act.id,
+                title: act.activity_name || "Hoạt động",
+                role: act.role || "Thành viên",
+                year: act.start_date
+                  ? new Date(act.start_date).getFullYear().toString()
+                  : "—",
+                description: act.description || "",
+                category: "non_academic" as const,
+              }),
+            ) || []),
           ],
           achievements: [
             ...(data.background?.academic_awards?.map((award: any) => ({
@@ -194,7 +212,7 @@ export default function ProfileAnalysisPage() {
         if (!actualStudentId.startsWith("email:")) {
           try {
             const statusRes = await fetch(
-              `/api/students/${actualStudentId}/analysis-status`
+              `/api/students/${actualStudentId}/analysis-status`,
             );
             const statusJson = await statusRes.json();
             if (statusJson.success && statusJson.inProgress) {
@@ -209,7 +227,7 @@ export default function ProfileAnalysisPage() {
             // Fallback: load từ history nếu analysis-status lỗi
             try {
               const analysisRes = await fetch(
-                `/api/students/${actualStudentId}/analysis-history`
+                `/api/students/${actualStudentId}/analysis-history`,
               );
               const analysisJson = await analysisRes.json();
               if (analysisJson.success && analysisJson.latest?.fullResult) {
@@ -266,12 +284,16 @@ export default function ProfileAnalysisPage() {
     setAnalysisLoading(true);
     setAnalysisResult(null);
     toast.info("Đang phân tích hồ sơ", {
-      description: "AI đang phân tích hồ sơ của bạn. Vui lòng đợi trong giây lát...",
+      description:
+        "AI đang phân tích hồ sơ của bạn. Vui lòng đợi trong giây lát...",
     });
     try {
-      const response = await fetch(`/api/students/${studentId}/analyze-profile`, {
-        method: "POST",
-      });
+      const response = await fetch(
+        `/api/students/${studentId}/analyze-profile`,
+        {
+          method: "POST",
+        },
+      );
       const data = await response.json();
       if (!response.ok) {
         setAnalysisResult({
@@ -302,7 +324,9 @@ export default function ProfileAnalysisPage() {
       <StudentPageContainer>
         <PageLoading
           fullPage={false}
-          message={sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin...'}
+          message={
+            sessionLoading ? "Đang xác thực..." : "Đang tải thông tin..."
+          }
         />
       </StudentPageContainer>
     );
@@ -313,7 +337,9 @@ export default function ProfileAnalysisPage() {
       <StudentPageContainer>
         <div className="flex flex-col justify-center items-center min-h-[60vh] px-4">
           <div className="max-w-md w-full bg-destructive/10 border border-destructive/30 rounded-xl p-6 text-center">
-            <p className="text-destructive font-semibold mb-2">{error || "Không tìm thấy hồ sơ"}</p>
+            <p className="text-destructive font-semibold mb-2">
+              {error || "Không tìm thấy hồ sơ"}
+            </p>
             <Link
               href="/student/profile"
               className="inline-flex items-center gap-2 text-primary hover:underline"
@@ -329,7 +355,7 @@ export default function ProfileAnalysisPage() {
 
   return (
     <StudentPageContainer>
-      <div className="max-w-6xl mx-auto pb-8" aria-label="Đánh giá hồ sơ">
+      <div className="w-full pb-8" aria-label="Đánh giá hồ sơ">
         {/* Header – style giống student dashboard */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
@@ -358,7 +384,8 @@ export default function ProfileAnalysisPage() {
                   Đánh giá hồ sơ
                 </h1>
                 <p className="text-muted-foreground mt-2 max-w-xl">
-                  Tổng quan năng lực và phân tích AI về điểm mạnh, điểm yếu, spike và khu vực phù hợp.
+                  Tổng quan năng lực và phân tích AI về điểm mạnh, điểm yếu,
+                  spike và khu vực phù hợp.
                 </p>
               </div>
             </div>
