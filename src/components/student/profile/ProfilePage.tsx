@@ -34,7 +34,10 @@ export interface ProfilePageProps {
   onAddActivity?: (act: Omit<Extracurricular, "id">) => void;
   onDeleteActivity?: (id: string) => void;
   onUpdateAchievement?: (id: string, text: string) => void;
-  onAddAchievement?: (text: string, category: "academic" | "non_academic") => void;
+  onAddAchievement?: (
+    text: string,
+    category: "academic" | "non_academic",
+  ) => void;
   onDeleteAchievement?: (id: string) => void;
   onProfileUpdate?: (updatedFields: Partial<StudentProfile>) => Promise<void>;
 }
@@ -58,19 +61,28 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onProfileUpdate,
 }) => {
   const isPersonalComplete = Boolean(
-    profile.name && profile.email && profile.phone && profile.address && profile.dob
+    profile.name &&
+    profile.email &&
+    profile.phone &&
+    profile.address &&
+    profile.dob,
   );
   const hasEnglishCerts =
     (profile.englishCertificates && profile.englishCertificates.length > 0) ||
     (profile.englishLevel && profile.englishLevel !== "Chưa cập nhật");
-  const isAcademicComplete = Boolean(profile.gpa && profile.targetMajor && hasEnglishCerts);
+  const isAcademicComplete = Boolean(
+    profile.gpa && profile.targetMajor && hasEnglishCerts,
+  );
   const isActivitiesComplete =
     profile.extracurriculars.length > 0 && profile.achievements.length > 0;
   const isDocumentsComplete = profile.documents.length >= 2;
 
   return (
     <div className="w-full max-w-6xl mx-auto pb-8 overflow-x-hidden">
-      <ProfileHeader onEditClick={onEditClick} analyzeHref="/student/profile-analysis" />
+      <ProfileHeader
+        onEditClick={onEditClick}
+        analyzeHref="/student/profile-analysis"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 overflow-hidden">
         <div className="lg:col-span-4 space-y-4 sm:space-y-6">

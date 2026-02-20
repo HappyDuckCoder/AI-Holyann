@@ -11,7 +11,11 @@ import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
 export default function ProfilePageWrapper() {
-  const { session, isLoading: sessionLoading, isAuthenticated } = useAuthSession();
+  const {
+    session,
+    isLoading: sessionLoading,
+    isAuthenticated,
+  } = useAuthSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,11 +44,14 @@ export default function ProfilePageWrapper() {
     // If we have email but no id, mark for email-based fetch
     const userEmail = session?.user?.email;
     if (userEmail && !sessionUserId) {
-      console.warn('⚠️ [Profile] Have email but no user ID, will fetch by email:', userEmail);
+      console.warn(
+        "⚠️ [Profile] Have email but no user ID, will fetch by email:",
+        userEmail,
+      );
       return `email:${userEmail}`;
     }
 
-    console.warn('⚠️ [Profile] No student ID found');
+    console.warn("⚠️ [Profile] No student ID found");
     return null;
   }, [session?.user, sessionLoading, isAuthenticated]);
 
@@ -65,7 +72,7 @@ export default function ProfilePageWrapper() {
     const hasAuth = isAuthenticated || studentId;
 
     if (!hasAuth) {
-      console.warn('⚠️ [Profile] No authentication found');
+      console.warn("⚠️ [Profile] No authentication found");
       setError("Vui lòng đăng nhập để xem hồ sơ.");
       setLoading(false);
       return;
@@ -73,7 +80,7 @@ export default function ProfilePageWrapper() {
 
     // Skip if no studentId
     if (!studentId) {
-      console.error('❌ [Profile] No student ID found', {
+      console.error("❌ [Profile] No student ID found", {
         session,
       });
       setError("Không tìm thấy thông tin học sinh. Vui lòng đăng nhập lại.");
@@ -92,33 +99,40 @@ export default function ProfilePageWrapper() {
 
         // Check if studentId is an email marker
         let actualStudentId = studentId;
-        if (studentId.startsWith('email:')) {
+        if (studentId.startsWith("email:")) {
           const email = studentId.substring(6);
           // Fetch user by email to get the actual ID
-          const userResponse = await fetch(`/api/users/by-email?email=${encodeURIComponent(email)}`);
+          const userResponse = await fetch(
+            `/api/users/by-email?email=${encodeURIComponent(email)}`,
+          );
           if (userResponse.ok) {
             const userData = await userResponse.json();
             actualStudentId = userData.id;
           } else {
-            throw new Error('Không thể tìm thấy người dùng với email này');
+            throw new Error("Không thể tìm thấy người dùng với email này");
           }
         }
 
-        const response = await fetch(`/api/students/${actualStudentId}/profile`);
+        const response = await fetch(
+          `/api/students/${actualStudentId}/profile`,
+        );
 
         if (!response.ok) {
           const text = await response.text();
-          console.error('❌ [Profile] API Error Response Text:', text);
+          console.error("❌ [Profile] API Error Response Text:", text);
           let errorData;
           try {
             errorData = JSON.parse(text);
           } catch (e) {
-            console.error('❌ [Profile] Failed to decode JWT token:', e);
-            errorData = { error: 'Unknown error', raw: text };
+            console.error("❌ [Profile] Failed to decode JWT token:", e);
+            errorData = { error: "Unknown error", raw: text };
           }
-          console.error('❌ [Profile] API Error Data:', errorData);
-          const errorMessage = errorData.error || "Không thể tải thông tin học sinh";
-          const errorDetails = errorData.details ? ` (${errorData.details})` : "";
+          console.error("❌ [Profile] API Error Data:", errorData);
+          const errorMessage =
+            errorData.error || "Không thể tải thông tin học sinh";
+          const errorDetails = errorData.details
+            ? ` (${errorData.details})`
+            : "";
           throw new Error(errorMessage + errorDetails);
         }
 
@@ -158,7 +172,9 @@ export default function ProfilePageWrapper() {
           })(),
 
           gpaScale: 10,
-          englishCertificates: Array.isArray(data.academicProfile?.english_certificates)
+          englishCertificates: Array.isArray(
+            data.academicProfile?.english_certificates,
+          )
             ? data.academicProfile.english_certificates.map((c: any) => ({
                 type: c.type || "",
                 score: String(c.score ?? ""),
@@ -166,8 +182,14 @@ export default function ProfilePageWrapper() {
             : [],
           englishLevel: (() => {
             const certs = data.academicProfile?.english_certificates;
-            if (!Array.isArray(certs) || certs.length === 0) return "Chưa cập nhật";
-            return certs.map((c: any) => `${c.type || ""} ${c.score ?? ""}`.trim()).filter(Boolean).join(", ") || "Chưa cập nhật";
+            if (!Array.isArray(certs) || certs.length === 0)
+              return "Chưa cập nhật";
+            return (
+              certs
+                .map((c: any) => `${c.type || ""} ${c.score ?? ""}`.trim())
+                .filter(Boolean)
+                .join(", ") || "Chưa cập nhật"
+            );
           })(),
           targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
           targetCountry: data.studentInfo?.target_country || "Chưa xác định",
@@ -194,7 +216,7 @@ export default function ProfilePageWrapper() {
                   : "—",
                 description: act.description || "",
                 category: "non_academic" as const,
-              })
+              }),
             ) || []),
           ],
 
@@ -203,12 +225,12 @@ export default function ProfilePageWrapper() {
             ...(data.background?.academic_awards?.map((award: any) => ({
               id: award.id,
               text: `${award.award_name} - ${award.issuing_organization || ""}`.trim(),
-              category: 'academic' as const,
+              category: "academic" as const,
             })) || []),
             ...(data.background?.non_academic_awards?.map((award: any) => ({
               id: award.id,
               text: `${award.award_name} - ${award.issuing_organization || ""}`.trim(),
-              category: 'non_academic' as const,
+              category: "non_academic" as const,
             })) || []),
           ],
 
@@ -219,11 +241,15 @@ export default function ProfilePageWrapper() {
         setError(null);
 
         try {
-          const docsRes = await fetch(`/api/students/${actualStudentId}/upload-cv`);
+          const docsRes = await fetch(
+            `/api/students/${actualStudentId}/upload-cv`,
+          );
           if (docsRes.ok) {
             const docs = await docsRes.json();
             setProfile((prev) =>
-              prev ? { ...prev, documents: Array.isArray(docs) ? docs : [] } : prev
+              prev
+                ? { ...prev, documents: Array.isArray(docs) ? docs : [] }
+                : prev,
             );
           }
         } catch (_) {
@@ -322,7 +348,7 @@ export default function ProfilePageWrapper() {
                 dob: data.dob,
                 address: data.address,
               }
-            : prev
+            : prev,
         );
         toast.success("Đã lưu thông tin cá nhân");
       } else {
@@ -334,11 +360,15 @@ export default function ProfilePageWrapper() {
     }
   };
 
-  const handleSaveAcademic: NonNullable<ProfilePageProps["onSaveAcademic"]> = async (data) => {
+  const handleSaveAcademic: NonNullable<
+    ProfilePageProps["onSaveAcademic"]
+  > = async (data) => {
     const studentId = getStudentId();
     if (!studentId || !profile) return;
     const gpa = Math.min(10, Math.max(0, Number(data.gpa) || 0));
-    const certs = (data.englishCertificates || []).filter((c) => (c.type || "").trim() || (c.score || "").trim());
+    const certs = (data.englishCertificates || []).filter(
+      (c) => (c.type || "").trim() || (c.score || "").trim(),
+    );
     try {
       const [profileRes, academicRes] = await Promise.all([
         fetch(`/api/students/${studentId}/profile`, {
@@ -355,8 +385,14 @@ export default function ProfilePageWrapper() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            gpa_transcript_details: { grade12: String(gpa), grade11: String(gpa) },
-            english_certificates: certs.map((c) => ({ type: (c.type || "Khác").trim() || "Khác", score: String(c.score || "").trim() })),
+            gpa_transcript_details: {
+              grade12: String(gpa),
+              grade11: String(gpa),
+            },
+            english_certificates: certs.map((c) => ({
+              type: (c.type || "Khác").trim() || "Khác",
+              score: String(c.score || "").trim(),
+            })),
           }),
         }),
       ]);
@@ -364,7 +400,12 @@ export default function ProfilePageWrapper() {
         const englishLevel =
           certs.length === 0
             ? "Chưa cập nhật"
-            : certs.map((c) => `${(c.type || "").trim()} ${(c.score || "").trim()}`.trim()).filter(Boolean).join(", ");
+            : certs
+                .map((c) =>
+                  `${(c.type || "").trim()} ${(c.score || "").trim()}`.trim(),
+                )
+                .filter(Boolean)
+                .join(", ");
         setProfile((prev) =>
           prev
             ? {
@@ -376,7 +417,7 @@ export default function ProfilePageWrapper() {
                 targetMajor: data.targetMajor,
                 targetCountry: data.targetCountry,
               }
-            : prev
+            : prev,
         );
         toast.success("Đã lưu thông tin học thuật");
       } else {
@@ -387,7 +428,9 @@ export default function ProfilePageWrapper() {
     }
   };
 
-  const handleUpdateActivity = async (act: import("@/components/types").Extracurricular) => {
+  const handleUpdateActivity = async (
+    act: import("@/components/types").Extracurricular,
+  ) => {
     const studentId = getStudentId();
     if (!studentId) return;
     const url =
@@ -412,7 +455,7 @@ export default function ProfilePageWrapper() {
           return {
             ...prev,
             extracurriculars: prev.extracurriculars.map((a) =>
-              a.id === act.id ? act : a
+              a.id === act.id ? act : a,
             ),
           };
         });
@@ -422,13 +465,14 @@ export default function ProfilePageWrapper() {
         throw new Error("Update failed");
       }
     } catch (e) {
-      if ((e as Error).message !== "Update failed") toast.error("Có lỗi khi cập nhật");
+      if ((e as Error).message !== "Update failed")
+        toast.error("Có lỗi khi cập nhật");
       throw e;
     }
   };
 
   const handleAddActivity = async (
-    act: Omit<import("@/components/types").Extracurricular, "id">
+    act: Omit<import("@/components/types").Extracurricular, "id">,
   ) => {
     const studentId = getStudentId();
     if (!studentId) return;
@@ -462,11 +506,17 @@ export default function ProfilePageWrapper() {
           const list = prev.extracurriculars;
           // Giữ thứ tự như API: academic trước, non_academic sau
           if (act.category === "academic") {
-            const firstNonAc = list.findIndex((a) => a.category === "non_academic");
+            const firstNonAc = list.findIndex(
+              (a) => a.category === "non_academic",
+            );
             const insertIdx = firstNonAc === -1 ? list.length : firstNonAc;
             return {
               ...prev,
-              extracurriculars: [...list.slice(0, insertIdx), newAct, ...list.slice(insertIdx)],
+              extracurriculars: [
+                ...list.slice(0, insertIdx),
+                newAct,
+                ...list.slice(insertIdx),
+              ],
             };
           }
           return { ...prev, extracurriculars: [...list, newAct] };
@@ -496,7 +546,14 @@ export default function ProfilePageWrapper() {
       });
       if (res.ok) {
         setProfile((prev) =>
-          prev ? { ...prev, extracurriculars: prev.extracurriculars.filter((a) => a.id !== id) } : prev
+          prev
+            ? {
+                ...prev,
+                extracurriculars: prev.extracurriculars.filter(
+                  (a) => a.id !== id,
+                ),
+              }
+            : prev,
         );
         toast.success("Đã xóa hoạt động");
       } else toast.error("Xóa thất bại");
@@ -509,8 +566,13 @@ export default function ProfilePageWrapper() {
     const studentId = getStudentId();
     if (!studentId || !profile) return;
     const ach = profile.achievements.find(
-      (a): a is { id: string; text: string; category?: "academic" | "non_academic" } =>
-        typeof a === "object" && a.id === id
+      (
+        a,
+      ): a is {
+        id: string;
+        text: string;
+        category?: "academic" | "non_academic";
+      } => typeof a === "object" && a.id === id,
     );
     const category = ach?.category ?? "academic";
     const [name, org] = text.split(/\s*-\s*/).map((s) => s.trim());
@@ -534,7 +596,7 @@ export default function ProfilePageWrapper() {
           return {
             ...prev,
             achievements: prev.achievements.map((a) =>
-              typeof a === "object" && a.id === id ? { ...a, text } : a
+              typeof a === "object" && a.id === id ? { ...a, text } : a,
             ),
           };
         });
@@ -544,18 +606,21 @@ export default function ProfilePageWrapper() {
         throw new Error("Update failed");
       }
     } catch (e) {
-      if ((e as Error).message !== "Update failed") toast.error("Có lỗi khi cập nhật");
+      if ((e as Error).message !== "Update failed")
+        toast.error("Có lỗi khi cập nhật");
       throw e;
     }
   };
 
   const handleAddAchievement = async (
     text: string,
-    category: "academic" | "non_academic"
+    category: "academic" | "non_academic",
   ) => {
     const studentId = getStudentId();
     if (!studentId) return;
-    const [award_name, issuing_organization] = text.split(/\s*-\s*/).map((s) => s.trim());
+    const [award_name, issuing_organization] = text
+      .split(/\s*-\s*/)
+      .map((s) => s.trim());
     const url =
       category === "academic"
         ? `/api/students/${studentId}/academic-awards`
@@ -582,12 +647,16 @@ export default function ProfilePageWrapper() {
           // Giữ thứ tự như API: academic_awards trước, non_academic_awards sau
           if (category === "academic") {
             const firstNonAc = list.findIndex(
-              (a) => typeof a === "object" && a.category === "non_academic"
+              (a) => typeof a === "object" && a.category === "non_academic",
             );
             const insertIdx = firstNonAc === -1 ? list.length : firstNonAc;
             return {
               ...prev,
-              achievements: [...list.slice(0, insertIdx), newA, ...list.slice(insertIdx)],
+              achievements: [
+                ...list.slice(0, insertIdx),
+                newA,
+                ...list.slice(insertIdx),
+              ],
             };
           }
           return { ...prev, achievements: [...list, newA] };
@@ -607,8 +676,13 @@ export default function ProfilePageWrapper() {
     const studentId = getStudentId();
     if (!studentId || !profile) return;
     const ach = profile.achievements.find(
-      (a): a is { id: string; text: string; category?: "academic" | "non_academic" } =>
-        typeof a === "object" && a.id === id
+      (
+        a,
+      ): a is {
+        id: string;
+        text: string;
+        category?: "academic" | "non_academic";
+      } => typeof a === "object" && a.id === id,
     );
     const base =
       ach?.category === "non_academic"
@@ -621,8 +695,13 @@ export default function ProfilePageWrapper() {
       if (res.ok) {
         setProfile((prev) =>
           prev
-            ? { ...prev, achievements: prev.achievements.filter((a) => (typeof a === "object" ? a.id !== id : true)) }
-            : prev
+            ? {
+                ...prev,
+                achievements: prev.achievements.filter((a) =>
+                  typeof a === "object" ? a.id !== id : true,
+                ),
+              }
+            : prev,
         );
         toast.success("Đã xóa thành tích");
       } else toast.error("Xóa thất bại");
@@ -638,7 +717,10 @@ export default function ProfilePageWrapper() {
     setUploadDocumentLoading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("documentType", type === "certificate" ? "certificate" : "cv");
+    formData.append(
+      "documentType",
+      type === "certificate" ? "certificate" : "cv",
+    );
 
     try {
       const response = await fetch(`/api/students/${studentId}/upload-cv`, {
@@ -657,8 +739,11 @@ export default function ProfilePageWrapper() {
             const docs = await docsRes.json();
             setProfile((prev) =>
               prev
-                ? { ...prev, documents: Array.isArray(docs) ? docs : prev.documents }
-                : prev
+                ? {
+                    ...prev,
+                    documents: Array.isArray(docs) ? docs : prev.documents,
+                  }
+                : prev,
             );
           }
         } catch (_) {}
@@ -683,14 +768,14 @@ export default function ProfilePageWrapper() {
     try {
       const res = await fetch(
         `/api/students/${studentId}/upload-cv?id=${encodeURIComponent(id)}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
       const data = await res.json();
       if (res.ok) {
         setProfile((prev) =>
           prev
             ? { ...prev, documents: prev.documents.filter((d) => d.id !== id) }
-            : prev
+            : prev,
         );
         toast.success("Đã xóa tài liệu");
       } else {
@@ -714,7 +799,9 @@ export default function ProfilePageWrapper() {
       });
       const data = await res.json();
       if (res.ok && data.avatarUrl) {
-        setProfile((prev) => (prev ? { ...prev, avatarUrl: data.avatarUrl } : prev));
+        setProfile((prev) =>
+          prev ? { ...prev, avatarUrl: data.avatarUrl } : prev,
+        );
         toast.success("Cập nhật ảnh đại diện thành công");
       } else {
         toast.error(data.error || "Không thể cập nhật ảnh");
@@ -750,7 +837,7 @@ export default function ProfilePageWrapper() {
         `/api/students/${studentId}/analyze-profile`,
         {
           method: "POST",
-        }
+        },
       );
 
       const data = await response.json();
@@ -790,7 +877,11 @@ export default function ProfilePageWrapper() {
       <StudentPageContainer>
         <PageLoading
           fullPage={false}
-          message={sessionLoading ? 'Đang xác thực...' : 'Đang tải thông tin học sinh...'}
+          message={
+            sessionLoading
+              ? "Đang xác thực..."
+              : "Đang tải thông tin học sinh..."
+          }
         />
       </StudentPageContainer>
     );
@@ -801,29 +892,32 @@ export default function ProfilePageWrapper() {
     return (
       <StudentPageContainer>
         <div className="flex flex-col justify-center items-center min-h-[60vh] px-4">
-            <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-              <div className="text-red-600 dark:text-red-400 text-xl font-semibold mb-2">
-                ⚠️ Lỗi tải dữ liệu
-              </div>
-              <div className="text-red-700 dark:text-red-300 mb-4">
-                {error || "Không tìm thấy thông tin học sinh"}
-              </div>
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded">
-                  <strong>Debug Info:</strong><br/>
-                  Student ID: {studentId || 'null'}<br/>
-                  Session: {session ? 'exists' : 'null'}<br/>
-                  Authenticated: {isAuthenticated ? 'yes' : 'no'}
-                </div>
-              )}
-              <button
-                onClick={() => window.location.reload()}
-                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Tải lại trang
-              </button>
+          <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+            <div className="text-red-600 dark:text-red-400 text-xl font-semibold mb-2">
+              ⚠️ Lỗi tải dữ liệu
             </div>
+            <div className="text-red-700 dark:text-red-300 mb-4">
+              {error || "Không tìm thấy thông tin học sinh"}
+            </div>
+            {process.env.NODE_ENV === "development" && (
+              <div className="text-xs text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded">
+                <strong>Debug Info:</strong>
+                <br />
+                Student ID: {studentId || "null"}
+                <br />
+                Session: {session ? "exists" : "null"}
+                <br />
+                Authenticated: {isAuthenticated ? "yes" : "no"}
+              </div>
+            )}
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Tải lại trang
+            </button>
           </div>
+        </div>
       </StudentPageContainer>
     );
   }
