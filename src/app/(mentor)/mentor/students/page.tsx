@@ -1,8 +1,9 @@
 import { Suspense } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import type { Metadata } from 'next';
+import StudentListFull from '@/components/mentor/students/StudentListFull';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Quản lý học viên | Holyann Mentor',
   description: 'Danh sách học viên đang phụ trách',
 };
@@ -19,18 +20,15 @@ export default function StudentsListPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <p className="text-gray-600">
-          Trang này sẽ hiển thị danh sách đầy đủ học viên.
-        </p>
-        <p className="mt-2 text-sm text-gray-500">
-          Bạn có thể quay lại{' '}
-          <Link href="/mentor/dashboard" className="text-[#0f4c81] hover:underline">
-            Dashboard
-          </Link>{' '}
-          để xem danh sách tóm tắt.
-        </p>
-      </div>
+      <Suspense
+        fallback={
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#0f4c81]" />
+          </div>
+        }
+      >
+        <StudentListFull />
+      </Suspense>
     </div>
   );
 }

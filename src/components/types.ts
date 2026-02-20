@@ -78,6 +78,7 @@ export interface Task {
     id: string;
     title: string;
     deadline: string;
+    deadlineRaw?: Date | string | null; // Raw deadline date from database for calculations
     isCompleted: boolean;
     category?: string; // e.g., "Hồ sơ học thuật", "Tài liệu cần thiết"
     stageId: number;

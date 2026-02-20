@@ -14,6 +14,8 @@ export interface User {
   auth_provider?: string;
 }
 
+export type MentorType = 'AS' | 'ACS' | 'ARD';
+
 export interface UserFormData {
   full_name: string;
   email: string;
@@ -21,4 +23,5 @@ export interface UserFormData {
   role: UserRole;
   is_active: boolean;
   password?: string; // Optional, only required when creating new user
+  mentor_type?: MentorType; // Only required when role is MENTOR
 }
