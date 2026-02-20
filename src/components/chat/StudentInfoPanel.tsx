@@ -103,11 +103,11 @@ export const StudentInfoPanel: React.FC<StudentInfoPanelProps> = ({
             <div className="p-6 flex flex-col items-center border-b border-gray-100 dark:border-slate-700 text-center">
                 <div className="relative mb-4">
                     <img
-                        src={studentDetails?.avatar_url || student.avatar || '/images/avatars/default-avatar.png'}
+                        src={studentDetails?.avatar_url || student.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"%3E%3Ccircle cx="48" cy="48" r="48" fill="%23e5e7eb"/%3E%3Ccircle cx="48" cy="38" r="14" fill="%239ca3af"/%3E%3Cellipse cx="48" cy="88" rx="24" ry="18" fill="%239ca3af"/%3E%3C/svg%3E'}
                         alt={studentDetails?.full_name || student.name}
                         className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md"
                         onError={(e) => {
-                            e.currentTarget.src = '/images/avatars/default-avatar.png';
+                            e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"%3E%3Ccircle cx="48" cy="48" r="48" fill="%23e5e7eb"/%3E%3Ccircle cx="48" cy="38" r="14" fill="%239ca3af"/%3E%3Cellipse cx="48" cy="88" rx="24" ry="18" fill="%239ca3af"/%3E%3C/svg%3E';
                         }}
                     />
                     {student.isOnline && (

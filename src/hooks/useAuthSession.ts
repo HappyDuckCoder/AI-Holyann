@@ -15,17 +15,19 @@ export function useAuthSession(options?: {
   const { data: session, status, update } = useSession()
   const router = useRouter()
 
+  const required = options?.required
+  const onUnauthenticated = options?.onUnauthenticated
+
   useEffect(() => {
     // If session fetch fails, try to recover
-    if (status === 'unauthenticated' && options?.required) {
-      if (options.onUnauthenticated) {
-        options.onUnauthenticated()
+    if (status === 'unauthenticated' && required) {
+      if (onUnauthenticated) {
+        onUnauthenticated()
       } else {
-        // Redirect to login if authentication is required
         router.push('/login')
       }
     }
-  }, [status, options, router])
+  }, [status, required, onUnauthenticated, router])
 
   // Auto-refresh session when it's about to expire
   useEffect(() => {

@@ -21,14 +21,15 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
         if (!user || !user.role) return false
         return roles.includes(user.role) || roles.includes(user.role.toLowerCase())
     }
-    const { logout } = { logout: () => signOut({ callbackUrl: '/login' }) }
     const router = useRouter()
     const pathname = usePathname()
     const isRedirecting = useRef(false)
+    const userRole = user?.role
+    const userId = user?.id
 
     useEffect(() => {
-        if (!authReady) return // wait until auth status is known
-        if (isRedirecting.current) return // avoid triggering multiple redirects
+        if (!authReady) return
+        if (isRedirecting.current) return
 
         if (!isAuthenticated) {
             if (pathname !== redirectTo) {
@@ -39,16 +40,19 @@ export default function RoleGuard({children, allowedRoles, redirectTo = '/login'
             return
         }
 
-        if (!hasRole(allowedRoles)) {
-            // Redirect based on user role
-            const target = getRoleDashboardPath(user?.role);
+        const hasAllowedRole = userRole && (
+            allowedRoles.includes(userRole) ||
+            allowedRoles.includes(String(userRole).toLowerCase())
+        )
+        if (!hasAllowedRole) {
+            const target = getRoleDashboardPath(userRole)
             if (pathname !== target) {
                 isRedirecting.current = true
                 router.replace(target)
                 setTimeout(() => (isRedirecting.current = false), 1000)
             }
         }
-    }, [authReady, isAuthenticated, user, hasRole, allowedRoles, router, redirectTo, pathname])
+    }, [authReady, isAuthenticated, userId, userRole, router, redirectTo, pathname])
 
     // While auth status is initializing, show loading (cùng background với các page)
     if (!authReady) {
