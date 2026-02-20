@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import MentorDeadlineViewCell from "@/components/mentor/deadlines/MentorDeadlineViewCell";
+import MentorDeadlineNoteCell from "@/components/mentor/deadlines/MentorDeadlineNoteCell";
 
 // Helper function to get deadline status with colors
 function getDeadlineStatus(deadline: Date) {
@@ -173,70 +174,138 @@ export default async function MentorDeadlinesPage() {
     );
   }
 
-  // Step 2: Get all tasks with deadlines for those students
-  // Only get PENDING and NEEDS_REVISION tasks (incomplete)
-  const tasksWithDeadlines = await prisma.student_task_progress.findMany({
-    where: {
-      student_id: { in: studentIds },
-      deadline: { not: null },
-      status: { in: ["PENDING", "IN_PROGRESS", "NEEDS_REVISION"] },
-    },
-    include: {
-      task: {
-        select: {
-          id: true,
-          title: true,
-          stage: {
-            select: {
-              name: true,
-            },
+  // Step 2: Checklist tasks with deadlines + custom deadlines
+  type CustomDeadlineDb = {
+    id: string;
+    title: string;
+    student_id: string;
+    deadline: Date | null;
+    status: string;
+    mentor_note: string | null;
+    student_note: string | null;
+    student: { user_id: string; users: { full_name: string | null; email: string | null } | null };
+  };
+  const [tasksWithDeadlines, customDeadlines] = await Promise.all([
+    prisma.student_task_progress.findMany({
+      where: {
+        student_id: { in: studentIds },
+        deadline: { not: null },
+        status: { in: ["PENDING", "IN_PROGRESS", "NEEDS_REVISION"] },
+      },
+      include: {
+        task: {
+          select: {
+            id: true,
+            title: true,
+            stage: { select: { name: true } },
+          },
+        },
+        student: {
+          select: {
+            user_id: true,
+            users: { select: { full_name: true, email: true } },
           },
         },
       },
-      student: {
-        select: {
-          user_id: true,
-          users: {
+      orderBy: { deadline: "asc" },
+    }),
+    (
+      prisma as unknown as {
+        mentor_custom_deadlines: { findMany: (args: unknown) => Promise<CustomDeadlineDb[]> };
+      }
+    ).mentor_custom_deadlines.findMany({
+        where: {
+          mentor_id: mentorId,
+          student_id: { in: studentIds },
+        },
+        include: {
+          student: {
             select: {
-              full_name: true,
-              email: true,
+              user_id: true,
+              users: { select: { full_name: true, email: true } },
             },
           },
         },
-      },
-    },
-    orderBy: {
-      deadline: "asc",
-    },
-  });
+        orderBy: [{ deadline: "asc" }, { created_at: "desc" }],
+      }),
+  ]);
 
-  // Process and sort by priority (item may include mentor_note, student_note from schema)
   type TaskItem = (typeof tasksWithDeadlines)[0] & { mentor_note?: string | null; student_note?: string | null };
-  const processedTasks = tasksWithDeadlines
-    .filter((t): t is TaskItem => !!t.task && !!t.deadline)
-    .map((t) => {
+  type ChecklistRow = TaskItem & { deadlineStatus: ReturnType<typeof getDeadlineStatus>; type: "checklist" };
+  const processedChecklist: ChecklistRow[] = tasksWithDeadlines
+    .filter((t: (typeof tasksWithDeadlines)[0]): t is TaskItem => !!t.task && !!t.deadline)
+    .map((t: TaskItem) => {
       const deadlineStatus = getDeadlineStatus(t.deadline!);
-      return {
-        ...t,
-        deadlineStatus,
-      } as TaskItem & { deadlineStatus: ReturnType<typeof getDeadlineStatus> };
+      return { ...t, deadlineStatus, type: "checklist" as const };
     })
-    .sort((a, b) => {
-      // Sort by priority first, then by deadline
+    .sort((a: ChecklistRow, b: ChecklistRow) => {
       if (a.deadlineStatus.priority !== b.deadlineStatus.priority) {
         return a.deadlineStatus.priority - b.deadlineStatus.priority;
       }
       return new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime();
     });
 
+  type CustomRow = {
+    type: "custom";
+    id: string;
+    student_id: string;
+    task: null;
+    student: { user_id: string; users: { full_name: string | null; email: string | null } | null };
+    taskTitle: string;
+    stageName: null;
+    deadline: Date | null;
+    status: string;
+    mentor_note: string | null;
+    student_note: string | null;
+    deadlineStatus: ReturnType<typeof getDeadlineStatus>;
+  };
+  const processedCustom: CustomRow[] = customDeadlines.map((c: CustomDeadlineDb) => {
+    const deadline = c.deadline;
+    const deadlineStatus = deadline
+      ? getDeadlineStatus(deadline)
+      : {
+          label: "—",
+          sublabel: "Chưa đặt",
+          colorClass: "text-muted-foreground",
+          bgClass: "",
+          badgeClass: "bg-muted text-muted-foreground dark:bg-muted/80",
+          rowClass: "hover:bg-muted/30 dark:hover:bg-muted/20",
+          icon: Calendar,
+          iconColor: "text-muted-foreground",
+          priority: 5,
+        };
+    return {
+      type: "custom",
+      id: c.id,
+      student_id: c.student_id,
+      task: null,
+      student: c.student,
+      taskTitle: c.title,
+      stageName: null,
+      deadline,
+      status: c.status,
+      mentor_note: c.mentor_note ?? null,
+      student_note: c.student_note ?? null,
+      deadlineStatus,
+    };
+  });
+
+  type UnifiedRow = ChecklistRow | CustomRow;
+  const combinedRows: UnifiedRow[] = [...processedChecklist, ...processedCustom].sort(
+    (a: UnifiedRow, b: UnifiedRow) => {
+      if (a.deadlineStatus.priority !== b.deadlineStatus.priority) {
+        return a.deadlineStatus.priority - b.deadlineStatus.priority;
+      }
+      const aTime = a.deadline ? new Date(a.deadline).getTime() : 0;
+      const bTime = b.deadline ? new Date(b.deadline).getTime() : 0;
+      return aTime - bTime;
+    }
+  );
+
   // Stats
-  const overdueCount = processedTasks.filter(
-    (t) => t.deadlineStatus.priority === 1,
-  ).length;
-  const urgentCount = processedTasks.filter(
-    (t) => t.deadlineStatus.priority === 2,
-  ).length;
-  const totalStudents = new Set(processedTasks.map((t) => t.student_id)).size;
+  const overdueCount = combinedRows.filter((r) => r.deadlineStatus.priority === 1).length;
+  const urgentCount = combinedRows.filter((r) => r.deadlineStatus.priority === 2).length;
+  const totalStudents = new Set(combinedRows.map((r) => r.student_id)).size;
 
   return (
     <div className="min-h-[calc(100vh-theme(spacing.14))] bg-background">
@@ -274,7 +343,7 @@ export default async function MentorDeadlinesPage() {
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-primary">
-              {processedTasks.length}
+              {combinedRows.length}
             </p>
             <p className="text-sm text-muted-foreground">Tổng nhiệm vụ</p>
           </div>
@@ -286,19 +355,18 @@ export default async function MentorDeadlinesPage() {
           </div>
         </div>
 
-        {processedTasks.length === 0 ? (
+        {combinedRows.length === 0 ? (
           <div className="rounded-xl border border-border bg-card py-12 text-center">
             <Calendar className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="mb-2 text-lg font-medium text-foreground">
               Không có deadline nào cần theo dõi
             </h3>
             <p className="text-muted-foreground">
-              Tất cả học viên đã hoàn thành nhiệm vụ hoặc chưa có deadline được
-              đặt
+              Tất cả học viên đã hoàn thành nhiệm vụ hoặc chưa có deadline được đặt
             </p>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -307,21 +375,23 @@ export default async function MentorDeadlinesPage() {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Nhiệm vụ</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Hạn chót</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Trạng thái</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Ghi chú</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-muted-foreground sm:px-6">Hành động</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Ghi chú (feedback)</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-muted-foreground sm:px-6">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {processedTasks.map((item) => {
+                  {combinedRows.map((item) => {
                     const StatusIcon = item.deadlineStatus.icon;
                     const statusInfo = getStatusLabel(item.status);
+                    const taskTitle = item.type === "custom" ? item.taskTitle : item.task?.title ?? "";
+                    const stageName = item.type === "custom" ? item.stageName : item.task?.stage?.name ?? null;
                     const viewItem = {
                       id: item.id,
                       student_id: item.student_id,
                       studentName: item.student?.users?.full_name || "Không rõ",
                       studentEmail: item.student?.users?.email ?? null,
-                      taskTitle: item.task?.title ?? "",
-                      stageName: item.task?.stage?.name ?? null,
+                      taskTitle,
+                      stageName,
                       deadlineLabel: item.deadlineStatus.label,
                       deadlineSublabel: item.deadlineStatus.sublabel,
                       statusLabel: statusInfo.label,
@@ -331,8 +401,8 @@ export default async function MentorDeadlinesPage() {
                     };
                     return (
                       <tr
-                        key={item.id}
-                        className={`border-b border-border transition-colors last:border-0 ${item.deadlineStatus.rowClass}`}
+                        key={`${item.type}-${item.id}`}
+                        className={`border-b border-border transition-colors hover:bg-muted/20 last:border-0 ${item.deadlineStatus.rowClass}`}
                       >
                         <td className="px-4 py-3 sm:px-6">
                           <Link
@@ -341,48 +411,51 @@ export default async function MentorDeadlinesPage() {
                           >
                             {item.student?.users?.full_name || "Không rõ"}
                           </Link>
-                          <div className="mt-0.5 text-xs text-muted-foreground">
+                          <div className="mt-0.5 text-sm text-muted-foreground">
                             {item.student?.users?.email}
                           </div>
                         </td>
                         <td className="px-4 py-3 sm:px-6">
-                          <div className="font-medium text-foreground">
-                            {item.task?.title}
-                          </div>
-                          <div className="mt-0.5 text-xs text-muted-foreground">
-                            {item.task?.stage?.name}
+                          <div>
+                            <div className="font-medium text-foreground">{taskTitle}</div>
+                            {item.type === "checklist" && (
+                              <span className="text-xs text-muted-foreground">Checklist</span>
+                            )}
+                            {item.type === "custom" && (
+                              <span className="text-xs text-muted-foreground">Tùy chỉnh</span>
+                            )}
+                            {stageName && (
+                              <div className="mt-1 text-sm text-muted-foreground line-clamp-2 max-w-[200px]">
+                                {stageName}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3 sm:px-6">
-                          <div
-                            className={`flex items-center gap-2 ${item.deadlineStatus.colorClass}`}
-                          >
-                            <StatusIcon
-                              className={`h-4 w-4 shrink-0 ${item.deadlineStatus.iconColor}`}
-                            />
+                          <div className={`flex items-center gap-2 ${item.deadlineStatus.colorClass}`}>
+                            <StatusIcon className={`h-4 w-4 shrink-0 ${item.deadlineStatus.iconColor}`} />
                             <div>
-                              <div className="text-sm">
-                                {item.deadlineStatus.label}
-                              </div>
-                              <div className="text-xs opacity-80">
-                                {item.deadlineStatus.sublabel}
-                              </div>
+                              <div className="text-sm">{item.deadlineStatus.label}</div>
+                              <div className="text-xs opacity-80">{item.deadlineStatus.sublabel}</div>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 sm:px-6">
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusInfo.class}`}
-                          >
+                          <span className={`inline-flex rounded-full border-0 px-2.5 py-1 text-xs font-medium ${statusInfo.class}`}>
                             {statusInfo.label}
                           </span>
                         </td>
-                        <td className="max-w-[180px] px-4 py-3 sm:px-6">
-                          <span className="line-clamp-2 text-sm text-muted-foreground">
-                            {item.mentor_note || item.student_note || "—"}
-                          </span>
+                        <td className="max-w-[240px] px-4 py-3 sm:px-6">
+                          <MentorDeadlineNoteCell
+                            type={item.type}
+                            id={item.id}
+                            studentId={item.student_id}
+                            mentorNote={item.mentor_note ?? null}
+                            studentNote={item.student_note ?? null}
+                            title={taskTitle}
+                          />
                         </td>
-                        <td className="px-4 py-3 text-center sm:px-6">
+                        <td className="px-4 py-3 text-right sm:px-6">
                           <MentorDeadlineViewCell item={viewItem} />
                         </td>
                       </tr>
