@@ -874,7 +874,7 @@ export default function ProfilePageWrapper() {
   // Loading state
   if (loading || sessionLoading) {
     return (
-      <StudentPageContainer>
+      <StudentPageContainer fullWidth>
         <PageLoading
           fullPage={false}
           message={
@@ -890,7 +890,7 @@ export default function ProfilePageWrapper() {
   // Error state
   if (error || !profile) {
     return (
-      <StudentPageContainer>
+      <StudentPageContainer fullWidth>
         <div className="flex flex-col justify-center items-center min-h-[60vh] px-4">
           <div className="max-w-md w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
             <div className="text-red-600 dark:text-red-400 text-xl font-semibold mb-2">
@@ -923,7 +923,7 @@ export default function ProfilePageWrapper() {
   }
 
   return (
-    <StudentPageContainer>
+    <StudentPageContainer fullWidth>
       <div className="min-h-[60vh]">
         <ProfilePage
           profile={profile}
