@@ -133,7 +133,7 @@ export default function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded-full h-12 px-8 text-base font-semibold border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 hover:border-sky-300 transition-colors duration-200"
+                className="rounded-full h-12 px-8 text-base font-semibold border-2 border-slate-300 text-slate-700 bg-white hover:bg-sky-50 hover:border-sky-400 hover:text-sky-700 hover:shadow-md hover:shadow-sky-500/10 active:scale-[0.98] transition-all duration-200"
                 onClick={() =>
                   document.getElementById("gioi-thieu")?.scrollIntoView({ behavior: "smooth" })
                 }
