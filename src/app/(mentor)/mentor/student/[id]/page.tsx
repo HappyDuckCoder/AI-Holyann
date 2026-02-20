@@ -8,9 +8,9 @@ export default async function StudentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  
+
   return (
-    <div className="space-y-6">
+    <div className="min-h-[calc(100vh-theme(spacing.14))] bg-background px-4 py-6 sm:px-6 md:px-8 md:py-8">
       <Suspense
         fallback={
           <div className="flex h-64 items-center justify-center">

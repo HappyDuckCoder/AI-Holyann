@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
@@ -69,11 +69,14 @@ const ChecklistPage: React.FC = () => {
     const [loadingProgress, setLoadingProgress] = useState(true);
 
     const router = useRouter();
+    const initialLoadDone = useRef(false);
+    const lastFetchTime = useRef(0);
+    const MIN_FETCH_INTERVAL_MS = 8000; // Tránh refetch liên tục
 
-    // Load real checklist data from API
-    const fetchChecklistData = useCallback(async () => {
+    // Load real checklist data from API (silent = true: không bật loading, dùng khi refresh tab/focus)
+    const fetchChecklistData = useCallback(async (silent = false) => {
         try {
-            setLoadingProgress(true);
+            if (!silent) setLoadingProgress(true);
 
             const response = await fetch('/api/student/checklist', {
                 method: 'GET',
@@ -146,15 +149,17 @@ const ChecklistPage: React.FC = () => {
                     // Save to localStorage for persistence
                     localStorage.setItem('activeStageId', latestStageId.toString());
                 }
+                initialLoadDone.current = true;
             } else {
                 console.error('❌ Failed to load checklist data:', result.error);
             }
         } catch (error) {
             console.error('❌ Error loading checklist data:', error);
         } finally {
-            setLoadingProgress(false);
+            if (!silent) setLoadingProgress(false);
+            lastFetchTime.current = Date.now();
         }
-    }, []); // Empty dependency array - chỉ tạo function 1 lần
+    }, []);
 
     // Sync with test completion status
     const fetchProgress = useCallback(async () => {
@@ -210,30 +215,32 @@ const ChecklistPage: React.FC = () => {
         }
     }, [session?.user?.id, tasks.length]); // Chỉ chạy khi session hoặc tasks thay đổi
 
-    // Consolidated auto-refresh logic - chỉ 1 useEffect để tránh conflicts
+    // Consolidated auto-refresh logic - chỉ 1 useEffect, throttle để tránh reload liên tục
     useEffect(() => {
         let refreshTimeout: NodeJS.Timeout;
 
+        const maybeRefresh = () => {
+            const now = Date.now();
+            if (now - lastFetchTime.current < MIN_FETCH_INTERVAL_MS) return; // Throttle
+            refreshTimeout = setTimeout(() => {
+                fetchChecklistData(true); // silent: không bật loading
+                if (tasks.length > 0 && session?.user?.id) {
+                    fetchProgress();
+                }
+            }, 600);
+        };
+
         const handleVisibilityChange = () => {
             if (!document.hidden) {
-                // Debounce refresh để tránh quá nhiều calls
                 clearTimeout(refreshTimeout);
-                refreshTimeout = setTimeout(() => {
-                    fetchChecklistData();
-                    if (tasks.length > 0 && session?.user?.id) {
-                        fetchProgress();
-                    }
-                }, 500); // Wait 500ms trước khi refresh
+                maybeRefresh();
             }
         };
 
         const handleFocus = () => {
-            // Chỉ refresh khi really cần thiết và không spam
             if (document.visibilityState === 'visible') {
                 clearTimeout(refreshTimeout);
-                refreshTimeout = setTimeout(() => {
-                    fetchChecklistData();
-                }, 1000); // Wait 1s để tránh spam
+                maybeRefresh();
             }
         };
 
@@ -245,7 +252,7 @@ const ChecklistPage: React.FC = () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', handleFocus);
         };
-    }, [session?.user?.id, tasks.length]); // Dependencies ít hơn và stable hơn
+    }, [session?.user?.id, tasks.length]);
 
     const handleToggleTask = async (taskId: string) => {
         const task = tasks.find(t => t.id === taskId);

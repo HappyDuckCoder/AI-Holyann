@@ -22,17 +22,7 @@ export async function POST(
       );
     }
 
-    // Chỉ cho phép một CV: nếu đã có CV rồi thì không cho tải thêm
-    if (documentType === 'cv') {
-      const existing = await listStudentDocuments(student_id);
-      const hasCv = existing.some((d) => d.type === 'transcript');
-      if (hasCv) {
-        return NextResponse.json(
-          { error: 'Bạn đã tải CV lên rồi. Không thể tải thêm.' },
-          { status: 400 }
-        );
-      }
-    }
+    // Giới hạn "chỉ một CV" được kiểm tra ở frontend (trang Improve). Checklist có thể upload nhiều tài liệu (transcript, CV, ...) nên API không chặn tại đây.
 
     const allowedTypes = [
       'application/pdf',

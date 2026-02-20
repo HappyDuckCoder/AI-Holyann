@@ -133,7 +133,8 @@ model mentors {
   created_at               DateTime?  @default(now()) @db.Timestamp(6)
   updated_at               DateTime?  @default(now()) @db.Timestamp(6)
 
-  assignments mentor_assignments[]
+  assignments           mentor_assignments[]
+  mentor_custom_deadlines mentor_custom_deadlines[]
 }
 
 model mentor_assignments {
@@ -192,7 +193,8 @@ model students {
   mentors                            mentor_assignments[]
 
   // Quan hệ với bảng Task Progress
-  checklist_progress student_task_progress[]
+  checklist_progress     student_task_progress[]
+  mentor_custom_deadlines mentor_custom_deadlines[]
 
   // Improve: Essay & CV
   essays                 essays[]
@@ -339,11 +341,34 @@ model student_task_progress {
   status         TaskStatus       @default(PENDING)
   deadline       DateTime?        @db.Timestamp(6)
   mentor_note    String?
+  student_note   String?          @db.Text // Ghi chú của học viên
   completed_at   DateTime?
   created_at     DateTime         @default(now()) @db.Timestamp(6)
   updated_at     DateTime         @default(now()) @db.Timestamp(6)
 
   @@unique([student_id, task_id])
+}
+
+/// Custom deadlines do mentor tạo cho từng học viên (không gắn checklist task)
+model mentor_custom_deadlines {
+  id           String     @id @default(uuid()) @db.Uuid
+  student_id   String     @db.Uuid
+  mentor_id    String     @db.Uuid
+  title        String     @db.VarChar(500)
+  description  String?    @db.Text             // Mô tả nhiệm vụ
+  mentor_note  String?    @db.Text             // Ghi chú / feedback của mentor (khác mô tả)
+  deadline     DateTime?  @db.Timestamp(6)
+  status       TaskStatus @default(PENDING)
+  student_note String?   @db.Text             // Ghi chú của học viên
+  created_at   DateTime   @default(now()) @db.Timestamp(6)
+  updated_at   DateTime   @updatedAt @db.Timestamp(6)
+
+  student students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  mentor  mentors  @relation(fields: [mentor_id], references: [user_id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@index([mentor_id])
+  @@index([deadline])
 }
 
 // ==================== 6. BACKGROUND & ACADEMIC DETAILS ====================
