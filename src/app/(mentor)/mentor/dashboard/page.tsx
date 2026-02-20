@@ -9,25 +9,29 @@ export const metadata = {
 
 export default function MentorDashboardPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tổng quan</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Quản lý học viên và theo dõi tiến độ học tập
-          </p>
+    <div className="min-h-[calc(100vh-theme(spacing.14))]">
+      <div className="container max-w-screen-2xl px-4 py-6 sm:px-6 md:px-8 md:py-8">
+        <div className="space-y-6">
+          <header className="border-b border-border pb-6">
+            <h1 className="text-2xl font-heading font-bold tracking-tight text-foreground sm:text-3xl">
+              Tổng quan
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Quản lý học viên và theo dõi tiến độ học tập
+            </p>
+          </header>
+
+          <Suspense
+            fallback={
+              <div className="flex h-64 items-center justify-center rounded-xl border border-border bg-card">
+                <PageLoading inline size="md" className="py-0" />
+              </div>
+            }
+          >
+            <MentorDashboardContent />
+          </Suspense>
         </div>
       </div>
-
-      <Suspense
-        fallback={
-          <div className="flex h-64 items-center justify-center">
-            <PageLoading inline size="md" className="py-0" />
-          </div>
-        }
-      >
-        <MentorDashboardContent />
-      </Suspense>
     </div>
   );
 }

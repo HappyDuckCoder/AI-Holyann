@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Save, Upload, Plus, X } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Save, Upload, Plus, X, User, Briefcase, Award, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import type { MentorWithUser, Achievement, MentorType } from '@/types/mentor';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { PageLoading } from '@/components/ui/PageLoading';
 
 export default function MentorProfileForm() {
   const [isLoading, setIsLoading] = useState(true);
@@ -29,36 +37,34 @@ export default function MentorProfileForm() {
     outstanding_achievements: [],
   });
 
-  // For dynamic arrays
   const [newExpertise, setNewExpertise] = useState('');
   const [newAchievement, setNewAchievement] = useState({ title: '', year: new Date().getFullYear() });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchMentorProfile = async () => {
       try {
         const response = await fetch('/api/mentor/profile');
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch profile');
         }
 
         const data = await response.json();
-        
-        // Parse JSON fields if they are strings
-        const expertises = typeof data.expertises === 'string' 
-          ? JSON.parse(data.expertises) 
-          : data.expertises || [];
-        
-        const outstanding_achievements = typeof data.outstanding_achievements === 'string'
-          ? JSON.parse(data.outstanding_achievements)
-          : data.outstanding_achievements || [];
+
+        const expertises =
+          typeof data.expertises === 'string' ? JSON.parse(data.expertises) : data.expertises || [];
+        const outstanding_achievements =
+          typeof data.outstanding_achievements === 'string'
+            ? JSON.parse(data.outstanding_achievements)
+            : data.outstanding_achievements || [];
 
         setFormData({
           user: {
-            full_name: data.user.full_name || '',
-            email: data.user.email || '',
-            phone_number: data.user.phone_number || '',
-            avatar_url: data.user.avatar_url || null,
+            full_name: data.user?.full_name || '',
+            email: data.user?.email || '',
+            phone_number: data.user?.phone_number || '',
+            avatar_url: data.user?.avatar_url || null,
           },
           specialization: data.specialization || 'AS',
           bio: data.bio || '',
@@ -67,16 +73,18 @@ export default function MentorProfileForm() {
           university_name: data.university_name || '',
           degree: data.degree || '',
           major: data.major || '',
-          graduation_year: data.graduation_year || undefined,
+          graduation_year: data.graduation_year ?? undefined,
           current_company: data.current_company || '',
           current_job_title: data.current_job_title || '',
-          years_of_experience: data.years_of_experience || 0,
-          expertises: expertises,
-          outstanding_achievements: outstanding_achievements,
+          years_of_experience: data.years_of_experience ?? 0,
+          expertises,
+          outstanding_achievements,
         });
       } catch (error) {
         console.error('Error fetching mentor profile:', error);
-        alert('Không thể tải thông tin hồ sơ. Vui lòng thử lại.');
+        toast.error('Không thể tải thông tin hồ sơ', {
+          description: 'Vui lòng thử lại hoặc làm mới trang.',
+        });
       } finally {
         setIsLoading(false);
       }
@@ -92,9 +100,7 @@ export default function MentorProfileForm() {
     try {
       const response = await fetch('/api/mentor/profile', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user: {
             full_name: formData.user?.full_name,
@@ -120,12 +126,14 @@ export default function MentorProfileForm() {
         throw new Error('Failed to update profile');
       }
 
-      const result = await response.json();
-      
-      alert('Cập nhật hồ sơ thành công!');
+      toast.success('Đã lưu hồ sơ', {
+        description: 'Thông tin chuyên môn của bạn đã được cập nhật.',
+      });
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại.');
+      toast.error('Cập nhật thất bại', {
+        description: 'Vui lòng kiểm tra và thử lại.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -170,8 +178,8 @@ export default function MentorProfileForm() {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0f4c81] border-t-transparent" />
+      <div className="flex h-64 items-center justify-center rounded-xl border border-border bg-card">
+        <PageLoading inline size="md" className="py-0" />
       </div>
     );
   }
@@ -192,328 +200,405 @@ export default function MentorProfileForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Section 1: Basic Info */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-xl font-semibold text-gray-900">Thông tin cơ bản</h2>
-        
-        <div className="space-y-4">
-          {/* Avatar Upload Placeholder */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
-            <div className="mt-2 flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#0f4c81] to-blue-600 text-2xl font-bold text-white">
-                {formData.user?.full_name?.charAt(0).toUpperCase()}
-              </div>
-              <button
+      <Card className="border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <User className="h-4 w-4" />
+            </div>
+            <div>
+              <CardTitle className="text-foreground">Thông tin cơ bản</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Họ tên, liên hệ và ảnh đại diện
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-secondary text-2xl font-bold text-primary-foreground ring-2 ring-border">
+              {formData.user?.avatar_url ? (
+                <img
+                  src={formData.user.avatar_url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                formData.user?.full_name?.charAt(0).toUpperCase() ?? 'M'
+              )}
+            </div>
+            <div className="flex-1 space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                className="hidden"
+                onChange={() => {}}
+              />
+              <Button
                 type="button"
-                className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                variant="secondary"
+                size="sm"
+                className="gap-2"
+                onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-4 w-4" />
                 Tải ảnh lên
-              </button>
+              </Button>
+              <p className="text-xs text-muted-foreground">PNG, JPG tối đa 2MB</p>
             </div>
-            <p className="mt-2 text-xs text-gray-500">PNG, JPG tối đa 2MB</p>
           </div>
 
-          {/* Full Name */}
-          <div>
-            <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
-              Họ và tên <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="full_name"
-              required
-              value={formData.user?.full_name || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  user: { ...formData.user!, full_name: e.target.value },
-                })
-              }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-            />
-          </div>
+          <div className="grid gap-4 sm:grid-cols-1">
+            <div className="space-y-2">
+              <Label htmlFor="full_name" className="text-foreground">
+                Họ và tên <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="full_name"
+                required
+                value={formData.user?.full_name || ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    user: { ...formData.user!, full_name: e.target.value },
+                  })
+                }
+                className="border-input bg-background text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
 
-          {/* Email (Read-only) */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              disabled
-              value={formData.user?.email || ''}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-foreground">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                disabled
+                value={formData.user?.email || ''}
+                className="bg-muted/50 text-muted-foreground"
+              />
+            </div>
 
-          {/* Phone */}
-          <div>
-            <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
-              Số điện thoại
-            </label>
-            <input
-              type="tel"
-              id="phone_number"
-              value={formData.user?.phone_number || ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  user: { ...formData.user!, phone_number: e.target.value },
-                })
-              }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="phone_number" className="text-foreground">
+                Số điện thoại
+              </Label>
+              <Input
+                id="phone_number"
+                type="tel"
+                value={formData.user?.phone_number || ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    user: { ...formData.user!, phone_number: e.target.value },
+                  })
+                }
+                className="border-input bg-background text-foreground"
+              />
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Section 2: Professional Info */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-xl font-semibold text-gray-900">Thông tin chuyên môn</h2>
-        
-        <div className="space-y-4">
-          {/* Specialization (Disabled/Locked) */}
-          <div>
-            <label htmlFor="specialization" className="block text-sm font-medium text-gray-700">
+      <Card className="border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/20 text-secondary-foreground dark:bg-secondary/30">
+              <Briefcase className="h-4 w-4" />
+            </div>
+            <div>
+              <CardTitle className="text-foreground">Thông tin chuyên môn</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Học vấn, kinh nghiệm và liên kết
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="specialization" className="text-foreground">
               Chuyên môn
-            </label>
-            <input
-              type="text"
+            </Label>
+            <Input
               id="specialization"
               disabled
               value={getMentorTypeLabel(formData.specialization!)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500"
+              className="bg-muted/50 text-muted-foreground"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Chuyên môn được gán bởi hệ thống và không thể thay đổi
             </p>
           </div>
 
-          {/* Bio */}
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+          <div className="space-y-2">
+            <Label htmlFor="bio" className="text-foreground">
               Giới thiệu
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               id="bio"
               rows={4}
               value={formData.bio || ''}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
               placeholder="Giới thiệu ngắn về bản thân và kinh nghiệm..."
+              className="border-input bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
-          {/* LinkedIn */}
-          <div>
-            <label htmlFor="linkedin_url" className="block text-sm font-medium text-gray-700">
-              LinkedIn URL
-            </label>
-            <input
-              type="url"
-              id="linkedin_url"
-              value={formData.linkedin_url || ''}
-              onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-              placeholder="https://linkedin.com/in/yourprofile"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="linkedin_url" className="text-foreground">
+                LinkedIn URL
+              </Label>
+              <Input
+                id="linkedin_url"
+                type="url"
+                value={formData.linkedin_url || ''}
+                onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                placeholder="https://linkedin.com/in/..."
+                className="border-input bg-background text-foreground"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="website_url" className="text-foreground">
+                Website
+              </Label>
+              <Input
+                id="website_url"
+                type="url"
+                value={formData.website_url || ''}
+                onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                placeholder="https://..."
+                className="border-input bg-background text-foreground"
+              />
+            </div>
           </div>
 
-          {/* Website */}
-          <div>
-            <label htmlFor="website_url" className="block text-sm font-medium text-gray-700">
-              Website
-            </label>
-            <input
-              type="url"
-              id="website_url"
-              value={formData.website_url || ''}
-              onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-              placeholder="https://yourwebsite.com"
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* University */}
-            <div>
-              <label htmlFor="university_name" className="block text-sm font-medium text-gray-700">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="university_name" className="text-foreground">
                 Trường đại học
-              </label>
-              <input
-                type="text"
+              </Label>
+              <Input
                 id="university_name"
                 value={formData.university_name || ''}
                 onChange={(e) => setFormData({ ...formData, university_name: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                className="border-input bg-background text-foreground"
               />
             </div>
-
-            {/* Major */}
-            <div>
-              <label htmlFor="major" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <Label htmlFor="degree" className="text-foreground">
+                Bằng cấp
+              </Label>
+              <Input
+                id="degree"
+                value={formData.degree || ''}
+                onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
+                placeholder="VD: Cử nhân, Thạc sĩ"
+                className="border-input bg-background text-foreground"
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="major" className="text-foreground">
                 Chuyên ngành
-              </label>
-              <input
-                type="text"
+              </Label>
+              <Input
                 id="major"
                 value={formData.major || ''}
                 onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                className="border-input bg-background text-foreground"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="years_of_experience" className="text-foreground">
+                Số năm kinh nghiệm
+              </Label>
+              <Input
+                id="years_of_experience"
+                type="number"
+                min={0}
+                value={formData.years_of_experience ?? ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    years_of_experience: parseInt(e.target.value, 10) || 0,
+                  })
+                }
+                className="border-input bg-background text-foreground"
               />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Current Company */}
-            <div>
-              <label htmlFor="current_company" className="block text-sm font-medium text-gray-700">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="current_company" className="text-foreground">
                 Công ty hiện tại
-              </label>
-              <input
-                type="text"
+              </Label>
+              <Input
                 id="current_company"
                 value={formData.current_company || ''}
                 onChange={(e) => setFormData({ ...formData, current_company: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                className="border-input bg-background text-foreground"
               />
             </div>
-
-            {/* Current Job Title */}
-            <div>
-              <label htmlFor="current_job_title" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-2">
+              <Label htmlFor="current_job_title" className="text-foreground">
                 Chức vụ
-              </label>
-              <input
-                type="text"
+              </Label>
+              <Input
                 id="current_job_title"
                 value={formData.current_job_title || ''}
                 onChange={(e) => setFormData({ ...formData, current_job_title: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
+                className="border-input bg-background text-foreground"
               />
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Section 3: Expertises (Dynamic Array) */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">Lĩnh vực chuyên môn</h2>
-        
-        {/* Display current expertises */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {formData.expertises?.map((expertise) => (
-            <span
-              key={expertise}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
-            >
-              {expertise}
-              <button
-                type="button"
-                onClick={() => removeExpertise(expertise)}
-                className="ml-1 rounded-full hover:bg-blue-200"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </span>
-          ))}
-        </div>
-
-        {/* Add new expertise */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newExpertise}
-            onChange={(e) => setNewExpertise(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addExpertise())}
-            placeholder="Thêm lĩnh vực chuyên môn..."
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-          />
-          <button
-            type="button"
-            onClick={addExpertise}
-            className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-          >
-            <Plus className="h-4 w-4" />
-            Thêm
-          </button>
-        </div>
-      </div>
-
-      {/* Section 4: Achievements (Dynamic Array) */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">Thành tích nổi bật</h2>
-        
-        {/* Display current achievements */}
-        <div className="mb-4 space-y-2">
-          {formData.outstanding_achievements?.map((achievement, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3"
-            >
-              <div>
-                <span className="font-medium text-gray-900">{achievement.title}</span>
-                <span className="ml-2 text-sm text-gray-500">({achievement.year})</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => removeAchievement(index)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <X className="h-5 w-5" />
-              </button>
+      {/* Section 3: Expertises */}
+      <Card className="border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/20 text-accent-foreground dark:bg-accent/30">
+              <Sparkles className="h-4 w-4" />
             </div>
-          ))}
-        </div>
+            <div>
+              <CardTitle className="text-foreground">Lĩnh vực chuyên môn</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Thêm các lĩnh vực bạn có kinh nghiệm tư vấn
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {formData.expertises?.map((expertise, idx) => (
+              <Badge
+                key={expertise}
+                variant={idx % 3 === 0 ? 'default' : idx % 3 === 1 ? 'secondary' : 'outline'}
+                className="gap-1 py-1.5 pl-2.5 pr-1"
+              >
+                {expertise}
+                <button
+                  type="button"
+                  onClick={() => removeExpertise(expertise)}
+                  className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20 dark:hover:bg-primary/30"
+                  aria-label="Xóa"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={newExpertise}
+              onChange={(e) => setNewExpertise(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addExpertise())}
+              placeholder="Thêm lĩnh vực chuyên môn..."
+              className="border-input bg-background text-foreground"
+            />
+            <Button type="button" variant="secondary" size="default" onClick={addExpertise} className="gap-2 shrink-0">
+              <Plus className="h-4 w-4" />
+              Thêm
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Add new achievement */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newAchievement.title}
-            onChange={(e) => setNewAchievement({ ...newAchievement, title: e.target.value })}
-            placeholder="Tên thành tích..."
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-          />
-          <input
-            type="number"
-            value={newAchievement.year}
-            onChange={(e) => setNewAchievement({ ...newAchievement, year: parseInt(e.target.value) })}
-            placeholder="Năm"
-            className="w-24 rounded-lg border border-gray-300 px-3 py-2 focus:border-[#0f4c81] focus:outline-none focus:ring-1 focus:ring-[#0f4c81]"
-          />
-          <button
-            type="button"
-            onClick={addAchievement}
-            className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-          >
-            <Plus className="h-4 w-4" />
-            Thêm
-          </button>
-        </div>
-      </div>
+      {/* Section 4: Achievements */}
+      <Card className="border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Award className="h-4 w-4" />
+            </div>
+            <div>
+              <CardTitle className="text-foreground">Thành tích nổi bật</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Giải thưởng, học bổng hoặc thành tựu đáng chú ý
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            {formData.outstanding_achievements?.map((achievement, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 dark:bg-muted/20"
+              >
+                <span className="text-sm font-medium text-foreground">
+                  {achievement.title}
+                  <span className="ml-2 text-muted-foreground">({achievement.year})</span>
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => removeAchievement(index)}
+                  className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  aria-label="Xóa thành tích"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="flex-1 space-y-2">
+              <Label className="text-foreground sr-only">Tên thành tích</Label>
+              <Input
+                value={newAchievement.title}
+                onChange={(e) => setNewAchievement({ ...newAchievement, title: e.target.value })}
+                placeholder="Tên thành tích..."
+                className="border-input bg-background text-foreground"
+              />
+            </div>
+            <div className="w-full sm:w-24 space-y-2">
+              <Label className="text-foreground sr-only">Năm</Label>
+              <Input
+                type="number"
+                value={newAchievement.year}
+                onChange={(e) =>
+                  setNewAchievement({ ...newAchievement, year: parseInt(e.target.value) || new Date().getFullYear() })
+                }
+                placeholder="Năm"
+                className="border-input bg-background text-foreground"
+              />
+            </div>
+            <Button type="button" variant="secondary" size="default" onClick={addAchievement} className="gap-2 shrink-0">
+              <Plus className="h-4 w-4" />
+              Thêm
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Submit Button */}
-      <div className="flex justify-end">
-        <button
+      {/* Submit */}
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Button
           type="submit"
           disabled={isSaving}
-          className="flex items-center gap-2 rounded-lg bg-[#0f4c81] px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {isSaving ? (
             <>
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
               Đang lưu...
             </>
           ) : (
             <>
-              <Save className="h-5 w-5" />
+              <Save className="h-4 w-4" />
               Lưu thay đổi
             </>
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );
