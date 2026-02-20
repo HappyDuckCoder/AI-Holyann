@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, UserFormData } from '@/types/admin'
+import { User, UserFormData, MentorType } from '@/types/admin'
 import {
     Dialog,
     DialogContent,
@@ -27,6 +27,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
         role: 'STUDENT',
         is_active: true,
         password: '',
+        mentor_type: undefined,
     })
     const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -39,6 +40,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
                 role: user.role,
                 is_active: user.is_active,
                 password: '',
+                mentor_type: undefined,
             })
         } else {
             setFormData({
@@ -48,6 +50,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
                 role: 'STUDENT',
                 is_active: true,
                 password: '',
+                mentor_type: undefined,
             })
         }
         setErrors({})
@@ -65,6 +68,10 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
             newErrors.password = 'Password is required'
         } else if (!user && formData.password && formData.password.length < 6) {
             newErrors.password = 'Password must be at least 6 characters'
+        }
+        // Validate mentor_type when role is MENTOR
+        if (formData.role === 'MENTOR' && !formData.mentor_type) {
+            newErrors.mentor_type = 'Mentor type is required'
         }
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
@@ -156,7 +163,15 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
                         <label className="block text-sm font-medium text-foreground mb-1.5">Role</label>
                         <select
                             value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
+                            onChange={(e) => {
+                                const newRole = e.target.value as User['role'];
+                                setFormData({
+                                    ...formData,
+                                    role: newRole,
+                                    // Reset mentor_type when switching away from MENTOR
+                                    mentor_type: newRole === 'MENTOR' ? formData.mentor_type : undefined
+                                });
+                            }}
                             className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
                         >
                             <option value="STUDENT">Student</option>
@@ -164,6 +179,27 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
                             <option value="ADMIN">Admin</option>
                         </select>
                     </div>
+                    {/* Mentor Type dropdown - only show when role is MENTOR */}
+                    {formData.role === 'MENTOR' && (
+                        <div>
+                            <label className="block text-sm font-medium text-foreground mb-1.5">
+                                Mentor Type <span className="text-destructive">*</span>
+                            </label>
+                            <select
+                                value={formData.mentor_type || ''}
+                                onChange={(e) => setFormData({ ...formData, mentor_type: e.target.value as MentorType })}
+                                className={`w-full px-3 py-2 border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary ${errors.mentor_type ? 'border-destructive' : 'border-border'}`}
+                            >
+                                <option value="">-- Select mentor type --</option>
+                                <option value="AS">AS - Academic Support</option>
+                                <option value="ACS">ACS - Academic Counseling Support</option>
+                                <option value="ARD">ARD - Admission & Research Development</option>
+                            </select>
+                            {errors.mentor_type && (
+                                <p className="text-destructive text-xs mt-1">{errors.mentor_type}</p>
+                            )}
+                        </div>
+                    )}
                     <label className="flex items-center gap-2 cursor-pointer">
                         <input
                             type="checkbox"

@@ -44,21 +44,35 @@ const MENTOR_TYPE_INFO = {
     }
 }
 
+type MentorType = 'AS' | 'ACS' | 'ARD'
+
+interface SelectedMentors {
+    AS: string
+    ACS: string
+    ARD: string
+}
+
 export default function AssignMentorForm({ students, mentors }: AssignMentorFormProps) {
     const [selectedStudent, setSelectedStudent] = useState<string>('')
-    const [selectedMentor, setSelectedMentor] = useState<string>('')
-    const [mentorType, setMentorType] = useState<'AS' | 'ACS' | 'ARD'>('AS')
+    // Store selected mentor for each type
+    const [selectedMentors, setSelectedMentors] = useState<SelectedMentors>({
+        AS: '',
+        ACS: '',
+        ARD: ''
+    })
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
     const [currentAssignments, setCurrentAssignments] = useState<any[]>([])
 
-    // Filter mentors by selected type and ensure they have valid IDs
-    const availableMentors = mentors.filter(m => m.specialization === mentorType && m.id)
+    // Get available mentors for each type
+    const getMentorsByType = (type: MentorType) => mentors.filter(m => m.specialization === type && m.id)
 
     // Load current assignments when student changes
     useEffect(() => {
         if (selectedStudent) {
             loadAssignments()
+            // Reset selected mentors when student changes
+            setSelectedMentors({ AS: '', ACS: '', ARD: '' })
         }
     }, [selectedStudent])
 
@@ -71,13 +85,35 @@ export default function AssignMentorForm({ students, mentors }: AssignMentorForm
         }
     }
 
+    // Update selected mentor for a specific type
+    const handleMentorSelect = (type: MentorType, mentorId: string) => {
+        setSelectedMentors(prev => ({
+            ...prev,
+            [type]: mentorId
+        }))
+    }
+
+    // Check if any mentor is selected
+    const hasSelectedMentors = Object.values(selectedMentors).some(id => id !== '')
+
+    // Get count of selected mentors
+    const selectedCount = Object.values(selectedMentors).filter(id => id !== '').length
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!selectedStudent || !selectedMentor || !mentorType) {
+        if (!selectedStudent) {
             setMessage({
                 type: 'error',
-                text: 'Vui lòng chọn đầy đủ thông tin'
+                text: 'Vui lòng chọn học viên'
+            })
+            return
+        }
+
+        if (!hasSelectedMentors) {
+            setMessage({
+                type: 'error',
+                text: 'Vui lòng chọn ít nhất một mentor'
             })
             return
         }
@@ -86,39 +122,50 @@ export default function AssignMentorForm({ students, mentors }: AssignMentorForm
         setMessage(null)
 
         try {
-            const result = await assignMentorToStudent(
-                selectedStudent,
-                selectedMentor,
-                mentorType
-            )
+            const results: { type: string; success: boolean; message: string }[] = []
 
-            if (result.success) {
+            // Assign all selected mentors
+            for (const [type, mentorId] of Object.entries(selectedMentors)) {
+                if (mentorId) {
+                    const result = await assignMentorToStudent(
+                        selectedStudent,
+                        mentorId,
+                        type as MentorType
+                    )
+                    results.push({
+                        type,
+                        success: result.success,
+                        message: result.message
+                    })
+                }
+            }
+
+            // Check results
+            const successCount = results.filter(r => r.success).length
+            const failedResults = results.filter(r => !r.success)
+
+            if (successCount === results.length) {
                 setMessage({
                     type: 'success',
-                    text: result.message
+                    text: `✅ Đã gán thành công ${successCount} mentor cho học viên!`
                 })
-
-                // Show additional info
-                if (result.data?.hasFullTeam) {
-                    setTimeout(() => {
-                        setMessage({
-                            type: 'success',
-                            text: `🎉 Học viên đã có đủ 3 mentors! Nhóm hỗ trợ đầy đủ đã được tạo.`
-                        })
-                    }, 2000)
-                }
-
-                // Reset form
-                setSelectedMentor('')
-
-                // Reload assignments
-                await loadAssignments()
+            } else if (successCount > 0) {
+                setMessage({
+                    type: 'success',
+                    text: `✅ Đã gán ${successCount}/${results.length} mentor. Lỗi: ${failedResults.map(r => `${r.type}: ${r.message}`).join(', ')}`
+                })
             } else {
                 setMessage({
                     type: 'error',
-                    text: result.message
+                    text: `Không thể gán mentor: ${failedResults.map(r => r.message).join(', ')}`
                 })
             }
+
+            // Reset selected mentors
+            setSelectedMentors({ AS: '', ACS: '', ARD: '' })
+
+            // Reload assignments
+            await loadAssignments()
         } catch (error) {
             setMessage({
                 type: 'error',
@@ -158,9 +205,7 @@ export default function AssignMentorForm({ students, mentors }: AssignMentorForm
 
     return (
         <div className="space-y-6">
-            <div className="card-holyann">
-                <h2 className="text-2xl font-bold mb-6">Gán Mentor cho Học viên</h2>
-
+            <div>
                 {message && (
                     <div className={`p-4 rounded-lg mb-6 ${
                         message.type === 'success' 
@@ -192,98 +237,69 @@ export default function AssignMentorForm({ students, mentors }: AssignMentorForm
                         </select>
                     </div>
 
-                    {/* Current Assignments */}
-                    {selectedStudent && currentAssignments.length > 0 && (
-                        <div className="bg-muted p-4 rounded-lg">
-                            <h3 className="font-semibold mb-3">Mentors hiện tại:</h3>
-                            <div className="space-y-2">
-                                {['AS', 'ACS', 'ARD'].map(type => {
-                                    const assignment = getAssignmentByType(type)
-                                    const info = MENTOR_TYPE_INFO[type as keyof typeof MENTOR_TYPE_INFO]
+                    {/* Select Mentors for each type */}
+                    {selectedStudent && (
+                        <div className="space-y-4">
+                            <label className="block text-sm font-semibold">
+                                Chọn Mentor cho từng vai trò
+                            </label>
 
-                                    return (
-                                        <div key={type} className="flex items-center justify-between p-2 bg-background rounded">
-                                            <div className="flex items-center gap-2">
-                                                <span>{info.icon}</span>
-                                                <span className="font-medium">{type}:</span>
-                                                {assignment ? (
-                                                    <span>{assignment.mentor.user.full_name}</span>
-                                                ) : (
-                                                    <span className="text-muted-foreground">Chưa gán</span>
-                                                )}
-                                            </div>
-                                            {assignment && (
+                            {(['AS', 'ACS', 'ARD'] as MentorType[]).map(type => {
+                                const info = MENTOR_TYPE_INFO[type]
+                                const mentorsOfType = getMentorsByType(type)
+                                const currentAssignment = getAssignmentByType(type)
+                                const isAlreadyAssigned = !!currentAssignment
+
+                                return (
+                                    <div key={type} className="p-4 border border-border rounded-lg">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-xl">{info.icon}</span>
+                                            <span className="font-semibold">{type}</span>
+                                            <span className="text-sm text-muted-foreground">- {info.description}</span>
+                                        </div>
+
+                                        {isAlreadyAssigned ? (
+                                            <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                                                <span className="text-green-700 dark:text-green-400">
+                                                    ✓ Đã gán: {currentAssignment.mentor.user.full_name}
+                                                </span>
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleUnassign(type as any)}
+                                                    onClick={() => handleUnassign(type)}
                                                     className="text-red-600 hover:text-red-700 text-sm"
                                                     disabled={loading}
                                                 >
                                                     Hủy gán
                                                 </button>
-                                            )}
-                                        </div>
-                                    )
-                                })}
-                            </div>
+                                            </div>
+                                        ) : mentorsOfType.length === 0 ? (
+                                            <div className="text-muted-foreground p-2 bg-muted rounded">
+                                                Không có mentor nào với chuyên môn {type}
+                                            </div>
+                                        ) : (
+                                            <select
+                                                value={selectedMentors[type]}
+                                                onChange={(e) => handleMentorSelect(type, e.target.value)}
+                                                className="input-holyann w-full"
+                                            >
+                                                <option value="">-- Chọn mentor {type} --</option>
+                                                {mentorsOfType.map(mentor => (
+                                                    <option key={mentor.id} value={mentor.id}>
+                                                        {mentor.name} - {mentor.university} (⭐ {mentor.rating})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                )
+                            })}
                         </div>
                     )}
-
-                    {/* Select Mentor Type */}
-                    <div>
-                        <label className="block text-sm font-semibold mb-2">
-                            Loại Mentor <span className="text-red-500">*</span>
-                        </label>
-                        <div className="grid grid-cols-3 gap-3">
-                            {Object.entries(MENTOR_TYPE_INFO).map(([key, info]) => (
-                                <button
-                                    key={key}
-                                    type="button"
-                                    onClick={() => setMentorType(key as any)}
-                                    className={`p-4 rounded-lg border-2 transition-all ${
-                                        mentorType === key
-                                            ? `border-${info.color}-600 bg-${info.color}-50 dark:bg-${info.color}-900/20`
-                                            : 'border-border hover:border-primary'
-                                    }`}
-                                >
-                                    <div className="text-2xl mb-1">{info.icon}</div>
-                                    <div className="font-bold text-sm">{key}</div>
-                                    <div className="text-xs text-muted-foreground">{info.description}</div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Select Mentor */}
-                    <div>
-                        <label className="block text-sm font-semibold mb-2">
-                            Chọn Mentor ({mentorType}) <span className="text-red-500">*</span>
-                        </label>
-                        {availableMentors.length === 0 ? (
-                            <div className="text-muted-foreground p-4 bg-muted rounded-lg">
-                                Không có mentor nào với chuyên môn {mentorType}
-                            </div>
-                        ) : (
-                            <select
-                                value={selectedMentor}
-                                onChange={(e) => setSelectedMentor(e.target.value)}
-                                className="input-holyann w-full"
-                                required
-                            >
-                                <option value="">-- Chọn mentor --</option>
-                                {availableMentors.map(mentor => (
-                                    <option key={mentor.id} value={mentor.id}>
-                                        {mentor.name} - {mentor.university} (⭐ {mentor.rating})
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                    </div>
 
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        disabled={loading || !selectedStudent || !selectedMentor}
+                        disabled={loading || !selectedStudent || !hasSelectedMentors}
                         className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? (
@@ -294,7 +310,7 @@ export default function AssignMentorForm({ students, mentors }: AssignMentorForm
                         ) : (
                             <>
                                 <i className="fas fa-user-plus mr-2"></i>
-                                Gán Mentor
+                                Gán {selectedCount > 0 ? `${selectedCount} ` : ''}Mentor
                             </>
                         )}
                     </button>
@@ -302,7 +318,7 @@ export default function AssignMentorForm({ students, mentors }: AssignMentorForm
             </div>
 
             {/* Info Box */}
-            <div className="card-holyann bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
                 <h3 className="font-bold mb-3 flex items-center gap-2">
                     <i className="fas fa-info-circle text-blue-600"></i>
                     Lưu ý

@@ -102,6 +102,7 @@ export async function GET() {
                 status: true,
                 submission_url: true,
                 mentor_note: true,
+                deadline: true,
                 completed_at: true,
                 created_at: true,
                 updated_at: true
