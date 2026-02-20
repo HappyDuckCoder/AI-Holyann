@@ -1,16 +1,16 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/auth-config';
-import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/auth-config";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   CalendarClock,
   AlertTriangle,
   Clock,
   Calendar,
   Users,
-  ExternalLink
-} from 'lucide-react';
+} from "lucide-react";
+import MentorDeadlineViewCell from "@/components/mentor/deadlines/MentorDeadlineViewCell";
 
 // Helper function to get deadline status with colors
 function getDeadlineStatus(deadline: Date) {
@@ -22,71 +22,99 @@ function getDeadlineStatus(deadline: Date) {
   const diffTime = deadlineDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  const formattedDate = deadlineDate.toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
+  const formattedDate = deadlineDate.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   });
 
   if (diffDays < 0) {
     return {
       label: formattedDate,
       sublabel: `Quá hạn ${Math.abs(diffDays)} ngày`,
-      colorClass: 'text-destructive font-bold',
-      bgClass: 'bg-destructive/10 dark:bg-destructive/20',
-      badgeClass: 'bg-destructive/20 text-destructive dark:bg-destructive/30 dark:text-destructive',
-      rowClass: 'bg-destructive/5 hover:bg-destructive/10 dark:bg-destructive/10 dark:hover:bg-destructive/20',
+      colorClass: "text-destructive font-bold",
+      bgClass: "bg-destructive/10 dark:bg-destructive/20",
+      badgeClass:
+        "bg-destructive/20 text-destructive dark:bg-destructive/30 dark:text-destructive",
+      rowClass:
+        "bg-destructive/5 hover:bg-destructive/10 dark:bg-destructive/10 dark:hover:bg-destructive/20",
       icon: AlertTriangle,
-      iconColor: 'text-destructive',
-      priority: 1
+      iconColor: "text-destructive",
+      priority: 1,
     };
   }
   if (diffDays === 0) {
     return {
       label: formattedDate,
-      sublabel: 'Hôm nay!',
-      colorClass: 'text-accent-foreground font-semibold',
-      bgClass: 'bg-accent/10 dark:bg-accent/20',
-      badgeClass: 'bg-accent/20 text-accent-foreground dark:bg-accent/30',
-      rowClass: 'bg-accent/5 hover:bg-accent/10 dark:bg-accent/10 dark:hover:bg-accent/20',
+      sublabel: "Hôm nay!",
+      colorClass: "text-accent-foreground font-semibold",
+      bgClass: "bg-accent/10 dark:bg-accent/20",
+      badgeClass: "bg-accent/20 text-accent-foreground dark:bg-accent/30",
+      rowClass:
+        "bg-accent/5 hover:bg-accent/10 dark:bg-accent/10 dark:hover:bg-accent/20",
       icon: AlertTriangle,
-      iconColor: 'text-accent-foreground',
-      priority: 1
+      iconColor: "text-accent-foreground",
+      priority: 1,
     };
   }
   if (diffDays <= 3) {
     return {
       label: formattedDate,
       sublabel: `Còn ${diffDays} ngày`,
-      colorClass: 'text-amber-600 dark:text-amber-400 font-medium',
-      bgClass: 'bg-amber-500/10 dark:bg-amber-500/20',
-      badgeClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-      rowClass: 'bg-muted/30 hover:bg-muted/50 dark:bg-muted/20 dark:hover:bg-muted/40',
+      colorClass: "text-amber-600 dark:text-amber-400 font-medium",
+      bgClass: "bg-amber-500/10 dark:bg-amber-500/20",
+      badgeClass:
+        "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+      rowClass:
+        "bg-muted/30 hover:bg-muted/50 dark:bg-muted/20 dark:hover:bg-muted/40",
       icon: Clock,
-      iconColor: 'text-amber-500 dark:text-amber-400',
-      priority: 2
+      iconColor: "text-amber-500 dark:text-amber-400",
+      priority: 2,
     };
   }
   return {
     label: formattedDate,
     sublabel: `Còn ${diffDays} ngày`,
-    colorClass: 'text-muted-foreground',
-    bgClass: '',
-    badgeClass: 'bg-muted text-muted-foreground dark:bg-muted/80',
-    rowClass: 'hover:bg-muted/30 dark:hover:bg-muted/20',
+    colorClass: "text-muted-foreground",
+    bgClass: "",
+    badgeClass: "bg-muted text-muted-foreground dark:bg-muted/80",
+    rowClass: "hover:bg-muted/30 dark:hover:bg-muted/20",
     icon: Calendar,
-    iconColor: 'text-muted-foreground',
-    priority: 3
+    iconColor: "text-muted-foreground",
+    priority: 3,
   };
 }
 
 function getStatusLabel(status: string) {
   switch (status) {
-    case 'COMPLETED': return { label: 'Hoàn thành', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' };
-    case 'SUBMITTED': return { label: 'Chờ review', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' };
-    case 'IN_PROGRESS': return { label: 'Đang làm', class: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' };
-    case 'NEEDS_REVISION': return { label: 'Cần sửa', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' };
-    default: return { label: 'Chưa bắt đầu', class: 'bg-muted text-muted-foreground dark:bg-muted/80' };
+    case "COMPLETED":
+      return {
+        label: "Hoàn thành",
+        class:
+          "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+      };
+    case "SUBMITTED":
+      return {
+        label: "Chờ review",
+        class:
+          "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+      };
+    case "IN_PROGRESS":
+      return {
+        label: "Đang làm",
+        class:
+          "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+      };
+    case "NEEDS_REVISION":
+      return {
+        label: "Cần sửa",
+        class: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+      };
+    default:
+      return {
+        label: "Chưa bắt đầu",
+        class: "bg-muted text-muted-foreground dark:bg-muted/80",
+      };
   }
 }
 
@@ -94,7 +122,7 @@ export default async function MentorDeadlinesPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect('/login');
+    redirect("/login");
   }
 
   const mentorId = session.user.id;
@@ -103,14 +131,14 @@ export default async function MentorDeadlinesPage() {
   const assignments = await prisma.mentor_assignments.findMany({
     where: {
       mentor_id: mentorId,
-      status: 'ACTIVE'
+      status: "ACTIVE",
     },
     select: {
-      student_id: true
-    }
+      student_id: true,
+    },
   });
 
-  const studentIds = assignments.map(a => a.student_id);
+  const studentIds = assignments.map((a) => a.student_id);
 
   if (studentIds.length === 0) {
     return (
@@ -133,8 +161,12 @@ export default async function MentorDeadlinesPage() {
           </header>
           <div className="rounded-xl border border-border bg-card py-12 text-center">
             <Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="mb-2 text-lg font-medium text-foreground">Chưa có học viên</h3>
-            <p className="text-muted-foreground">Bạn chưa được phân công quản lý học viên nào</p>
+            <h3 className="mb-2 text-lg font-medium text-foreground">
+              Chưa có học viên
+            </h3>
+            <p className="text-muted-foreground">
+              Bạn chưa được phân công quản lý học viên nào
+            </p>
           </div>
         </div>
       </div>
@@ -147,7 +179,7 @@ export default async function MentorDeadlinesPage() {
     where: {
       student_id: { in: studentIds },
       deadline: { not: null },
-      status: { in: ['PENDING', 'IN_PROGRESS', 'NEEDS_REVISION'] }
+      status: { in: ["PENDING", "IN_PROGRESS", "NEEDS_REVISION"] },
     },
     include: {
       task: {
@@ -156,10 +188,10 @@ export default async function MentorDeadlinesPage() {
           title: true,
           stage: {
             select: {
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       },
       student: {
         select: {
@@ -167,26 +199,27 @@ export default async function MentorDeadlinesPage() {
           users: {
             select: {
               full_name: true,
-              email: true
-            }
-          }
-        }
-      }
+              email: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
-      deadline: 'asc'
-    }
+      deadline: "asc",
+    },
   });
 
-  // Process and sort by priority
+  // Process and sort by priority (item may include mentor_note, student_note from schema)
+  type TaskItem = (typeof tasksWithDeadlines)[0] & { mentor_note?: string | null; student_note?: string | null };
   const processedTasks = tasksWithDeadlines
-    .filter(t => t.task && t.deadline)
-    .map(t => {
+    .filter((t): t is TaskItem => !!t.task && !!t.deadline)
+    .map((t) => {
       const deadlineStatus = getDeadlineStatus(t.deadline!);
       return {
         ...t,
-        deadlineStatus
-      };
+        deadlineStatus,
+      } as TaskItem & { deadlineStatus: ReturnType<typeof getDeadlineStatus> };
     })
     .sort((a, b) => {
       // Sort by priority first, then by deadline
@@ -197,9 +230,13 @@ export default async function MentorDeadlinesPage() {
     });
 
   // Stats
-  const overdueCount = processedTasks.filter(t => t.deadlineStatus.priority === 1).length;
-  const urgentCount = processedTasks.filter(t => t.deadlineStatus.priority === 2).length;
-  const totalStudents = new Set(processedTasks.map(t => t.student_id)).size;
+  const overdueCount = processedTasks.filter(
+    (t) => t.deadlineStatus.priority === 1,
+  ).length;
+  const urgentCount = processedTasks.filter(
+    (t) => t.deadlineStatus.priority === 2,
+  ).length;
+  const totalStudents = new Set(processedTasks.map((t) => t.student_id)).size;
 
   return (
     <div className="min-h-[calc(100vh-theme(spacing.14))] bg-background">
@@ -222,19 +259,29 @@ export default async function MentorDeadlinesPage() {
 
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-destructive">{overdueCount}</p>
+            <p className="text-2xl font-bold text-destructive">
+              {overdueCount}
+            </p>
             <p className="text-sm text-muted-foreground">Quá hạn / Hôm nay</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{urgentCount}</p>
-            <p className="text-sm text-muted-foreground">Sắp hết hạn (≤3 ngày)</p>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+              {urgentCount}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Sắp hết hạn (≤3 ngày)
+            </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-primary">{processedTasks.length}</p>
+            <p className="text-2xl font-bold text-primary">
+              {processedTasks.length}
+            </p>
             <p className="text-sm text-muted-foreground">Tổng nhiệm vụ</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{totalStudents}</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              {totalStudents}
+            </p>
             <p className="text-sm text-muted-foreground">Học viên liên quan</p>
           </div>
         </div>
@@ -242,9 +289,12 @@ export default async function MentorDeadlinesPage() {
         {processedTasks.length === 0 ? (
           <div className="rounded-xl border border-border bg-card py-12 text-center">
             <Calendar className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="mb-2 text-lg font-medium text-foreground">Không có deadline nào cần theo dõi</h3>
+            <h3 className="mb-2 text-lg font-medium text-foreground">
+              Không có deadline nào cần theo dõi
+            </h3>
             <p className="text-muted-foreground">
-              Tất cả học viên đã hoàn thành nhiệm vụ hoặc chưa có deadline được đặt
+              Tất cả học viên đã hoàn thành nhiệm vụ hoặc chưa có deadline được
+              đặt
             </p>
           </div>
         ) : (
@@ -257,6 +307,7 @@ export default async function MentorDeadlinesPage() {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Nhiệm vụ</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Hạn chót</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Trạng thái</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">Ghi chú</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-muted-foreground sm:px-6">Hành động</th>
                   </tr>
                 </thead>
@@ -264,6 +315,20 @@ export default async function MentorDeadlinesPage() {
                   {processedTasks.map((item) => {
                     const StatusIcon = item.deadlineStatus.icon;
                     const statusInfo = getStatusLabel(item.status);
+                    const viewItem = {
+                      id: item.id,
+                      student_id: item.student_id,
+                      studentName: item.student?.users?.full_name || "Không rõ",
+                      studentEmail: item.student?.users?.email ?? null,
+                      taskTitle: item.task?.title ?? "",
+                      stageName: item.task?.stage?.name ?? null,
+                      deadlineLabel: item.deadlineStatus.label,
+                      deadlineSublabel: item.deadlineStatus.sublabel,
+                      statusLabel: statusInfo.label,
+                      statusClass: statusInfo.class,
+                      mentor_note: item.mentor_note ?? null,
+                      student_note: item.student_note ?? null,
+                    };
                     return (
                       <tr
                         key={item.id}
@@ -274,36 +339,51 @@ export default async function MentorDeadlinesPage() {
                             href={`/mentor/student/${item.student_id}`}
                             className="font-medium text-foreground hover:text-primary hover:underline"
                           >
-                            {item.student?.users?.full_name || 'Không rõ'}
+                            {item.student?.users?.full_name || "Không rõ"}
                           </Link>
-                          <div className="mt-0.5 text-xs text-muted-foreground">{item.student?.users?.email}</div>
+                          <div className="mt-0.5 text-xs text-muted-foreground">
+                            {item.student?.users?.email}
+                          </div>
                         </td>
                         <td className="px-4 py-3 sm:px-6">
-                          <div className="font-medium text-foreground">{item.task?.title}</div>
-                          <div className="mt-0.5 text-xs text-muted-foreground">{item.task?.stage?.name}</div>
+                          <div className="font-medium text-foreground">
+                            {item.task?.title}
+                          </div>
+                          <div className="mt-0.5 text-xs text-muted-foreground">
+                            {item.task?.stage?.name}
+                          </div>
                         </td>
                         <td className="px-4 py-3 sm:px-6">
-                          <div className={`flex items-center gap-2 ${item.deadlineStatus.colorClass}`}>
-                            <StatusIcon className={`h-4 w-4 shrink-0 ${item.deadlineStatus.iconColor}`} />
+                          <div
+                            className={`flex items-center gap-2 ${item.deadlineStatus.colorClass}`}
+                          >
+                            <StatusIcon
+                              className={`h-4 w-4 shrink-0 ${item.deadlineStatus.iconColor}`}
+                            />
                             <div>
-                              <div className="text-sm">{item.deadlineStatus.label}</div>
-                              <div className="text-xs opacity-80">{item.deadlineStatus.sublabel}</div>
+                              <div className="text-sm">
+                                {item.deadlineStatus.label}
+                              </div>
+                              <div className="text-xs opacity-80">
+                                {item.deadlineStatus.sublabel}
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 sm:px-6">
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusInfo.class}`}>
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusInfo.class}`}
+                          >
                             {statusInfo.label}
                           </span>
                         </td>
+                        <td className="max-w-[180px] px-4 py-3 sm:px-6">
+                          <span className="line-clamp-2 text-sm text-muted-foreground">
+                            {item.mentor_note || item.student_note || "—"}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-center sm:px-6">
-                          <Link
-                            href={`/mentor/student/${item.student_id}`}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                          >
-                            Chi tiết
-                            <ExternalLink className="h-3 w-3" />
-                          </Link>
+                          <MentorDeadlineViewCell item={viewItem} />
                         </td>
                       </tr>
                     );
