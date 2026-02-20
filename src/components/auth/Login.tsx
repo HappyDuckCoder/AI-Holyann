@@ -1,231 +1,310 @@
 "use client";
+
 import Image from "next/image";
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { LoginData } from "@/lib/types/auth.types";
+import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
+
+type Step = "identity" | "email" | "password";
+type Identity = "student" | "mentor" | null;
+
+const slide = {
+  enter: (dir: number) => ({ x: dir * 24, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir * -24, opacity: 0 }),
+};
 
 export default function Login() {
   const router = useRouter();
+  const [step, setStep] = useState<Step>("identity");
+  const [identity, setIdentity] = useState<Identity>(null);
+  const [direction, setDirection] = useState(0);
+  const [loginData, setLoginData] = useState<LoginData>({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
-
-  const [loginData, setLoginData] = useState<LoginData>({
-    email: "",
-    password: "",
-  });
   const [errorMessage, setErrorMessage] = useState("");
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const goTo = (next: Step, d: number) => {
+    setDirection(d);
+    setErrorMessage("");
+    setStep(next);
+  };
+
+  const handleSubmitEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginData.email?.trim()) return;
+    goTo("password", 1);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
     setIsLoading(true);
-
     try {
       const result = await signIn("credentials", {
         redirect: false,
         email: loginData.email,
         password: loginData.password,
       });
-
       if (result?.error) {
         setErrorMessage("Email hoặc mật khẩu không chính xác");
       } else {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (error) {
-      console.error("Login error:", error);
+    } catch {
       setErrorMessage("Đã xảy ra lỗi trong quá trình đăng nhập");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLoginData((prev: LoginData) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const handleGoogleSignIn = async () => {
     try {
       await signIn("google", { callbackUrl: "/dashboard" });
-    } catch (error) {
-      console.error("Google sign in error:", error);
+    } catch {
       setErrorMessage("Đăng nhập Google thất bại");
     }
   };
 
   return (
-    <div className="w-full max-w-5xl bg-white dark:bg-card rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100 dark:border-white/10 transition-all duration-300">
-      {/* LEFT SIDE - IMAGE */}
-      <div className="w-full md:w-1/2 relative h-64 md:h-auto min-h-[400px] md:min-h-[600px] overflow-hidden">
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse flex items-center justify-center z-0">
-            <div className="text-gray-400 text-sm">Đang tải hình ảnh...</div>
-          </div>
-        )}
-        {imageLoaded && (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/90 to-primary/20 mix-blend-multiply z-10"></div>
-            <div className="absolute bottom-8 left-8 right-8 text-white z-20">
-              <h2 className="text-3xl font-heading font-bold mb-2 text-white">
-                Holyann Explore
-              </h2>
-              <p className="text-lg opacity-90 font-sans">
-                Chào mừng bạn trở lại!
+    <div className="w-full max-w-md mx-auto">
+      {/* Logo - minimal */}
+      <Link
+        href="/"
+        className="inline-block mb-12 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 rounded-lg"
+      >
+        <Image
+          src="/images/logos/Logo_Holyann_ngang-removebg-preview.png"
+          alt="Holyann"
+          width={120}
+          height={32}
+          className="h-8 w-auto object-contain dark:invert-0 opacity-90 hover:opacity-100 transition-opacity"
+          priority
+        />
+      </Link>
+
+      <AnimatePresence mode="wait" custom={direction}>
+        {/* Step: Identity (optional) */}
+        {step === "identity" && (
+          <motion.div
+            key="identity"
+            custom={direction}
+            variants={slide}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="space-y-10"
+          >
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-heading font-semibold tracking-tight text-foreground">
+                Đăng nhập
+              </h1>
+              <p className="mt-2 text-muted-foreground">
+                Bạn đăng nhập với tư cách
               </p>
             </div>
-          </>
-        )}
-        <Image
-          src="/images/auth/left.jpg"
-          alt="Students studying"
-          fill
-          className={`object-cover transition-opacity duration-300 ${
-            imageLoaded ? "opacity-100" : "opacity-0"
-          }`}
-          loading="eager"
-          priority
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setImageLoaded(false)}
-        />
-      </div>
-
-      {/* RIGHT SIDE - FORM */}
-      <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white dark:bg-card transition-colors overflow-y-auto">
-        <div className="max-w-md mx-auto w-full">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-heading font-bold text-primary dark:text-sky-400 mb-2">
-              Đăng Nhập
-            </h1>
-            <p className="text-muted-foreground">
-              Tiếp tục hành trình du học của bạn
-            </p>
-          </div>
-
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-4">
-              {errorMessage}
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-semibold text-foreground mb-2"
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIdentity("student");
+                  goTo("email", 1);
+                }}
+                className="flex-1 py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted border border-transparent hover:border-primary/30 transition-all duration-200"
               >
-                Email
-              </label>
+                Học viên
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIdentity("mentor");
+                  goTo("email", 1);
+                }}
+                className="flex-1 py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted border border-transparent hover:border-primary/30 transition-all duration-200"
+              >
+                Mentor
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Chọn vai trò để tiếp tục. Bạn có thể đổi sau.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Step: Email */}
+        {step === "email" && (
+          <motion.form
+            key="email"
+            custom={direction}
+            variants={slide}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            onSubmit={handleSubmitEmail}
+            className="space-y-8"
+          >
+            <button
+              type="button"
+              onClick={() => goTo("identity", -1)}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors -ml-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Quay lại
+            </button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-heading font-semibold tracking-tight text-foreground">
+                Email của bạn là gì?
+              </h1>
+              <p className="mt-2 text-muted-foreground">
+                Nhập email bạn dùng để đăng ký
+              </p>
+            </div>
+            <div className="space-y-4">
               <input
                 type="email"
-                id="email"
-                name="email"
+                autoFocus
                 value={loginData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                onChange={(e) => {
+                  setLoginData((p) => ({ ...p, email: e.target.value }));
+                  setErrorMessage("");
+                }}
                 placeholder="name@example.com"
                 required
-                disabled={isLoading}
+                className="w-full px-0 py-3 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border focus:border-primary focus:outline-none focus:ring-0 transition-colors"
               />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-semibold text-foreground mb-2"
+              <button
+                type="submit"
+                disabled={!loginData.email?.trim()}
+                className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
               >
-                Mật khẩu
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={loginData.password}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-muted/30 dark:bg-muted/50 border border-input rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
-                placeholder="••••••••"
-                required
-                disabled={isLoading}
-              />
+                Tiếp tục
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
+          </motion.form>
+        )}
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
+        {/* Step: Password */}
+        {step === "password" && (
+          <motion.form
+            key="password"
+            custom={direction}
+            variants={slide}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            onSubmit={handleLogin}
+            className="space-y-8"
+          >
+            <button
+              type="button"
+              onClick={() => goTo("email", -1)}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors -ml-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Đổi email
+            </button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-heading font-semibold tracking-tight text-foreground">
+                Nhập mật khẩu
+              </h1>
+              <p className="mt-2 text-muted-foreground">
+                Cho <span className="text-foreground font-medium">{loginData.email}</span>
+              </p>
+            </div>
+            <div className="space-y-4">
+              {errorMessage && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-red-600 dark:text-red-400"
+                >
+                  {errorMessage}
+                </motion.p>
+              )}
+              <div className="relative">
                 <input
-                  type="checkbox"
-                  className="w-4 h-4 text-primary bg-muted border-border rounded focus:ring-2 focus:ring-primary"
+                  type={showPassword ? "text" : "password"}
+                  autoFocus
+                  value={loginData.password}
+                  onChange={(e) => {
+                    setLoginData((p) => ({ ...p, password: e.target.value }));
+                    setErrorMessage("");
+                  }}
+                  placeholder="Mật khẩu"
+                  required
+                  disabled={isLoading}
+                  className="w-full px-0 py-3 pr-10 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border focus:border-primary focus:outline-none focus:ring-0 transition-colors disabled:opacity-50"
                 />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  Ghi nhớ đăng nhập
-                </span>
-              </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((p) => !p)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
               <Link
                 href="/forgot-password"
-                className="text-sm text-accent hover:underline font-medium"
+                className="inline-block text-sm text-primary hover:underline"
               >
                 Quên mật khẩu?
               </Link>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-heading font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
-            </button>
-          </form>
-
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            Chưa có tài khoản?{" "}
-            <Link
-              href="/register"
-              className="text-accent hover:underline font-bold"
-            >
-              Đăng ký ngay
-            </Link>
-          </p>
-
-          {/* Google Sign In */}
-          <div className="mt-8">
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-border rounded-xl hover:bg-muted transition-colors dark:text-white group disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg
-                className="w-5 h-5 group-hover:scale-110 transition-transform"
-                viewBox="0 0 24 24"
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-all duration-200"
               >
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-              <span className="font-medium text-sm">Đăng nhập với Google</span>
-            </button>
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  "Đăng nhập"
+                )}
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
+
+      {/* Footer - minimal, no box */}
+      <div className="mt-16 pt-8 space-y-4">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border/60" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-3 text-xs text-muted-foreground">hoặc</span>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2.5 py-3 text-foreground text-sm font-medium hover:bg-muted/50 rounded-xl transition-colors disabled:opacity-50"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden>
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+          </svg>
+          Đăng nhập với Google
+        </button>
+        <p className="text-center text-sm text-muted-foreground">
+          Chưa có tài khoản?{" "}
+          <Link href="/register" className="text-primary hover:underline font-medium">
+            Đăng ký
+          </Link>
+        </p>
       </div>
     </div>
   );
