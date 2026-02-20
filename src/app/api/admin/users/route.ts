@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 // GET - Lấy danh sách người dùng
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const users = await prisma.users.findMany({
             select: {
@@ -36,12 +36,20 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { full_name, email, phone_number, role, is_active, password } = body
+        const { full_name, email, phone_number, role, is_active, password, mentor_type } = body
 
         // Validate required fields
         if (!full_name || !email || !password) {
             return NextResponse.json(
                 { message: 'Thiếu thông tin bắt buộc' },
+                { status: 400 }
+            )
+        }
+
+        // Validate mentor_type when role is MENTOR
+        if (role === 'MENTOR' && !mentor_type) {
+            return NextResponse.json(
+                { message: 'Mentor type is required for mentor role' },
                 { status: 400 }
             )
         }
@@ -61,24 +69,60 @@ export async function POST(request: NextRequest) {
         // Hash password
         const password_hash = await bcrypt.hash(password, 10)
 
-        // Create user
-        const user = await prisma.users.create({
-            data: {
-                id: crypto.randomUUID(),
-                full_name,
-                email,
-                phone_number: phone_number || null,
-                role: role || 'STUDENT',
-                is_active: is_active !== undefined ? is_active : true,
-                password_hash,
-                auth_provider: 'LOCAL'
-            }
-        })
+        // Create user with mentor profile if role is MENTOR
+        const userId = crypto.randomUUID()
 
-        return NextResponse.json(
-            { message: 'Tạo người dùng thành công', user },
-            { status: 201 }
-        )
+        if (role === 'MENTOR') {
+            // Use transaction to create user and mentor profile together
+            const result = await prisma.$transaction(async (tx) => {
+                const user = await tx.users.create({
+                    data: {
+                        id: userId,
+                        full_name,
+                        email,
+                        phone_number: phone_number || null,
+                        role: role,
+                        is_active: is_active !== undefined ? is_active : true,
+                        password_hash,
+                        auth_provider: 'LOCAL'
+                    }
+                })
+
+                // Create mentor profile with specialization
+                await tx.mentors.create({
+                    data: {
+                        user_id: userId,
+                        specialization: mentor_type
+                    }
+                })
+
+                return user
+            })
+
+            return NextResponse.json(
+                { message: 'Tạo người dùng thành công', user: result },
+                { status: 201 }
+            )
+        } else {
+            // Create regular user (student or admin)
+            const user = await prisma.users.create({
+                data: {
+                    id: userId,
+                    full_name,
+                    email,
+                    phone_number: phone_number || null,
+                    role: role || 'STUDENT',
+                    is_active: is_active !== undefined ? is_active : true,
+                    password_hash,
+                    auth_provider: 'LOCAL'
+                }
+            })
+
+            return NextResponse.json(
+                { message: 'Tạo người dùng thành công', user },
+                { status: 201 }
+            )
+        }
     } catch (error) {
         console.error('Error creating user:', error)
         return NextResponse.json(

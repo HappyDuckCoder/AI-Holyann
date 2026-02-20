@@ -12,6 +12,76 @@ interface MessageBubbleProps {
     message: Message;
 }
 
+// URL regex pattern - matches http, https, www links
+const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+
+// Helper function: Parse text and convert URLs to clickable links
+const parseTextWithLinks = (text: string, isMine: boolean): React.ReactNode[] => {
+    if (!text) return [];
+
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    // Reset regex lastIndex
+    URL_REGEX.lastIndex = 0;
+
+    while ((match = URL_REGEX.exec(text)) !== null) {
+        // Add text before the link
+        if (match.index > lastIndex) {
+            parts.push(text.slice(lastIndex, match.index));
+        }
+
+        // Get the URL
+        let url = match[0];
+        const displayUrl = url;
+
+        // Add https:// if URL starts with www.
+        if (url.startsWith('www.')) {
+            url = 'https://' + url;
+        }
+
+        // Add the link element
+        parts.push(
+            <a
+                key={`link-${match.index}`}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                    // Only open link if Ctrl/Cmd is pressed
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        toast.info('Giữ Ctrl + Click để mở link', { duration: 2000 });
+                    }
+                }}
+                className={`font-semibold underline underline-offset-2 cursor-pointer hover:opacity-80 transition-opacity ${
+                    isMine 
+                        ? 'text-white decoration-white/70' 
+                        : 'text-blue-600 dark:text-blue-400 decoration-blue-500/50'
+                }`}
+                title="Giữ Ctrl + Click để mở link"
+            >
+                {displayUrl}
+            </a>
+        );
+
+        lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text after the last link
+    if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+    }
+
+    // If no links found, return original text
+    if (parts.length === 0) {
+        return [text];
+    }
+
+    return parts;
+};
+
 // Helper function: Format file size from bytes to human readable format
 const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
@@ -233,7 +303,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                         {hasContent && (
                             <div className="px-3 py-2 md:px-4 md:py-3">
                                 <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-                                    {message.content}
+                                    {parseTextWithLinks(message.content || '', message.isMine)}
                                 </p>
                             </div>
                         )}

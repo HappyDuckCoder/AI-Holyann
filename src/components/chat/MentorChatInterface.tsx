@@ -11,6 +11,7 @@ import ChatHeader from "./ChatHeader";
 import { MessagesList } from "./MessagesList";
 import { MessageInput } from "./MessageInput";
 import { StudentInfoPanel } from "./StudentInfoPanel";
+import { SharedMediaModal } from "./SharedMediaModal";
 
 // Main Component for Mentor Interface
 export const MentorChatInterface: React.FC = () => {
@@ -20,6 +21,7 @@ export const MentorChatInterface: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [showMobileInfo, setShowMobileInfo] = useState(false);
     const [showMobileConversations, setShowMobileConversations] = useState(false);
+    const [showSharedMedia, setShowSharedMedia] = useState(false);
 
     // Derived state for conversations list
     const conversations: Conversation[] = useMemo(() => {
@@ -218,6 +220,17 @@ export const MentorChatInterface: React.FC = () => {
                     student={selectedConversation.mentor} // Actually student data
                     showMobileInfo={showMobileInfo}
                     onCloseMobileInfo={() => setShowMobileInfo(false)}
+                    onShowSharedMedia={() => setShowSharedMedia(true)}
+                />
+            )}
+
+            {/* ========== Shared Media Modal ========== */}
+            {selectedConversation && (
+                <SharedMediaModal
+                    isOpen={showSharedMedia}
+                    onClose={() => setShowSharedMedia(false)}
+                    messages={messages}
+                    partnerName={selectedConversation.mentor.name}
                 />
             )}
         </div>

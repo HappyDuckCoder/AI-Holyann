@@ -5,6 +5,12 @@ import UserTable from './UserTable'
 import UserModal from './UserModal'
 import DeleteConfirmModal from './DeleteConfirmModal'
 import AssignMentorForm from './AssignMentorForm'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 
 export default function UserManagement() {
     const [users, setUsers] = useState<User[]>([])
@@ -375,17 +381,14 @@ export default function UserManagement() {
             />
 
             {showAssignMentorForm && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <button
-                            className="close-button"
-                            onClick={() => setShowAssignMentorForm(false)}
-                        >
-                            Đóng
-                        </button>
+                <Dialog open={showAssignMentorForm} onOpenChange={setShowAssignMentorForm}>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>Gán Mentor cho Học viên</DialogTitle>
+                        </DialogHeader>
                         <AssignMentorForm students={students} mentors={mentors} />
-                    </div>
-                </div>
+                    </DialogContent>
+                </Dialog>
             )}
         </div>
     )

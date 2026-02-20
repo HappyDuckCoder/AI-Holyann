@@ -99,12 +99,24 @@ const ChecklistPage: React.FC = () => {
                 const transformedTasks: Task[] = apiTasks.map((task: any) => {
                     const taskProgress = progress.find((p: any) => p.task_id === task.id);
 
+                    // Format deadline from database or show "Chưa có"
+                    let deadlineDisplay = 'Chưa có';
+                    if (taskProgress?.deadline) {
+                        const deadlineDate = new Date(taskProgress.deadline);
+                        deadlineDisplay = deadlineDate.toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        });
+                    }
+
                     return {
                         id: task.id,
                         stageId: task.stage_id,
                         title: task.title,
                         description: task.description || '',
-                        deadline: '30/12/2026', // Default deadline, can be enhanced later
+                        deadline: deadlineDisplay,
+                        deadlineRaw: taskProgress?.deadline || null, // Raw date for calculations
                         isCompleted: taskProgress?.status === 'COMPLETED',
                         isLocked: taskProgress?.status === 'COMPLETED', // Lock completed tasks from DB
                         status: taskProgress?.status || 'PENDING', // Add status field

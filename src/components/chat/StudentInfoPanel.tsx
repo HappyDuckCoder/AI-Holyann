@@ -1,41 +1,84 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     X,
-    User,
     Mail,
     Phone,
-    MapPin,
     School,
     GraduationCap,
-    BookOpen,
-    Target
+    Calendar,
+    Loader2,
+    FileText,
+    Clock,
+    ChevronRight
 } from "lucide-react";
 import { Mentor } from "./types";
 
+interface StudentDetails {
+    id: string;
+    full_name: string;
+    email: string;
+    phone_number: string | null;
+    avatar_url: string | null;
+    date_of_birth: string | null;
+    current_school: string | null;
+    grade: string | null;
+    city: string | null;
+    country: string | null;
+}
+
 interface StudentInfoPanelProps {
-    student: Mentor; // Reusing Mentor type for compatibility, but it contains student data
+    student: Mentor; // Contains basic student data from chat
     showMobileInfo: boolean;
     onCloseMobileInfo: () => void;
+    onShowSharedMedia?: () => void;
 }
 
 export const StudentInfoPanel: React.FC<StudentInfoPanelProps> = ({
-                                                                      student,
-                                                                      showMobileInfo,
-                                                                      onCloseMobileInfo,
-                                                                  }) => {
-    // In a real app, we might fetch detailed student profile here using student.id
-    // For now, we display what we have mapped into the 'student' object
-    // Note: We might have encoded some data into description or achievements if we reused the interface strictly
+    student,
+    showMobileInfo,
+    onCloseMobileInfo,
+    onShowSharedMedia,
+}) => {
+    const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Fallback/Mock data for demonstration since the chat API might only return basic info
-    const mockStudentDetails = {
-        email: student.description?.includes('@') ? student.description : "student@example.com",
-        grade: "Lớp 12",
-        school: "THPT Chuyên Lê Hồng Phong",
-        target: "Du học Mỹ",
-        phone: "0912***789"
+    useEffect(() => {
+        const fetchStudentDetails = async () => {
+            if (!student.id) return;
+
+            setIsLoading(true);
+            try {
+                const res = await fetch(`/api/chat/student/${student.id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success) {
+                        setStudentDetails(data.student);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching student details:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchStudentDetails();
+    }, [student.id]);
+
+    // Format date of birth
+    const formatDateOfBirth = (dateStr: string | null) => {
+        if (!dateStr) return 'Chưa cập nhật';
+        try {
+            return new Date(dateStr).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        } catch {
+            return 'Chưa cập nhật';
+        }
     };
 
     return (
@@ -60,82 +103,128 @@ export const StudentInfoPanel: React.FC<StudentInfoPanelProps> = ({
             <div className="p-6 flex flex-col items-center border-b border-gray-100 dark:border-slate-700 text-center">
                 <div className="relative mb-4">
                     <img
-                        src={student.avatar}
-                        alt={student.name}
+                        src={studentDetails?.avatar_url || student.avatar || '/images/avatars/default-avatar.png'}
+                        alt={studentDetails?.full_name || student.name}
                         className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-md"
+                        onError={(e) => {
+                            e.currentTarget.src = '/images/avatars/default-avatar.png';
+                        }}
                     />
                     {student.isOnline && (
                         <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
                     )}
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                    {student.name}
+                    {studentDetails?.full_name || student.name}
                 </h3>
                 <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold">
-                    {student.roleTitle || "Học viên"}
+                    Học viên
                 </span>
             </div>
 
             {/* Info List */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
-                {/* Contact Info */}
-                <div className="space-y-4">
-                    <h4 className="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                        Thông tin liên hệ
-                    </h4>
-
-                    <div className="flex items-start gap-3 text-sm">
-                        <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-white">Email</p>
-                            <p className="text-gray-600 dark:text-slate-300 break-all">{mockStudentDetails.email}</p>
-                        </div>
+                {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                     </div>
+                ) : (
+                    <>
+                        {/* Contact Info */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                Thông tin liên hệ
+                            </h4>
 
-                    <div className="flex items-start gap-3 text-sm">
-                        <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-white">Điện thoại</p>
-                            <p className="text-gray-600 dark:text-slate-300">{mockStudentDetails.phone}</p>
+                            <div className="flex items-start gap-3 text-sm">
+                                <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white">Email</p>
+                                    <p className="text-gray-600 dark:text-slate-300 break-all">
+                                        {studentDetails?.email || 'Chưa cập nhật'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3 text-sm">
+                                <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white">Điện thoại</p>
+                                    <p className="text-gray-600 dark:text-slate-300">
+                                        {studentDetails?.phone_number || 'Chưa cập nhật'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3 text-sm">
+                                <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white">Ngày sinh</p>
+                                    <p className="text-gray-600 dark:text-slate-300">
+                                        {formatDateOfBirth(studentDetails?.date_of_birth || null)}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Academic Info */}
-                <div className="space-y-4">
-                    <h4 className="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                        Học vấn & Mục tiêu
-                    </h4>
+                        {/* Academic Info */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                Học vấn
+                            </h4>
 
-                    <div className="flex items-start gap-3 text-sm">
-                        <School className="w-5 h-5 text-purple-500 mt-0.5" />
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-white">Trường hiện tại</p>
-                            <p className="text-gray-600 dark:text-slate-300">{mockStudentDetails.school}</p>
+                            <div className="flex items-start gap-3 text-sm">
+                                <School className="w-5 h-5 text-purple-500 mt-0.5" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white">Trường hiện tại</p>
+                                    <p className="text-gray-600 dark:text-slate-300">
+                                        {studentDetails?.current_school || 'Chưa cập nhật'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3 text-sm">
+                                <GraduationCap className="w-5 h-5 text-orange-500 mt-0.5" />
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white">Lớp</p>
+                                    <p className="text-gray-600 dark:text-slate-300">
+                                        {studentDetails?.grade || 'Chưa cập nhật'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-start gap-3 text-sm">
-                        <GraduationCap className="w-5 h-5 text-orange-500 mt-0.5" />
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-white">Lớp</p>
-                            <p className="text-gray-600 dark:text-slate-300">{mockStudentDetails.grade}</p>
+                        {/* Quick Actions */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                Thao tác nhanh
+                            </h4>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={onShowSharedMedia}
+                                    className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors group"
+                                >
+                                    <span className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-200">
+                                        <FileText className="w-4 h-4 text-blue-500" />
+                                        File đã gửi
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-slate-300" />
+                                </button>
+                                <button className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors group">
+                                    <span className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-200">
+                                        <Clock className="w-4 h-4 text-amber-500" />
+                                        Đặt lịch hẹn
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-slate-300" />
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-start gap-3 text-sm">
-                        <Target className="w-5 h-5 text-red-500 mt-0.5" />
-                        <div>
-                            <p className="font-medium text-gray-900 dark:text-white">Mục tiêu</p>
-                            <p className="text-gray-600 dark:text-slate-300">{mockStudentDetails.target}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <button className="w-full py-2.5 mt-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors text-sm">
-                    Xem hồ sơ chi tiết
-                </button>
+                        <button className="w-full py-2.5 mt-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors text-sm">
+                            Xem hồ sơ chi tiết
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );
