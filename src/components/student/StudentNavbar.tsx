@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
   LayoutDashboard,
   User,
   CheckSquare,
@@ -23,6 +24,8 @@ import {
   FileBarChart,
   BarChart3,
   CalendarClock,
+  LayoutGrid,
+  Target,
 } from "lucide-react";
 
 const STUDENT_BASE = "/student";
@@ -31,9 +34,41 @@ const navItems = [
   { name: "Dashboard", href: `${STUDENT_BASE}/dashboard`, icon: LayoutDashboard },
   { name: "Profile", href: `${STUDENT_BASE}/profile`, icon: User },
   { name: "Deadlines", href: `${STUDENT_BASE}/deadlines`, icon: CalendarClock },
-  { name: "Improve", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
-  { name: "Target", href: `${STUDENT_BASE}/target`, icon: GraduationCap },
+  { name: "Checklist", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
   { name: "Discussion", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
+];
+
+const functionalityItems = [
+  {
+    name: "Tests",
+    href: `${STUDENT_BASE}/tests`,
+    icon: ClipboardList,
+    description: "Bài kiểm tra năng lực và định hướng nghề nghiệp",
+  },
+  {
+    name: "Reports",
+    href: `${STUDENT_BASE}/reports`,
+    icon: FileBarChart,
+    description: "Báo cáo tiến độ và kết quả học tập",
+  },
+  {
+    name: "Profile analysis",
+    href: `${STUDENT_BASE}/profile-analysis`,
+    icon: BarChart3,
+    description: "Phân tích điểm mạnh – điểm yếu hồ sơ",
+  },
+  {
+    name: "Target",
+    href: `${STUDENT_BASE}/target`,
+    icon: Target,
+    description: "Trường và ngành mục tiêu phù hợp với bạn",
+  },
+  {
+    name: "Improve",
+    href: `${STUDENT_BASE}/improve`,
+    icon: Sparkles,
+    description: "Gợi ý cải thiện CV, luận văn với AI",
+  },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -47,8 +82,28 @@ export default function StudentNavbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [functionalitiesOpen, setFunctionalitiesOpen] = useState(false);
+  const [mobileFunctionalitiesOpen, setMobileFunctionalitiesOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const functionalitiesCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showFunctionalities = () => {
+    if (functionalitiesCloseTimerRef.current) {
+      clearTimeout(functionalitiesCloseTimerRef.current);
+      functionalitiesCloseTimerRef.current = null;
+    }
+    setFunctionalitiesOpen(true);
+  };
+  const hideFunctionalities = () => {
+    functionalitiesCloseTimerRef.current = setTimeout(() => setFunctionalitiesOpen(false), 250);
+  };
+  const clearFunctionalitiesTimer = () => {
+    if (functionalitiesCloseTimerRef.current) {
+      clearTimeout(functionalitiesCloseTimerRef.current);
+      functionalitiesCloseTimerRef.current = null;
+    }
+  };
 
   const getInitialDark = () => {
     try {
@@ -159,84 +214,101 @@ export default function StudentNavbar() {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-lg border border-border bg-popover p-1 shadow-xl text-foreground">
-                  <div className="px-2 py-2 border-b border-border">
-                    <p className="text-xs text-muted-foreground">Xin chào</p>
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {user?.name}
-                    </p>
+                <div
+                  className="absolute right-0 top-full z-50 mt-2 flex items-start gap-0 origin-top-right"
+                  onMouseLeave={hideFunctionalities}
+                >
+                  {/* Functionalities submenu - items-start keeps main dropdown from stretching to submenu height */}
+                  {functionalitiesOpen && (
+                    <div
+                      className="w-72 shrink-0 rounded-lg border border-border bg-popover p-2 shadow-xl text-foreground"
+                      onMouseEnter={clearFunctionalitiesTimer}
+                    >
+                      <p className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Tính năng
+                      </p>
+                      {functionalityItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              setFunctionalitiesOpen(false);
+                            }}
+                            className="flex gap-3 rounded-md px-2 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                          >
+                            <Icon className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground" />
+                            <div className="min-w-0">
+                              <span className="font-medium block">{item.name}</span>
+                              <span className="text-xs text-muted-foreground block mt-0.5">
+                                {item.description}
+                              </span>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="w-56 shrink-0 rounded-lg border border-border bg-popover p-1 shadow-xl text-foreground">
+                    <div className="px-2 py-2 border-b border-border">
+                      <p className="text-xs text-muted-foreground">Xin chào</p>
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {user?.name}
+                      </p>
+                    </div>
+                    <div
+                      className="flex items-center justify-between gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted cursor-default"
+                      onMouseEnter={showFunctionalities}
+                      onMouseLeave={hideFunctionalities}
+                    >
+                      <span className="flex items-center gap-2">
+                        <LayoutGrid className="h-4 w-4" />
+                        Functionalities
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Link
+                      href={`${STUDENT_BASE}/settings`}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Cài đặt
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toggleTheme();
+                        setUserMenuOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
+                    >
+                      {mounted && isDarkMode ? (
+                        <>
+                          <Sun className="h-4 w-4" />
+                          Chế độ sáng
+                        </>
+                      ) : (
+                        <>
+                          <Moon className="h-4 w-4" />
+                          Chế độ tối
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout();
+                        setUserMenuOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Đăng xuất
+                    </button>
                   </div>
-                  <Link
-                    href={`${STUDENT_BASE}/checklist`}
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
-                  >
-                    <CheckSquare className="h-4 w-4" />
-                    Checklist
-                  </Link>
-                  <Link
-                    href={`${STUDENT_BASE}/tests`}
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
-                  >
-                    <ClipboardList className="h-4 w-4" />
-                    Tests
-                  </Link>
-                  <Link
-                    href={`${STUDENT_BASE}/reports`}
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
-                  >
-                    <FileBarChart className="h-4 w-4" />
-                    Reports
-                  </Link>
-                  <Link
-                    href={`${STUDENT_BASE}/profile-analysis`}
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
-                  >
-                    <BarChart3 className="h-4 w-4" />
-                    Phân tích hồ sơ
-                  </Link>
-                  <Link
-                    href={`${STUDENT_BASE}/settings`}
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Cài đặt
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      toggleTheme();
-                      setUserMenuOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
-                  >
-                    {mounted && isDarkMode ? (
-                      <>
-                        <Sun className="h-4 w-4" />
-                        Chế độ sáng
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="h-4 w-4" />
-                        Chế độ tối
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      logout();
-                      setUserMenuOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-destructive hover:bg-destructive/10"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Đăng xuất
-                  </button>
                 </div>
               )}
             </div>
@@ -298,38 +370,45 @@ export default function StudentNavbar() {
             })}
             {isAuthenticated && (
               <div className="mt-2 border-t border-primary-foreground/20 pt-2">
-                <Link
-                  href={`${STUDENT_BASE}/checklist`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
+                <button
+                  type="button"
+                  onClick={() => setMobileFunctionalitiesOpen((o) => !o)}
+                  className="flex w-full items-center justify-between gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10 text-left"
                 >
-                  <CheckSquare className="h-4 w-4" />
-                  Checklist
-                </Link>
-                <Link
-                  href={`${STUDENT_BASE}/tests`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  <ClipboardList className="h-4 w-4" />
-                  Tests
-                </Link>
-                <Link
-                  href={`${STUDENT_BASE}/reports`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  <FileBarChart className="h-4 w-4" />
-                  Reports
-                </Link>
-                <Link
-                  href={`${STUDENT_BASE}/profile-analysis`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  Phân tích hồ sơ
-                </Link>
+                  <span className="flex items-center gap-2">
+                    <LayoutGrid className="h-4 w-4" />
+                    Functionalities
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${mobileFunctionalitiesOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {mobileFunctionalitiesOpen && (
+                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-primary-foreground/20 pl-3">
+                    {functionalityItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            setMobileFunctionalitiesOpen(false);
+                          }}
+                          className="flex gap-3 rounded-lg px-3 py-2.5 text-sm text-primary-foreground/90 hover:bg-primary-foreground/10"
+                        >
+                          <Icon className="h-4 w-4 shrink-0 mt-0.5" />
+                          <div className="min-w-0">
+                            <span className="font-medium block">{item.name}</span>
+                            <span className="text-xs text-primary-foreground/70 block mt-0.5">
+                              {item.description}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
                 <Link
                   href={`${STUDENT_BASE}/settings`}
                   onClick={() => setMobileMenuOpen(false)}

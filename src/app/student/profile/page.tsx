@@ -19,7 +19,6 @@ export default function ProfilePageWrapper() {
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const analysisInFlightRef = useRef(false);
-  const [isNewStudent, setIsNewStudent] = useState(false);
   const [uploadDocumentLoading, setUploadDocumentLoading] = useState(false);
   const [uploadAvatarLoading, setUploadAvatarLoading] = useState(false);
 
@@ -124,14 +123,6 @@ export default function ProfilePageWrapper() {
         }
 
         const data = await response.json();
-
-        // Check if this is a new student (just created)
-        const isNewStudent = data.status?.isNewStudent;
-        if (isNewStudent) {
-          setIsNewStudent(true);
-        } else {
-          setIsNewStudent(false);
-        }
 
         // Map API data to StudentProfile interface
         const mappedProfile: StudentProfile = {
@@ -840,39 +831,6 @@ export default function ProfilePageWrapper() {
   return (
     <StudentPageContainer>
       <div className="min-h-[60vh]">
-        {/* Welcome Banner for New Students */}
-        {isNewStudent && (
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-2">
-                    🎉 Chào mừng bạn đến với Holyann Explore!
-                  </h2>
-                  <p className="text-blue-100 mb-4">
-                    Hồ sơ của bạn đang trống. Hãy bắt đầu xây dựng hồ sơ du học của bạn bằng cách điền thông tin cơ bản, thành tích học tập và hoạt động ngoại khóa.
-                  </p>
-                  <button
-                    onClick={handleEditClick}
-                    className="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-md hover:bg-blue-50 transition-colors"
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Bắt đầu xây dựng hồ sơ
-                  </button>
-                </div>
-                <div className="hidden lg:block">
-                  <svg className="w-32 h-32 opacity-20" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         <ProfilePage
           profile={profile}
           onEditClick={handleEditClick}
