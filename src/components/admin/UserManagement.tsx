@@ -4,7 +4,9 @@ import { User, UserFormData } from '@/types/admin'
 import UserTable from './UserTable'
 import UserModal from './UserModal'
 import DeleteConfirmModal from './DeleteConfirmModal'
-import AssignMentorForm from './AssignMentorForm'
+// import AssignMentorForm from './AssignMentorForm'
+import { Button } from '@/components/ui/button'
+import { UserPlus } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -26,7 +28,7 @@ export default function UserManagement() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [editingUser, setEditingUser] = useState<User | null>(null)
     const [deletingUser, setDeletingUser] = useState<User | null>(null)
-    const [showAssignMentorForm, setShowAssignMentorForm] = useState(false)
+    // const [showAssignMentorForm, setShowAssignMentorForm] = useState(false)
 
     // Students and mentors data
     const [students, setStudents] = useState([])
@@ -222,76 +224,64 @@ export default function UserManagement() {
 
     return (
         <div className="space-y-6">
-            {/* Header & Stats */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-foreground">Quản lý người dùng</h1>
-                    <p className="text-muted-foreground mt-1">Quản lý tất cả người dùng trong hệ thống</p>
-                </div>
-                <button
-                    onClick={handleAddUser}
-                    className="btn-primary flex items-center gap-2"
-                >
-                    <i className="fas fa-user-plus"></i>
-                    Thêm người dùng
-                </button>
+            {/* Header - same as admin dashboard */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <h1 className="text-xl font-semibold text-foreground">Users</h1>
+                <Button size="sm" className="shrink-0" onClick={handleAddUser}>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add user
+                </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Tổng số</div>
+            {/* Stats cards - same style as admin dashboard */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="rounded-xl border border-border p-4 bg-card">
+                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-2xl font-bold text-foreground">{stats.total}</p>
                 </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.active}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Hoạt động</div>
+                <div className="rounded-xl border border-border p-4 bg-card">
+                    <p className="text-sm text-muted-foreground">Active</p>
+                    <p className="text-2xl font-bold text-foreground">{stats.active}</p>
                 </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.students}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Học viên</div>
+                <div className="rounded-xl border border-border p-4 bg-card">
+                    <p className="text-sm text-muted-foreground">Students</p>
+                    <p className="text-2xl font-bold text-foreground">{stats.students}</p>
                 </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.mentors}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Mentors</div>
+                <div className="rounded-xl border border-border p-4 bg-card">
+                    <p className="text-sm text-muted-foreground">Mentors</p>
+                    <p className="text-2xl font-bold text-foreground">{stats.mentors}</p>
                 </div>
-                <div className="card-holyann text-center">
-                    <div className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.admins}</div>
-                    <div className="text-sm text-muted-foreground mt-1">Admins</div>
+                <div className="rounded-xl border border-border p-4 bg-card">
+                    <p className="text-sm text-muted-foreground">Admins</p>
+                    <p className="text-2xl font-bold text-foreground">{stats.admins}</p>
                 </div>
             </div>
 
             {/* Filters */}
-            <div className="card-holyann">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-border p-4 bg-card">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-2">
-                        <div className="relative">
-                            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm theo tên hoặc email..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="input-holyann pl-10 w-full"
-                            />
-                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search by name or email..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        />
                     </div>
-                    <div>
-                        <button
-                            className="btn-primary"
-                            onClick={() => setShowAssignMentorForm(true)}
-                        >
-                            Gán mentor
-                        </button>
-                    </div>
+                    {/* <div>
+                        <Button variant="outline" size="sm" onClick={() => setShowAssignMentorForm(true)}>
+                            Assign mentor
+                        </Button>
+                    </div> */}
                     <div>
                         <select
                             value={roleFilter}
                             onChange={(e) => setRoleFilter(e.target.value)}
-                            className="input-holyann w-full"
+                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         >
-                            <option value="all">Tất cả vai trò</option>
-                            <option value="student">Học viên</option>
+                            <option value="all">All roles</option>
+                            <option value="student">Student</option>
                             <option value="mentor">Mentor</option>
                             <option value="admin">Admin</option>
                         </select>
@@ -300,18 +290,18 @@ export default function UserManagement() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="input-holyann w-full"
+                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         >
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="active">Hoạt động</option>
-                            <option value="inactive">Không hoạt động</option>
+                            <option value="all">All status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="card-holyann">
+            {/* Table - same card style as dashboard */}
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
                 <UserTable
                     users={currentUsers}
                     loading={loading}
@@ -322,38 +312,38 @@ export default function UserManagement() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/30">
                         <div className="text-sm text-muted-foreground">
-                            Hiển thị {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredUsers.length)} trong {filteredUsers.length} người dùng
+                            Showing {indexOfFirstItem + 1}–{Math.min(indexOfLastItem, filteredUsers.length)} of {filteredUsers.length}
                         </div>
                         <div className="flex gap-2">
-                            <button
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
-                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <i className="fas fa-chevron-left"></i>
-                            </button>
+                                Previous
+                            </Button>
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                <button
+                                <Button
                                     key={page}
+                                    variant={currentPage === page ? 'default' : 'outline'}
+                                    size="sm"
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-1 rounded-lg transition-colors ${
-                                        currentPage === page
-                                            ? 'bg-primary text-white'
-                                            : 'bg-muted hover:bg-muted/80'
-                                    }`}
+                                    className="min-w-[2rem]"
                                 >
                                     {page}
-                                </button>
+                                </Button>
                             ))}
-                            <button
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={currentPage === totalPages}
-                                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <i className="fas fa-chevron-right"></i>
-                            </button>
+                                Next
+                            </Button>
                         </div>
                     </div>
                 )}
@@ -380,6 +370,7 @@ export default function UserManagement() {
                 userName={deletingUser?.full_name || ''}
             />
 
+            {/* Assign mentor - commented out
             {showAssignMentorForm && (
                 <Dialog open={showAssignMentorForm} onOpenChange={setShowAssignMentorForm}>
                     <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -389,7 +380,7 @@ export default function UserManagement() {
                         <AssignMentorForm students={students} mentors={mentors} />
                     </DialogContent>
                 </Dialog>
-            )}
+            )} */}
         </div>
     )
 }

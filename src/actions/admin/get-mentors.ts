@@ -26,6 +26,7 @@ export async function getMentorsAction() {
                         email: true,
                         avatar_url: true,
                         phone_number: true,
+                        role: true,
                         is_active: true,
                         created_at: true
                     }

@@ -79,7 +79,7 @@ export default function AdminNavbar() {
         { name: 'Users', href: '/admin/users', icon: Users },
         { name: 'Students', href: '/admin/students', icon: GraduationCap },
         { name: 'Mentors', href: '/admin/mentors', icon: UserCog },
-        { name: 'Discussion', href: '/admin/chat', icon: MessageCircle },
+        // { name: 'Discussion', href: '/admin/chat', icon: MessageCircle }, // tạm ẩn
         { name: 'Settings', href: '/admin/settings', icon: Settings },
     ]
 

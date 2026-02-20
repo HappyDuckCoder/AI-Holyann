@@ -11,7 +11,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Loader2, Mail, Phone, Globe, Linkedin, Briefcase, GraduationCap, Star, Users } from 'lucide-react'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Loader2, Mail, Phone, Globe, Linkedin, Briefcase, GraduationCap, Star, Users, Pencil } from 'lucide-react'
 
 // Define type based on action return
 type MentorWithUser = {
@@ -38,6 +40,7 @@ type MentorWithUser = {
         email: string
         avatar_url: string | null
         phone_number: string | null
+        role?: string
         is_active: boolean | null
         created_at: Date | null
     }
@@ -60,6 +63,103 @@ export default function MentorManagement() {
     const [assignLoading, setAssignLoading] = useState(false)
     const [unassignLoading, setUnassignLoading] = useState(false)
     const [assignMessage, setAssignMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+    const [editOpen, setEditOpen] = useState(false)
+    const [editingMentor, setEditingMentor] = useState<MentorWithUser | null>(null)
+    const [editLoading, setEditLoading] = useState(false)
+    const [editForm, setEditForm] = useState<{
+        full_name: string
+        email: string
+        phone_number: string
+        role: string
+        is_active: boolean
+        specialization: string
+        bio: string
+        linkedin_url: string
+        website_url: string
+        university_name: string
+        degree: string
+        major: string
+        graduation_year: string
+        current_company: string
+        current_job_title: string
+        years_of_experience: string
+        is_accepting_students: boolean
+        max_students: string
+    } | null>(null)
+
+    const openEdit = (mentor: MentorWithUser) => {
+        setEditingMentor(mentor)
+        setEditForm({
+            full_name: mentor.user.full_name,
+            email: mentor.user.email,
+            phone_number: mentor.user.phone_number ?? '',
+            role: (mentor.user as { role?: string }).role ?? 'MENTOR',
+            is_active: mentor.user.is_active ?? true,
+            specialization: mentor.specialization,
+            bio: mentor.bio ?? '',
+            linkedin_url: mentor.linkedin_url ?? '',
+            website_url: mentor.website_url ?? '',
+            university_name: mentor.university_name ?? '',
+            degree: mentor.degree ?? '',
+            major: mentor.major ?? '',
+            graduation_year: mentor.graduation_year != null ? String(mentor.graduation_year) : '',
+            current_company: mentor.current_company ?? '',
+            current_job_title: mentor.current_job_title ?? '',
+            years_of_experience: mentor.years_of_experience != null ? String(mentor.years_of_experience) : '',
+            is_accepting_students: mentor.is_accepting_students ?? true,
+            max_students: mentor.max_students != null ? String(mentor.max_students) : '5',
+        })
+        setEditOpen(true)
+    }
+    const closeEdit = () => {
+        setEditOpen(false)
+        setEditingMentor(null)
+        setEditForm(null)
+    }
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editingMentor || !editForm) return
+        setEditLoading(true)
+        try {
+            const res = await fetch(`/api/admin/mentors/${editingMentor.user_id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    full_name: editForm.full_name,
+                    email: editForm.email,
+                    phone_number: editForm.phone_number || null,
+                    role: editForm.role,
+                    is_active: editForm.is_active,
+                    specialization: editForm.specialization,
+                    bio: editForm.bio || null,
+                    linkedin_url: editForm.linkedin_url || null,
+                    website_url: editForm.website_url || null,
+                    university_name: editForm.university_name || null,
+                    degree: editForm.degree || null,
+                    major: editForm.major || null,
+                    graduation_year: editForm.graduation_year ? Number(editForm.graduation_year) : null,
+                    current_company: editForm.current_company || null,
+                    current_job_title: editForm.current_job_title || null,
+                    years_of_experience: editForm.years_of_experience ? Number(editForm.years_of_experience) : null,
+                    is_accepting_students: editForm.is_accepting_students,
+                    max_students: editForm.max_students ? Number(editForm.max_students) : null,
+                }),
+            })
+            if (res.ok) {
+                toast.success('Mentor updated')
+                const result = await getMentorsAction()
+                if (result.success && result.data) setMentors(result.data as MentorWithUser[])
+                closeEdit()
+            } else {
+                const data = await res.json().catch(() => ({}))
+                toast.error(data.message || 'Failed to update')
+            }
+        } catch {
+            toast.error('Failed to update mentor')
+        } finally {
+            setEditLoading(false)
+        }
+    }
 
     const openProfile = (mentor: MentorWithUser) => {
         setSelectedMentor(mentor)
@@ -326,6 +426,16 @@ export default function MentorManagement() {
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
+                                                        onClick={() => openEdit(mentor)}
+                                                        className="text-primary hover:text-primary/80"
+                                                        title="Edit mentor"
+                                                    >
+                                                        <Pencil className="h-4 w-4 mr-1" />
+                                                        Edit
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         onClick={() => openAssign(mentor)}
                                                         className="text-primary hover:text-primary/80"
                                                         title="Assign to student"
@@ -351,6 +461,203 @@ export default function MentorManagement() {
                         </div>
                     </div>
                 )}
+
+                {/* Edit mentor modal */}
+                <Dialog open={editOpen} onOpenChange={(open) => !open && closeEdit()}>
+                    <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+                        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
+                            <DialogTitle>Edit mentor</DialogTitle>
+                        </DialogHeader>
+                        {editForm && editingMentor && (
+                            <form onSubmit={handleEditSubmit} className="flex flex-col flex-1 min-h-0">
+                                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-semibold text-foreground">User</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-full_name">Full name</Label>
+                                                <Input
+                                                    id="edit-full_name"
+                                                    value={editForm.full_name}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, full_name: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-email">Email</Label>
+                                                <Input
+                                                    id="edit-email"
+                                                    type="email"
+                                                    value={editForm.email}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, email: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-phone">Phone</Label>
+                                                <Input
+                                                    id="edit-phone"
+                                                    value={editForm.phone_number}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, phone_number: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-role">Role</Label>
+                                                <select
+                                                    id="edit-role"
+                                                    value={editForm.role}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, role: e.target.value } : f)}
+                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                >
+                                                    <option value="STUDENT">Student</option>
+                                                    <option value="MENTOR">Mentor</option>
+                                                    <option value="ADMIN">Admin</option>
+                                                </select>
+                                            </div>
+                                            <div className="flex items-center gap-2 pt-6">
+                                                <input
+                                                    type="checkbox"
+                                                    id="edit-is_active"
+                                                    checked={editForm.is_active}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, is_active: e.target.checked } : f)}
+                                                    className="h-4 w-4 rounded border-border"
+                                                />
+                                                <Label htmlFor="edit-is_active" className="cursor-pointer">Active</Label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-semibold text-foreground">Mentor profile</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-specialization">Specialization</Label>
+                                                <select
+                                                    id="edit-specialization"
+                                                    value={editForm.specialization}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, specialization: e.target.value } : f)}
+                                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                >
+                                                    <option value="AS">AS</option>
+                                                    <option value="ACS">ACS</option>
+                                                    <option value="ARD">ARD</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-max_students">Max students</Label>
+                                                <Input
+                                                    id="edit-max_students"
+                                                    type="number"
+                                                    min={1}
+                                                    value={editForm.max_students}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, max_students: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2 sm:col-span-2">
+                                                <Label htmlFor="edit-bio">Bio</Label>
+                                                <textarea
+                                                    id="edit-bio"
+                                                    rows={3}
+                                                    value={editForm.bio}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, bio: e.target.value } : f)}
+                                                    className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-current_company">Current company</Label>
+                                                <Input
+                                                    id="edit-current_company"
+                                                    value={editForm.current_company}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, current_company: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-current_job_title">Job title</Label>
+                                                <Input
+                                                    id="edit-current_job_title"
+                                                    value={editForm.current_job_title}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, current_job_title: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-years_of_experience">Years of experience</Label>
+                                                <Input
+                                                    id="edit-years_of_experience"
+                                                    type="number"
+                                                    min={0}
+                                                    value={editForm.years_of_experience}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, years_of_experience: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-university_name">University</Label>
+                                                <Input
+                                                    id="edit-university_name"
+                                                    value={editForm.university_name}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, university_name: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-degree">Degree</Label>
+                                                <Input
+                                                    id="edit-degree"
+                                                    value={editForm.degree}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, degree: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-major">Major</Label>
+                                                <Input
+                                                    id="edit-major"
+                                                    value={editForm.major}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, major: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-graduation_year">Graduation year</Label>
+                                                <Input
+                                                    id="edit-graduation_year"
+                                                    type="number"
+                                                    value={editForm.graduation_year}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, graduation_year: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-linkedin_url">LinkedIn URL</Label>
+                                                <Input
+                                                    id="edit-linkedin_url"
+                                                    value={editForm.linkedin_url}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, linkedin_url: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="edit-website_url">Website URL</Label>
+                                                <Input
+                                                    id="edit-website_url"
+                                                    value={editForm.website_url}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, website_url: e.target.value } : f)}
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="edit-is_accepting_students"
+                                                    checked={editForm.is_accepting_students}
+                                                    onChange={(e) => setEditForm((f) => f ? { ...f, is_accepting_students: e.target.checked } : f)}
+                                                    className="h-4 w-4 rounded border-border"
+                                                />
+                                                <Label htmlFor="edit-is_accepting_students" className="cursor-pointer">Accepting students</Label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-2 px-6 py-4 border-t border-border">
+                                    <Button type="button" variant="outline" onClick={closeEdit}>Cancel</Button>
+                                    <Button type="submit" disabled={editLoading}>
+                                        {editLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</> : 'Save'}
+                                    </Button>
+                                </div>
+                            </form>
+                        )}
+                    </DialogContent>
+                </Dialog>
 
                 {/* Mentor view modal – redesigned */}
                 <Dialog open={profileOpen} onOpenChange={(open) => !open && closeProfile()}>
