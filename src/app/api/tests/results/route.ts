@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     if (mbti && mbti.status === TestStatus.COMPLETED) {
       results.mbti = {
         result_type: mbti.result_type,
+        result_description: mbti.result_description ?? undefined,
         scores: {
           E: mbti.score_e ?? 0,
           I: mbti.score_i ?? 0,
@@ -105,6 +106,7 @@ export async function GET(request: NextRequest) {
       results.riasec = {
         scores,
         result_code: resultCode,
+        result_description: riasec.result_description ?? undefined,
         top3,
         top_interests: top3.map(([code, score]) => ({ code, score })),
         completed_at: riasec.completed_at,

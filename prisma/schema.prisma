@@ -582,23 +582,24 @@ model student_parents {
 // ==================== 7. TESTS & CAREER MATCHES ====================
 
 model mbti_tests {
-  id           String     @id @default(uuid()) @db.Uuid
-  student_id   String     @unique @db.Uuid
-  students     students   @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  status       TestStatus @default(IN_PROGRESS)
-  current_step Int        @default(0)
-  answers      Json       @default("[]")
-  result_type  String?    @db.VarChar(10)
-  score_e      Float?
-  score_i      Float?
-  score_s      Float?
-  score_n      Float?
-  score_t      Float?
-  score_f      Float?
-  score_j      Float?
-  score_p      Float?
-  completed_at DateTime?  @db.Timestamp(6)
-  updated_at   DateTime?  @default(now()) @db.Timestamp(6)
+  id                 String     @id @default(uuid()) @db.Uuid
+  student_id         String     @unique @db.Uuid
+  students           students   @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  status             TestStatus @default(IN_PROGRESS)
+  current_step       Int        @default(0)
+  answers            Json       @default("[]")
+  result_type        String?    @db.VarChar(10)
+  result_description String?    @db.Text
+  score_e            Float?
+  score_i            Float?
+  score_s            Float?
+  score_n            Float?
+  score_t            Float?
+  score_f            Float?
+  score_j            Float?
+  score_p            Float?
+  completed_at       DateTime?  @db.Timestamp(6)
+  updated_at         DateTime?  @default(now()) @db.Timestamp(6)
 }
 
 model riasec_tests {
@@ -609,6 +610,7 @@ model riasec_tests {
   current_step        Int        @default(0)
   answers             Json       @default("{}")
   result_code         String?    @db.VarChar(10)
+  result_description  String?    @db.Text
   score_realistic     Float?
   score_investigative Float?
   score_artistic      Float?

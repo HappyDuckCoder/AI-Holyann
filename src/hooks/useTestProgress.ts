@@ -39,7 +39,7 @@ export function useTestProgress(studentId?: string | null) {
                     type: 'MBTI',
                     scores: data.results.mbti.scores || {},
                     rawLabel: data.results.mbti.result_type,
-                    description: ''
+                    description: data.results.mbti.result_description || ''
                 };
             }
             if (data.results?.riasec) {
@@ -48,7 +48,7 @@ export function useTestProgress(studentId?: string | null) {
                     type: 'RIASEC',
                     scores: data.results.riasec.scores || {},
                     rawLabel: data.results.riasec.result_code,
-                    description: ''
+                    description: data.results.riasec.result_description || ''
                 };
             }
             if (data.results?.grit) {

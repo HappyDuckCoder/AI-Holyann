@@ -5,6 +5,7 @@ import {
   Mail,
   Phone,
   Calendar,
+  CalendarDays,
   MapPin,
   Camera,
   Pencil,
@@ -12,8 +13,14 @@ import {
   X,
   Loader2,
 } from "lucide-react";
+import { format, parse } from "date-fns";
+import { vi } from "date-fns/locale";
 import { StudentProfile } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PersonalInfoCardProps {
   profile: StudentProfile;
@@ -100,6 +107,19 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
       .join("")
       .toUpperCase()
       .slice(0, 2) || "?";
+
+  // Parse ngày sinh từ chuỗi vi-VN (dd/MM/yyyy) hoặc "Chưa cập nhật"
+  const parseDobToDate = (dobStr: string): Date | undefined => {
+    if (!dobStr || dobStr === "Chưa cập nhật") return undefined;
+    try {
+      const d = parse(dobStr.trim(), "dd/MM/yyyy", new Date(), { locale: vi });
+      return isNaN(d.getTime()) ? undefined : d;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const dobDate = parseDobToDate(form.dob);
 
   return (
     <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-blue-500/60 bg-card bg-gradient-to-br from-blue-500/5 to-transparent">
@@ -255,14 +275,43 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                 <Calendar size={14} />
               </div>
               {editing ? (
-                <input
-                  value={form.dob}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, dob: e.target.value }))
-                  }
-                  className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
-                  placeholder="Ngày sinh (vd: 01/01/2010)"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "flex-1 min-w-0 justify-start text-left font-normal h-8 px-2",
+                        !form.dob || form.dob === "Chưa cập nhật"
+                          ? "text-muted-foreground"
+                          : "text-foreground"
+                      )}
+                    >
+                      <CalendarDays className="mr-2 h-4 w-4 shrink-0" />
+                      {form.dob && form.dob !== "Chưa cập nhật"
+                        ? form.dob
+                        : "Chọn ngày sinh"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={dobDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setForm((f) => ({
+                            ...f,
+                            dob: format(date, "dd/MM/yyyy", { locale: vi }),
+                          }));
+                        }
+                      }}
+                      locale={vi}
+                      defaultMonth={dobDate}
+                      captionLayout="dropdown"
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
+                    />
+                  </PopoverContent>
+                </Popover>
               ) : (
                 <span className="text-foreground">{profile.dob}</span>
               )}

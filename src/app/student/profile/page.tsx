@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
-import { ProfilePage } from "@/components/student/profile";
+import { ProfilePage, ProfilePageSkeleton } from "@/components/student/profile";
 import type { ProfilePageProps } from "@/components/student/profile/ProfilePage";
 import AcademicInfoModal from "@/components/student/profile/AcademicInfoModal";
 import { StudentPageContainer } from "@/components/student";
-import { PageLoading } from "@/components/ui/PageLoading";
 import { StudentProfile } from "@/components/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
@@ -239,7 +238,9 @@ export default function ProfilePageWrapper() {
 
         setProfile(mappedProfile);
         setError(null);
+        setLoading(false);
 
+        // Tải danh sách tài liệu ở background để không chặn hiển thị trang
         try {
           const docsRes = await fetch(
             `/api/students/${actualStudentId}/upload-cv`,
@@ -258,7 +259,6 @@ export default function ProfilePageWrapper() {
       } catch (err) {
         console.error("Error fetching profile:", err);
         setError("Có lỗi xảy ra khi tải thông tin học sinh");
-      } finally {
         setLoading(false);
       }
     };
@@ -319,6 +319,18 @@ export default function ProfilePageWrapper() {
   }) => {
     const studentId = getStudentId();
     if (!studentId || !profile) return;
+    // Chuẩn hóa ngày sinh (dd/MM/yyyy) sang ISO (YYYY-MM-DD) để API parse đúng
+    const dobForApi =
+      data.dob && data.dob !== "Chưa cập nhật"
+        ? (() => {
+            try {
+              const [d, m, y] = data.dob.split("/");
+              if (d && m && y)
+                return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+            } catch {}
+            return data.dob;
+          })()
+        : data.dob;
     try {
       const res = await fetch(`/api/students/${studentId}/profile`, {
         method: "PATCH",
@@ -328,11 +340,11 @@ export default function ProfilePageWrapper() {
             full_name: data.name,
             phone_number: data.phone,
             email: data.email,
-            date_of_birth: data.dob,
+            date_of_birth: dobForApi,
             current_address: data.address,
           },
           studentInfo: {
-            date_of_birth: data.dob,
+            date_of_birth: dobForApi,
             current_address: data.address,
           },
         }),
@@ -871,18 +883,13 @@ export default function ProfilePageWrapper() {
     }
   };
 
-  // Loading state
+  // Loading state: hiển thị skeleton thay vì spinner để UX mượt hơn
   if (loading || sessionLoading) {
     return (
       <StudentPageContainer fullWidth>
-        <PageLoading
-          fullPage={false}
-          message={
-            sessionLoading
-              ? "Đang xác thực..."
-              : "Đang tải thông tin học sinh..."
-          }
-        />
+        <div className="min-h-[60vh]">
+          <ProfilePageSkeleton />
+        </div>
       </StudentPageContainer>
     );
   }

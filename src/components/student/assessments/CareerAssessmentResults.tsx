@@ -106,30 +106,86 @@ function CareerAssessmentResults({
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Gọi API đề xuất nghề khi mount (autoLoad) hoặc khi user bấm "Xem đề xuất nghề nghiệp" (refreshTrigger tăng)
+  // autoLoad: chỉ đọc từ DB (nếu có). refreshTrigger > 0: gọi server-AI khi user bấm "Xem đề xuất nghề nghiệp"
   useEffect(() => {
     if (!studentId) return;
     if (autoLoad) {
-      handleGetRecommendations();
+      handleLoadFromDb();
       return;
     }
     if (refreshTrigger > 0) {
-      handleGetRecommendations();
+      handleFetchFromServerAI();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId, autoLoad, refreshTrigger]);
 
-  const handleGetRecommendations = async () => {
+  /** Chỉ đọc career_matches từ DB, không gọi server-AI. Dùng khi mở section lần đầu. */
+  const handleLoadFromDb = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/tests/career/${studentId}`);
+      const data = await res.json();
+      if (!data.success) {
+        setRecommendations([]);
+        setCareerGroups(null);
+        setAssessment(null);
+        setLoading(false);
+        return;
+      }
+      const recs = (data.recommendations || []).map((r: any) => ({
+        name: r.job_title || r.name,
+        category: r.job_field || r.category || "",
+        matchReason: r.reasoning || r.matchReason || "",
+        careerPaths: [],
+        requiredSkills: [],
+        matchPercentage: Math.round(Number(r.match_percentage ?? r.matchPercentage ?? 0)),
+      }));
+      setRecommendations(recs);
+      setAssessment(null);
+      if (data.career_groups && typeof data.career_groups === "object") {
+        const groups: ComponentCareerGroups = {};
+        for (const [groupName, groupRecs] of Object.entries(data.career_groups)) {
+          groups[groupName] = (groupRecs as any[]).map((r: any) => ({
+            name: r.job_title || r.name,
+            category: groupName,
+            matchReason: r.reasoning || r.matchReason || "",
+            careerPaths: [],
+            requiredSkills: [],
+            matchPercentage: Math.round(Number(r.match_percentage ?? r.matchPercentage ?? 0)),
+          }));
+        }
+        setCareerGroups(groups);
+      } else if (recs.length > 0) {
+        const groups: ComponentCareerGroups = {};
+        recs.forEach((rec: CareerRecommendation) => {
+          const g = rec.category || "Khác";
+          if (!groups[g]) groups[g] = [];
+          groups[g].push(rec);
+        });
+        setCareerGroups(Object.keys(groups).length > 0 ? groups : null);
+      } else {
+        setCareerGroups(null);
+      }
+    } catch (e) {
+      console.error("Load career from DB:", e);
+      setRecommendations([]);
+      setCareerGroups(null);
+      setAssessment(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Gọi server-AI để tạo/cập nhật đề xuất. Chỉ chạy khi user bấm "Xem đề xuất nghề nghiệp". */
+  const handleFetchFromServerAI = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Call real API - Module 2
       const response = await fetch("/api/module2/career-assessment", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ student_id: studentId }),
       });
 
@@ -149,7 +205,6 @@ function CareerAssessmentResults({
 
       setAssessment(data.assessment);
 
-      // Transform recommendations từ API format (snake_case) sang component format (camelCase)
       const transformedRecs = (data.recommendations || []).map((rec: any) => ({
         name: rec.title || rec.name,
         category: rec.job_field || rec.category || "",
@@ -157,16 +212,14 @@ function CareerAssessmentResults({
         careerPaths: [],
         requiredSkills: [],
         matchPercentage: Math.round(
-          rec.match_score || rec.matchPercentage || 0
+          rec.match_score ?? rec.matchPercentage ?? 0
         ),
         riasecCode: rec.riasec_code || rec.riasecCode,
         riasecScores: rec.riasec_scores || rec.riasecScores,
       }));
       setRecommendations(transformedRecs);
 
-      // Handle career_groups if available - transform từ API response
       if (data.career_groups && typeof data.career_groups === "object") {
-        // Transform career_groups từ API format sang component format
         const transformedGroups: ComponentCareerGroups = {};
         for (const [groupName, groupRecs] of Object.entries(
           data.career_groups
@@ -179,7 +232,7 @@ function CareerAssessmentResults({
               careerPaths: [],
               requiredSkills: [],
               matchPercentage: Math.round(
-                rec.match_score || rec.matchPercentage || 0
+                rec.match_score ?? rec.matchPercentage ?? 0
               ),
               riasecCode: rec.riasec_code || rec.riasecCode,
               riasecScores: rec.riasec_scores || rec.riasecScores,
@@ -188,40 +241,34 @@ function CareerAssessmentResults({
         }
         setCareerGroups(transformedGroups);
       } else if (transformedRecs.length > 0) {
-        // Nếu không có career_groups nhưng có recommendations, group theo category nếu có
         const groups: ComponentCareerGroups = {};
         transformedRecs.forEach((rec: any) => {
           const groupName = rec.category || "Khác";
-          if (!groups[groupName]) {
-            groups[groupName] = [];
-          }
+          if (!groups[groupName]) groups[groupName] = [];
           groups[groupName].push(rec);
         });
-        if (Object.keys(groups).length > 0) {
-          setCareerGroups(groups);
-        } else {
-          setCareerGroups(null);
-        }
+        setCareerGroups(Object.keys(groups).length > 0 ? groups : null);
       } else {
         setCareerGroups(null);
       }
-
     } catch (error: any) {
       console.error("❌ Career assessment error:", error);
 
-      // Parse error message để hiển thị gần gũi hơn
       let errorMessage = "Đã xảy ra lỗi khi lấy đề xuất nghề nghiệp";
       let errorDescription = "Vui lòng thử lại sau";
+      let toastTitle = "Lỗi server";
 
       if (error.message) {
         const msg = error.message.toLowerCase();
         if (
           msg.includes("cannot connect") ||
           msg.includes("503") ||
-          msg.includes("unavailable")
+          msg.includes("unavailable") ||
+          msg.includes("django server")
         ) {
-          errorMessage = "Không thể kết nối đến dịch vụ phân tích";
-          errorDescription = "Vui lòng kiểm tra kết nối mạng và thử lại sau";
+          errorMessage = "Không thể kết nối đến server AI";
+          errorDescription = "Bật server AI (Django) rồi bấm lại «Xem đề xuất nghề nghiệp».";
+          toastTitle = "Lỗi server";
         } else if (
           msg.includes("no such file") ||
           msg.includes("filenotfound") ||
@@ -231,10 +278,12 @@ function CareerAssessmentResults({
         ) {
           errorMessage = "Hệ thống đang thiếu dữ liệu cấu hình";
           errorDescription = "Vui lòng liên hệ quản trị viên để cập nhật dữ liệu cần thiết (interests.csv)";
+          toastTitle = "Lỗi server";
         } else if (msg.includes("missing") || msg.includes("complete")) {
           errorMessage = "Chưa hoàn thành đủ bài test";
           errorDescription =
             "Vui lòng hoàn thành tất cả 3 bài test (MBTI, RIASEC, GRIT) trước";
+          toastTitle = "Thiếu điều kiện";
         } else if (
           msg.includes("database") ||
           msg.includes("column") ||
@@ -242,15 +291,16 @@ function CareerAssessmentResults({
         ) {
           errorMessage = "Lỗi cấu hình hệ thống";
           errorDescription = "Vui lòng liên hệ quản trị viên để được hỗ trợ";
+          toastTitle = "Lỗi server";
         } else {
           errorDescription = error.message;
+          toastTitle = "Lỗi server";
         }
       }
 
       setError(errorMessage);
 
-      // Hiển thị toast notification
-      toast.error(errorMessage, {
+      toast.error(toastTitle, {
         description: errorDescription,
         duration: 5000,
       });
@@ -337,7 +387,7 @@ function CareerAssessmentResults({
             phù hợp nhất với bạn
           </p>
           <button
-            onClick={handleGetRecommendations}
+            onClick={handleFetchFromServerAI}
             disabled={loading}
             className="bg-primary text-primary-foreground font-semibold py-3 px-8 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >

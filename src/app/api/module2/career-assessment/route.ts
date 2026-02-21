@@ -74,25 +74,31 @@ export async function POST(request: NextRequest) {
       console.error("❌ [Module 2 - Career Assessment] Failed to call AI API:", error);
 
       const errorMessage = error instanceof Error ? error.message : String(error);
+      const isConnectionError =
+        errorMessage.includes("Cannot connect to AI server") ||
+        errorMessage.includes("Django server is running") ||
+        errorMessage.includes("fetch failed") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("timeout") ||
+        (error instanceof Error && (error as any).cause?.code === "ECONNREFUSED");
 
-      // Phân biệt giữa connection error và server error
+      // Khi bấm "Xem đề xuất nghề nghiệp" luôn phải gọi server-AI. Lỗi kết nối -> 503, không trả cache.
       let statusCode = 503;
       let userError = "Cannot connect to AI server. Make sure Django server is running.";
 
-      // Nếu error message chứa path hoặc file error -> đây là lỗi từ Django server
-      if (errorMessage.includes('No such file or directory') ||
-          errorMessage.includes('FileNotFoundError') ||
-          errorMessage.includes('.csv') ||
-          errorMessage.includes('Errno')) {
+      if (
+        errorMessage.includes("No such file or directory") ||
+        errorMessage.includes("FileNotFoundError") ||
+        errorMessage.includes(".csv") ||
+        errorMessage.includes("Errno")
+      ) {
         statusCode = 500;
-        userError = "AI server is missing required configuration files. Please contact administrator.";
-      }
-      // Nếu có response từ server -> server đang chạy nhưng có lỗi
-      else if (!errorMessage.includes('fetch failed') &&
-               !errorMessage.includes('ECONNREFUSED') &&
-               !errorMessage.includes('timeout')) {
+        userError =
+          "AI server is missing required configuration files. Please contact administrator.";
+      } else if (!isConnectionError) {
         statusCode = 500;
-        userError = "AI server encountered an error while processing your request.";
+        userError =
+          "AI server encountered an error while processing your request.";
       }
 
       return NextResponse.json(
@@ -100,9 +106,10 @@ export async function POST(request: NextRequest) {
           success: false,
           error: userError,
           details: errorMessage,
-          suggestion: statusCode === 500
-            ? "The AI server is running but encountered an internal error. Check server logs for details."
-            : "Make sure Django server is running at the configured URL.",
+          suggestion:
+            statusCode === 500
+              ? "The AI server is running but encountered an internal error. Check server logs for details."
+              : "Bật server AI (Django) rồi bấm lại «Xem đề xuất nghề nghiệp».",
         },
         { status: statusCode }
       );

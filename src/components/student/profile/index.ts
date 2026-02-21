@@ -1,5 +1,6 @@
 // Student Profile Components - Feature 1: Profile Analyzer
 export { ProfilePage } from "./ProfilePage";
+export { ProfilePageSkeleton } from "./components/ProfilePageSkeleton";
 export { SwotCard } from "./SwotCard";
 export { EditProfileModal } from "./EditProfileModal";
 export { default as StudentProfile } from "./StudentProfile";

@@ -48,35 +48,31 @@ export async function GET(
             const studentRecord = await studentRecordPromise;
 
             if (studentRecord) {
-                // Fetch background
-                const background = await prisma.student_backgrounds.findUnique({
-                    where: { student_id: student_id },
-                    include: {
-                        academic_awards: true,
-                        academic_extracurriculars: true,
-                        non_academic_awards: true,
-                        non_academic_extracurriculars: true,
-                        research_experiences: true,
-                        work_experiences: true,
-                        subject_scores: true,
-                        personal_projects: true,
-                    }
-                });
-
-                // Fetch Academic Profile
-                const academicProfile = await prisma.student_academic_profiles.findUnique({
-                    where: { student_id: student_id }
-                });
-
-                // Fetch Parents
-                const parents = await prisma.student_parents.findMany({
-                    where: { student_id: student_id }
-                });
-
-                // Fetch Skills
-                const skills = await prisma.student_skills.findMany({
-                    where: { student_id: student_id }
-                });
+                // Fetch relations in parallel để giảm thời gian response
+                const [background, academicProfile, parents, skills] = await Promise.all([
+                    prisma.student_backgrounds.findUnique({
+                        where: { student_id: student_id },
+                        include: {
+                            academic_awards: true,
+                            academic_extracurriculars: true,
+                            non_academic_awards: true,
+                            non_academic_extracurriculars: true,
+                            research_experiences: true,
+                            work_experiences: true,
+                            subject_scores: true,
+                            personal_projects: true,
+                        }
+                    }),
+                    prisma.student_academic_profiles.findUnique({
+                        where: { student_id: student_id }
+                    }),
+                    prisma.student_parents.findMany({
+                        where: { student_id: student_id }
+                    }),
+                    prisma.student_skills.findMany({
+                        where: { student_id: student_id }
+                    }),
+                ]);
 
                 // Assemble the full object
                  // @ts-ignore

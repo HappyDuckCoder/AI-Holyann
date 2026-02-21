@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { TestStatus } from '@prisma/client';
 import { autoCompleteChecklistTask } from '@/lib/checklist-helper';
 import { callMBTI, callGRIT, callRIASEC } from '@/lib/server-ai-assessment';
-import { MBTI_QUESTIONS_SORTED } from '@/data/mbti-questions';
+import { MBTI_QUESTIONS_SORTED, MBTI_TYPE_DESCRIPTIONS } from '@/data/mbti-questions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,6 +52,10 @@ export async function POST(request: NextRequest) {
         const ds = mbti.dimension_scores || {};
         const toPct = (v: number) => Math.round(Number(v) * 100);
         updateData.result_type = mbti.personality_type;
+        const typeInfo = MBTI_TYPE_DESCRIPTIONS[mbti.personality_type];
+        updateData.result_description = typeInfo
+          ? `${typeInfo.title} (${typeInfo.nickname}) - ${typeInfo.description}`
+          : mbti.personality_type;
         updateData.score_e = ds.E != null ? toPct(ds.E) : null;
         updateData.score_i = ds.I != null ? toPct(ds.I) : null;
         updateData.score_s = ds.S != null ? toPct(ds.S) : null;
@@ -98,9 +102,11 @@ export async function POST(request: NextRequest) {
         updateData.score_enterprising = s.E ?? null;
         updateData.score_conventional = s.C ?? null;
         updateData.result_code = riasec.code;
-        // Lưu top3 dạng JSON (array of [code, score]) để hiển thị chi tiết đúng thứ tự từ server-ai
         const top3 = riasec.top3 || [];
         updateData.top_3_types = top3.length ? top3 : null;
+        updateData.result_description = top3.length
+          ? `Xu hướng chính: ${top3.map(([code]) => code).join(', ')}`
+          : riasec.code || null;
         apiResult = {
           ...apiResult,
           result_code: riasec.code,
