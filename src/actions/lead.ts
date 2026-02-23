@@ -50,8 +50,9 @@ export async function submitLeadForm(
     if (!validationResult.success) {
       // Extract error messages by field
       const fieldErrors: Record<string, string[]> = {};
-      validationResult.error.errors.forEach((err: { path: (string | number)[]; message: string }) => {
-        const field = err.path[0] as string;
+      validationResult.error.issues.forEach((err) => {
+        const field = String(err.path[0] ?? "");
+        if (!field) return;
         if (!fieldErrors[field]) {
           fieldErrors[field] = [];
         }
