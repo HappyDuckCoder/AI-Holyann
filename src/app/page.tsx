@@ -9,23 +9,28 @@ import AchievementsSection from "@/components/landing/AchievementsSection";
 import ServicesSection from "@/components/landing/ServicesSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import ScrollProgress from "@/components/landing/ScrollProgress";
+import WelcomeSplash from "@/components/landing/WelcomeSplash";
 
 export default function Home() {
   return (
-    <main className="font-sans text-slate-600 bg-white selection:bg-sky-200 selection:text-slate-900 min-h-screen flex flex-col scroll-smooth">
-      <ScrollProgress />
-      <Header />
+    <div className="landing-light">
+      <WelcomeSplash>
+        <main className="font-sans text-slate-600 bg-white selection:bg-sky-200 selection:text-slate-900 min-h-screen flex flex-col scroll-smooth">
+        <ScrollProgress />
+        <Header />
 
-      <div className="flex-grow">
-        <HeroSection />
-        <AboutSection />
-        <HighlightsSection />
-        <AchievementsSection />
-        <ServicesSection />
-        <TestimonialsSection />
-      </div>
+        <div className="grow">
+          <HeroSection />
+          <AboutSection />
+          <HighlightsSection />
+          <AchievementsSection />
+          <ServicesSection />
+          <TestimonialsSection />
+        </div>
 
-      <Footer />
-    </main>
+        <Footer />
+        </main>
+      </WelcomeSplash>
+    </div>
   );
 }

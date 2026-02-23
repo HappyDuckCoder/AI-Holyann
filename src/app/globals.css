@@ -298,6 +298,57 @@
   background-size: 28px 28px;
 }
 
+/* Hero: grid + light rays background - màu xanh Holyann */
+.hero-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(15 76 129 / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 76 129 / 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.dark .hero-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(56 189 248 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(56 189 248 / 0.06) 1px, transparent 1px);
+}
+.hero-rays {
+  background: radial-gradient(
+    ellipse 90% 60% at 50% -15%,
+    rgb(15 76 129 / 0.12),
+    transparent 55%
+  );
+}
+.dark .hero-rays {
+  background: radial-gradient(
+    ellipse 90% 60% at 50% -15%,
+    rgb(56 189 248 / 0.1),
+    transparent 55%
+  );
+}
+
+/* Landing: luôn light mode (override khi dark) */
+html.dark .landing-light {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --muted-foreground: #64748b;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --primary: #0f4c81;
+  --primary-foreground: #ffffff;
+  --border: #e2e8f0;
+}
+html.dark .landing-light .hero-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(15 76 129 / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 76 129 / 0.08) 1px, transparent 1px);
+}
+html.dark .landing-light .hero-rays {
+  background: radial-gradient(
+    ellipse 90% 60% at 50% -15%,
+    rgb(15 76 129 / 0.12),
+    transparent 55%
+  );
+}
+
 /* Landing: smooth scroll for anchor links */
 html {
   scroll-behavior: smooth;

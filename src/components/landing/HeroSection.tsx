@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState, useLayoutEffect } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { LeadGenerationModal } from "@/components/landing/LeadGenerationModal";
+import { BRAND_COLORS } from "@/lib/data";
 
 const container = {
   hidden: { opacity: 0 },
@@ -15,105 +17,105 @@ const container = {
 };
 
 const item = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0 },
 };
 
-const HERO_CARD_IMAGES = [
-  "/images/landing/hero-card-1.jpg",
-  "/images/landing/hero-card-2.jpg",
-  "/images/landing/hero-card-3.jpg",
-  "/images/landing/hero-card-4.jpg",
-];
+const SQ = 0.707; // 1/sqrt(2) for 45°
 
-const bentoLabels = ["Hồ sơ", "AI hỗ trợ", "Target trường", "Mentor"];
+function useOrbitRadius() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [radius, setRadius] = useState(120);
 
-function HeroCard({
-  imageSrc,
-  label,
-  delay,
-}: {
-  imageSrc: string;
-  label: string;
-  delay: number;
-}) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const showPlaceholder = !imgLoaded || imgError;
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-      whileHover={{ y: -2 }}
-      className="relative aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-100 select-none border border-slate-200/80 transition-shadow hover:shadow-lg"
-    >
-      {showPlaceholder ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
-          <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.5} />
-          <span className="text-xs font-medium">Thêm ảnh</span>
-          <span className="text-[10px] text-slate-400/80 px-2 text-center">
-            {label}
-          </span>
-        </div>
-      ) : null}
-      <img
-        src={imageSrc}
-        alt={label}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${showPlaceholder ? "opacity-0" : "opacity-100"}`}
-        onLoad={() => setImgLoaded(true)}
-        onError={() => setImgError(true)}
-      />
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-        <span className="text-white font-semibold text-sm sm:text-base drop-shadow-sm">
-          {label}
-        </span>
-      </div>
-    </motion.div>
-  );
+    const update = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width === 0 || height === 0) return;
+      const min = Math.min(width, height);
+      const imgSize = Math.min(min * 0.7, 520);
+      const r = Math.max(60, (min - imgSize) / 2);
+      setRadius(Math.round(r));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return { ref, radius };
 }
 
 export default function HeroSection() {
-  return (
-    <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-white selection:bg-sky-200 selection:text-slate-900">
-      <div className="absolute inset-0 pointer-events-none" aria-hidden>
-        <div className="absolute top-0 left-0 right-0 h-[70vh] max-h-[600px] bg-gradient-to-b from-sky-50/90 via-cyan-50/50 to-transparent" />
-        <div className="absolute top-[15%] right-0 w-[50vw] max-w-[600px] h-[400px] bg-gradient-to-l from-cyan-100/40 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-[20%] left-0 w-[40vw] max-w-[400px] h-[300px] bg-gradient-to-r from-sky-100/30 to-transparent rounded-full blur-3xl" />
-      </div>
+  const { ref: flyRef, radius } = useOrbitRadius();
+  const orbit = {
+    x: [
+      radius,
+      radius * SQ,
+      0,
+      -radius * SQ,
+      -radius,
+      -radius * SQ,
+      0,
+      radius * SQ,
+      radius,
+    ],
+    y: [
+      0,
+      radius * SQ,
+      radius,
+      radius * SQ,
+      0,
+      -radius * SQ,
+      -radius,
+      -radius * SQ,
+      0,
+    ],
+  };
 
-      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+  return (
+    <section
+      className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-background hero-grid-bg selection:bg-primary/20 selection:text-foreground"
+      aria-label="Hero"
+    >
+      <div
+        className="absolute inset-0 pointer-events-none hero-rays"
+        aria-hidden
+      />
+      <div className="relative z-10 w-full container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* Text - trái desktop, trên mobile */}
           <motion.div
             variants={container}
             initial="hidden"
             animate="visible"
-            className="text-center lg:text-left"
+            className="flex flex-col items-center lg:items-start text-center lg:text-left"
           >
             <motion.p
               variants={item}
-              className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-sky-600 mb-6 select-text"
+              className="text-sm text-muted-foreground mb-4"
             >
-              Holyann Explore
+              Holyann Explore - Nền tảng học tập đồng hành du học cùng bạn
             </motion.p>
 
             <motion.h1
               variants={item}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.1] mb-6 select-text"
+              className="flex flex-col gap-2 sm:gap-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-6 w-full"
             >
-              <span className="block">Vẽ đường tương lai.</span>
-              <span className="block bg-gradient-to-r from-sky-600 to-cyan-500 bg-clip-text text-transparent">
-                Định hình ngày mai.
+              <span className="text-foreground">Vẽ đường tương lai </span>
+              <span className={`${BRAND_COLORS.textGradient}`}>
+                Định hình ngày mai
               </span>
             </motion.h1>
 
             <motion.p
               variants={item}
-              className="text-lg sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed select-text"
+              className="text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
             >
-              Nền tảng đồng hành du học toàn diện — từ hồ sơ, bài test đến gợi ý
-              trường và kết nối mentor. Một chìa khóa cho thành công của bạn.
+              Đề cao sự tiên phong, sáng tạo và nỗ lực của bạn đồng hành
             </motion.p>
 
             <motion.div
@@ -123,45 +125,47 @@ export default function HeroSection() {
               <Button
                 asChild
                 size="lg"
-                className="rounded-full h-12 px-8 text-base font-semibold bg-gradient-to-r from-sky-600 to-cyan-500 text-white shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/30 transition-shadow duration-200"
+                className="h-12 px-8 rounded-full font-semibold border-2 transition-all duration-200 hover:bg-accent/50"
               >
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center gap-2"
-                >
-                  Khám phá ngay
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+                <Link href="#gioi-thieu">Tìm hiểu thêm</Link>
               </Button>
               <Button
                 asChild
                 size="lg"
-                className="rounded-full h-12 px-8 text-base font-semibold border-2 border-slate-300 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 active:scale-[0.98] transition-all duration-200"
+                className={`h-12 px-8 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 ${BRAND_COLORS.primaryGradient}`}
               >
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center gap-2"
-                >
-                  Tìm hiểu thêm
-                </Link>
+                <Link href="/login">Khám phá ngay</Link>
               </Button>
             </motion.div>
           </motion.div>
 
+          {/* Image - phải desktop, ẩn trên mobile; bay sát cạnh theo kích thước vùng */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
+            ref={flyRef}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="grid grid-cols-2 gap-4 sm:gap-5 max-w-md mx-auto lg:max-w-none lg:mx-0"
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="hidden md:flex justify-center items-center min-h-[400px] lg:min-h-[560px] overflow-visible"
           >
-            {HERO_CARD_IMAGES.map((src, i) => (
-              <HeroCard
-                key={i}
-                imageSrc={src}
-                label={bentoLabels[i]}
-                delay={0.3 + i * 0.06}
+            <motion.div
+              animate={{ x: orbit.x, y: orbit.y }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+              className="relative w-[360px] h-[360px] md:w-[440px] md:h-[440px] lg:w-[520px] lg:h-[520px] shrink-0"
+            >
+              <Image
+                src="/images/holi/pencil.png"
+                alt="Vẽ đường tương lai - Holyann Explore"
+                width={520}
+                height={520}
+                className="object-contain w-full h-full"
+                priority
+                sizes="(max-width: 1024px) 440px, 520px"
               />
-            ))}
+            </motion.div>
           </motion.div>
         </div>
       </div>

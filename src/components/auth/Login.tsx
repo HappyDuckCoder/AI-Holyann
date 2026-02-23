@@ -9,8 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LoginData } from "@/lib/types/auth.types";
 import { Eye, EyeOff, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 
-type Step = "identity" | "email" | "password";
-type Identity = "student" | "mentor" | null;
+type Step = "email" | "password";
 
 const slide = {
   enter: (dir: number) => ({ x: dir * 24, opacity: 0 }),
@@ -20,8 +19,7 @@ const slide = {
 
 export default function Login() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("identity");
-  const [identity, setIdentity] = useState<Identity>(null);
+  const [step, setStep] = useState<Step>("email");
   const [direction, setDirection] = useState(0);
   const [loginData, setLoginData] = useState<LoginData>({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
@@ -89,54 +87,6 @@ export default function Login() {
       </Link>
 
       <AnimatePresence mode="wait" custom={direction}>
-        {/* Step: Identity (optional) */}
-        {step === "identity" && (
-          <motion.div
-            key="identity"
-            custom={direction}
-            variants={slide}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="space-y-10"
-          >
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-heading font-semibold tracking-tight text-foreground">
-                Đăng nhập
-              </h1>
-              <p className="mt-2 text-muted-foreground">
-                Bạn đăng nhập với tư cách
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentity("student");
-                  goTo("email", 1);
-                }}
-                className="flex-1 min-w-0 min-h-[48px] py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted active:scale-[0.98] border border-transparent hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-muted/40 dark:hover:bg-muted dark:border-border/50 dark:hover:border-primary/50 transition-all duration-200 outline-none"
-              >
-                Học viên
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentity("mentor");
-                  goTo("email", 1);
-                }}
-                className="flex-1 min-w-0 min-h-[48px] py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted active:scale-[0.98] border border-transparent hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-muted/40 dark:hover:bg-muted dark:border-border/50 dark:hover:border-primary/50 transition-all duration-200 outline-none"
-              >
-                Mentor
-              </button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Chọn vai trò để tiếp tục. Bạn có thể đổi sau.
-            </p>
-          </motion.div>
-        )}
-
         {/* Step: Email */}
         {step === "email" && (
           <motion.form
@@ -150,17 +100,9 @@ export default function Login() {
             onSubmit={handleSubmitEmail}
             className="space-y-8"
           >
-            <button
-              type="button"
-              onClick={() => goTo("identity", -1)}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors -ml-1"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại
-            </button>
             <div>
               <h1 className="text-2xl sm:text-3xl font-heading font-semibold tracking-tight text-foreground">
-                Email của bạn là gì?
+                Đăng nhập
               </h1>
               <p className="mt-2 text-muted-foreground">
                 Nhập email bạn dùng để đăng ký
