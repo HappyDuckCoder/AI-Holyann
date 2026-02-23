@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, Image as ImageIcon, User, GraduationCap } from "lucide-react";
+import { FileText, Image as ImageIcon, Link as LinkIcon, User, GraduationCap } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { StudentInfoContent } from "./StudentInfoContent";
 import { TeacherInfoContent } from "./TeacherInfoContent";
 import { SharedFiles } from "./SharedFiles";
 import { SharedImages } from "./SharedImages";
+import { SharedLinks } from "./SharedLinks";
 import type { Mentor } from "../types";
 
-export type InfoTabId = "info" | "files" | "images";
+export type InfoTabId = "info" | "files" | "images" | "links";
 
 interface InfoTabsProps {
   partner: Mentor;
@@ -34,6 +35,7 @@ export const InfoTabs: React.FC<InfoTabsProps> = ({
     },
     { id: "files", label: "Files", icon: FileText },
     { id: "images", label: "Ảnh", icon: ImageIcon },
+    { id: "links", label: "Links", icon: LinkIcon },
   ];
 
   return (
@@ -84,6 +86,12 @@ export const InfoTabs: React.FC<InfoTabsProps> = ({
           <SharedImages
             roomId={roomId}
             isActive={activeTab === "images" && isPanelOpen}
+          />
+        </TabsContent>
+        <TabsContent value="links" className="mt-0 focus-visible:outline-none data-[state=inactive]:hidden">
+          <SharedLinks
+            roomId={roomId}
+            isActive={activeTab === "links" && isPanelOpen}
           />
         </TabsContent>
       </div>

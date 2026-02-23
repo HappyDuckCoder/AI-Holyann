@@ -202,7 +202,7 @@ export function LeadGenerationModal({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-6">
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold text-primary mb-2">
             {step === 1

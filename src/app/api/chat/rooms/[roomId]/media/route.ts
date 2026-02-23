@@ -38,6 +38,66 @@ export async function GET(
       },
     };
 
+    if (type === 'links') {
+      // Links: extract from message content
+      const messages = await prisma.chat_messages.findMany({
+        where: {
+          room_id: roomId,
+          deleted_at: null,
+          content: { not: null },
+        },
+        include: {
+          users: {
+            select: {
+              full_name: true,
+              avatar_url: true,
+            },
+          },
+        },
+        orderBy: { created_at: 'desc' },
+        take: 200,
+      });
+
+      const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+      const seen = new Set<string>();
+      const items: Array<{
+        id: string;
+        url: string;
+        name: string;
+        type: string;
+        size: null;
+        thumbnail: null;
+        createdAt: Date;
+        sender: { name: string; avatar: string | null };
+      }> = [];
+
+      for (const msg of messages) {
+        if (!msg.content) continue;
+        const matches = msg.content.match(URL_REGEX) || [];
+        for (const rawUrl of matches) {
+          const url = rawUrl.replace(/[.,;:!?)]+$/, '').trim();
+          if (!url || seen.has(url)) continue;
+          seen.add(url);
+          const displayName = url.length > 60 ? url.slice(0, 60) + '...' : url;
+          items.push({
+            id: `link-${msg.id}-${url.slice(0, 20)}`,
+            url: url.startsWith('www.') ? 'https://' + url : url,
+            name: displayName,
+            type: 'LINK',
+            size: null,
+            thumbnail: null,
+            createdAt: msg.created_at,
+            sender: {
+              name: msg.users.full_name,
+              avatar: msg.users.avatar_url,
+            },
+          });
+        }
+      }
+
+      return NextResponse.json({ success: true, items });
+    }
+
     if (type === 'images') {
       whereClause.file_type = {
         startsWith: 'image/',
@@ -83,9 +143,6 @@ export async function GET(
         avatar: attachment.chat_messages.users.avatar_url,
       },
     }));
-
-    // TODO: Handle links separately
-    // Links should be extracted from message content
 
     return NextResponse.json({
       success: true,

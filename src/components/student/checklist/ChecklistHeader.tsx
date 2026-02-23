@@ -78,24 +78,6 @@ export function ChecklistHeader({
             </p>
           </div>
         </div>
-        <div className="flex-1 min-w-0 sm:pl-4">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Tiến độ tổng thể
-            </span>
-            <span className="text-sm font-semibold text-foreground tabular-nums">
-              {Math.round(clamped)}%
-            </span>
-          </div>
-          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <motion.div
-              className="h-full rounded-full bg-primary"
-              initial={{ width: 0 }}
-              animate={{ width: `${clamped}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-          </div>
-        </div>
       </div>
     </motion.header>
   );
