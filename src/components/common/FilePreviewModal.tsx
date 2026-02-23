@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,22 @@ import {
   AlertTriangle,
   Loader2
 } from 'lucide-react';
-import DocViewer, { DocViewerRenderers } from '@cyntler/react-doc-viewer';
+
+// Dynamic import DocViewerWrapper to avoid canvas module error with SSR
+const DocViewerWrapper = dynamic(
+  () => import('./DocViewerWrapper'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-sm text-gray-600">Đang tải trình xem tài liệu...</p>
+        </div>
+      </div>
+    )
+  }
+);
 
 interface FilePreviewModalProps {
   isOpen: boolean;
@@ -188,35 +204,11 @@ export default function FilePreviewModal({
                   )}
                 </div>
               ) : (
-                // Use DocViewer for other document types
+                // Use DocViewerWrapper for other document types
                 <>
-                  <DocViewer
-                    documents={[{
-                      uri: proxiedFileUrl,
-                      fileName: fileName
-                    }]}
-                    pluginRenderers={DocViewerRenderers}
-                    config={{
-                      header: {
-                        disableHeader: true,
-                        disableFileName: true,
-                        retainURLParams: false,
-                      },
-                      csvDelimiter: ',',
-                    }}
-                    theme={{
-                      primary: '#0f4c81',
-                      secondary: '#e5e7eb',
-                      tertiary: '#f3f4f6',
-                      textPrimary: '#1f2937',
-                      textSecondary: '#6b7280',
-                      disableThemeScrollbar: false,
-                    }}
-                    style={{
-                      height: '70vh',
-                      width: '100%',
-                      backgroundColor: '#ffffff'
-                    }}
+                  <DocViewerWrapper
+                    fileUrl={proxiedFileUrl}
+                    fileName={fileName}
                   />
 
                   {/* Loading overlay for documents */}

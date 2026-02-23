@@ -133,7 +133,7 @@ model mentors {
   created_at               DateTime?  @default(now()) @db.Timestamp(6)
   updated_at               DateTime?  @default(now()) @db.Timestamp(6)
 
-  assignments           mentor_assignments[]
+  assignments             mentor_assignments[]
   mentor_custom_deadlines mentor_custom_deadlines[]
 }
 
@@ -193,7 +193,7 @@ model students {
   mentors                            mentor_assignments[]
 
   // Quan hệ với bảng Task Progress
-  checklist_progress     student_task_progress[]
+  checklist_progress      student_task_progress[]
   mentor_custom_deadlines mentor_custom_deadlines[]
 
   // Improve: Essay & CV
@@ -355,11 +355,11 @@ model mentor_custom_deadlines {
   student_id   String     @db.Uuid
   mentor_id    String     @db.Uuid
   title        String     @db.VarChar(500)
-  description  String?    @db.Text             // Mô tả nhiệm vụ
-  mentor_note  String?    @db.Text             // Ghi chú / feedback của mentor (khác mô tả)
+  description  String?    @db.Text // Mô tả nhiệm vụ
+  mentor_note  String?    @db.Text // Ghi chú / feedback của mentor (khác mô tả)
   deadline     DateTime?  @db.Timestamp(6)
   status       TaskStatus @default(PENDING)
-  student_note String?   @db.Text             // Ghi chú của học viên
+  student_note String?    @db.Text // Ghi chú của học viên
   created_at   DateTime   @default(now()) @db.Timestamp(6)
   updated_at   DateTime   @updatedAt @db.Timestamp(6)
 
@@ -704,13 +704,13 @@ model profile_analyses {
 
 /// Job theo dõi phân tích đang chạy (để user chuyển trang rồi quay lại vẫn thấy "đang xử lý").
 model profile_analysis_jobs {
-  id          String    @id @default(uuid()) @db.Uuid
-  student_id  String    @db.Uuid
-  students    students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  status      String    @db.VarChar(20) // 'in_progress' | 'completed' | 'failed'
-  started_at  DateTime  @default(now()) @db.Timestamp(6)
-  completed_at DateTime? @db.Timestamp(6)
-  error_message String? @db.Text
+  id            String    @id @default(uuid()) @db.Uuid
+  student_id    String    @db.Uuid
+  students      students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  status        String    @db.VarChar(20) // 'in_progress' | 'completed' | 'failed'
+  started_at    DateTime  @default(now()) @db.Timestamp(6)
+  completed_at  DateTime? @db.Timestamp(6)
+  error_message String?   @db.Text
 
   @@index([student_id])
   @@index([status])
@@ -718,16 +718,16 @@ model profile_analysis_jobs {
 
 /// Job theo dõi Improve đang chạy (profile/essay/cv analysis hoặc enhance) — user chuyển trang rồi quay lại vẫn thấy đang xử lý.
 model improve_jobs {
-  id               String    @id @default(uuid()) @db.Uuid
-  student_id       String    @db.Uuid
-  students         students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  job_type         String    @db.VarChar(50) // profile_analysis | profile_enhance | essay_analysis | essay_enhance | cv_analysis | cv_enhance
-  external_job_id  String?   @db.VarChar(255) // job_id từ Python backend
-  essay_id         String?   @db.Uuid
-  status           String    @db.VarChar(20) // in_progress | completed | failed
-  started_at       DateTime  @default(now()) @db.Timestamp(6)
-  completed_at     DateTime? @db.Timestamp(6)
-  error_message    String?   @db.Text
+  id              String    @id @default(uuid()) @db.Uuid
+  student_id      String    @db.Uuid
+  students        students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  job_type        String    @db.VarChar(50) // profile_analysis | profile_enhance | essay_analysis | essay_enhance | cv_analysis | cv_enhance
+  external_job_id String?   @db.VarChar(255) // job_id từ Python backend
+  essay_id        String?   @db.Uuid
+  status          String    @db.VarChar(20) // in_progress | completed | failed
+  started_at      DateTime  @default(now()) @db.Timestamp(6)
+  completed_at    DateTime? @db.Timestamp(6)
+  error_message   String?   @db.Text
 
   @@index([student_id])
   @@index([status])
@@ -896,4 +896,28 @@ model chat_attachments {
 
   @@index([message_id])
   @@index([file_type])
+}
+
+// ==================== LEAD GENERATION ====================
+
+model leads {
+  id                  String   @id @default(uuid()) @db.Uuid
+  full_name           String   @db.VarChar(100)
+  phone               String   @db.VarChar(20)
+  email               String   @db.VarChar(255)
+  current_location    String?  @db.VarChar(255)
+  current_school      String?  @db.VarChar(255)
+  current_grade       String?  @db.VarChar(50)
+  study_level         String?  @db.VarChar(100)
+  intended_major      String?  @db.VarChar(255)
+  intended_country    String?  @db.VarChar(100)
+  intended_university String?  @db.VarChar(255)
+  budget_per_year     String?  @db.VarChar(100)
+  status              String   @default("NEW") @db.VarChar(50)
+  notes               String?  @db.Text
+  created_at          DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([status])
+  @@index([email])
+  @@index([created_at])
 }

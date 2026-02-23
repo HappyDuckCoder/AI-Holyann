@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import UserModal from "@/components/admin/UserModal"
 import RecentUsersTable from "@/components/admin/RecentUsersTable"
 import { UserFormData } from '@/types/admin'
-import { Users, GraduationCap, Briefcase, UserPlus, Link2, FileText } from 'lucide-react'
+import { Users, GraduationCap, Briefcase, UserPlus, Link2, FileText, UserCheck } from 'lucide-react'
 
 type DashboardStats = {
     totalUsers: number
@@ -178,6 +178,12 @@ export default function AdminDashboard() {
                             <Button variant="outline" size="sm" className="gap-2">
                                 <FileText className="h-4 w-4" />
                                 File review
+                            </Button>
+                        </Link>
+                        <Link href="/admin/guests">
+                            <Button variant="outline" size="sm" className="gap-2">
+                                <UserCheck className="h-4 w-4" />
+                                Guests
                             </Button>
                         </Link>
                     </div>
