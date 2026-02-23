@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import {Menu, X} from 'lucide-react';
 import {NAV_LINKS, BRAND_COLORS} from '../../lib/data';
 import Image from 'next/image';
+import { LeadGenerationModal } from '@/components/landing/LeadGenerationModal';
 
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,13 +44,13 @@ export default function Header() {
                     >
                         Khám phá ngay
                     </a>
-                    <a 
-                        href="#contact"
-                        className={`hidden sm:flex items-center justify-center h-10 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-full text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 whitespace-nowrap ${BRAND_COLORS.primaryGradient}`}
-                    >
-                        Đăng Ký Tư Vấn
-                    </a>
-                    <button 
+                    <div className="hidden sm:block">
+                        <LeadGenerationModal
+                            triggerText="Đăng Ký Tư Vấn"
+                            triggerClassName={`h-10 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-full text-white font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 whitespace-nowrap ${BRAND_COLORS.primaryGradient}`}
+                        />
+                    </div>
+                    <button
                         className="lg:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" 
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         aria-label="Toggle menu"
@@ -84,13 +85,12 @@ export default function Header() {
                         >
                             Khám phá ngay
                         </a>
-                        <a
-                            href="#contact"
-                            className={`px-4 py-3 rounded-lg text-white font-semibold text-sm shadow-lg text-center ${BRAND_COLORS.primaryGradient}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            Đăng Ký Tư Vấn
-                        </a>
+                        <div onClick={() => setMobileMenuOpen(false)}>
+                            <LeadGenerationModal
+                                triggerText="Đăng Ký Tư Vấn"
+                                triggerClassName={`w-full px-4 py-3 rounded-lg text-white font-semibold text-sm shadow-lg text-center ${BRAND_COLORS.primaryGradient}`}
+                            />
+                        </div>
                     </nav>
                 </div>
             )}

@@ -90,6 +90,34 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+
+  // Turbopack configuration (Next.js 16+)
+  turbopack: {
+    resolveAlias: {
+      // Stub out canvas module - use our custom stub
+      canvas: './src/lib/canvas-stub.js',
+    },
+  },
+
+  // Server external packages for pdfjs-dist canvas dependency
+  serverExternalPackages: ['canvas'],
+
+  // Webpack configuration fallback (for production build)
+  webpack: (config, { isServer }) => {
+    // Ignore canvas module (used by pdfjs-dist for Node.js, not needed in browser)
+    config.resolve.alias.canvas = false;
+
+    // Also handle encoding module if needed
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+        encoding: false,
+      };
+    }
+
+    return config;
+  },
 };
 
 export default nextConfig;
