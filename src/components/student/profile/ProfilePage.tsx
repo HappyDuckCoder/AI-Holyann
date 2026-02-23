@@ -78,7 +78,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const isDocumentsComplete = profile.documents.length >= 2;
 
   return (
-    <div className="w-full pb-8 overflow-x-hidden">
+    <div className="w-full pb-8 overflow-x-hidden transition-colors duration-300">
       <ProfileHeader
         onEditClick={onEditClick}
         analyzeHref="/student/profile-analysis"

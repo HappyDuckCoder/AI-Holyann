@@ -108,7 +108,7 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
 
   return (
     <section className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-card bg-gradient-to-br from-amber-500/5 to-transparent">
-      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-amber-500/5">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-amber-500/5 transition-colors duration-300">
         <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
           <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
             <BookOpen className="size-4" aria-hidden />
@@ -148,7 +148,7 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
         </div>
       </div>
       <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-        <div className="p-3 sm:p-4 rounded-xl border border-border/60 bg-muted/20">
+        <div className="p-3 sm:p-4 rounded-xl border border-border bg-muted/20 transition-colors duration-300">
           <p className="text-xs font-medium text-muted-foreground mb-1">GPA (thang 10)</p>
           {editing ? (
             <div className="flex items-baseline gap-1 flex-wrap">
@@ -163,7 +163,7 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
                   const clamped = Number.isNaN(v) ? 0 : Math.min(GPA_MAX, Math.max(GPA_MIN, v));
                   setForm((f) => ({ ...f, gpa: clamped }));
                 }}
-                className="w-16 bg-background border border-border rounded px-2 py-1 text-foreground"
+                className="w-16 bg-card border border-border rounded px-2 py-1 text-foreground"
               />
               <span className="text-sm text-muted-foreground">/ {GPA_SCALE}</span>
             </div>
@@ -174,7 +174,7 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
             </div>
           )}
         </div>
-        <div className="p-3 sm:p-4 rounded-xl border border-border/60 bg-muted/20 sm:col-span-1 md:col-span-2">
+        <div className="p-3 sm:p-4 rounded-xl border border-border bg-muted/20 sm:col-span-1 md:col-span-2 transition-colors duration-300">
           <p className="text-xs font-medium text-muted-foreground mb-1">Ngoại ngữ</p>
           {editing ? (
             <div className="space-y-2">
@@ -183,13 +183,13 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
                   <input
                     value={cert.type}
                     onChange={(e) => updateCert(index, "type", e.target.value)}
-                    className="flex-1 min-w-[80px] max-w-[120px] bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                    className="flex-1 min-w-[80px] max-w-[120px] bg-card border border-border rounded px-2 py-1 text-foreground text-sm"
                     placeholder="IELTS, TOEFL..."
                   />
                   <input
                     value={cert.score}
                     onChange={(e) => updateCert(index, "score", e.target.value)}
-                    className="w-20 bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                    className="w-20 bg-card border border-border rounded px-2 py-1 text-foreground text-sm"
                     placeholder="7.0"
                   />
                   <button
@@ -237,20 +237,20 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
             </div>
           )}
         </div>
-        <div className="p-3 sm:p-4 rounded-xl border border-border/60 bg-muted/20 sm:col-span-2 md:col-span-3">
+        <div className="p-3 sm:p-4 rounded-xl border border-border bg-muted/20 sm:col-span-2 md:col-span-3 transition-colors duration-300">
           <p className="text-xs font-medium text-muted-foreground mb-1">Mục tiêu</p>
           {editing ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <input
                 value={form.targetMajor}
                 onChange={(e) => setForm((f) => ({ ...f, targetMajor: e.target.value }))}
-                className="bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                className="bg-card border border-border rounded px-2 py-1 text-foreground text-sm"
                 placeholder="Ngành học"
               />
               <input
                 value={form.targetCountry}
                 onChange={(e) => setForm((f) => ({ ...f, targetCountry: e.target.value }))}
-                className="bg-background border border-border rounded px-2 py-1 text-foreground text-sm"
+                className="bg-card border border-border rounded px-2 py-1 text-foreground text-sm"
                 placeholder="Quốc gia"
               />
             </div>

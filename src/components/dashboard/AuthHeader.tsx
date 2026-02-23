@@ -7,13 +7,13 @@ import {useState, useEffect, useMemo} from 'react'
 import {usePathname} from 'next/navigation'
 import {Menu, X} from 'lucide-react'
 import { getRoleDashboardPath, getRoleChatPath, getRoleBasePath } from '@/lib/utils/role-paths'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
 export default function AuthHeader() {
     const {user, isAuthenticated} = useAuthSession()
     const logout = () => signOut({ callbackUrl: '/login' })
     const pathname = usePathname()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const [mounted, setMounted] = useState(false);
 
     // Get dashboard URL based on user role
     const dashboardUrl = useMemo(() => getRoleDashboardPath(user?.role), [user?.role]);
@@ -24,42 +24,6 @@ export default function AuthHeader() {
     // Get base URL for role
     const baseUrl = useMemo(() => getRoleBasePath(user?.role), [user?.role]);
 
-    // Determine initial theme safely on first render
-    const getInitialDark = () => {
-        try {
-            const theme = localStorage.getItem('theme')
-            if (theme === 'dark') return true
-            if (theme === 'light') return false
-            return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
-        } catch (e) {
-            return false
-        }
-    }
-
-    // State quản lý chế độ tối
-    const [isDarkMode, setIsDarkMode] = useState<boolean>(() => getInitialDark())
-
-    // Effect: Sync document class when isDarkMode changes
-    useEffect(() => {
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark')
-        } else {
-            document.documentElement.classList.remove('dark')
-        }
-
-        // persist preference
-        try {
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light')
-        } catch (e) {
-            // noop
-        }
-    }, [isDarkMode])
-
-    // Hàm chuyển đổi
-    const toggleTheme = () => {
-        setIsDarkMode((prev) => !prev)
-    }
-
     const navItems = [
         {name: 'TỔNG QUAN', href: dashboardUrl},
         {name: 'HỒ SƠ', href: `${baseUrl}/profile`},
@@ -69,13 +33,9 @@ export default function AuthHeader() {
         {name: 'CÀI ĐẶT', href: `${baseUrl}/settings`},
     ]
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
     return (
         <header
-            className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 shadow-md flex justify-between items-center sticky top-0 z-50 transition-colors duration-300">
+            className="navbar-header bg-gradient-to-r from-primary to-secondary text-primary-foreground px-8 py-4 shadow-md flex justify-between items-center sticky top-0 z-50">
 
             {/* 1. LOGO KHU VỰC */}
             <div className="flex items-center gap-3">
@@ -121,17 +81,10 @@ export default function AuthHeader() {
                 {/* 3. USER ACTION & THEME TOGGLE */}
                 <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                     {/* NÚT CHUYỂN ĐỔI THEME */}
-                    <button
-                        onClick={toggleTheme}
-                        className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-all border border-primary-foreground/10 hover:border-accent group flex-shrink-0"
-                        title={mounted && isDarkMode ? "Chuyển sang chế độ Sáng" : "Chuyển sang chế độ Tối"}
-                    >
-                        {mounted && isDarkMode ? (
-                            <i className="fas fa-sun text-accent text-sm sm:text-base md:text-lg group-hover:rotate-90 transition-transform"></i>
-                        ) : (
-                            <i className="fas fa-moon text-primary-foreground text-sm sm:text-base md:text-lg group-hover:-rotate-12 transition-transform"></i>
-                        )}
-                    </button>
+                    <ThemeToggle
+                        variant="icon"
+                        className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 border border-primary-foreground/10 hover:border-accent flex-shrink-0 text-primary-foreground"
+                    />
 
                     {/* Phân cách */}
                     <div className="h-6 w-[1px] bg-primary-foreground/20 hidden md:block"></div>
@@ -139,7 +92,7 @@ export default function AuthHeader() {
                     {isAuthenticated ? (
                         <div className="flex items-center gap-2 sm:gap-3 pl-1 sm:pl-2">
                             <div className="text-right hidden xl:block">
-                                <p className="text-xs text-white font-sans">XIN CHÀO,</p>
+                                <p className="text-xs text-primary-foreground/90 font-sans">XIN CHÀO,</p>
                                 <p className="text-sm font-bold font-heading text-primary-foreground max-w-[100px] truncate">{user?.name}</p>
                             </div>
 
@@ -191,7 +144,7 @@ export default function AuthHeader() {
 
             {/* Mobile Menu */}
             {mobileMenuOpen && (
-                <div className="lg:hidden border-t border-primary-foreground/20 bg-primary/95 backdrop-blur-md">
+                <div className="lg:hidden border-t border-primary-foreground/20 bg-primary/95 dark:bg-[#0c4a6e]/95 backdrop-blur-md transition-colors duration-300">
                     <nav className="px-4 py-4 flex flex-col gap-2">
                         {navItems.map((item) => (
                             <Link

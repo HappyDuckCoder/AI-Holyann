@@ -5,59 +5,14 @@ import {useAuthSession} from '@/hooks/useAuthSession'
 import {signOut} from 'next-auth/react'
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, LayoutDashboard, Users, User, MessageCircle, Sun, Moon, LogOut, GraduationCap, CalendarClock } from 'lucide-react'
+import { Menu, X, ChevronDown, LayoutDashboard, Users, User, MessageCircle, LogOut, GraduationCap, CalendarClock } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
 export default function MentorNavbar() {
     const {user, isAuthenticated} = useAuthSession()
     const logout = () => signOut({ callbackUrl: '/login' })
     const pathname = usePathname()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const [mounted, setMounted] = useState(false);
-
-    // State quản lý chế độ tối - khởi tạo false để tránh hydration mismatch
-    const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
-
-    // Effect: Set mounted và đọc theme từ localStorage
-    useEffect(() => {
-        setMounted(true);
-
-        // Đọc theme từ localStorage sau khi mounted
-        try {
-            const theme = localStorage.getItem('theme')
-            if (theme === 'dark') {
-                setIsDarkMode(true)
-            } else if (theme === 'light') {
-                setIsDarkMode(false)
-            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                setIsDarkMode(true)
-            }
-        } catch (e) {
-            // noop
-        }
-    }, []);
-
-    // Effect: Sync document class when isDarkMode changes
-    useEffect(() => {
-        if (!mounted) return
-
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark')
-        } else {
-            document.documentElement.classList.remove('dark')
-        }
-
-        // persist preference
-        try {
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light')
-        } catch (e) {
-            // noop
-        }
-    }, [isDarkMode, mounted])
-
-    // Hàm chuyển đổi
-    const toggleTheme = () => {
-        setIsDarkMode((prev) => !prev)
-    }
 
     // Menu items for MENTOR (English, same pattern as StudentNavbar)
     const navItems = [
@@ -84,7 +39,7 @@ export default function MentorNavbar() {
     }
 
     return (
-        <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground px-4 py-4 shadow-md sm:px-6 md:px-8">
+        <header className="navbar-header sticky top-0 z-50 w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground px-4 py-4 shadow-md sm:px-6 md:px-8">
             <div className="container flex h-14 max-w-screen-2xl items-center justify-between gap-4">
                 {/* Logo - same as Student */}
                 <div className="flex items-center gap-3">
@@ -148,7 +103,7 @@ export default function MentorNavbar() {
                             </button>
 
                             {userMenuOpen && (
-                                <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-lg border border-border bg-popover p-1 shadow-xl text-foreground">
+                                <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-lg border border-border bg-popover p-1 shadow-xl text-foreground transition-colors duration-300">
                                     <div className="px-2 py-2 border-b border-border">
                                         <p className="text-xs text-muted-foreground">Xin chào</p>
                                         <p className="truncate text-sm font-medium text-foreground">{user?.name}</p>
@@ -161,21 +116,14 @@ export default function MentorNavbar() {
                                         <User className="h-4 w-4" />
                                         Hồ sơ
                                     </Link>
-                                    <button
-                                        type="button"
-                                        onClick={() => { toggleTheme(); setUserMenuOpen(false) }}
-                                        className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
-                                    >
-                                        {mounted && isDarkMode ? (
-                                            <><Sun className="h-4 w-4" /> Chế độ sáng</>
-                                        ) : (
-                                            <><Moon className="h-4 w-4" /> Chế độ tối</>
-                                        )}
-                                    </button>
+                                    <ThemeToggle
+                                        variant="full"
+                                        onToggle={() => setUserMenuOpen(false)}
+                                    />
                                     <button
                                         type="button"
                                         onClick={() => { logout(); setUserMenuOpen(false) }}
-                                        className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-destructive hover:bg-destructive/10"
+                                        className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
                                     >
                                         <LogOut className="h-4 w-4" /> Đăng xuất
                                     </button>
@@ -212,7 +160,7 @@ export default function MentorNavbar() {
 
             {/* Mobile menu - same as Student */}
             {mobileMenuOpen && (
-                <div className="md:hidden border-t border-primary-foreground/20 bg-primary/95 backdrop-blur-md">
+                <div className="md:hidden border-t border-primary-foreground/20 bg-primary/95 dark:bg-[#0c4a6e]/95 backdrop-blur-md transition-colors duration-300">
                     <nav className="container flex flex-col gap-1 px-4 py-3">
                         {navItems.map((item) => {
                             const Icon = item.icon
@@ -243,13 +191,11 @@ export default function MentorNavbar() {
                                     <User className="h-4 w-4" />
                                     Hồ sơ
                                 </Link>
-                                <button
-                                    type="button"
-                                    onClick={() => { toggleTheme(); setMobileMenuOpen(false) }}
-                                    className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10 text-left"
-                                >
-                                    {mounted && isDarkMode ? <><Sun className="h-4 w-4" /> Chế độ sáng</> : <><Moon className="h-4 w-4" /> Chế độ tối</>}
-                                </button>
+                                <ThemeToggle
+                                    variant="full"
+                                    onToggle={() => setMobileMenuOpen(false)}
+                                    className="w-full justify-start rounded-lg px-4 py-3 text-primary-foreground hover:bg-primary-foreground/10"
+                                />
                                 <button
                                     type="button"
                                     onClick={() => { logout(); setMobileMenuOpen(false) }}

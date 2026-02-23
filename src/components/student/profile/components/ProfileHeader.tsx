@@ -21,7 +21,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative rounded-2xl overflow-hidden mb-4 sm:mb-6 lg:mb-8 border border-primary/20 shadow-lg"
+      className="relative rounded-2xl overflow-hidden mb-4 sm:mb-6 lg:mb-8 border border-border bg-card shadow-sm transition-colors duration-300"
       aria-label="Tiêu đề hồ sơ"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10" />
@@ -66,7 +66,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <span className="hidden sm:inline">Cập nhật hồ sơ</span>
           </button>
           <div className="hidden md:flex items-center gap-2">
-            <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-white/20 shadow-md">
+            <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-border shadow-md">
               <Image
                 src="/images/auth/left.jpg"
                 alt=""

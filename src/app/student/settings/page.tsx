@@ -1,40 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BarChart3, Moon, Sun } from 'lucide-react';
+import { ArrowRight, BarChart3, Monitor, Moon, Sun } from 'lucide-react';
 import { StudentPageContainer } from '@/components/student';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-function getInitialDark(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark') return true;
-    if (theme === 'light') return false;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  } catch {
-    return false;
-  }
-}
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function StudentSettingsPage() {
-  const [mounted, setMounted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setIsDarkMode(getInitialDark());
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (isDarkMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-    try {
-      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-    } catch {}
-  }, [mounted, isDarkMode]);
+  const { theme, resolvedTheme, setTheme, mounted } = useTheme();
+  const isDarkMode = resolvedTheme === 'dark';
 
   return (
     <StudentPageContainer>
@@ -76,40 +50,44 @@ export default function StudentSettingsPage() {
               </Link>
             </div>
 
-            {/* Chế độ tối */}
-            <div className="flex items-center justify-between py-4">
+            {/* Chế độ hiển thị / Theme */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                  {mounted && isDarkMode ? (
+                  {mounted && theme === 'system' ? (
+                    <Monitor className="size-5" />
+                  ) : mounted && isDarkMode ? (
                     <Moon className="size-5" />
                   ) : (
                     <Sun className="size-5" />
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Chế độ tối</p>
+                  <p className="font-medium text-foreground">Chế độ hiển thị</p>
                   <p className="text-sm text-muted-foreground">
-                    Bật giao diện nền tối, giảm chói
+                    Sáng, tối, hoặc theo hệ thống
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={mounted ? isDarkMode : false}
-                aria-label="Bật chế độ tối"
-                onClick={() => setIsDarkMode((prev) => !prev)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-                  mounted && isDarkMode ? 'bg-primary' : 'bg-muted'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow ring-0 transition-transform ${
-                    mounted && isDarkMode ? 'translate-x-5' : 'translate-x-0.5'
-                  }`}
-                  style={{ marginTop: 2 }}
-                />
-              </button>
+              <div className="flex gap-2 flex-wrap">
+                {(['light', 'dark', 'system'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTheme(t)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      theme === t
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {t === 'light' && <Sun className="size-4" />}
+                    {t === 'dark' && <Moon className="size-4" />}
+                    {t === 'system' && <Monitor className="size-4" />}
+                    {t === 'light' ? 'Sáng' : t === 'dark' ? 'Tối' : 'Hệ thống'}
+                  </button>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>

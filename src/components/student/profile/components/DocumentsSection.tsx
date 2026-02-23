@@ -57,7 +57,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         onChange={handleFileChange}
       />
 
-      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-sky-500/5">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-sky-500/5 transition-colors duration-300">
         <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
           <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-700 dark:text-sky-400 shrink-0">
             <FileText size={18} className="size-4" aria-hidden />
@@ -69,10 +69,10 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
 
       <div className="p-4 sm:p-5 relative">
         {uploadDocumentLoading && (
-          <div className="absolute inset-0 bg-background/80 z-10 flex items-center justify-center rounded-b-2xl">
+          <div className="absolute inset-0 bg-background/90 z-10 flex items-center justify-center rounded-b-2xl transition-colors duration-300">
             <div className="flex flex-col items-center gap-2 text-primary">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="text-sm font-medium">Đang tải lên...</span>
+              <span className="text-sm font-medium text-foreground">Đang tải lên...</span>
             </div>
           </div>
         )}
@@ -83,7 +83,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
               type="button"
               disabled={uploadDocumentLoading}
               onClick={() => triggerUpload(type)}
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors duration-300 disabled:bg-muted disabled:opacity-60 disabled:pointer-events-none"
             >
               <UploadCloud size={12} className="sm:w-3.5 sm:h-3.5" />
               {label}
@@ -95,7 +95,7 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         <div className="block sm:hidden space-y-3">
           {profile.documents.length > 0 ? (
             profile.documents.map((doc) => (
-              <div key={doc.id} className="p-3 rounded-xl border border-border/60 bg-muted/20 flex items-center justify-between gap-3">
+              <div key={doc.id} className="p-3 rounded-xl border border-border bg-muted/20 flex items-center justify-between gap-3 transition-colors duration-300">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground shrink-0">
                     <File size={14} />
@@ -122,8 +122,8 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
         </div>
 
         {/* Desktop: Table view */}
-        <div className="hidden sm:block rounded-xl border border-border/60 overflow-hidden">
-          <table className="min-w-full divide-y divide-border/60">
+        <div className="hidden sm:block rounded-xl border border-border overflow-hidden">
+          <table className="min-w-full divide-y divide-border">
             <thead className="bg-muted/30">
               <tr>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -140,10 +140,10 @@ export const DocumentsSection: React.FC<DocumentsSectionProps> = ({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/60 bg-card">
+            <tbody className="divide-y divide-border bg-card">
               {profile.documents.length > 0 ? (
                 profile.documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-muted/20 transition-colors">
+                  <tr key={doc.id} className="hover:bg-muted/20 transition-colors duration-300">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground">

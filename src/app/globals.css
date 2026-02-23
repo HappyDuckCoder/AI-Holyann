@@ -137,7 +137,7 @@
   --muted: #1e293b; /* Slate-800 */
   --muted-foreground: #94a3b8; /* Slate-400 */
 
-  --destructive: #7f1d1d;
+  --destructive: #f87171; /* Red-400: đỏ sáng, dễ đọc trên nền tối */
   --border: #1e293b; /* Viền tối */
   --input: #1e293b;
   --ring: #0ea5e9; /* Ring sáng theo màu Primary mới */
@@ -150,6 +150,7 @@
 
   html {
     scroll-behavior: smooth;
+    @apply transition-colors duration-300;
   }
 
   body {
@@ -176,31 +177,40 @@
   }
 
   *::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-slate-800 rounded-full;
+    @apply bg-muted rounded-full;
   }
 
   *::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-blue-500 to-blue-600 dark:from-blue-400 dark:to-blue-500 rounded-full;
+    @apply bg-primary/60 hover:bg-primary/80 rounded-full;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
 
-  *::-webkit-scrollbar-thumb:hover {
-    @apply from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600;
-  }
-
-  /* Firefox */
+  /* Firefox - theme-aware */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgb(59 130 246) rgb(243 244 246); /* blue-500 / gray-100 */
+    scrollbar-color: rgb(59 130 246) rgb(243 244 246);
   }
 
   .dark * {
-    scrollbar-color: rgb(96 165 250) rgb(30 41 59); /* blue-400 / slate-800 */
+    scrollbar-color: rgb(96 165 250) rgb(30 41 59);
   }
 }
 
 @layer components {
+  /* Navbar dark mode: darker gradient, better contrast */
+  .navbar-header {
+    @apply transition-colors duration-300;
+  }
+  .dark .navbar-header {
+    background: linear-gradient(to right, #0c4a6e 0%, #0f172a 50%, #1e293b 100%);
+    box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.08);
+    color: rgb(248 250 252);
+  }
+  /* Nav link underline: accent sáng hơn trên nền tối */
+  .dark .navbar-header nav a::after {
+    background-color: #38bdf8;
+  }
   /* Gradient Text thương hiệu */
   .text-gradient {
     @apply bg-gradient-to-r from-[var(--primary)] to-[var(--brand-cyan)] bg-clip-text text-transparent dark:from-[#38BDF8] dark:to-[var(--secondary)];
@@ -228,6 +238,7 @@
   .card-holyann {
     @apply bg-card rounded-2xl shadow-sm border border-border p-6 hover:shadow-md transition-all duration-300;
   }
+
 }
 
 /* Material Symbols */

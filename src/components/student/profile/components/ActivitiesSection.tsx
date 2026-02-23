@@ -148,7 +148,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
 
   return (
     <section className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-violet-500/60 bg-card bg-gradient-to-br from-violet-500/5 to-transparent">
-      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-violet-500/5">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-violet-500/5 transition-colors duration-300">
         <h3 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2">
           <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-violet-500/20 text-violet-700 dark:text-violet-400 shrink-0">
             <Award className="size-4" aria-hidden />
@@ -197,7 +197,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                             f ? { ...f, title: e.target.value } : f,
                           )
                         }
-                        className="w-full text-sm bg-background border border-border rounded px-2 py-1"
+                        className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground w-full"
                         placeholder="Tên hoạt động"
                       />
                       <div className="flex gap-2 flex-wrap">
@@ -208,7 +208,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                               f ? { ...f, role: e.target.value } : f,
                             )
                           }
-                          className="flex-1 min-w-0 text-xs bg-background border border-border rounded px-2 py-1"
+                          className="flex-1 min-w-0 text-xs bg-card border border-border rounded px-2 py-1 text-foreground"
                           placeholder="Vai trò"
                         />
                         <input
@@ -218,7 +218,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                               f ? { ...f, year: e.target.value } : f,
                             )
                           }
-                          className="w-16 text-xs bg-background border border-border rounded px-2 py-1"
+                          className="w-16 text-xs bg-card border border-border rounded px-2 py-1 text-foreground"
                           placeholder="Năm"
                         />
                       </div>
@@ -230,7 +230,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                           )
                         }
                         rows={2}
-                        className="w-full text-xs bg-background border border-border rounded px-2 py-1"
+                        className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground w-full"
                         placeholder="Mô tả"
                       />
                       <div className="flex gap-1">
@@ -289,7 +289,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                           {act.role}
                         </span>
                         <span
-                          className={`${TAG_STYLE} bg-muted text-muted-foreground border border-border/60`}
+                          className={`${TAG_STYLE} bg-muted text-muted-foreground border border-border`}
                         >
                           {act.year}
                         </span>
@@ -323,7 +323,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                   onChange={(e) =>
                     setNewAct((f) => ({ ...f, title: e.target.value }))
                   }
-                  className="w-full text-sm bg-background border border-border rounded px-2 py-1"
+                  className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground w-full"
                   placeholder="Tên hoạt động"
                 />
                 <div className="flex gap-2 flex-wrap">
@@ -332,7 +332,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                     onChange={(e) =>
                       setNewAct((f) => ({ ...f, role: e.target.value }))
                     }
-                    className="flex-1 min-w-0 text-xs bg-background border border-border rounded px-2 py-1"
+                    className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground flex-1 min-w-0"
                     placeholder="Vai trò"
                   />
                   <input
@@ -340,7 +340,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                     onChange={(e) =>
                       setNewAct((f) => ({ ...f, year: e.target.value }))
                     }
-                    className="w-16 text-xs bg-background border border-border rounded px-2 py-1"
+                    className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground w-16"
                     placeholder="Năm"
                   />
                   <select
@@ -351,7 +351,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                         category: e.target.value as ActivityCategory,
                       }))
                     }
-                    className="text-xs bg-background border border-border rounded px-2 py-1"
+                    className="text-xs bg-card border border-border rounded px-2 py-1 text-foreground"
                   >
                     <option value="academic">Học thuật</option>
                     <option value="non_academic">Ngoại khóa</option>
@@ -363,7 +363,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                     setNewAct((f) => ({ ...f, description: e.target.value }))
                   }
                   rows={2}
-                  className="w-full text-xs bg-background border border-border rounded px-2 py-1"
+                  className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground w-full"
                   placeholder="Mô tả"
                 />
                 <div className="flex gap-1">
@@ -417,7 +417,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                 return (
                   <div
                     key={id || idx}
-                    className="flex items-start gap-2 p-2.5 rounded-lg border border-border/60 bg-muted/30 hover:bg-muted/50 transition-colors"
+                    className="flex items-start gap-2 p-2.5 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors duration-300"
                   >
                     <GraduationCap
                       className="text-primary mt-0.5 shrink-0"
@@ -428,7 +428,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                         <input
                           value={editAchText}
                           onChange={(e) => setEditAchText(e.target.value)}
-                          className="flex-1 min-w-0 text-sm bg-background border border-border rounded px-2 py-1"
+                          className="flex-1 min-w-0 text-xs bg-card border border-border rounded px-2 py-1 text-foreground"
                         />
                         <button
                           type="button"
@@ -486,7 +486,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                   onChange={(e) =>
                     setNewAch((f) => ({ ...f, text: e.target.value }))
                   }
-                  className="flex-1 min-w-0 text-sm bg-background border border-border rounded px-2 py-1"
+                  className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground flex-1 min-w-0"
                   placeholder="Tên giải thưởng - Đơn vị"
                 />
                 <select
@@ -497,7 +497,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({
                       category: e.target.value as "academic" | "non_academic",
                     }))
                   }
-                  className="text-xs bg-background border border-border rounded px-2 py-1"
+                  className="text-sm bg-card border border-border rounded px-2 py-1 text-foreground"
                 >
                   <option value="academic">Học thuật</option>
                   <option value="non_academic">Ngoại khóa</option>

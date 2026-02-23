@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import AuthProvider from "@/components/auth/AuthProvider";
 import NextAuthErrorBoundary from "@/components/auth/NextAuthErrorBoundary";
 import { ToasterProvider } from "@/components/ui/ToasterProvider";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeScript } from "@/components/theme/ThemeScript";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -103,8 +105,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning={true}>
+    <html lang="vi" suppressHydrationWarning>
       <head>
+        <ThemeScript />
         <link
           rel="icon"
           href="/images/logos/Logo Holyann nhỏ.png"
@@ -131,13 +134,15 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased font-display`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased font-display transition-colors duration-300`}
       >
-        <AuthProvider>
-          <NextAuthErrorBoundary>
-            {children}
-          </NextAuthErrorBoundary>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <NextAuthErrorBoundary>
+              {children}
+            </NextAuthErrorBoundary>
+          </AuthProvider>
+        </ThemeProvider>
         <ToasterProvider />
       </body>
     </html>

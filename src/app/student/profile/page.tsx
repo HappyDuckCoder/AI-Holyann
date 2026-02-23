@@ -907,7 +907,7 @@ export default function ProfilePageWrapper() {
               {error || "Không tìm thấy thông tin học sinh"}
             </div>
             {process.env.NODE_ENV === "development" && (
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded">
+              <div className="text-xs text-muted-foreground mb-4 p-3 bg-muted rounded">
                 <strong>Debug Info:</strong>
                 <br />
                 Student ID: {studentId || "null"}

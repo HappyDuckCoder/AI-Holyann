@@ -122,7 +122,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
   const dobDate = parseDobToDate(form.dob);
 
   return (
-    <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-blue-500/60 bg-card bg-gradient-to-br from-blue-500/5 to-transparent">
+    <div className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-primary/60 bg-card bg-gradient-to-br from-primary/5 to-transparent">
       <div className="h-20 sm:h-24 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.05]"
@@ -154,9 +154,9 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
               </div>
             )}
             {uploadAvatarLoading && (
-              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center cursor-wait">
-                <Loader2 className="h-8 w-8 text-white animate-spin" />
-                <span className="text-[10px] font-medium text-white mt-1 drop-shadow">
+              <div className="absolute inset-0 bg-background/90 flex flex-col items-center justify-center cursor-wait">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                <span className="text-[10px] font-medium text-foreground mt-1">
                   Đang tải...
                 </span>
               </div>
@@ -170,11 +170,11 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                   className="hidden"
                   onChange={handleFileChange}
                 />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                  <div className="rounded-full bg-white/90 p-2">
-                    <Camera className="h-5 w-5 text-foreground" />
+                <div className="absolute inset-0 bg-primary/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                  <div className="rounded-full bg-card p-2 shadow-md">
+                    <Camera className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <span className="absolute bottom-1 left-0 right-0 text-[10px] font-medium text-white text-center drop-shadow">
+                  <span className="absolute bottom-1 left-0 right-0 text-[10px] font-medium text-primary-foreground text-center">
                     Đổi ảnh
                   </span>
                 </div>
@@ -185,7 +185,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
             <input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="mt-3 text-lg font-semibold text-foreground bg-muted/50 border border-border rounded-lg px-2 py-1 w-full max-w-[200px] text-center"
+              className="mt-3 text-lg font-semibold w-full max-w-[200px] text-center bg-card border border-border rounded-lg px-2 py-1 text-foreground"
               placeholder="Họ tên"
             />
           ) : (
@@ -234,7 +234,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
             </div>
           </div>
           <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors">
+            <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors duration-300">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <Mail size={14} />
               </div>
@@ -244,7 +244,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                   onChange={(e) =>
                     setForm((f) => ({ ...f, email: e.target.value }))
                   }
-                  className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
+                  className="flex-1 min-w-0 bg-card border border-border rounded px-2 py-1 text-foreground"
                   placeholder="Email"
                 />
               ) : (
@@ -253,7 +253,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors">
+            <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors duration-300">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <Phone size={14} />
               </div>
@@ -263,14 +263,14 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                   onChange={(e) =>
                     setForm((f) => ({ ...f, phone: e.target.value }))
                   }
-                  className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
+                  className="flex-1 min-w-0 bg-card border border-border rounded px-2 py-1 text-foreground"
                   placeholder="Số điện thoại"
                 />
               ) : (
                 <span className="text-foreground">{profile.phone}</span>
               )}
             </div>
-            <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors">
+            <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors duration-300">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <Calendar size={14} />
               </div>
@@ -316,7 +316,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                 <span className="text-foreground">{profile.dob}</span>
               )}
             </div>
-            <div className="flex items-start gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors">
+            <div className="flex items-start gap-3 py-2 px-2 rounded-lg hover:bg-muted/30 transition-colors duration-300">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
                 <MapPin size={14} />
               </div>
@@ -326,7 +326,7 @@ export const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
                   onChange={(e) =>
                     setForm((f) => ({ ...f, address: e.target.value }))
                   }
-                  className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-foreground"
+                  className="flex-1 min-w-0 bg-card border border-border rounded px-2 py-1 text-foreground"
                   placeholder="Địa chỉ"
                 />
               ) : (

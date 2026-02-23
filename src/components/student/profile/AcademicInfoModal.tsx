@@ -624,7 +624,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                 {loading ? (
                     <div className="flex justify-center items-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <span className="ml-4 text-gray-600">Đang tải thông tin học sinh...</span>
+                        <span className="ml-4 text-muted-foreground">Đang tải thông tin học sinh...</span>
                     </div>
                 ) : (
                     <>
@@ -638,8 +638,8 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                     {/* Tab 1: Thông tin liên lạc của học viên */}
                     <TabsContent value="basic" className="space-y-4 mt-6">
-                        <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
-                            <h3 className="font-bold text-blue-900 mb-4 text-lg">THÔNG TIN LIÊN LẠC CỦA HỌC VIÊN</h3>
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
+                            <h3 className="font-bold text-foreground mb-4 text-lg">THÔNG TIN LIÊN LẠC CỦA HỌC VIÊN</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label className="text-sm font-medium">Họ và tên học viên *</Label>
@@ -661,7 +661,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         max={new Date().toISOString().split('T')[0]} // Prevent future dates
                                     />
                                     {basicInfo.date_of_birth && (
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <p className="text-xs text-muted-foreground mt-1">
                                             Định dạng: {new Date(basicInfo.date_of_birth).toLocaleDateString('vi-VN')}
                                         </p>
                                     )}
@@ -706,7 +706,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         maxLength={10}
                                     />
                                     {basicInfo.phone_number && basicInfo.phone_number.length < 10 && (
-                                        <p className="text-xs text-orange-500 mt-1">
+                                        <p className="text-xs text-accent mt-1">
                                             Số điện thoại cần đủ 10 số ({basicInfo.phone_number.length}/10)
                                         </p>
                                     )}
@@ -747,8 +747,8 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                     {/* Tab 2: Học tập */}
                     <TabsContent value="academic" className="space-y-4 mt-6">
                         {/* GPA */}
-                        <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
-                            <h3 className="font-bold text-blue-900 mb-4 text-lg">GPA (Lớp 9, 10, 11, 12)</h3>
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
+                            <h3 className="font-bold text-foreground mb-4 text-lg">GPA (Lớp 9, 10, 11, 12)</h3>
                             <div className="grid grid-cols-4 gap-4">
                                 {['grade9', 'grade10', 'grade11', 'grade12'].map((grade, idx) => (
                                     <div key={grade}>
@@ -774,9 +774,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         </div>
 
                         {/* Chứng chỉ Tiếng Anh */}
-                        <div className="bg-purple-50 border-l-4 border-purple-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-purple-900 text-lg">CHỨNG CHỈ NGOẠI NGỮ (IELTS, DET, JLPT,HSK...)</h3>
+                                <h3 className="font-bold text-foreground text-lg">CHỨNG CHỈ NGOẠI NGỮ (IELTS, DET, JLPT,HSK...)</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -874,16 +874,16 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         variant="ghost"
                                         onClick={() => updateEnglishCerts(englishCerts.filter((_, i) => i !== index))}
                                     >
-                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                        <Trash2 className="w-4 h-4 text-destructive" />
                                     </Button>
                                 </div>
                             ))}
                         </div>
 
                         {/* Bài thi chuẩn hóa */}
-                        <div className="bg-green-50 border-l-4 border-green-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-green-900 text-lg">BÀI THI CHUẨN HÓA (SAT, ACT,...)</h3>
+                                <h3 className="font-bold text-foreground text-lg">BÀI THI CHUẨN HÓA (SAT, ACT,...)</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -947,16 +947,16 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         variant="ghost"
                                         onClick={() => updateStandardizedTests(standardizedTests.filter((_, i) => i !== index))}
                                     >
-                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                        <Trash2 className="w-4 h-4 text-destructive" />
                                     </Button>
                                 </div>
                             ))}
                         </div>
 
                         {/* NEW: Điểm từng môn học */}
-                        <div className="bg-indigo-50 border-l-4 border-indigo-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-indigo-900 text-lg">ĐIỂM TỪNG MÔN HỌC (Subject Scores)</h3>
+                                <h3 className="font-bold text-foreground text-lg">ĐIỂM TỪNG MÔN HỌC (Subject Scores)</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1035,15 +1035,15 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         variant="ghost"
                                         onClick={() => updateSubjectScores(subjectScores.filter((_, i) => i !== index))}
                                     >
-                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                        <Trash2 className="w-4 h-4 text-destructive" />
                                     </Button>
                                 </div>
                             ))}
                         </div>
 
                         {/* Ngành dự định học */}
-                        <div className="bg-orange-50 border-l-4 border-orange-600 p-6 rounded-lg">
-                            <h3 className="font-bold text-orange-900 mb-4 text-lg">NGÀNH DỰ ĐỊNH HỌC</h3>
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
+                            <h3 className="font-bold text-foreground mb-4 text-lg">NGÀNH DỰ ĐỊNH HỌC</h3>
                             <Textarea 
                                 value={intendedMajor}
                                 onChange={(e) => updateIntendedMajor(e.target.value)}
@@ -1056,9 +1056,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                     {/* Tab 3: Hồ sơ */}
                     <TabsContent value="profile" className="space-y-4 mt-6">
                         {/* Giải thưởng học thuật */}
-                        <div className="bg-yellow-50 border-l-4 border-yellow-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-yellow-900 text-lg">GIẢI THƯỞNG HỌC THUẬT</h3>
+                                <h3 className="font-bold text-foreground text-lg">GIẢI THƯỞNG HỌC THUẬT</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1069,7 +1069,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {academicAwards.map((award, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg mb-3 border">
+                                <div key={index} className="bg-card p-4 rounded-lg mb-3 border border-border">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label className="text-sm">Tên giải thưởng</Label>
@@ -1223,7 +1223,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onClick={() => updateAcademicAwards(academicAwards.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-destructive" />
                                             </Button>
                                         </div>
                                     </div>
@@ -1232,9 +1232,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         </div>
 
                         {/* Các giải thưởng khác */}
-                        <div className="bg-pink-50 border-l-4 border-pink-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-pink-900 text-lg">CÁC GIẢI THƯỞNG KHÁC (Nghệ thuật, thể thao,...)</h3>
+                                <h3 className="font-bold text-foreground text-lg">CÁC GIẢI THƯỞNG KHÁC (Nghệ thuật, thể thao,...)</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1245,7 +1245,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {nonAcademicAwards.map((award, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg mb-3 border">
+                                <div key={index} className="bg-card p-4 rounded-lg mb-3 border border-border">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label className="text-sm">Tên giải thưởng</Label>
@@ -1324,7 +1324,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onClick={() => updateNonAcademicAwards(nonAcademicAwards.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-destructive" />
                                             </Button>
                                         </div>
                                     </div>
@@ -1333,9 +1333,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         </div>
 
                         {/* Hoạt động ngoại khóa liên quan đến ngành học */}
-                        <div className="bg-indigo-50 border-l-4 border-indigo-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-indigo-900 text-lg">HOẠT ĐỘNG NGOẠI KHÓA LIÊN QUAN ĐẾN NGÀNH HỌC</h3>
+                                <h3 className="font-bold text-foreground text-lg">HOẠT ĐỘNG NGOẠI KHÓA LIÊN QUAN ĐẾN NGÀNH HỌC</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1346,7 +1346,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {academicActivities.map((activity, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg mb-3 border">
+                                <div key={index} className="bg-card p-4 rounded-lg mb-3 border border-border">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label className="text-sm">Tên hoạt động</Label>
@@ -1442,7 +1442,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onClick={() => updateAcademicActivities(academicActivities.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-destructive" />
                                             </Button>
                                         </div>
                                     </div>
@@ -1451,9 +1451,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         </div>
 
                         {/* Hoạt động ngoại khóa ngoài ngành học */}
-                        <div className="bg-teal-50 border-l-4 border-teal-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-teal-900 text-lg">HOẠT ĐỘNG NGOẠI KHÓA NGOÀI NGÀNH HỌC</h3>
+                                <h3 className="font-bold text-foreground text-lg">HOẠT ĐỘNG NGOẠI KHÓA NGOÀI NGÀNH HỌC</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1464,7 +1464,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {nonAcademicActivities.map((activity, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg mb-3 border">
+                                <div key={index} className="bg-card p-4 rounded-lg mb-3 border border-border">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label className="text-sm">Tên hoạt động</Label>
@@ -1560,7 +1560,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onClick={() => updateNonAcademicActivities(nonAcademicActivities.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-destructive" />
                                             </Button>
                                         </div>
                                     </div>
@@ -1569,9 +1569,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         </div>
 
                         {/* Kinh nghiệm làm việc */}
-                        <div className="bg-cyan-50 border-l-4 border-cyan-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-cyan-900 text-lg">KINH NGHIỆM LÀM VIỆC</h3>
+                                <h3 className="font-bold text-foreground text-lg">KINH NGHIỆM LÀM VIỆC</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1582,7 +1582,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {workExperiences.map((work, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg mb-3 border">
+                                <div key={index} className="bg-card p-4 rounded-lg mb-3 border border-border">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label className="text-sm">Tên công ty</Label>
@@ -1656,7 +1656,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onClick={() => updateWorkExperiences(workExperiences.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-destructive" />
                                             </Button>
                                         </div>
                                     </div>
@@ -1678,7 +1678,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {researchExperiences.map((research, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg mb-3 border">
+                                <div key={index} className="bg-card p-4 rounded-lg mb-3 border border-border">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label className="text-sm">Tên đề tài</Label>
@@ -1765,7 +1765,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onClick={() => updateResearchExperiences(researchExperiences.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-destructive" />
                                             </Button>
                                         </div>
                                     </div>
@@ -1774,9 +1774,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                         </div>
 
                         {/* NEW: Dự án cá nhân */}
-                        <div className="bg-cyan-50 border-l-4 border-cyan-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-cyan-900 text-lg">DỰ ÁN CÁ NHÂN (Personal Projects)</h3>
+                                <h3 className="font-bold text-foreground text-lg">DỰ ÁN CÁ NHÂN (Personal Projects)</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -1787,7 +1787,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {personalProjects.map((project, index) => (
-                                <div key={index} className="bg-white p-4 rounded-lg mb-3 border">
+                                <div key={index} className="bg-card p-4 rounded-lg mb-3 border border-border">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label className="text-sm">Tên dự án</Label>
@@ -1872,7 +1872,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 onClick={() => updatePersonalProjects(personalProjects.filter((_, i) => i !== index))}
                                                 className="mt-6"
                                             >
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-destructive" />
                                             </Button>
                                         </div>
                                     </div>
@@ -1953,7 +1953,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         variant="ghost"
                                         onClick={() => updateSkills(skills.filter((_, i) => i !== index))}
                                     >
-                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                        <Trash2 className="w-4 h-4 text-destructive" />
                                     </Button>
                                 </div>
                             ))}
@@ -1961,7 +1961,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                         {/* Mục tiêu */}
                         <div className="bg-gray-50 border-l-4 border-gray-600 p-6 rounded-lg">
-                            <h3 className="font-bold text-gray-900 mb-4 text-lg">THÔNG TIN KHÁC</h3>
+                            <h3 className="font-bold text-foreground mb-4 text-lg">THÔNG TIN KHÁC</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label className="text-sm">Quốc gia dự định du học</Label>
@@ -1997,9 +1997,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
                     {/* Tab 4: Phụ huynh */}
                     <TabsContent value="parents" className="space-y-4 mt-6">
-                        <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
+                        <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-bold text-blue-900 text-lg">THÔNG TIN LIÊN LẠC CỦA PHỤ HUYNH/NGƯỜI GIÁM HỘ</h3>
+                                <h3 className="font-bold text-foreground text-lg">THÔNG TIN LIÊN LẠC CỦA PHỤ HUYNH/NGƯỜI GIÁM HỘ</h3>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
@@ -2010,7 +2010,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 </Button>
                             </div>
                             {parentsInfo.map((parent, index) => (
-                                <div key={index} className="bg-white p-6 rounded-lg mb-4 border">
+                                <div key={index} className="bg-card p-6 rounded-lg mb-4 border border-border">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <Label className="text-sm font-medium">Họ và tên phụ huynh/người giám hộ</Label>
@@ -2063,7 +2063,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                 maxLength={10}
                                             />
                                             {parent.phone_number && parent.phone_number.length < 10 && (
-                                                <p className="text-xs text-orange-500 mt-1">
+                                                <p className="text-xs text-accent mt-1">
                                                     Số điện thoại cần đủ 10 số ({parent.phone_number.length}/10)
                                                 </p>
                                             )}
@@ -2086,7 +2086,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                                     variant="ghost"
                                                     onClick={() => updateParentsInfo(parentsInfo.filter((_, i) => i !== index))}
                                                 >
-                                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                                    <Trash2 className="w-4 h-4 text-destructive" />
                                                 </Button>
                                             </div>
                                         </div>

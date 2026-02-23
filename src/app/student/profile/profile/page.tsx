@@ -518,7 +518,7 @@ export default function ProfilePageWrapper() {
                   Bắt đầu xây dựng hồ sơ
                 </button>
               </div>
-              <div className="hidden md:block relative w-48 h-32 rounded-xl overflow-hidden border border-white/20 shadow-xl shrink-0">
+              <div className="hidden md:block relative w-48 h-32 rounded-xl overflow-hidden border border-border shadow-xl shrink-0">
                 <img
                   src="/images/auth/left.jpg"
                   alt=""
