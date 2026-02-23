@@ -11,7 +11,7 @@ export interface Message {
   id: string;
   senderId: string;
   senderName: string;
-  senderAvatar: string;
+  senderAvatar: string | null;
   content: string | null; // Allow null for messages with only attachments
   type?: 'TEXT' | 'IMAGE' | 'FILE' | 'LINK'; // Message type
   timestamp: Date;
@@ -25,7 +25,7 @@ export interface Message {
 export interface Mentor {
   id: string;
   name: string;
-  avatar: string;
+  avatar: string | null;
   roleCode: string;
   roleTitle: string;
   isOnline: boolean;

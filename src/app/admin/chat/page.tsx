@@ -31,7 +31,7 @@ export default function ChatDashboard() {
 
     return (
         <RoleGuard allowedRoles={['user', 'student', 'mentor', 'admin']}>
-            <div className="h-[calc(100vh-140px)] flex flex-col rounded-2xl overflow-hidden bg-card/50 shadow-lg">
+            <div className="h-[calc(100vh-140px)] flex flex-col overflow-hidden rounded-2xl bg-card/50 shadow-lg">
                 <ChatPage />
             </div>
         </RoleGuard>

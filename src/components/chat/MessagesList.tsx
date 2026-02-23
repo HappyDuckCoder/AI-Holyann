@@ -3,12 +3,14 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Message } from "./types";
 import { MessageBubble } from "./MessageBubble";
+import { MessagesListSkeleton } from "./MessageSkeleton";
 
 interface MessagesListProps {
     messages: Message[];
     messagesEndRef: React.RefObject<HTMLDivElement | null>;
     messagesContainerRef: React.RefObject<HTMLDivElement | null>;
     conversationId?: string;
+    loading?: boolean;
 }
 
 export const MessagesList: React.FC<MessagesListProps> = ({
@@ -16,6 +18,7 @@ export const MessagesList: React.FC<MessagesListProps> = ({
                                                               messagesEndRef,
                                                               messagesContainerRef,
                                                               conversationId,
+                                                              loading = false,
                                                           }) => {
     const [hasInitialScrolled, setHasInitialScrolled] = useState(false);
 
@@ -55,6 +58,22 @@ export const MessagesList: React.FC<MessagesListProps> = ({
             }
         }
     }, [messages, conversationId, hasInitialScrolled, messagesContainerRef, messagesEndRef]);
+
+    if (loading) {
+        return (
+            <div
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto bg-gradient-to-b from-muted/30 to-background min-h-0"
+            >
+                <div className="flex items-center justify-center pt-3">
+                    <div className="px-3 md:px-4 py-1 md:py-1.5 bg-muted rounded-full text-xs text-muted-foreground font-medium">
+                        Hôm nay
+                    </div>
+                </div>
+                <MessagesListSkeleton count={4} />
+            </div>
+        );
+    }
 
     return (
         <div

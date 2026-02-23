@@ -15,8 +15,9 @@ import {
     GraduationCap,
     Loader2
 } from "lucide-react";
-import { Mentor, Message } from "./types";
+import { Mentor } from "./types";
 import { getRoleIcon, getRoleColor } from "./utils";
+import { UserAvatar } from "./UserAvatar";
 
 interface MentorDetails {
     id: string;
@@ -109,18 +110,15 @@ export const MentorInfo: React.FC<MentorInfoProps> = ({
             )}
 
             <div className="p-4 text-center border-b border-border shrink-0 bg-gradient-to-b from-primary/5 to-transparent">
-                <div className="relative inline-block mb-3">
-                    <img
-                        src={mentorDetails?.avatar_url || mentor.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Ccircle cx="32" cy="32" r="32" fill="%23e5e7eb"/%3E%3Ccircle cx="32" cy="26" r="10" fill="%239ca3af"/%3E%3Cellipse cx="32" cy="58" rx="16" ry="12" fill="%239ca3af"/%3E%3C/svg%3E'}
-                        alt={mentorDetails?.full_name || mentor.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-background shadow-md mx-auto"
-                        onError={(e) => {
-                            e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Ccircle cx="32" cy="32" r="32" fill="%23e5e7eb"/%3E%3Ccircle cx="32" cy="26" r="10" fill="%239ca3af"/%3E%3Cellipse cx="32" cy="58" rx="16" ry="12" fill="%239ca3af"/%3E%3C/svg%3E';
-                        }}
+                <div className="flex justify-center mb-3">
+                    <UserAvatar
+                        avatarUrl={mentorDetails?.avatar_url ?? mentor.avatar}
+                        name={mentorDetails?.full_name || mentor.name}
+                        size="lg"
+                        showOnlineIndicator
+                        isOnline={mentor.isOnline}
+                        className="shadow-md"
                     />
-                    {mentor.isOnline && (
-                        <div className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background" />
-                    )}
                 </div>
                 <h3 className="text-base font-bold text-foreground mb-1.5">
                     {mentorDetails?.full_name || mentor.name}

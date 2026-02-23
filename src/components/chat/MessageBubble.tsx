@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { CheckCheck, Clock, AlertCircle, FileText, File, Download } from "lucide-react";
 import { Message, Attachment } from "./types";
 import { formatMessageTime } from "./utils";
 import { getSignedUrlFromFullUrl } from "@/actions/storage";
 import { toast } from "sonner";
 import FilePreviewModal from "@/components/common/FilePreviewModal";
+import { UserAvatar } from "./UserAvatar";
 
 interface MessageBubbleProps {
     message: Message;
@@ -106,7 +107,7 @@ const isImageFile = (fileType: string): boolean => {
     return fileType.startsWith("image/");
 };
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+export const MessageBubble = memo(function MessageBubble({ message }: MessageBubbleProps) {
     const hasContent = message.content && message.content.trim().length > 0;
 
     // State for file preview modal
@@ -278,10 +279,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         >
             {/* Sender Avatar */}
             {!message.isMine && (
-                <img
-                    src={message.senderAvatar}
-                    alt={message.senderName}
-                    className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover shrink-0"
+                <UserAvatar
+                    avatarUrl={message.senderAvatar}
+                    name={message.senderName}
+                    size="sm"
                 />
             )}
 
@@ -460,4 +461,4 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             />
         </div>
     );
-};
+});

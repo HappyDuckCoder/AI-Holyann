@@ -25,7 +25,7 @@ export default function MentorChatDashboard() {
         <RoleGuard allowedRoles={['MENTOR', 'ADMIN']}>
             <div className="h-screen flex flex-col bg-white text-gray-900">
                 <AuthHeader />
-                <div className="flex-1 overflow-hidden bg-gray-50">
+                <div className="flex-1 min-h-0 overflow-hidden bg-gray-50">
                     <ChatPage />
                 </div>
             </div>
