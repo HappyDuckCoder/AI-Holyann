@@ -32,6 +32,7 @@ import {
   RefreshCw,
   Eye,
   Edit,
+  Trash2,
   Phone,
   Mail,
   MapPin,
@@ -111,11 +112,14 @@ export default function AdminGuestsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [editStatus, setEditStatus] = useState("");
   const [editNotes, setEditNotes] = useState("");
@@ -135,6 +139,7 @@ export default function AdminGuestsPage() {
       if (search.trim()) {
         params.append("search", search.trim());
       }
+      params.append("sortOrder", sortOrder);
 
       const res = await fetch(`/api/admin/leads?${params.toString()}`, {
         credentials: "include",
@@ -150,7 +155,7 @@ export default function AdminGuestsPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, statusFilter, search]);
+  }, [currentPage, statusFilter, search, sortOrder]);
 
   useEffect(() => {
     fetchLeads();
@@ -195,6 +200,44 @@ export default function AdminGuestsPage() {
       }
     } catch (error) {
       console.error("Failed to update lead:", error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const openDeleteConfirm = (lead: Lead) => {
+    setLeadToDelete(lead);
+    setDeleteConfirmOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmOpen(false);
+    setLeadToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!leadToDelete) return;
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/admin/leads?id=${encodeURIComponent(leadToDelete.id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        closeDeleteConfirm();
+        fetchLeads();
+        if (selectedLead?.id === leadToDelete.id) {
+          setViewModalOpen(false);
+          setEditModalOpen(false);
+          setSelectedLead(null);
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Không thể xóa khách hàng.");
+      }
+    } catch (error) {
+      console.error("Failed to delete lead:", error);
+      alert("Không thể xóa khách hàng.");
     } finally {
       setUpdating(false);
     }
@@ -254,6 +297,15 @@ export default function AdminGuestsPage() {
                   {opt.label}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "asc" | "desc")}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Sắp xếp theo ngày" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="desc">Mới nhất trước</SelectItem>
+              <SelectItem value="asc">Cũ nhất trước</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleSearch}>Tìm kiếm</Button>
@@ -338,6 +390,15 @@ export default function AdminGuestsPage() {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openDeleteConfirm(lead)}
+                          title="Xóa khách hàng"
+                          className="text-destructive hover:bg-destructive/15 hover:text-destructive dark:hover:bg-destructive/25"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -374,9 +435,9 @@ export default function AdminGuestsPage() {
 
         {/* View Modal */}
         <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-6">
             <DialogHeader>
-              <DialogTitle>Chi tiết khách hàng tiềm năng</DialogTitle>
+              <DialogTitle className="mb-2">Chi tiết khách hàng tiềm năng</DialogTitle>
             </DialogHeader>
             {selectedLead && (
               <div className="space-y-4">
@@ -486,6 +547,18 @@ export default function AdminGuestsPage() {
                     {format(new Date(selectedLead.created_at), "HH:mm dd/MM/yyyy", { locale: vi })}
                   </div>
                 </div>
+
+                <div className="flex justify-end pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    className="text-destructive border-destructive/50 hover:bg-destructive/15 hover:text-destructive hover:border-destructive dark:hover:bg-destructive/25"
+                    onClick={() => openDeleteConfirm(selectedLead)}
+                    disabled={updating}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Xóa khách hàng
+                  </Button>
+                </div>
               </div>
             )}
           </DialogContent>
@@ -493,9 +566,9 @@ export default function AdminGuestsPage() {
 
         {/* Edit Modal */}
         <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md p-6">
             <DialogHeader>
-              <DialogTitle>Cập nhật trạng thái</DialogTitle>
+              <DialogTitle className="mb-2">Cập nhật trạng thái</DialogTitle>
             </DialogHeader>
             {selectedLead && (
               <div className="space-y-4">
@@ -530,13 +603,59 @@ export default function AdminGuestsPage() {
                   />
                 </div>
 
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+                <div className="flex justify-between gap-2">
+                  <Button
+                    variant="outline"
+                    className="text-destructive border-destructive/50 hover:bg-destructive/15 hover:text-destructive hover:border-destructive dark:hover:bg-destructive/25"
+                    onClick={() => openDeleteConfirm(selectedLead)}
+                    disabled={updating}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Xóa
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+                      Hủy
+                    </Button>
+                    <Button onClick={handleUpdateLead} disabled={updating}>
+                      {updating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Lưu
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirm Modal */}
+        <Dialog open={deleteConfirmOpen} onOpenChange={(open) => !open && closeDeleteConfirm()}>
+          <DialogContent className="max-w-md p-6">
+            <DialogHeader>
+              <div className="flex items-center justify-center w-14 h-14 mx-auto bg-destructive/10 rounded-full mb-2">
+                <Trash2 className="h-7 w-7 text-destructive" />
+              </div>
+              <DialogTitle className="text-center">Xác nhận xóa khách hàng</DialogTitle>
+            </DialogHeader>
+            {leadToDelete && (
+              <div className="space-y-4">
+                <p className="text-center text-muted-foreground text-sm">
+                  Bạn có chắc chắn muốn xóa khách hàng{" "}
+                  <span className="font-semibold text-foreground">{leadToDelete.full_name}</span>?
+                  <br />
+                  Hành động này không thể hoàn tác.
+                </p>
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={closeDeleteConfirm}>
                     Hủy
                   </Button>
-                  <Button onClick={handleUpdateLead} disabled={updating}>
-                    {updating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Lưu
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={handleConfirmDelete}
+                    disabled={updating}
+                  >
+                    {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Xóa"}
                   </Button>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import {Globe, Users, Mail, Facebook, Instagram, Send} from 'lucide-react';
+import {Mail, Facebook, Instagram} from 'lucide-react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faTiktok} from '@fortawesome/free-brands-svg-icons';
 import {BRAND_COLORS} from '../../lib/data'; // Sử dụng đường dẫn tương đối để tránh lỗi
@@ -8,7 +8,7 @@ import {BRAND_COLORS} from '../../lib/data'; // Sử dụng đường dẫn tư�
 export default function Footer() {
     return (
         <footer id="contact" className="bg-[var(--footer-bg)] text-slate-300 py-16 border-t border-slate-800">
-            <div className="container mx-auto px-4 grid md:grid-cols-3 gap-12">
+            <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12">
 
                 {/* Cột 1: Thông tin thương hiệu */}
                 <div>
@@ -82,26 +82,6 @@ export default function Footer() {
                     </ul>
                 </div>
 
-                {/* Cột 3: Đăng ký nhận tin (CTA) */}
-                <div>
-                    <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm border-b border-slate-700 pb-2 inline-block">
-                        Nhận tin tức mới nhất về du học
-                    </h4>
-                    <p className="text-xs mb-4 opacity-70">
-                        Để lại email để nhận tài liệu hướng dẫn săn học bổng và lộ trình du học miễn phí từ Holyann.
-                    </p>
-                    <div className="flex flex-col gap-3">
-                        <input
-                            type="email"
-                            placeholder="Email của bạn..."
-                            className="bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-[var(--brand-blue)] outline-none transition-all placeholder:text-slate-500"
-                        />
-                        <button
-                            className={`${BRAND_COLORS.primaryGradient} text-white px-4 py-3 rounded-lg font-bold transition-all hover:opacity-90 hover:shadow-lg flex items-center justify-center gap-2`}>
-                            <Send size={16}/> Gửi Đăng Ký
-                        </button>
-                    </div>
-                </div>
             </div>
 
             {/* Copyright Bar */}

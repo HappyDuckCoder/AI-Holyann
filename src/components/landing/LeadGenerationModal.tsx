@@ -51,10 +51,7 @@ const LeadModalSchema = z.object({
     .string()
     .min(1, "Số điện thoại là bắt buộc")
     .regex(/^[0-9]{10,11}$/, "Số điện thoại phải có 10-11 chữ số"),
-  email: z
-    .string()
-    .min(1, "Email là bắt buộc")
-    .email("Email không hợp lệ"),
+  email: z.string().min(1, "Email là bắt buộc").email("Email không hợp lệ"),
   current_school: z.string().max(255).optional(),
   current_grade: z.string().max(50).optional(),
   current_location: z.string().max(255).optional(),
@@ -85,7 +82,13 @@ const BUDGET_OPTIONS = [
 interface LeadGenerationModalProps {
   triggerText?: string;
   triggerClassName?: string;
-  triggerVariant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
+  triggerVariant?:
+    | "default"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link"
+    | "destructive";
 }
 
 export function LeadGenerationModal({
@@ -201,8 +204,10 @@ export function LeadGenerationModal({
 
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold text-primary">
-            {step === 1 ? "Kế hoạch du học của bạn thế nào?" : "Thông tin liên hệ"}
+          <DialogTitle className="text-center text-xl font-bold text-primary mb-2">
+            {step === 1
+              ? "Kế hoạch du học của bạn thế nào?"
+              : "Thông tin liên hệ"}
           </DialogTitle>
         </DialogHeader>
 
@@ -237,7 +242,10 @@ export function LeadGenerationModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Bậc học quan tâm</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn bậc học" />
@@ -263,7 +271,10 @@ export function LeadGenerationModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Ngân sách dự kiến / năm</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn ngân sách" />
@@ -389,7 +400,8 @@ export function LeadGenerationModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Số điện thoại <span className="text-destructive">*</span>
+                        Số điện thoại{" "}
+                        <span className="text-destructive">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -432,10 +444,7 @@ export function LeadGenerationModal({
                     <FormItem>
                       <FormLabel>Trường đang học</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="VD: THPT Chu Văn An"
-                          {...field}
-                        />
+                        <Input placeholder="VD: THPT Chu Văn An" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -508,11 +517,17 @@ export function LeadGenerationButton({
 }: {
   children?: React.ReactNode;
   className?: string;
-  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
+  variant?:
+    | "default"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link"
+    | "destructive";
 }) {
   return (
     <LeadGenerationModal
-      triggerText={children as string || "Đăng ký tư vấn ngay"}
+      triggerText={(children as string) || "Đăng ký tư vấn ngay"}
       triggerClassName={className}
       triggerVariant={variant}
     />

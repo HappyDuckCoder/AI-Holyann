@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     const pageSize = parseInt(searchParams.get("pageSize") || "20");
     const status = searchParams.get("status") || undefined;
     const search = searchParams.get("search") || undefined;
+    const sortOrder = searchParams.get("sortOrder") || "desc"; // "asc" | "desc"
 
     // Build where clause
     const where: Record<string, unknown> = {};
@@ -36,10 +37,12 @@ export async function GET(request: Request) {
     // Query leads with pagination
     const skip = (page - 1) * pageSize;
 
+    const orderBy = { created_at: sortOrder === "asc" ? "asc" as const : "desc" as const };
+
     const [leads, total] = await Promise.all([
       prisma.leads.findMany({
         where,
-        orderBy: { created_at: "desc" },
+        orderBy,
         skip,
         take: pageSize,
       }),
@@ -95,6 +98,35 @@ export async function PATCH(request: Request) {
     });
   } catch (error) {
     console.error("[PATCH /api/admin/leads] Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// Delete lead
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user?.role?.toUpperCase() !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Lead ID is required" }, { status: 400 });
+    }
+
+    await prisma.leads.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[DELETE /api/admin/leads] Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
