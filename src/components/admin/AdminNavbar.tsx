@@ -75,12 +75,12 @@ export default function AdminNavbar() {
 
     // Menu items for ADMIN (English, same pattern as StudentNavbar)
     const navItems = [
-        { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-        { name: 'Users', href: '/admin/users', icon: Users },
-        { name: 'Students', href: '/admin/students', icon: GraduationCap },
-        { name: 'Mentors', href: '/admin/mentors', icon: UserCog },
+        { name: 'Tổng quan', href: '/admin/dashboard', icon: LayoutDashboard },
+        { name: 'Người dùng', href: '/admin/users', icon: Users },
+        { name: 'Học viên', href: '/admin/students', icon: GraduationCap },
+        { name: 'Cố vấn', href: '/admin/mentors', icon: UserCog },
         // { name: 'Discussion', href: '/admin/chat', icon: MessageCircle }, // tạm ẩn
-        { name: 'Settings', href: '/admin/settings', icon: Settings },
+        { name: 'Cài đặt', href: '/admin/settings', icon: Settings },
     ]
 
     const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -112,7 +112,7 @@ export default function AdminNavbar() {
                                 HOLYANN
                             </span>
                             <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/90 md:text-xs">
-                                Admin
+                                Quản trị viên
                             </span>
                         </div>
                     </Link>
@@ -165,7 +165,7 @@ export default function AdminNavbar() {
                             {userMenuOpen && (
                                 <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-lg border border-border bg-popover p-1 shadow-xl text-foreground">
                                     <div className="px-2 py-2 border-b border-border">
-                                        <p className="text-xs text-muted-foreground">Hello</p>
+                                        <p className="text-xs text-muted-foreground">Xin chào</p>
                                         <p className="truncate text-sm font-medium text-foreground">{user?.name}</p>
                                     </div>
                                     <Link
@@ -174,7 +174,7 @@ export default function AdminNavbar() {
                                         className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
                                     >
                                         <Settings className="h-4 w-4" />
-                                        Settings
+                                        Cài đặt
                                     </Link>
                                     <button
                                         type="button"
@@ -182,9 +182,9 @@ export default function AdminNavbar() {
                                         className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
                                     >
                                         {mounted && isDarkMode ? (
-                                            <><Sun className="h-4 w-4" /> Light mode</>
+                                            <><Sun className="h-4 w-4" /> Chế độ sáng</>
                                         ) : (
-                                            <><Moon className="h-4 w-4" /> Dark mode</>
+                                            <><Moon className="h-4 w-4" /> Chế độ tối</>
                                         )}
                                     </button>
                                     <button
@@ -192,7 +192,7 @@ export default function AdminNavbar() {
                                         onClick={() => { logout(); setUserMenuOpen(false) }}
                                         className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-destructive hover:bg-destructive/10"
                                     >
-                                        <LogOut className="h-4 w-4" /> Log out
+                                        <LogOut className="h-4 w-4" /> Đăng xuất
                                     </button>
                                 </div>
                             )}
@@ -203,13 +203,13 @@ export default function AdminNavbar() {
                                 href="/login"
                                 className="hidden rounded-md px-3 py-2 text-sm font-bold text-primary-foreground/90 hover:text-accent transition-colors md:block"
                             >
-                                Log in
+                                Đăng nhập
                             </Link>
                             <Link
                                 href="/register"
                                 className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-foreground shadow-lg hover:bg-accent/90 transition-all"
                             >
-                                Sign up
+                                Đăng ký
                             </Link>
                         </div>
                     )}
@@ -256,21 +256,21 @@ export default function AdminNavbar() {
                                     className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
                                 >
                                     <Settings className="h-4 w-4" />
-                                    Settings
+                                    Cài đặt
                                 </Link>
                                 <button
                                     type="button"
                                     onClick={() => { toggleTheme(); setMobileMenuOpen(false) }}
                                     className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10 text-left"
                                 >
-                                    {mounted && isDarkMode ? <><Sun className="h-4 w-4" /> Light mode</> : <><Moon className="h-4 w-4" /> Dark mode</>}
+                                    {mounted && isDarkMode ? <><Sun className="h-4 w-4" /> Chế độ sáng</> : <><Moon className="h-4 w-4" /> Chế độ tối</>}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => { logout(); setMobileMenuOpen(false) }}
                                     className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-sm text-destructive hover:bg-destructive/20 text-left"
                                 >
-                                    <LogOut className="h-4 w-4" /> Log out
+                                    <LogOut className="h-4 w-4" /> Đăng xuất
                                 </button>
                             </div>
                         )}

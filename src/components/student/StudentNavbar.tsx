@@ -31,40 +31,40 @@ import {
 const STUDENT_BASE = "/student";
 
 const navItems = [
-  { name: "Dashboard", href: `${STUDENT_BASE}/dashboard`, icon: LayoutDashboard },
-  { name: "Profile", href: `${STUDENT_BASE}/profile`, icon: User },
-  { name: "Deadlines", href: `${STUDENT_BASE}/deadlines`, icon: CalendarClock },
-  { name: "Checklist", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
-  { name: "Discussion", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
+  { name: "Tổng quan", href: `${STUDENT_BASE}/dashboard`, icon: LayoutDashboard },
+  { name: "Hồ sơ", href: `${STUDENT_BASE}/profile`, icon: User },
+  { name: "Hạn nộp", href: `${STUDENT_BASE}/deadlines`, icon: CalendarClock },
+  { name: "Danh sách công việc", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
+  { name: "Trao đổi", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
 ];
 
 const functionalityItems = [
   {
-    name: "Tests",
+    name: "Bài kiểm tra",
     href: `${STUDENT_BASE}/tests`,
     icon: ClipboardList,
     description: "Bài kiểm tra năng lực và định hướng nghề nghiệp",
   },
   {
-    name: "Reports",
+    name: "Báo cáo",
     href: `${STUDENT_BASE}/reports`,
     icon: FileBarChart,
     description: "Báo cáo tiến độ và kết quả học tập",
   },
   {
-    name: "Profile analysis",
+    name: "Phân tích hồ sơ",
     href: `${STUDENT_BASE}/profile-analysis`,
     icon: BarChart3,
     description: "Phân tích điểm mạnh – điểm yếu hồ sơ",
   },
   {
-    name: "Target",
+    name: "Mục tiêu",
     href: `${STUDENT_BASE}/target`,
     icon: Target,
     description: "Trường và ngành mục tiêu phù hợp với bạn",
   },
   {
-    name: "Improve",
+    name: "Cải thiện",
     href: `${STUDENT_BASE}/improve`,
     icon: Sparkles,
     description: "Gợi ý cải thiện CV, luận văn với AI",
@@ -163,7 +163,7 @@ export default function StudentNavbar() {
                 HOLYANN
               </span>
               <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/90 md:text-xs">
-                Student
+                Học viên
               </span>
             </div>
           </Link>
@@ -265,7 +265,7 @@ export default function StudentNavbar() {
                     >
                       <span className="flex items-center gap-2">
                         <LayoutGrid className="h-4 w-4" />
-                        Functionalities
+                        Tính năng
                       </span>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -377,7 +377,7 @@ export default function StudentNavbar() {
                 >
                   <span className="flex items-center gap-2">
                     <LayoutGrid className="h-4 w-4" />
-                    Functionalities
+                    Tính năng
                   </span>
                   <ChevronDown
                     className={`h-4 w-4 transition-transform ${mobileFunctionalitiesOpen ? "rotate-180" : ""}`}

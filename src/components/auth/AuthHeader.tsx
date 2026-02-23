@@ -64,10 +64,10 @@ export default function AuthHeader() {
         {name: 'TỔNG QUAN', href: dashboardUrl},
         {name: 'NGƯỜI DÙNG', href: `${baseUrl}/users`},
         {name: 'HỌC VIÊN', href: `${baseUrl}/students`},
-        {name: 'MENTOR', href: `${baseUrl}/mentors`},
+        {name: 'CỐ VẤN', href: `${baseUrl}/mentors`},
         {name: 'TRAO ĐỔI', href: chatUrl},
     ] : [
-        {name: 'DASHBOARD', href: dashboardUrl},
+        {name: 'TỔNG QUAN', href: dashboardUrl},
         {name: 'HỒ SƠ', href: `${baseUrl}/profile`},
         {name: 'CHECKLIST', href: `${baseUrl}/checklist`},
         {name: 'MỤC TIÊU', href: `${baseUrl}/profile/schools`},
@@ -159,7 +159,7 @@ export default function AuthHeader() {
                                         onClick={logout}
                                         className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 rounded-lg font-medium"
                                     >
-                                        <i className="fas fa-sign-out-alt mr-2"></i> Logout
+                                        <i className="fas fa-sign-out-alt mr-2"></i> Đăng xuất
                                     </button>
                                 </div>
                             </div>

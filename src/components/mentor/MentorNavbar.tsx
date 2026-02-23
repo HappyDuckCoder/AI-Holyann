@@ -61,11 +61,11 @@ export default function MentorNavbar() {
 
     // Menu items for MENTOR (English, same pattern as StudentNavbar)
     const navItems = [
-        { name: 'Dashboard', href: '/mentor/dashboard', icon: LayoutDashboard },
-        { name: 'Students', href: '/mentor/students', icon: Users },
-        { name: 'Deadlines', href: '/mentor/deadlines', icon: CalendarClock },
-        { name: 'Profile', href: '/mentor/profile', icon: User },
-        { name: 'Discussion', href: '/mentor/chat', icon: MessageCircle },
+        { name: 'Tổng quan', href: '/mentor/dashboard', icon: LayoutDashboard },
+        { name: 'Học viên', href: '/mentor/students', icon: Users },
+        { name: 'Hạn nộp', href: '/mentor/deadlines', icon: CalendarClock },
+        { name: 'Hồ sơ', href: '/mentor/profile', icon: User },
+        { name: 'Trao đổi', href: '/mentor/chat', icon: MessageCircle },
     ]
 
     const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -97,7 +97,7 @@ export default function MentorNavbar() {
                                 HOLYANN
                             </span>
                             <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-primary-foreground/90 md:text-xs">
-                                Mentor
+                                Cố vấn
                             </span>
                         </div>
                     </Link>
@@ -150,7 +150,7 @@ export default function MentorNavbar() {
                             {userMenuOpen && (
                                 <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-lg border border-border bg-popover p-1 shadow-xl text-foreground">
                                     <div className="px-2 py-2 border-b border-border">
-                                        <p className="text-xs text-muted-foreground">Hello</p>
+                                        <p className="text-xs text-muted-foreground">Xin chào</p>
                                         <p className="truncate text-sm font-medium text-foreground">{user?.name}</p>
                                     </div>
                                     <Link
@@ -159,7 +159,7 @@ export default function MentorNavbar() {
                                         className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
                                     >
                                         <User className="h-4 w-4" />
-                                        Profile
+                                        Hồ sơ
                                     </Link>
                                     <button
                                         type="button"
@@ -167,9 +167,9 @@ export default function MentorNavbar() {
                                         className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground hover:bg-muted"
                                     >
                                         {mounted && isDarkMode ? (
-                                            <><Sun className="h-4 w-4" /> Light mode</>
+                                            <><Sun className="h-4 w-4" /> Chế độ sáng</>
                                         ) : (
-                                            <><Moon className="h-4 w-4" /> Dark mode</>
+                                            <><Moon className="h-4 w-4" /> Chế độ tối</>
                                         )}
                                     </button>
                                     <button
@@ -177,7 +177,7 @@ export default function MentorNavbar() {
                                         onClick={() => { logout(); setUserMenuOpen(false) }}
                                         className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-destructive hover:bg-destructive/10"
                                     >
-                                        <LogOut className="h-4 w-4" /> Log out
+                                        <LogOut className="h-4 w-4" /> Đăng xuất
                                     </button>
                                 </div>
                             )}
@@ -188,13 +188,13 @@ export default function MentorNavbar() {
                                 href="/login"
                                 className="hidden rounded-md px-3 py-2 text-sm font-bold text-primary-foreground/90 hover:text-accent transition-colors md:block"
                             >
-                                Log in
+                                Đăng nhập
                             </Link>
                             <Link
                                 href="/register"
                                 className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-foreground shadow-lg hover:bg-accent/90 transition-all"
                             >
-                                Sign up
+                                Đăng ký
                             </Link>
                         </div>
                     )}
@@ -241,21 +241,21 @@ export default function MentorNavbar() {
                                     className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10"
                                 >
                                     <User className="h-4 w-4" />
-                                    Profile
+                                    Hồ sơ
                                 </Link>
                                 <button
                                     type="button"
                                     onClick={() => { toggleTheme(); setMobileMenuOpen(false) }}
                                     className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-sm text-primary-foreground hover:bg-primary-foreground/10 text-left"
                                 >
-                                    {mounted && isDarkMode ? <><Sun className="h-4 w-4" /> Light mode</> : <><Moon className="h-4 w-4" /> Dark mode</>}
+                                    {mounted && isDarkMode ? <><Sun className="h-4 w-4" /> Chế độ sáng</> : <><Moon className="h-4 w-4" /> Chế độ tối</>}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => { logout(); setMobileMenuOpen(false) }}
                                     className="flex w-full items-center gap-2 rounded-lg px-4 py-3 text-sm text-destructive hover:bg-destructive/20 text-left"
                                 >
-                                    <LogOut className="h-4 w-4" /> Log out
+                                    <LogOut className="h-4 w-4" /> Đăng xuất
                                 </button>
                             </div>
                         )}
