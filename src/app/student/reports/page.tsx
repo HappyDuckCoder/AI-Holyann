@@ -328,7 +328,7 @@ export default function ReportsPage() {
                     <CardTitle className="text-sm font-semibold m-0">1. Thông tin cá nhân</CardTitle>
                   </CardHeader>
                   <CardContent className="px-3 pb-3 pt-0 text-xs space-y-1">
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 [&>span:nth-child(even)]:text-foreground">
                       <span className="text-muted-foreground">Họ tên</span><span className="truncate">{profile?.name ?? "—"}</span>
                       <span className="text-muted-foreground">Email</span><span className="truncate">{profile?.email ?? "—"}</span>
                       <span className="text-muted-foreground">GPA</span><span>{profile?.gpa ? `${profile.gpa}/${profile.gpaScale}` : "—"}</span>
@@ -352,7 +352,7 @@ export default function ReportsPage() {
                   return (
                     <Card className="border border-border print:shadow-none">
                       <CardHeader className="py-2 px-3 flex flex-row items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-emerald-600 shrink-0" />
+                        <BookOpen className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <CardTitle className="text-sm font-semibold m-0">2. Điểm trụ cột</CardTitle>
                         {(profileData.feature1_output.summary.main_spike || profileData.feature1_output.summary.sharpness) && (
                           <Badge variant="secondary" className="text-[10px] ml-auto">
@@ -361,11 +361,11 @@ export default function ReportsPage() {
                         )}
                       </CardHeader>
                       <CardContent className="px-3 pb-3 pt-0">
-                        <div className="h-24 w-full" data-pdf-chart-wrap>
+                        <div className="h-24 w-full text-foreground [&_.recharts-text]:fill-foreground" data-pdf-chart-wrap>
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                               <XAxis type="number" domain={[0, 100]} hide />
-                              <YAxis type="category" dataKey="name" width={72} tick={{ fontSize: 10 }} />
+                              <YAxis type="category" dataKey="name" width={72} tick={{ fontSize: 10, fill: "var(--foreground)" }} />
                               <Bar dataKey="value" radius={[0, 2, 2, 0]} maxBarSize={14}>
                                 {chartData.map((_, i) => (
                                   <Cell key={i} fill={["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b"][i]} />
@@ -454,7 +454,7 @@ export default function ReportsPage() {
                 return (
                   <Card className="border border-border print:shadow-none">
                     <CardHeader className="py-2 px-3 flex flex-row items-center gap-2">
-                      <Target className="h-4 w-4 text-sky-600 shrink-0" />
+                      <Target className="h-4 w-4 text-sky-600 dark:text-sky-400 shrink-0" />
                       <CardTitle className="text-sm font-semibold m-0">4. Gợi ý trường & Lộ trình</CardTitle>
                     </CardHeader>
                     <CardContent className="px-3 pb-3 pt-0 space-y-3 text-xs">
@@ -462,16 +462,16 @@ export default function ReportsPage() {
                       {hasSummary && typeof summary === "object" && ("total_matched" in summary || "reach_count" in summary) && (
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="text-[10px]">Tổng: {Number((summary as Record<string, unknown>).total_matched) || 0}</Badge>
-                          <Badge variant="outline" className="text-violet-600 border-violet-300 text-[10px]">Reach: {Number((summary as Record<string, unknown>).reach_count) || 0}</Badge>
-                          <Badge variant="outline" className="text-emerald-600 border-emerald-300 text-[10px]">Match: {Number((summary as Record<string, unknown>).match_count) || 0}</Badge>
-                          <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">Safety: {Number((summary as Record<string, unknown>).safety_count) || 0}</Badge>
+                          <Badge variant="outline" className="text-violet-600 dark:text-violet-400 border-violet-300 dark:border-violet-500/60 text-[10px]">Reach: {Number((summary as Record<string, unknown>).reach_count) || 0}</Badge>
+                          <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/60 text-[10px]">Match: {Number((summary as Record<string, unknown>).match_count) || 0}</Badge>
+                          <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-500/60 text-[10px]">Safety: {Number((summary as Record<string, unknown>).safety_count) || 0}</Badge>
                         </div>
                       )}
                       {hasUnis && (
                         <div className="grid grid-cols-3 gap-2">
-                          {reach.length > 0 && <div><p className="font-medium text-violet-600 text-[10px] mb-0.5">Reach</p><ul className="space-y-0.5">{reach.slice(0, 3).map((u, i) => <li key={i} className="truncate">{u.name}</li>)}{reach.length > 3 ? <li className="text-muted-foreground">+{reach.length - 3}</li> : null}</ul></div>}
-                          {match.length > 0 && <div><p className="font-medium text-emerald-600 text-[10px] mb-0.5">Match</p><ul className="space-y-0.5">{match.slice(0, 3).map((u, i) => <li key={i} className="truncate">{u.name}</li>)}{match.length > 3 ? <li className="text-muted-foreground">+{match.length - 3}</li> : null}</ul></div>}
-                          {safety.length > 0 && <div><p className="font-medium text-amber-600 text-[10px] mb-0.5">Safety</p><ul className="space-y-0.5">{safety.slice(0, 3).map((u, i) => <li key={i} className="truncate">{u.name}</li>)}{safety.length > 3 ? <li className="text-muted-foreground">+{safety.length - 3}</li> : null}</ul></div>}
+                          {reach.length > 0 && <div><p className="font-medium text-violet-600 dark:text-violet-400 text-[10px] mb-0.5">Reach</p><ul className="space-y-0.5 text-foreground">{reach.slice(0, 3).map((u, i) => <li key={i} className="truncate">{u.name}</li>)}{reach.length > 3 ? <li className="text-muted-foreground">+{reach.length - 3}</li> : null}</ul></div>}
+                          {match.length > 0 && <div><p className="font-medium text-emerald-600 dark:text-emerald-400 text-[10px] mb-0.5">Match</p><ul className="space-y-0.5 text-foreground">{match.slice(0, 3).map((u, i) => <li key={i} className="truncate">{u.name}</li>)}{match.length > 3 ? <li className="text-muted-foreground">+{match.length - 3}</li> : null}</ul></div>}
+                          {safety.length > 0 && <div><p className="font-medium text-amber-600 dark:text-amber-400 text-[10px] mb-0.5">Safety</p><ul className="space-y-0.5 text-foreground">{safety.slice(0, 3).map((u, i) => <li key={i} className="truncate">{u.name}</li>)}{safety.length > 3 ? <li className="text-muted-foreground">+{safety.length - 3}</li> : null}</ul></div>}
                         </div>
                       )}
                       {plans.length > 0 && (
@@ -496,7 +496,7 @@ export default function ReportsPage() {
               {(improveResults?.analysis || improveResults?.enhance) && (
                 <Card className="border border-border print:shadow-none">
                   <CardHeader className="py-2 px-3 flex flex-row items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
+                    <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                     <CardTitle className="text-sm font-semibold m-0">5. Phân tích & Đề xuất (Improve)</CardTitle>
                   </CardHeader>
                   <CardContent className="px-3 pb-3 pt-0 space-y-3 text-xs">

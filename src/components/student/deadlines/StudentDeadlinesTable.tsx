@@ -333,8 +333,8 @@ export default function StudentDeadlinesTable({
       </div>
 
       <Dialog open={!!viewRow} onOpenChange={(open) => !open && setViewRow(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="pr-10">
             <DialogTitle>Chi tiết deadline</DialogTitle>
           </DialogHeader>
           {viewRow && (
@@ -395,8 +395,8 @@ export default function StudentDeadlinesTable({
       </Dialog>
 
       <Dialog open={!!noteRow} onOpenChange={(open) => !open && setNoteRow(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="pr-10">
             <DialogTitle>Sửa ghi chú</DialogTitle>
           </DialogHeader>
           {noteRow && (

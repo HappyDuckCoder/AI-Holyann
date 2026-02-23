@@ -348,7 +348,7 @@ const TestView: React.FC<TestViewProps> = ({testType, questions, onBack, onCompl
 
             {showQuestionList && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    className="fixed inset-0 z-40 lg:hidden bg-[var(--overlay)]"
                     onClick={() => setShowQuestionList(false)}
                     aria-hidden
                 />

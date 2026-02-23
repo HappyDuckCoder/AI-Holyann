@@ -58,36 +58,36 @@ const getStatusInfo = (status: Task['status']) => {
       return {
         icon: CheckSquare,
         text: 'Đã hoàn thành',
-        color: 'text-green-600 bg-green-50 ring-green-200',
-        iconColor: 'text-green-600'
+        color: 'text-green-600 bg-green-500/15 ring-green-500/30 dark:text-green-400 dark:bg-green-500/20 dark:ring-green-500/30',
+        iconColor: 'text-green-600 dark:text-green-400'
       };
     case 'SUBMITTED':
       return {
         icon: Clock,
         text: 'Đang review',
-        color: 'text-yellow-600 bg-yellow-50 ring-yellow-200',
-        iconColor: 'text-yellow-500'
+        color: 'text-yellow-600 bg-yellow-500/15 ring-yellow-500/30 dark:text-yellow-400 dark:bg-yellow-500/20 dark:ring-yellow-500/30',
+        iconColor: 'text-yellow-500 dark:text-yellow-400'
       };
     case 'IN_PROGRESS':
       return {
         icon: AlertCircle,
         text: 'Đang thực hiện',
-        color: 'text-blue-600 bg-blue-50 ring-blue-200',
-        iconColor: 'text-blue-600'
+        color: 'text-blue-600 bg-blue-500/15 ring-blue-500/30 dark:text-blue-400 dark:bg-blue-500/20 dark:ring-blue-500/30',
+        iconColor: 'text-blue-600 dark:text-blue-400'
       };
     case 'NEEDS_REVISION':
       return {
         icon: AlertCircle,
         text: 'Cần sửa lại',
-        color: 'text-red-600 bg-red-50 ring-red-200',
-        iconColor: 'text-red-600'
+        color: 'text-red-600 bg-red-500/15 ring-red-500/30 dark:text-red-400 dark:bg-red-500/20 dark:ring-red-500/30',
+        iconColor: 'text-red-600 dark:text-red-400'
       };
     default:
       return {
         icon: Square,
         text: 'Chưa bắt đầu',
-        color: 'text-gray-600 bg-gray-50 ring-gray-200',
-        iconColor: 'text-gray-400'
+        color: 'text-muted-foreground bg-muted ring-border',
+        iconColor: 'text-muted-foreground'
       };
   }
 };
@@ -298,9 +298,9 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
   if (stages.length === 0) {
     return (
       <div className="text-center py-12">
-        <FileText className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-4 text-lg font-medium text-gray-900">Chưa có checklist</h3>
-        <p className="mt-2 text-sm text-gray-500">
+        <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+        <h3 className="mt-4 text-lg font-medium text-foreground">Chưa có checklist</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
           Học viên này chưa có checklist tasks nào.
         </p>
       </div>
@@ -318,10 +318,10 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
           const statusInfo = getStatusInfo(status as Task['status']);
 
           return (
-            <div key={status} className="bg-white border rounded-lg p-4 text-center">
+            <div key={status} className="bg-card border border-border rounded-lg p-4 text-center">
               <statusInfo.icon className={`w-6 h-6 mx-auto ${statusInfo.iconColor}`} />
-              <p className="text-2xl font-bold text-gray-900 mt-2">{count}</p>
-              <p className="text-xs text-gray-500">{statusInfo.text}</p>
+              <p className="text-2xl font-bold text-foreground mt-2">{count}</p>
+              <p className="text-xs text-muted-foreground">{statusInfo.text}</p>
             </div>
           );
         })}
@@ -336,36 +336,36 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
           const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
           return (
-            <div key={stage.id} className="bg-white border rounded-lg overflow-hidden">
+            <div key={stage.id} className="bg-card border border-border rounded-lg overflow-hidden">
               {/* Stage Header */}
               <div
-                className="px-6 py-4 border-b bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                className="px-6 py-4 border-b border-border bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => toggleStageExpansion(stage.id)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{stage.name}</h3>
+                    <h3 className="text-lg font-semibold text-foreground">{stage.name}</h3>
                     {stage.description && (
-                      <p className="text-sm text-gray-600 mt-1">{stage.description}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{stage.description}</p>
                     )}
                     <div className="flex items-center gap-4 mt-2">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         {completedTasks}/{totalTasks} hoàn thành
                       </div>
                       <div className="flex-1 max-w-xs">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-muted rounded-full h-2">
                           <div
                             className="bg-green-500 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${progressPercentage}%` }}
                           />
                         </div>
                       </div>
-                      <div className="text-sm font-medium text-gray-700">
+                      <div className="text-sm font-medium text-foreground">
                         {Math.round(progressPercentage)}%
                       </div>
                     </div>
                   </div>
-                  <button className="ml-4 p-1 text-gray-400 hover:text-gray-600">
+                  <button className="ml-4 p-1 text-muted-foreground hover:text-foreground">
                     {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                   </button>
                 </div>
@@ -388,11 +388,11 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
 
                           {/* Task Content */}
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-base font-medium text-gray-900">
+                            <h4 className="text-base font-medium text-foreground">
                               {task.title}
                             </h4>
                             {task.description && (
-                              <p className="text-sm text-gray-600 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {task.description}
                               </p>
                             )}
@@ -405,7 +405,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
                               </span>
 
                               {task.completedAt && (
-                                <span className="text-xs text-gray-500 flex items-center gap-1">
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
                                   <Calendar size={12} />
                                   {new Date(task.completedAt).toLocaleDateString('vi-VN')}
                                 </span>
@@ -414,7 +414,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
 
                             {/* Deadline Picker */}
                             <div className="flex items-center gap-3 mt-3">
-                              <span className="text-sm text-gray-600">Hạn chót:</span>
+                              <span className="text-sm text-muted-foreground">Hạn chót:</span>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <Button
@@ -448,7 +448,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        className="w-full text-destructive hover:bg-destructive/10"
                                         onClick={() => handleDeadlineChange(task.id, undefined)}
                                       >
                                         <X className="mr-2 h-4 w-4" />
@@ -462,16 +462,16 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
 
                             {/* Submission File */}
                             {task.submissionUrl && (
-                              <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="mt-3 p-4 bg-primary/10 border border-primary/20 rounded-lg">
                                 <div className="flex items-start justify-between gap-3">
-                                  <div className="flex items-center gap-2 text-sm text-blue-800">
+                                  <div className="flex items-center gap-2 text-sm text-primary">
                                     <FileText size={16} />
                                     <div>
                                       <p className="font-medium">File đã nộp</p>
-                                      <p className="text-xs text-blue-600 mt-1">
+                                      <p className="text-xs text-primary/80 mt-1">
                                         Nhấp để xem trước hoặc tải xuống file
                                       </p>
-                                      <p className="text-xs text-gray-500 mt-1 font-mono break-all">
+                                      <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
                                         {task.submissionUrl}
                                       </p>
                                     </div>
@@ -519,7 +519,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
                               value={task.status}
                               onChange={(e) => handleStatusChange(task.id, e.target.value as Task['status'], task.title, task.mentorNote || '')}
                               disabled={updatingTaskId === task.id}
-                              className="text-sm border rounded px-3 py-1 bg-white focus:ring-2 focus:ring-[#0f4c81] focus:border-[#0f4c81] disabled:opacity-50"
+                              className="text-sm border border-input rounded px-3 py-1 bg-background focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50"
                             >
                               <option value="PENDING">Chưa bắt đầu</option>
                               <option value="IN_PROGRESS">Đang thực hiện</option>
@@ -541,30 +541,30 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
 
       {/* Note Modal */}
       {noteModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--overlay)]">
+          <div className="bg-card border border-border rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
                 Ghi chú cho task
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 <strong>{noteModal.taskTitle}</strong>
               </p>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Trạng thái mới: <span className="font-medium">{getStatusInfo(noteModal.newStatus).text}</span>
               </p>
 
               <textarea
                 defaultValue={noteModal.currentNote}
                 placeholder="Thêm ghi chú cho học viên (tùy chọn)..."
-                className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-[#0f4c81] focus:border-[#0f4c81]"
+                className="w-full h-24 p-3 border border-input rounded-lg resize-none bg-background focus:ring-2 focus:ring-ring focus:border-ring"
                 id="note-textarea"
               />
 
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setNoteModal(prev => ({ ...prev, isOpen: false }))}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded-lg transition-colors"
                 >
                   Hủy
                 </button>
@@ -573,7 +573,7 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
                     const textarea = document.getElementById('note-textarea') as HTMLTextAreaElement;
                     handleNoteSubmit(textarea.value);
                   }}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-[#0f4c81] hover:bg-[#0d3d6b] rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors"
                 >
                   Cập nhật
                 </button>

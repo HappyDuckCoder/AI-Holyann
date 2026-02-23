@@ -98,7 +98,7 @@ export default function UserAvatar({
 
         {/* Upload indicator when clickable */}
         {clickable && onAvatarUpload && (
-          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center transition-all duration-200 opacity-0 hover:opacity-100">
+          <div className="absolute inset-0 bg-black/0 hover:bg-black/30 flex items-center justify-center transition-all duration-200 opacity-0 hover:opacity-100">
             <i className="fas fa-camera text-white text-sm"></i>
           </div>
         )}

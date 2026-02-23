@@ -88,7 +88,7 @@ function getRatingColor(rating: string) {
     case "low":
       return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
     default:
-      return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30";
+      return "text-muted-foreground bg-muted";
   }
 }
 
@@ -126,7 +126,7 @@ function getSharpnessInfo(sharpness: string) {
     default:
       return {
         color: "text-gray-600",
-        bg: "bg-gray-100 dark:bg-gray-900/30",
+        bg: "bg-muted",
         icon: "📋",
         label: sharpness,
       };
@@ -170,8 +170,8 @@ export default function ProfileAnalysisModal({
   const data = result?.data;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--overlay)] backdrop-blur-sm">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-6 py-5">
           <div className="flex justify-between items-center">

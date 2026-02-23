@@ -213,7 +213,7 @@ export default function MediaGallery({ roomId, className }: MediaGalleryProps) {
       {/* Image Viewer Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--overlay-dark)]"
           onClick={() => setSelectedImage(null)}
         >
           <button

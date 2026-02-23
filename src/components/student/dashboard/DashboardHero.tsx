@@ -23,7 +23,7 @@ export function DashboardHero({ userName }: DashboardHeroProps) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="relative rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm"
+      className="relative rounded-2xl overflow-hidden border border-border bg-card shadow-md dark:shadow-lg dark:shadow-black/20"
       aria-label="Welcome"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-primary/[0.04]" />

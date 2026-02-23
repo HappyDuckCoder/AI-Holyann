@@ -81,12 +81,12 @@ export default function Dashboard({ userName, data, isLoading, error }: Dashboar
 
   return (
     <div
-      className="min-h-[60vh] rounded-2xl bg-muted/20 dark:bg-muted/10 px-6 py-8 sm:px-8 lg:px-8 max-w-[1600px] mx-auto pb-12"
+      className="min-h-[60vh] rounded-2xl bg-surface px-6 py-8 sm:px-8 lg:px-8 max-w-[1600px] mx-auto pb-12"
       style={{ paddingLeft: "clamp(24px, 5vw, 32px)", paddingRight: "clamp(24px, 5vw, 32px)" }}
     >
       <DashboardHero userName={userName} />
 
-      <div className="mt-8">
+      <div className="mt-10">
         <QuickStatsGrid items={data.quickStats} />
       </div>
 
@@ -97,7 +97,7 @@ export default function Dashboard({ userName, data, isLoading, error }: Dashboar
         variants={container}
         className="mt-8 rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
       >
-        <CardHeader className="border-b border-border px-6 py-4 bg-muted/20">
+        <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
           <div className="flex items-center gap-2">
             <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-base font-semibold m-0">Quick access</CardTitle>

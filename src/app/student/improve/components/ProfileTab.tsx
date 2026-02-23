@@ -152,7 +152,7 @@ export function ProfileTab({
                               <span className="text-sm font-semibold">{label}</span>
                               <span className="text-xs text-muted-foreground">{list.length}</span>
                             </div>
-                            <ul className="p-3 space-y-1.5 max-h-32 overflow-y-auto text-xs">
+                            <ul className="p-3 space-y-1.5 max-h-32 overflow-y-auto text-xs text-foreground">
                               {list.length === 0 ? (
                                 <li className="text-muted-foreground">—</li>
                               ) : (

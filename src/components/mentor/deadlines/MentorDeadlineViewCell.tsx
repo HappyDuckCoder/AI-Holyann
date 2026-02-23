@@ -56,8 +56,8 @@ export default function MentorDeadlineViewCell({
         </Link>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="pr-10">
             <DialogTitle>Chi tiết deadline</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-sm">

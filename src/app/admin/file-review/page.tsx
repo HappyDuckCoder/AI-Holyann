@@ -241,7 +241,7 @@ export default function MentorReviewPage() {
 
             {/* Review Modal */}
             {selectedSubmission && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--overlay)]">
                     <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                         <CardHeader>
                             <CardTitle>Review File - {selectedSubmission.student.users.full_name}</CardTitle>

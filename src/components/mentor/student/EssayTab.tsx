@@ -114,7 +114,7 @@ export default function EssayTab({ studentId }: EssayTabProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12 text-gray-500">
+      <div className="flex items-center justify-center py-12 text-muted-foreground">
         <Loader2 className="h-8 w-8 animate-spin mr-2" />
         Đang tải...
       </div>
@@ -123,7 +123,7 @@ export default function EssayTab({ studentId }: EssayTabProps) {
 
   if (essays.length === 0) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-gray-500">
+      <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">
         <FileText className="h-12 w-12 mx-auto mb-3 opacity-60" />
         <p>Học viên chưa có bài luận nào.</p>
       </div>
@@ -132,13 +132,13 @@ export default function EssayTab({ studentId }: EssayTabProps) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex flex-wrap items-center gap-2 p-3 border-b border-gray-200 bg-gray-50">
-          <span className="text-sm text-gray-600">Chọn bài luận:</span>
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border bg-muted/30">
+          <span className="text-sm text-muted-foreground">Chọn bài luận:</span>
           <select
             value={selectedId || ''}
             onChange={(e) => setSelectedId(e.target.value || null)}
-            className="rounded-lg border border-gray-300 bg-white text-gray-900 text-sm px-3 py-1.5"
+            className="rounded-lg border border-input bg-background text-foreground text-sm px-3 py-1.5"
           >
             {essays.map((e) => (
               <option key={e.id} value={e.id}>
@@ -149,26 +149,26 @@ export default function EssayTab({ studentId }: EssayTabProps) {
           </select>
         </div>
         {detailLoading ? (
-          <div className="flex items-center justify-center py-12 text-gray-500">
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : essayDetail ? (
           <>
             <div
-              className="p-6 min-h-[200px] border-b border-gray-200 bg-gray-50/50 text-gray-900 prose prose-sm max-w-none"
+              className="px-4 sm:px-6 py-6 min-h-[200px] border-b border-border bg-muted dark:bg-muted/40 text-foreground [&_p]:text-foreground [&_p]:leading-relaxed [&_p]:my-3 [&_p]:text-[15px]"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-              dangerouslySetInnerHTML={{ __html: essayDetail.content || '<p class="text-gray-500">(Trống)</p>' }}
+              dangerouslySetInnerHTML={{ __html: essayDetail.content || '<p style="color: var(--muted-foreground)">(Trống)</p>' }}
             />
             <div className="p-6">
-              <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-[#0f4c81]" />
+              <h3 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-primary" />
                 Nhận xét
               </h3>
               <ul className="space-y-3 mb-4">
                 {essayDetail.comments.map((c) => (
-                  <li key={c.id} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-                    <p className="text-sm text-gray-900">{c.content}</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                  <li key={c.id} className="rounded-xl border border-border bg-muted/30 p-3">
+                    <p className="text-sm text-foreground">{c.content}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {c.author?.full_name || c.author?.email} · {new Date(c.created_at).toLocaleString('vi-VN')}
                     </p>
                   </li>
@@ -179,16 +179,16 @@ export default function EssayTab({ studentId }: EssayTabProps) {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Viết nhận xét cho học viên..."
-                  className="flex-1 min-h-[80px] rounded-lg border border-gray-300 bg-white text-gray-900 text-sm p-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81]/30"
+                  className="flex-1 min-h-[80px] rounded-lg border border-input bg-background text-foreground text-sm p-3 focus:outline-none focus:ring-2 focus:ring-ring"
                   rows={3}
                 />
                 <button
                   type="button"
                   onClick={handleAddComment}
                   disabled={!commentText.trim() || submittingComment}
-                  className="self-end inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-[#0f4c81]/50 disabled:opacity-50"
+                  className="self-end inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-input bg-background text-foreground text-sm font-medium hover:bg-muted hover:border-primary/50 disabled:opacity-50"
                 >
-                  {submittingComment ? <Loader2 className="h-4 w-4 animate-spin text-[#0f4c81]" /> : <Send className="h-4 w-4 text-[#0f4c81]" />}
+                  {submittingComment ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Send className="h-4 w-4 text-primary" />}
                   Gửi
                 </button>
               </div>

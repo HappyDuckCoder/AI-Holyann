@@ -361,7 +361,7 @@ const TestView: React.FC<TestViewProps> = ({testType, questions, onBack, onCompl
             {/* Mobile Overlay */}
             {showQuestionList && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-40 lg:hidden"
+                    className="fixed inset-0 z-40 lg:hidden bg-[var(--overlay)]"
                     onClick={() => setShowQuestionList(false)}
                 />
             )}

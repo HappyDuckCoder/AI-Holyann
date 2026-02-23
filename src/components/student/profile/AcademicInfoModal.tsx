@@ -616,8 +616,8 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
 
     return (
         <Dialog open onOpenChange={onClose}>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-6">
+                <DialogHeader className="pr-10">
                     <DialogTitle className="text-2xl">Cập nhật hồ sơ học sinh</DialogTitle>
                 </DialogHeader>
 

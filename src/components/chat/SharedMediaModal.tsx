@@ -161,7 +161,7 @@ export const SharedMediaModal: React.FC<SharedMediaModalProps> = ({
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/50 z-50"
+                className="fixed inset-0 z-50 bg-[var(--overlay)]"
                 onClick={onClose}
             />
 
@@ -278,7 +278,7 @@ export const SharedMediaModal: React.FC<SharedMediaModalProps> = ({
                                                     e.currentTarget.src = '/images/placeholder-image.png';
                                                 }}
                                             />
-                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                            <div className="absolute inset-0 bg-transparent group-hover:bg-black/20 dark:group-hover:bg-white/10 transition-colors flex items-center justify-center">
                                                 <ExternalLink size={24} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
                                         </button>

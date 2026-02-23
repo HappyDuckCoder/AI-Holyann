@@ -207,7 +207,7 @@ export const MentorChatInterface: React.FC = () => {
       {/* Mobile Overlay */}
       {showMobileConversations && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 z-40 md:hidden bg-[var(--overlay)]"
           onClick={() => setShowMobileConversations(false)}
         />
       )}

@@ -6,6 +6,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-overlay: var(--overlay);
 
   /* Cập nhật Font theo Brand */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -41,8 +44,13 @@
 :root {
   --radius: 0.625rem;
 
-  /* Nền trắng tinh khiết */
+  /* Background hierarchy */
   --background: #ffffff;
+  --surface: #f8fafc;
+  --surface-elevated: #ffffff;
+  --overlay: rgba(0, 0, 0, 0.5);
+  --overlay-dark: rgba(0, 0, 0, 0.9);
+
   /* Chữ màu đen ánh xanh (Dark Text) */
   --foreground: #0f172a;
 
@@ -105,42 +113,45 @@
   --ring: #0f4c81; /* Ring focus theo màu brand */
 }
 
-/* 4. DARK MODE CONFIG (Giao diện Tối - Deep Ocean Theme) */
+/* 4. DARK MODE CONFIG (Giao diện Tối - Layered Depth System) */
 .dark {
-  /* Nền: Xanh than chì rất đậm (Không dùng đen tuyền #000) -> Tạo cảm giác cao cấp */
-  --background: #020617; /* Slate-950 */
-  /* Chữ: Trắng ngà (Không dùng trắng tinh gây chói) */
-  --foreground: #f8fafc; /* Slate-50 */
+  /* Background hierarchy: deep blue/neutral (not pure black) */
+  --background: #0c1222; /* Deep blue-neutral base */
+  --surface: #131c2e; /* Slightly lighter - section level */
+  --surface-elevated: #1a2742; /* Elevated - cards, modals */
+  --overlay: rgba(0, 0, 0, 0.6);
+  --overlay-dark: rgba(0, 0, 0, 0.92);
 
-  /* Card: Xanh than chì nhạt hơn nền một chút để nổi khối */
-  --card: #0f172a; /* Slate-900 */
-  --card-foreground: #f8fafc;
-  --popover: #0f172a;
-  --popover-foreground: #f8fafc;
+  /* Typography - WCAG AA contrast */
+  --foreground: #f1f5f9; /* Slate-100 - strong readable */
+  --muted-foreground: #94a3b8; /* Slate-400 - muted but readable */
 
-  /* PRIMARY ĐẢO NGƯỢC:
-       Trong nền tối, màu xanh đậm (#0F4C81) sẽ bị chìm.
-       Ta đổi Primary thành màu Xanh Sáng (#38BDF8 hoặc #00B4DB) để nổi bật.
-    */
-  --primary: #0ea5e9; /* Sky-500: Sáng hơn, dễ đọc trên nền tối */
-  --primary-foreground: #ffffff;
+  /* Card: Elevated surface with subtle depth */
+  --card: #1a2742;
+  --card-foreground: #f1f5f9;
+  --popover: #1a2742;
+  --popover-foreground: #f1f5f9;
 
-  /* SECONDARY: Lúc này màu Xanh Đậm (#0F4C81) đóng vai trò nền phụ hoặc viền */
-  --secondary: #1e293b; /* Slate-800 */
-  --secondary-foreground: #f8fafc;
+  /* PRIMARY: Bright for dark backgrounds */
+  --primary: #38bdf8; /* Sky-400 */
+  --primary-foreground: #0c1222;
 
-  /* ACCENT: Màu Cam giữ nguyên vì tương phản tốt trên nền tối */
+  /* SECONDARY: Muted surface tone */
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+
+  /* ACCENT: Warm contrast */
   --accent: #f5a623;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #0c1222;
 
-  /* MUTED: Màu nền cho các khối phụ */
-  --muted: #1e293b; /* Slate-800 */
-  --muted-foreground: #94a3b8; /* Slate-400 */
+  /* MUTED: Section backgrounds */
+  --muted: #1e293b;
+  /* muted-foreground already set above */
 
-  --destructive: #f87171; /* Red-400: đỏ sáng, dễ đọc trên nền tối */
-  --border: #1e293b; /* Viền tối */
+  --destructive: #f87171;
+  --border: #334155; /* Slate-700 - visible but subtle */
   --input: #1e293b;
-  --ring: #0ea5e9; /* Ring sáng theo màu Primary mới */
+  --ring: #38bdf8;
 }
 
 @layer base {
@@ -170,7 +181,6 @@
   }
 
   /* Custom Scrollbar Styles - Global */
-  /* Webkit browsers (Chrome, Safari, Edge) */
   *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -193,27 +203,43 @@
   }
 
   .dark * {
-    scrollbar-color: rgb(96 165 250) rgb(30 41 59);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--surface);
+  }
+
+  .dark *::-webkit-scrollbar-track {
+    background: var(--surface);
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 9999px;
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
   }
 }
 
 @layer components {
-  /* Navbar dark mode: darker gradient, better contrast */
+  /* Navbar - Light: Holyann gradient | Dark: SaaS floating depth */
   .navbar-header {
-    @apply transition-colors duration-300;
+    @apply transition-all duration-300;
+    /* Light mode: Holyann brand gradient xanh-trắng */
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    color: var(--primary-foreground);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   .dark .navbar-header {
-    background: linear-gradient(to right, #0c4a6e 0%, #0f172a 50%, #1e293b 100%);
-    box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.08);
+    background: rgb(15 23 42 / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     color: rgb(248 250 252);
-  }
-  /* Nav link underline: accent sáng hơn trên nền tối */
-  .dark .navbar-header nav a::after {
-    background-color: #38bdf8;
   }
   /* Gradient Text thương hiệu */
   .text-gradient {
-    @apply bg-gradient-to-r from-[var(--primary)] to-[var(--brand-cyan)] bg-clip-text text-transparent dark:from-[#38BDF8] dark:to-[var(--secondary)];
+    @apply bg-gradient-to-r from-[var(--primary)] to-[var(--brand-cyan)] bg-clip-text text-transparent dark:from-[var(--primary)] dark:to-[var(--secondary)];
   }
 
   /* Nút bấm Gradient */
@@ -239,6 +265,11 @@
     @apply bg-card rounded-2xl shadow-sm border border-border p-6 hover:shadow-md transition-all duration-300;
   }
 
+  /* Modal overlay - semantic token */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    background-color: var(--overlay);
+  }
 }
 
 /* Material Symbols */

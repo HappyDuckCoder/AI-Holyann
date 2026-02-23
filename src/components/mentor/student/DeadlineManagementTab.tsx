@@ -344,8 +344,8 @@ export default function DeadlineManagementTab({ studentId }: DeadlineManagementT
 
       {/* View detail modal */}
       <Dialog open={!!viewTask} onOpenChange={(open) => !open && setViewTask(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="pr-10">
             <DialogTitle>Chi tiết deadline</DialogTitle>
           </DialogHeader>
           {viewTask && (
@@ -386,8 +386,8 @@ export default function DeadlineManagementTab({ studentId }: DeadlineManagementT
 
       {/* Edit mentor note (feedback) modal */}
       <Dialog open={!!editNoteTask} onOpenChange={(open) => !open && setEditNoteTask(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="pr-10">
             <DialogTitle>Ghi chú / Feedback</DialogTitle>
           </DialogHeader>
           {editNoteTask && (
@@ -415,8 +415,8 @@ export default function DeadlineManagementTab({ studentId }: DeadlineManagementT
       </Dialog>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="pr-10">
             <DialogTitle>Thêm deadline tùy chỉnh</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="space-y-4">

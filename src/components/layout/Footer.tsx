@@ -33,7 +33,7 @@ export default function Footer() {
                             <Instagram size={18} className="text-white"/>
                         </a>
                         <a href="#"
-                           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-black transition-all hover:-translate-y-1">
+                           className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/25 transition-all hover:-translate-y-1">
                             <FontAwesomeIcon icon={faTiktok} className="text-white text-lg"/>
                         </a>
                     </div>

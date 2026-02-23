@@ -418,7 +418,7 @@ export default function ProfilePageWrapper() {
   return (
     <>
       <AuthHeader />
-      <main className="min-h-screen bg-white dark:bg-gray-900">
+      <main className="min-h-screen bg-background">
         {/* Welcome Banner for New Students */}
         {isNewStudent && (
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">

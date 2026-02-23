@@ -31,8 +31,8 @@ export interface ImproveChartsSectionProps {
   loading?: boolean;
 }
 
-const CHART_COLOR = "hsl(var(--primary))";
-const MUTED = "hsl(var(--muted-foreground))";
+const CHART_COLOR = "var(--primary)";
+const MUTED = "var(--muted-foreground)";
 
 export function ImproveChartsSection({
   trendData = [],
@@ -91,7 +91,7 @@ export function ImproveChartsSection({
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
+                    stroke="var(--border)"
                     vertical={false}
                   />
                   <XAxis
@@ -109,8 +109,9 @@ export function ImproveChartsSection({
                   <Tooltip
                     contentStyle={{
                       borderRadius: 12,
-                      border: "1px solid hsl(var(--border))",
-                      background: "hsl(var(--card))",
+                      border: "1px solid var(--border)",
+                      background: "var(--card)",
+                      color: "var(--card-foreground)",
                     }}
                     formatter={(value: number) => [value, "Score"]}
                   />
@@ -151,7 +152,7 @@ export function ImproveChartsSection({
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
+                    stroke="var(--border)"
                     vertical={false}
                   />
                   <XAxis
@@ -169,8 +170,9 @@ export function ImproveChartsSection({
                   <Tooltip
                     contentStyle={{
                       borderRadius: 12,
-                      border: "1px solid hsl(var(--border))",
-                      background: "hsl(var(--card))",
+                      border: "1px solid var(--border)",
+                      background: "var(--card)",
+                      color: "var(--card-foreground)",
                     }}
                     formatter={(value: number) => [value, "Score"]}
                   />

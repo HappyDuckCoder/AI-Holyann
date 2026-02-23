@@ -159,7 +159,7 @@ export default function StudentDetail({ studentId }: StudentDetailProps) {
         className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
       }
     }
-    return statusMap[status] || { label: status, className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400' }
+    return statusMap[status] || { label: status, className: 'bg-muted text-muted-foreground' }
   }
 
   const getCategoryBadge = (category: string) => {
@@ -177,7 +177,7 @@ export default function StudentDetail({ studentId }: StudentDetailProps) {
         className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
       }
     }
-    return categoryMap[category] || { label: category, className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400' }
+    return categoryMap[category] || { label: category, className: 'bg-muted text-muted-foreground' }
   }
 
   if (loading) {

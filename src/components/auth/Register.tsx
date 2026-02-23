@@ -433,9 +433,9 @@ export default function Register() {
       {/* Footer */}
       <div className="mt-12 pt-6 space-y-6">
         <div className="relative flex items-center gap-4">
-          <div className="flex-1 h-px bg-border/50 dark:bg-[#0f4c81]/60" />
+          <div className="flex-1 h-px bg-border/50" />
           <span className="text-xs text-muted-foreground shrink-0">hoặc</span>
-          <div className="flex-1 h-px bg-border/50 dark:bg-[#0f4c81]/60" />
+          <div className="flex-1 h-px bg-border/50" />
         </div>
         <button
           type="button"

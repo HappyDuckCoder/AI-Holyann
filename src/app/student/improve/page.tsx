@@ -27,6 +27,13 @@ import {
 import { toast } from "sonner";
 import { sanitizeText } from "@/lib/utils/validation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -2293,20 +2300,22 @@ export default function ImprovePage() {
                           <span className="text-sm text-muted-foreground">
                             Bài luận:
                           </span>
-                          <select
+                          <Select
                             value={currentEssayId || ""}
-                            onChange={(e) =>
-                              setCurrentEssayId(e.target.value || null)
-                            }
-                            className="rounded-xl border border-border/60 bg-card text-foreground text-sm px-4 py-2"
+                            onValueChange={(v) => setCurrentEssayId(v || null)}
                           >
-                            {essayList.map((e) => (
-                              <option key={e.id} value={e.id}>
-                                {e.title ||
-                                  `Luận ${new Date(e.updated_at).toLocaleDateString("vi-VN")}`}
-                              </option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="w-[220px] rounded-xl border-border/60">
+                              <SelectValue placeholder="Chọn bài luận" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {essayList.map((e) => (
+                                <SelectItem key={e.id} value={e.id}>
+                                  {e.title ||
+                                    `Luận ${new Date(e.updated_at).toLocaleDateString("vi-VN")}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <button
                             type="button"
                             onClick={handleSaveEssay}
@@ -2396,7 +2405,7 @@ export default function ImprovePage() {
                           ref={editorRef}
                           contentEditable
                           suppressContentEditableWarning
-                          className="relative w-full min-h-[320px] p-8 pt-10 rounded-2xl bg-muted/10 text-foreground text-base leading-relaxed overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-inset"
+                          className="relative w-full min-h-[320px] p-8 pt-10 rounded-2xl bg-muted/10 dark:bg-muted/20 text-foreground text-base leading-relaxed overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-inset"
                           style={{
                             fontFamily: 'Georgia, "Times New Roman", serif',
                           }}

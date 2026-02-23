@@ -78,7 +78,7 @@ function getRatingColor(rating: string) {
     case 'high': return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30';
     case 'med': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30';
     case 'low': return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30';
-    default: return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30';
+    default: return 'text-muted-foreground bg-muted';
   }
 }
 
@@ -88,7 +88,7 @@ function getSharpnessInfo(sharpness: string | undefined | null) {
     case 'high': return { color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30', icon: '⭐', label: 'Cao' };
     case 'med': return { color: 'text-yellow-600', bg: 'bg-yellow-100 dark:bg-yellow-900/30', icon: '📈', label: 'Trung bình' };
     case 'low': return { color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30', icon: '📊', label: 'Thấp' };
-    default: return { color: 'text-gray-600', bg: 'bg-gray-100 dark:bg-gray-900/30', icon: '📋', label: String(sharpness ?? '—') };
+    default: return { color: 'text-muted-foreground', bg: 'bg-muted', icon: '📋', label: String(sharpness ?? '—') };
   }
 }
 

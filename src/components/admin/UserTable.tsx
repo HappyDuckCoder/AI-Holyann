@@ -86,7 +86,7 @@ export default function UserTable({ users, loading, onEdit, onDelete, onToggleSt
                                 </span>
                             </td>
                             <td className="py-3 px-4">
-                                <button onClick={() => onToggleStatus(user)} className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${user.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'}`}>
+                                <button onClick={() => onToggleStatus(user)} className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${user.is_active ? 'bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
                                     {user.is_active ? 'Hoạt động' : 'Khóa'}
                                 </button>
                             </td>

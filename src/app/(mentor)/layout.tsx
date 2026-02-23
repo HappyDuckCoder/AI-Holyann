@@ -10,7 +10,7 @@ export default function MentorLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${inter.className} min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300`}>
+    <div className={`${inter.className} min-h-screen bg-background transition-colors duration-300`}>
       {/* Navbar at the top */}
       <MentorNavbar />
       

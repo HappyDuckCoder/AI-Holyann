@@ -93,7 +93,7 @@ export default function RealtimeTestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
           <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
@@ -183,7 +183,7 @@ export default function RealtimeTestPage() {
               📋 Debug Logs
             </h2>
 
-            <div className="bg-gray-900 rounded-lg p-4 max-h-[500px] overflow-y-auto font-mono text-sm">
+            <div className="bg-surface-elevated rounded-lg p-4 max-h-[500px] overflow-y-auto font-mono text-sm border border-border">
               {logs.map((log, idx) => (
                 <div
                   key={idx}

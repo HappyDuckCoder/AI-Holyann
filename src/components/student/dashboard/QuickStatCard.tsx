@@ -84,7 +84,7 @@ export function QuickStatCard({ item, index }: QuickStatCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05 }}
       whileHover={{ y: -2 }}
-      className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+      className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:border-border/80 dark:shadow-black/10 dark:hover:shadow-black/20"
     >
       <div className="flex items-start justify-between gap-3">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style.bg} ${style.icon}`}>

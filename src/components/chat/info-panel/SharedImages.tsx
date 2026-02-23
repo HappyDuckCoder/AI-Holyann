@@ -126,7 +126,7 @@ export const SharedImages: React.FC<SharedImagesProps> = ({
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                <div className="absolute inset-0 bg-transparent group-hover:bg-black/10 dark:group-hover:bg-white/5 transition-colors" />
               </button>
             ))}
           </div>

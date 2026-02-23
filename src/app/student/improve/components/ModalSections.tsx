@@ -5,12 +5,12 @@ import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const MODAL_ACCENTS = {
-  emerald: 'border-l-emerald-500 bg-emerald-500/10',
-  violet: 'border-l-violet-500 bg-violet-500/10',
-  amber: 'border-l-amber-500 bg-amber-500/10',
-  sky: 'border-l-sky-500 bg-sky-500/10',
-  rose: 'border-l-rose-500 bg-rose-500/10',
-  primary: 'border-l-primary bg-primary/10',
+  emerald: 'border-l-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/20',
+  violet: 'border-l-violet-500 bg-violet-500/10 dark:bg-violet-500/20',
+  amber: 'border-l-amber-500 bg-amber-500/10 dark:bg-amber-500/20',
+  sky: 'border-l-sky-500 bg-sky-500/10 dark:bg-sky-500/20',
+  rose: 'border-l-rose-500 bg-rose-500/10 dark:bg-rose-500/20',
+  primary: 'border-l-primary bg-primary/10 dark:bg-primary/20',
 } as const;
 
 export type ModalAccent = keyof typeof MODAL_ACCENTS;
@@ -29,7 +29,7 @@ export function ModalSection({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-border/50 p-6 border-l-4 shadow-sm',
+        'rounded-2xl border border-border/50 dark:border-border/70 p-6 border-l-4 shadow-sm',
         MODAL_ACCENTS[accent],
         className
       )}
@@ -60,13 +60,13 @@ export function CollapsibleSection({
   return (
     <details
       className={cn(
-        'group rounded-2xl border border-border/50 border-l-4 overflow-hidden shadow-sm transition-shadow hover:shadow-md',
+        'group rounded-2xl border border-border/50 dark:border-border/70 border-l-4 overflow-hidden shadow-sm transition-shadow hover:shadow-md',
         MODAL_ACCENTS[accent]
       )}
       open={defaultOpen}
     >
       <summary className="list-none cursor-pointer select-none outline-none">
-        <span className="flex items-center justify-between gap-4 py-4 px-5 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] active:bg-black/[0.05] dark:active:bg-white/[0.06] transition-colors rounded-2xl">
+        <span className="flex items-center justify-between gap-4 py-4 px-5 hover:bg-muted/50 active:bg-muted/70 transition-colors rounded-2xl">
           <span className="text-sm font-semibold text-foreground">{title}</span>
           <span className="flex items-center gap-2 shrink-0">
             {summary && (

@@ -412,7 +412,7 @@ export const MessageBubble = memo(function MessageBubble({ message }: MessageBub
                                     }`}
                                 />
                                 {/* Hover Overlay */}
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg flex items-center justify-center">
+                                <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-all rounded-lg flex items-center justify-center">
                                     {isLoadingPreview && (
                                         <Clock size={24} className="text-white animate-spin" />
                                     )}
