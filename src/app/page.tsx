@@ -12,7 +12,7 @@ import ScrollProgress from "@/components/landing/ScrollProgress";
 
 export default function Home() {
   return (
-    <main className="font-sans text-slate-600 bg-white selection:bg-cyan-100 min-h-screen flex flex-col scroll-smooth">
+    <main className="font-sans text-slate-600 bg-white selection:bg-sky-200 selection:text-slate-900 min-h-screen flex flex-col scroll-smooth">
       <ScrollProgress />
       <Header />
 

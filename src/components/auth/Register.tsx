@@ -106,17 +106,17 @@ export default function Register() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full">
       <Link
         href="/"
-        className="inline-block mb-12 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 rounded-lg"
+        className="inline-block mb-12 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background rounded-lg"
       >
         <Image
           src="/images/logos/Logo_Holyann_ngang-removebg-preview.png"
           alt="Holyann"
           width={120}
           height={32}
-          className="h-8 w-auto object-contain dark:invert-0 opacity-90 hover:opacity-100 transition-opacity"
+          className="h-8 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity dark:invert dark:brightness-110"
           priority
         />
       </Link>
@@ -149,7 +149,7 @@ export default function Register() {
                   setIdentity("student");
                   goTo("name", 1);
                 }}
-                className="flex-1 py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted border border-transparent hover:border-primary/30 transition-all duration-200"
+                className="flex-1 min-w-0 min-h-[48px] py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted active:scale-[0.98] border border-transparent hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-muted/40 dark:hover:bg-muted dark:border-border/50 dark:hover:border-primary/50 transition-all duration-200 outline-none"
               >
                 Học viên
               </button>
@@ -159,7 +159,7 @@ export default function Register() {
                   setIdentity("mentor");
                   goTo("name", 1);
                 }}
-                className="flex-1 py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted border border-transparent hover:border-primary/30 transition-all duration-200"
+                className="flex-1 min-w-0 min-h-[48px] py-3.5 px-4 rounded-xl text-center font-medium text-foreground bg-muted/50 hover:bg-muted active:scale-[0.98] border border-transparent hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:bg-muted/40 dark:hover:bg-muted dark:border-border/50 dark:hover:border-primary/50 transition-all duration-200 outline-none"
               >
                 Mentor
               </button>
@@ -210,12 +210,12 @@ export default function Register() {
                 }}
                 placeholder="Nguyễn Văn A"
                 required
-                className="w-full px-0 py-3 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border focus:border-primary focus:outline-none focus:ring-0 transition-colors"
+                className="w-full px-0 py-3 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border dark:border-slate-600 focus:border-primary focus:outline-none focus:ring-0 transition-colors"
               />
               <button
                 type="submit"
                 disabled={!registerData.full_name?.trim()}
-                className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex items-center justify-center gap-2 w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
               >
                 Tiếp tục
                 <ArrowRight className="w-4 h-4" />
@@ -264,12 +264,12 @@ export default function Register() {
                 }}
                 placeholder="name@example.com"
                 required
-                className="w-full px-0 py-3 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border focus:border-primary focus:outline-none focus:ring-0 transition-colors"
+                className="w-full px-0 py-3 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border dark:border-slate-600 focus:border-primary focus:outline-none focus:ring-0 transition-colors"
               />
               <button
                 type="submit"
                 disabled={!registerData.email?.trim()}
-                className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex items-center justify-center gap-2 w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
               >
                 Tiếp tục
                 <ArrowRight className="w-4 h-4" />
@@ -329,7 +329,7 @@ export default function Register() {
                   placeholder="Mật khẩu"
                   required
                   minLength={6}
-                  className="w-full px-0 py-3 pr-10 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border focus:border-primary focus:outline-none focus:ring-0 transition-colors"
+                  className="w-full px-0 py-3 pr-10 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border dark:border-slate-600 focus:border-primary focus:outline-none focus:ring-0 transition-colors"
                 />
                 <button
                   type="button"
@@ -343,7 +343,7 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={registerData.password.length < 6}
-                className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex items-center justify-center gap-2 w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
               >
                 Tiếp tục
                 <ArrowRight className="w-4 h-4" />
@@ -402,7 +402,7 @@ export default function Register() {
                   }}
                   placeholder="Nhập lại mật khẩu"
                   required
-                  className="w-full px-0 py-3 pr-10 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border focus:border-primary focus:outline-none focus:ring-0 transition-colors disabled:opacity-50"
+                  className="w-full px-0 py-3 pr-10 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border dark:border-slate-600 focus:border-primary focus:outline-none focus:ring-0 transition-colors disabled:opacity-50"
                   disabled={isLoading}
                 />
                 <button
@@ -417,7 +417,7 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={isLoading || confirmPassword !== registerData.password}
-                className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-all duration-200"
+                className="flex items-center justify-center gap-2 w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-all duration-200"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -431,20 +431,17 @@ export default function Register() {
       </AnimatePresence>
 
       {/* Footer */}
-      <div className="mt-16 pt-8 space-y-4">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border/60" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-background px-3 text-xs text-muted-foreground">hoặc</span>
-          </div>
+      <div className="mt-12 pt-6 space-y-6">
+        <div className="relative flex items-center gap-4">
+          <div className="flex-1 h-px bg-border/50 dark:bg-[#0f4c81]/60" />
+          <span className="text-xs text-muted-foreground shrink-0">hoặc</span>
+          <div className="flex-1 h-px bg-border/50 dark:bg-[#0f4c81]/60" />
         </div>
         <button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2.5 py-3 text-foreground text-sm font-medium hover:bg-muted/50 rounded-xl transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2.5 min-h-[48px] py-3.5 rounded-xl text-foreground text-sm font-medium hover:bg-muted/50 dark:hover:bg-muted active:scale-[0.98] border border-transparent dark:border-border/50 transition-all duration-200 disabled:opacity-50"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden>
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

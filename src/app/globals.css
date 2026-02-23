@@ -259,6 +259,14 @@
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
+/* Auth pages: grid background in dark mode */
+.dark .auth-page-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
 /* Landing: smooth scroll for anchor links */
 html {
   scroll-behavior: smooth;
