@@ -47,15 +47,15 @@ export function AIInsightsPanel({ items }: AIInsightsPanelProps) {
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <CardTitle className="text-base font-semibold m-0">AI Insights</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Personalized for you</p>
+              <CardTitle className="text-base font-semibold m-0">Gợi ý AI</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Cá nhân hóa cho bạn</p>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           {list.length === 0 ? (
             <div className="px-6 py-8 text-center text-sm text-muted-foreground">
-              No insights yet. Complete more activities to get personalized tips.
+              Chưa có gợi ý. Hoàn thành thêm hoạt động để nhận mẹo cá nhân hóa.
             </div>
           ) : (
             <ul className="divide-y divide-border">

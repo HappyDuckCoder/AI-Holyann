@@ -9,14 +9,14 @@ interface DashboardHeroProps {
 
 function getGreeting(): string {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return "Chào buổi sáng";
+  if (h < 18) return "Chào buổi chiều";
+  return "Chào buổi tối";
 }
 
 export function DashboardHero({ userName }: DashboardHeroProps) {
   const greeting = getGreeting();
-  const displayName = userName?.trim() || "there";
+  const displayName = userName?.trim() || "bạn";
 
   return (
     <motion.section
@@ -24,7 +24,7 @@ export function DashboardHero({ userName }: DashboardHeroProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="relative rounded-2xl overflow-hidden border border-border bg-card shadow-md dark:shadow-lg dark:shadow-black/20"
-      aria-label="Welcome"
+      aria-label="Chào mừng"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-primary/[0.04]" />
       <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/[0.08] to-transparent pointer-events-none" />
@@ -36,7 +36,7 @@ export function DashboardHero({ userName }: DashboardHeroProps) {
           {displayName}
         </h1>
         <p className="mt-2 max-w-xl text-base text-muted-foreground leading-relaxed">
-          Keep going. Your progress this week is ahead of last week — small steps add up.
+          Tiếp tục phát huy. Tiến độ tuần này của bạn vượt trội hơn tuần trước — từng bước nhỏ tạo nên thành công lớn.
         </p>
       </div>
     </motion.section>

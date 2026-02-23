@@ -28,12 +28,12 @@ export function RecentActivityFeed({ items }: RecentActivityFeedProps) {
     >
       <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
         <CardHeader className="border-b border-border px-6 py-4">
-          <CardTitle className="text-base font-semibold m-0">Recent Activity</CardTitle>
+          <CardTitle className="text-base font-semibold m-0">Hoạt động gần đây</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {list.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-              No recent activity.
+              Chưa có hoạt động gần đây.
             </div>
           ) : (
             <ul className="divide-y divide-border">

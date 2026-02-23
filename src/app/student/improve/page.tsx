@@ -183,16 +183,16 @@ export default function ImprovePage() {
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     {
       id: "overview",
-      label: "Overview",
+      label: "Tổng quan",
       icon: <LayoutDashboard className="h-4 w-4" />,
     },
     {
       id: "profile",
-      label: "Profile",
+      label: "Hồ sơ",
       icon: <UserCircle className="h-4 w-4" />,
     },
     { id: "cv", label: "CV", icon: <FileText className="h-4 w-4" /> },
-    { id: "essay", label: "Essay", icon: <PenLine className="h-4 w-4" /> },
+    { id: "essay", label: "Luận", icon: <PenLine className="h-4 w-4" /> },
   ];
 
   useEffect(() => {
@@ -1569,13 +1569,13 @@ export default function ImprovePage() {
                 <div className="space-y-10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <ImproveSubjectCard
-                      title="Profile"
+                      title="Hồ sơ"
                       score={overallScore}
                       trend={null}
                       status={scoreToStatus(overallScore)}
                       insight={overallInsight ? firstWords(overallInsight, 12) : undefined}
                       progressPercent={overallScore}
-                      metricLabel="Pillars"
+                      metricLabel="Trụ cột"
                       metricValue={
                         profilePillarScores
                           ? Object.keys(profilePillarScores).length
@@ -1612,8 +1612,8 @@ export default function ImprovePage() {
                           : undefined
                       }
                       progressPercent={cvScore}
-                      metricLabel="Uploaded"
-                      metricValue={cvList.length > 0 ? "Yes" : "No"}
+                      metricLabel="Đã tải"
+                      metricValue={cvList.length > 0 ? "Có" : "Không"}
                       onAnalyze={handleCvAnalysis}
                       onEnhance={handleCvEnhance}
                       analyzeLoading={cvAnalysisLoading}
@@ -1621,7 +1621,7 @@ export default function ImprovePage() {
                       icon={<FileText className="h-5 w-5" />}
                     />
                     <ImproveSubjectCard
-                      title="Essay"
+                      title="Luận"
                       score={essayScore}
                       trend={null}
                       status={scoreToStatus(essayScore)}
@@ -1635,7 +1635,7 @@ export default function ImprovePage() {
                           : undefined
                       }
                       progressPercent={essayScore}
-                      metricLabel="Words"
+                      metricLabel="Từ"
                       metricValue={
                         currentEssayId && getEssayWordCount() > 0 ? getEssayWordCount() : null
                       }

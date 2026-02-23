@@ -26,12 +26,12 @@ import type { DashboardData } from "./types";
 const STUDENT_BASE = "/student";
 
 const QUICK_LINKS = [
-  { name: "Profile", href: `${STUDENT_BASE}/profile`, icon: User },
-  { name: "Checklist", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
-  { name: "Tests", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
-  { name: "Improve", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
-  { name: "Target", href: `${STUDENT_BASE}/target`, icon: GraduationCap },
-  { name: "Discussion", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
+  { name: "Hồ sơ", href: `${STUDENT_BASE}/profile`, icon: User },
+  { name: "Danh sách công việc", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
+  { name: "Bài kiểm tra", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
+  { name: "Cải thiện", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
+  { name: "Mục tiêu", href: `${STUDENT_BASE}/target`, icon: GraduationCap },
+  { name: "Trao đổi", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
 ] as const;
 
 const container = {
@@ -100,11 +100,11 @@ export default function Dashboard({ userName, data, isLoading, error }: Dashboar
         <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
           <div className="flex items-center gap-2">
             <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-base font-semibold m-0">Quick access</CardTitle>
+            <CardTitle className="text-base font-semibold m-0">Truy cập nhanh</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-4">
-          <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2" aria-label="Quick links">
+          <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2" aria-label="Truy cập nhanh">
             {QUICK_LINKS.map((link) => {
               const Icon = link.icon;
               return (
@@ -136,8 +136,8 @@ export default function Dashboard({ userName, data, isLoading, error }: Dashboar
         >
           <Card className="rounded-2xl border border-border shadow-sm overflow-hidden h-full">
             <CardHeader className="border-b border-border px-6 py-4">
-              <CardTitle className="text-base font-semibold m-0">Task Completion</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">Ratio</p>
+              <CardTitle className="text-base font-semibold m-0">Hoàn thành công việc</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">Tỷ lệ</p>
             </CardHeader>
             <CardContent className="px-6 py-4">
               <TaskCompletionChart data={data.taskCompletion} />

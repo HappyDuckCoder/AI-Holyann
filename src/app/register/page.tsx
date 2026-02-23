@@ -33,9 +33,9 @@ export default function RegisterPage() {
             transition={{ delay: 0.15, duration: 0.4 }}
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold tracking-tight text-foreground dark:text-white drop-shadow-sm"
           >
-            Your path to{" "}
+            Con đường đến{" "}
             <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent dark:from-primary dark:to-secondary">
-              global education
+              giáo dục toàn cầu
             </span>
           </motion.h1>
           <motion.p
@@ -44,8 +44,8 @@ export default function RegisterPage() {
             transition={{ delay: 0.25, duration: 0.4 }}
             className="mt-4 md:mt-5 text-base sm:text-lg text-muted-foreground dark:text-slate-300 max-w-md leading-relaxed"
           >
-            AI-powered academic platform. Plan, track, and achieve your study
-            abroad goals.
+            Nền tảng học thuật AI. Lên kế hoạch, theo dõi và đạt được mục tiêu
+            du học của bạn.
           </motion.p>
         </div>
       </motion.div>

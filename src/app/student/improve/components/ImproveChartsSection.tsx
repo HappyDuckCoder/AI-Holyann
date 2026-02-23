@@ -80,7 +80,7 @@ export function ImproveChartsSection({
           className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm"
         >
           <h3 className="text-sm font-semibold text-foreground mb-4">
-            Performance trend
+            Xu hướng hiệu suất
           </h3>
           {hasTrend ? (
             <div className="h-[220px] w-full">
@@ -128,7 +128,7 @@ export function ImproveChartsSection({
             </div>
           ) : (
             <div className="h-[220px] flex items-center justify-center rounded-lg bg-muted/30 text-sm text-muted-foreground">
-              Run analysis to see trend.
+              Chạy phân tích để xem xu hướng.
             </div>
           )}
         </motion.div>
@@ -187,7 +187,7 @@ export function ImproveChartsSection({
             </div>
           ) : (
             <div className="h-[220px] flex items-center justify-center rounded-lg bg-muted/30 text-sm text-muted-foreground">
-              No scores to compare yet.
+              Chưa có điểm để so sánh.
             </div>
           )}
         </motion.div>
@@ -215,7 +215,7 @@ export function ImproveChartsSection({
           </ul>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Run analysis on Profile, CV, or Essay to see AI insights here.
+            Chạy phân tích Hồ sơ, CV hoặc Luận để xem gợi ý AI tại đây.
           </p>
         )}
       </motion.div>

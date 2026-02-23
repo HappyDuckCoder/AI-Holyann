@@ -43,10 +43,10 @@ export function ImproveHero({
       <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-8 px-4 py-6 sm:px-6 sm:py-8 md:px-8">
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Student Improvement Center
+            Trung tâm cải thiện hồ sơ
           </p>
           <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-            Your Improvement Center
+            Trung tâm cải thiện của bạn
           </h1>
           {shortInsight && !loading && (
             <p className="mt-2 text-sm text-muted-foreground max-w-xl">
@@ -99,7 +99,7 @@ export function ImproveHero({
           {!loading && (
             <div className="text-center">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Trend
+                Xu hướng
               </p>
               {trend != null ? (
                 <p

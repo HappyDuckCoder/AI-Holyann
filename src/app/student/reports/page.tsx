@@ -279,7 +279,7 @@ export default function ReportsPage() {
                 <FileBarChart className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Reports</h1>
+                <h1 className="text-2xl font-bold text-foreground">Báo cáo</h1>
                 <p className="text-sm text-muted-foreground">Phiên bản in & tải báo cáo tổng hợp hồ sơ và module AI</p>
               </div>
             </div>

@@ -5,10 +5,17 @@ import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const COLORS = [
-  "hsl(var(--primary))",
-  "hsl(163 72% 40%)",
-  "hsl(38 92% 50%)",
+  "#10b981", // Done - emerald (thành công)
+  "#0ea5e9", // In progress - sky blue (đang làm)
+  "#94a3b8", // Pending - slate (chờ)
 ];
+
+const LABELS: Record<string, string> = {
+  Done: "Hoàn thành",
+  "In progress": "Đang làm",
+  Pending: "Chờ",
+  "Chưa có": "Chưa có",
+};
 
 interface TaskCompletionChartProps {
   data: { name: string; value: number }[];
@@ -48,15 +55,16 @@ export function TaskCompletionChart({ data }: TaskCompletionChartProps) {
           <Tooltip
             contentStyle={{
               borderRadius: 12,
-              border: "1px solid hsl(var(--border))",
-              background: "hsl(var(--card))",
+              border: "1px solid var(--border)",
+              background: "var(--card)",
+              color: "var(--card-foreground)",
             }}
-            formatter={(value: number, name: string) => [`${value}%`, name]}
+            formatter={(value: number, name: string) => [`${value}%`, LABELS[name] ?? name]}
           />
           <Legend
             verticalAlign="bottom"
             height={36}
-            formatter={(value) => <span className="text-sm text-muted-foreground">{value}</span>}
+            formatter={(value) => <span className="text-sm text-foreground">{LABELS[value] ?? value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>

@@ -233,33 +233,33 @@ export default function UserManagement() {
         <div className="space-y-6">
             {/* Header - same as admin dashboard */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h1 className="text-xl font-semibold text-foreground">Users</h1>
+                <h1 className="text-xl font-semibold text-foreground">Người dùng</h1>
                 <Button size="sm" className="shrink-0" onClick={handleAddUser}>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Add user
+                    Thêm người dùng
                 </Button>
             </div>
 
             {/* Stats cards - same style as admin dashboard */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="rounded-xl border border-border p-4 bg-card">
-                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-sm text-muted-foreground">Tổng</p>
                     <p className="text-2xl font-bold text-foreground">{stats.total}</p>
                 </div>
                 <div className="rounded-xl border border-border p-4 bg-card">
-                    <p className="text-sm text-muted-foreground">Active</p>
+                    <p className="text-sm text-muted-foreground">Hoạt động</p>
                     <p className="text-2xl font-bold text-foreground">{stats.active}</p>
                 </div>
                 <div className="rounded-xl border border-border p-4 bg-card">
-                    <p className="text-sm text-muted-foreground">Students</p>
+                    <p className="text-sm text-muted-foreground">Học viên</p>
                     <p className="text-2xl font-bold text-foreground">{stats.students}</p>
                 </div>
                 <div className="rounded-xl border border-border p-4 bg-card">
-                    <p className="text-sm text-muted-foreground">Mentors</p>
+                    <p className="text-sm text-muted-foreground">Mentor</p>
                     <p className="text-2xl font-bold text-foreground">{stats.mentors}</p>
                 </div>
                 <div className="rounded-xl border border-border p-4 bg-card">
-                    <p className="text-sm text-muted-foreground">Admins</p>
+                    <p className="text-sm text-muted-foreground">Admin</p>
                     <p className="text-2xl font-bold text-foreground">{stats.admins}</p>
                 </div>
             </div>
@@ -284,11 +284,11 @@ export default function UserManagement() {
                     <div>
                         <Select value={roleFilter} onValueChange={setRoleFilter}>
                             <SelectTrigger className="h-9">
-                                <SelectValue placeholder="All roles" />
+                                <SelectValue placeholder="Tất cả vai trò" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All roles</SelectItem>
-                                <SelectItem value="student">Student</SelectItem>
+                                <SelectItem value="all">Tất cả vai trò</SelectItem>
+                                <SelectItem value="student">Học viên</SelectItem>
                                 <SelectItem value="mentor">Mentor</SelectItem>
                                 <SelectItem value="admin">Admin</SelectItem>
                             </SelectContent>
@@ -297,12 +297,12 @@ export default function UserManagement() {
                     <div>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger className="h-9">
-                                <SelectValue placeholder="All status" />
+                                <SelectValue placeholder="Tất cả trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All status</SelectItem>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="inactive">Inactive</SelectItem>
+                                <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                                <SelectItem value="active">Hoạt động</SelectItem>
+                                <SelectItem value="inactive">Không hoạt động</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -323,7 +323,7 @@ export default function UserManagement() {
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-muted/30">
                         <div className="text-sm text-muted-foreground">
-                            Showing {indexOfFirstItem + 1}–{Math.min(indexOfLastItem, filteredUsers.length)} of {filteredUsers.length}
+                            Hiển thị {indexOfFirstItem + 1}–{Math.min(indexOfLastItem, filteredUsers.length)} / {filteredUsers.length}
                         </div>
                         <div className="flex gap-2">
                             <Button
@@ -332,7 +332,7 @@ export default function UserManagement() {
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
                             >
-                                Previous
+                                Trước
                             </Button>
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                 <Button
@@ -351,7 +351,7 @@ export default function UserManagement() {
                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={currentPage === totalPages}
                             >
-                                Next
+                                Sau
                             </Button>
                         </div>
                     </div>

@@ -12,11 +12,17 @@ function formatDueDate(iso: string): string {
   const d = new Date(iso);
   const now = new Date();
   const diff = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff <= 0) return "Overdue";
-  if (diff === 1) return "Tomorrow";
-  if (diff <= 7) return `In ${diff} days`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  if (diff <= 0) return "Quá hạn";
+  if (diff === 1) return "Ngày mai";
+  if (diff <= 7) return `Còn ${diff} ngày`;
+  return d.toLocaleDateString("vi-VN", { day: "numeric", month: "short", year: "numeric" });
 }
+
+const PRIORITY_LABELS: Record<DashboardDeadline["priority"], string> = {
+  high: "Cao",
+  medium: "Trung bình",
+  low: "Thấp",
+};
 
 function PriorityBadge({ priority }: { priority: DashboardDeadline["priority"] }) {
   const styles = {
@@ -26,7 +32,7 @@ function PriorityBadge({ priority }: { priority: DashboardDeadline["priority"] }
   };
   return (
     <Badge variant="outline" className={`text-xs font-medium ${styles[priority]}`}>
-      {priority}
+      {PRIORITY_LABELS[priority]}
     </Badge>
   );
 }
@@ -49,13 +55,13 @@ export function UpcomingDeadlines({ items, onMarkComplete }: UpcomingDeadlinesPr
         <CardHeader className="border-b border-border px-6 py-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-base font-semibold m-0">Upcoming Deadlines</CardTitle>
+            <CardTitle className="text-base font-semibold m-0">Hạn nộp sắp tới</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           {list.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-              No upcoming deadlines.
+              Chưa có hạn nộp sắp tới.
             </div>
           ) : (
             <ul className="divide-y divide-border">
@@ -86,7 +92,7 @@ export function UpcomingDeadlines({ items, onMarkComplete }: UpcomingDeadlinesPr
                       onClick={() => onMarkComplete(item.id)}
                     >
                       <Check className="h-4 w-4 mr-1" />
-                      Done
+                      Hoàn thành
                     </Button>
                   )}
                 </motion.li>

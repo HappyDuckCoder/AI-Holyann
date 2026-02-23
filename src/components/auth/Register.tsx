@@ -262,7 +262,7 @@ export default function Register() {
                   setRegisterData((p) => ({ ...p, email: e.target.value }));
                   setErrorMessage("");
                 }}
-                placeholder="name@example.com"
+                placeholder="vd: email@example.com"
                 required
                 className="w-full px-0 py-3 bg-transparent text-foreground text-lg placeholder:text-muted-foreground/60 border-0 border-b border-border dark:border-slate-600 focus:border-primary focus:outline-none focus:ring-0 transition-colors"
               />

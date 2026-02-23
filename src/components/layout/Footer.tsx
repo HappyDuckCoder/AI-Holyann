@@ -106,7 +106,7 @@ export default function Footer() {
 
             {/* Copyright Bar */}
             <div className="container mx-auto px-4 mt-12 pt-8 border-t border-slate-800 text-center text-xs opacity-50">
-                <p>© 2025 Holyann Explore - Future by Design. All rights reserved.</p>
+                <p>© 2025 Holyann Explore - Vẽ đường tương lai. Bảo lưu mọi quyền.</p>
             </div>
         </footer>
     );

@@ -37,19 +37,19 @@ const STATUS_MAP: Record<
   { label: string; className: string }
 > = {
   strong: {
-    label: "Strong",
+    label: "Tốt",
     className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
   },
   on_track: {
-    label: "On track",
+    label: "Đúng hướng",
     className: "bg-primary/15 text-primary border-primary/30",
   },
   needs_work: {
-    label: "Needs work",
+    label: "Cần cải thiện",
     className: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
   },
   no_data: {
-    label: "No data",
+    label: "Chưa có dữ liệu",
     className: "bg-muted text-muted-foreground border-border",
   },
 };
@@ -186,7 +186,7 @@ export function ImproveSubjectCard({
                 {analyzeLoading ? (
                   <span className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                 ) : null}
-                Analyze
+                Phân tích
               </button>
             )}
             {onEnhance && (
@@ -199,7 +199,7 @@ export function ImproveSubjectCard({
                 {enhanceLoading ? (
                   <span className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                 ) : null}
-                Enhance
+                Cải thiện
               </button>
             )}
           </div>
@@ -213,7 +213,7 @@ export function ImproveSubjectCard({
               onClick={() => setExpanded((e) => !e)}
               className="flex w-full items-center justify-between gap-2 rounded-lg py-1.5 text-left text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              <span>{expanded ? "Hide details" : "View details"}</span>
+              <span>{expanded ? "Ẩn chi tiết" : "Xem chi tiết"}</span>
               <ChevronDown
                 className={cn("h-4 w-4 shrink-0 transition-transform", expanded && "rotate-180")}
               />
