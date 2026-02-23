@@ -50,3 +50,11 @@ export const formatTime = (date: Date | string) => {
 export const formatMessageTime = (date: Date | string) => {
   return format(new Date(date), "HH:mm");
 };
+
+/** Label for date separator in chat: "Hôm nay" | "Hôm qua" | "dd/MM/yyyy" */
+export const formatDateLabel = (date: Date | string) => {
+  const d = new Date(date);
+  if (isToday(d)) return "Hôm nay";
+  if (isYesterday(d)) return "Hôm qua";
+  return format(d, "dd/MM/yyyy", { locale: vi });
+};

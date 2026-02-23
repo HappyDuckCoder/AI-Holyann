@@ -24,9 +24,10 @@ import type { StudentProfile } from "@/components/types";
 import { getTaskPriority, getCVDisplayName } from "./checklist-utils";
 
 const priorityStyles: Record<"low" | "medium" | "high", string> = {
-  low: "bg-muted text-muted-foreground ring-muted",
-  medium: "bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-500/20",
-  high: "bg-destructive/10 text-destructive ring-destructive/20",
+  low: "bg-muted text-muted-foreground ring-muted dark:bg-muted/60 dark:text-foreground/80",
+  medium:
+    "bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-500/20",
+  high: "bg-destructive/10 text-destructive ring-destructive/20 dark:bg-destructive/20",
 };
 
 const priorityLabels: Record<"low" | "medium" | "high", string> = {
@@ -109,8 +110,8 @@ export function TaskCard({
       exit={{ opacity: 0 }}
       className={`group rounded-2xl border transition-all duration-300 cursor-pointer ${
         task.isCompleted
-          ? "border-border/60 bg-muted/5"
-          : `border-border bg-card shadow-sm hover:shadow-md hover:border-primary/20 ${isExpanded ? "ring-1 ring-primary/20 shadow-md" : "hover:-translate-y-0.5"}`
+          ? "border-border/60 bg-muted/5 dark:bg-muted/10"
+          : `border-border bg-card shadow-sm hover:shadow-md hover:border-primary/20 dark:hover:border-primary/30 ${isExpanded ? "ring-1 ring-primary/20 shadow-md" : "hover:-translate-y-0.5"}`
       } ${task.linkTo && !task.isCompleted ? "hover:border-primary/30" : ""}`}
       onClick={() => onTaskClick(task)}
     >
@@ -143,7 +144,10 @@ export function TaskCard({
               <AlertTriangle size={14} className="text-destructive" />
             </span>
           ) : (
-            <Square size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
+            <Square
+              size={24}
+              className="text-muted-foreground group-hover:text-primary transition-colors"
+            />
           )}
         </button>
 
@@ -159,7 +163,7 @@ export function TaskCard({
               {task.title}
             </span>
             {task.category && (
-              <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-muted-foreground">
+              <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-muted-foreground dark:bg-muted/60 dark:text-foreground/80">
                 {task.category}
               </span>
             )}
@@ -191,7 +195,7 @@ export function TaskCard({
           className={`shrink-0 p-2 rounded-xl transition-all duration-200 ${
             isExpanded
               ? "bg-primary/10 text-primary rotate-180"
-              : "bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground"
+              : "bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground dark:bg-muted/50 dark:hover:bg-muted/70"
           }`}
           aria-expanded={isExpanded}
         >
@@ -212,7 +216,10 @@ export function TaskCard({
               <div className="flex flex-wrap items-center gap-4 pb-4 border-b border-border/60 text-sm text-muted-foreground">
                 <span className="flex items-center gap-2">
                   <Calendar size={16} />
-                  Hạn chót: <span className="font-semibold text-foreground">{task.deadline}</span>
+                  Hạn chót:{" "}
+                  <span className="font-semibold text-foreground">
+                    {task.deadline}
+                  </span>
                 </span>
                 {statusBadge()}
               </div>
@@ -248,7 +255,9 @@ export function TaskCard({
                             ? "Nhận xét từ mentor – Cần sửa lại:"
                             : "Nhận xét từ mentor:"}
                         </p>
-                        <p className="text-sm text-muted-foreground">{task.feedback}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {task.feedback}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -258,20 +267,24 @@ export function TaskCard({
               {needsFile && onCVUpload && onCVDelete && (
                 <div>
                   {task.id === "1-2" && !task.uploadedFile && !scanningCV && (
-                    <div className="mb-4 p-3 bg-primary/5 border-l-4 border-primary rounded-xl">
+                    <div className="mb-4 p-3 bg-primary/5 dark:bg-primary/10 border-l-4 border-primary rounded-xl">
                       <p className="text-sm text-foreground font-medium">
                         Task này sẽ hoàn thành khi bạn upload CV.
                       </p>
                     </div>
                   )}
                   {scanningCV && task.id === "1-2" ? (
-                    <div className="flex flex-col items-center justify-center p-8 bg-muted/30 border border-border/60 rounded-2xl">
+                    <div className="flex flex-col items-center justify-center p-8 bg-muted/30 dark:bg-muted/40 border border-border/60 rounded-2xl">
                       <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                      <p className="mt-3 text-sm font-medium text-foreground">Đang xử lý CV...</p>
-                      <p className="text-xs text-muted-foreground">Vui lòng đợi trong giây lát</p>
+                      <p className="mt-3 text-sm font-medium text-foreground">
+                        Đang xử lý CV...
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Vui lòng đợi trong giây lát
+                      </p>
                     </div>
                   ) : task.uploadedFile ? (
-                    <div className="p-4 bg-muted/20 border border-border/60 rounded-2xl">
+                    <div className="p-4 bg-muted/20 dark:bg-muted/30 border border-border/60 rounded-2xl">
                       <div className="flex flex-wrap items-center gap-3 mb-3">
                         <div className="shrink-0 p-2 bg-card rounded-xl border border-border/60 text-primary">
                           <FileText size={20} />
@@ -280,7 +293,9 @@ export function TaskCard({
                           <span className="text-sm font-semibold text-foreground block truncate">
                             {getCVDisplayName(task.uploadedFile)}
                           </span>
-                          <span className="text-xs text-muted-foreground">Đã tải lên</span>
+                          <span className="text-xs text-muted-foreground">
+                            Đã tải lên
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <input
@@ -294,10 +309,12 @@ export function TaskCard({
                           <button
                             type="button"
                             onClick={() =>
-                              document.getElementById(`cv-replace-${task.id}`)?.click()
+                              document
+                                .getElementById(`cv-replace-${task.id}`)
+                                ?.click()
                             }
                             disabled={!!uploadingTaskId}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium hover:bg-muted disabled:opacity-50"
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium hover:bg-muted dark:hover:bg-muted/80 disabled:opacity-50"
                           >
                             {uploadingTaskId === task.id ? (
                               <Loader2 size={14} className="animate-spin" />
@@ -319,45 +336,59 @@ export function TaskCard({
                         </div>
                       </div>
                       {scannedProfile && (
-                        <div className="bg-card rounded-xl p-4 border border-border/60">
+                        <div className="bg-card dark:bg-muted/20 rounded-xl p-4 border border-border/60">
                           <p className="text-xs font-bold text-primary mb-2">
                             Thông tin đã trích xuất:
                           </p>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             <div>
-                              <span className="text-muted-foreground">Họ tên:</span>{" "}
+                              <span className="text-muted-foreground">
+                                Họ tên:
+                              </span>{" "}
                               <span className="font-semibold text-foreground">
                                 {scannedProfile.name}
                               </span>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Email:</span>{" "}
+                              <span className="text-muted-foreground">
+                                Email:
+                              </span>{" "}
                               <span className="font-semibold text-foreground">
                                 {scannedProfile.email}
                               </span>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">GPA:</span>{" "}
+                              <span className="text-muted-foreground">
+                                GPA:
+                              </span>{" "}
                               <span className="font-semibold text-foreground">
                                 {scannedProfile.gpa}/{scannedProfile.gpaScale}
                               </span>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Tiếng Anh:</span>{" "}
+                              <span className="text-muted-foreground">
+                                Tiếng Anh:
+                              </span>{" "}
                               <span className="font-semibold text-foreground">
                                 {scannedProfile.englishLevel}
                               </span>
                             </div>
                             <div className="col-span-2">
-                              <span className="text-muted-foreground">Hoạt động:</span>{" "}
+                              <span className="text-muted-foreground">
+                                Hoạt động:
+                              </span>{" "}
                               <span className="font-semibold text-foreground">
-                                {scannedProfile.extracurriculars?.length ?? 0} hoạt động
+                                {scannedProfile.extracurriculars?.length ?? 0}{" "}
+                                hoạt động
                               </span>
                             </div>
                             <div className="col-span-2">
-                              <span className="text-muted-foreground">Thành tích:</span>{" "}
+                              <span className="text-muted-foreground">
+                                Thành tích:
+                              </span>{" "}
                               <span className="font-semibold text-foreground">
-                                {scannedProfile.achievements?.length ?? 0} thành tích
+                                {scannedProfile.achievements?.length ?? 0} thành
+                                tích
                               </span>
                             </div>
                           </div>
@@ -367,14 +398,18 @@ export function TaskCard({
                   ) : (
                     <label
                       htmlFor={`cv-upload-${task.id}`}
-                      className={`relative flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border bg-muted/30 hover:bg-primary/5 hover:border-primary/40 rounded-2xl p-6 transition-colors ${
-                        uploadingTaskId === task.id ? "cursor-wait" : "cursor-pointer"
+                      className={`relative flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border bg-muted/30 dark:bg-muted/40 hover:bg-primary/5 hover:border-primary/40 dark:hover:bg-primary/10 dark:hover:border-primary/50 rounded-2xl p-6 transition-colors ${
+                        uploadingTaskId === task.id
+                          ? "cursor-wait"
+                          : "cursor-pointer"
                       }`}
                     >
                       {uploadingTaskId === task.id && (
                         <div className="absolute inset-0 bg-background/80 z-10 flex flex-col items-center justify-center rounded-2xl">
                           <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
-                          <span className="text-sm font-medium text-foreground">Đang tải lên...</span>
+                          <span className="text-sm font-medium text-foreground">
+                            Đang tải lên...
+                          </span>
                         </div>
                       )}
                       <input
@@ -391,7 +426,9 @@ export function TaskCard({
                       <p className="text-sm font-medium text-foreground">
                         {task.id === "1-2" ? "Upload CV" : "Upload file"}
                       </p>
-                      <p className="text-xs text-muted-foreground">PDF, DOCX, TXT – tối đa 10MB</p>
+                      <p className="text-xs text-muted-foreground">
+                        PDF, DOCX, TXT – tối đa 10MB
+                      </p>
                     </label>
                   )}
                   {cvScanError && (
@@ -407,10 +444,14 @@ export function TaskCard({
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <MessageSquare size={16} className="text-primary" />
-                    <span className="text-sm font-bold text-foreground">Nhận xét từ người hướng dẫn</span>
+                    <span className="text-sm font-bold text-foreground">
+                      Nhận xét từ người hướng dẫn
+                    </span>
                   </div>
-                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-                    <p className="text-sm text-foreground leading-relaxed">{task.feedback}</p>
+                  <div className="bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 dark:border-amber-500/40 rounded-xl p-4">
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {task.feedback}
+                    </p>
                   </div>
                 </div>
               )}
@@ -418,12 +459,16 @@ export function TaskCard({
               {task.category === "Khám phá bản thân" && (
                 <div className="space-y-4">
                   {task.feedback && (
-                    <div className="p-4 bg-primary/5 border border-border/60 rounded-xl">
+                    <div className="p-4 bg-primary/5 dark:bg-primary/10 border border-border/60 rounded-xl">
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles size={16} className="text-primary" />
-                        <span className="text-sm font-bold text-foreground">Mô tả bài test</span>
+                        <span className="text-sm font-bold text-foreground">
+                          Mô tả bài test
+                        </span>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{task.feedback}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {task.feedback}
+                      </p>
                     </div>
                   )}
                   {task.linkTo && !task.isCompleted && (
@@ -435,11 +480,12 @@ export function TaskCard({
                       }}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold transition-all"
                     >
-                      <Sparkles size={18} /> Làm bài test ngay <ArrowRight size={18} />
+                      <Sparkles size={18} /> Làm bài test ngay{" "}
+                      <ArrowRight size={18} />
                     </button>
                   )}
                   {task.isCompleted && (
-                    <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
+                    <div className="p-4 bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/40 rounded-xl">
                       <div className="flex items-center gap-2">
                         <CheckSquare size={18} className="text-primary" />
                         <span className="text-sm font-bold text-primary">
@@ -450,7 +496,8 @@ export function TaskCard({
                       </div>
                       {task.isLocked && (
                         <p className="text-xs text-primary mt-2 ml-6">
-                          Tiến độ được đồng bộ tự động. Không thể thay đổi thủ công.
+                          Tiến độ được đồng bộ tự động. Không thể thay đổi thủ
+                          công.
                         </p>
                       )}
                     </div>

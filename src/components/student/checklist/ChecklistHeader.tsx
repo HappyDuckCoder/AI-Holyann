@@ -28,10 +28,10 @@ export function ChecklistHeader({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="relative rounded-2xl overflow-hidden border border-border/60 bg-card shadow-sm"
+      className="relative rounded-2xl overflow-hidden border border-border/60 dark:border-border/80 bg-card shadow-sm"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-primary/[0.04]" />
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/[0.08] to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-primary/[0.04] dark:from-primary/[0.12] dark:to-primary/[0.06]" />
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/[0.08] to-transparent dark:from-primary/[0.15] pointer-events-none" />
       <div className="relative flex flex-col sm:flex-row sm:items-center gap-6 px-6 py-6 sm:px-8 sm:py-8">
         <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0">

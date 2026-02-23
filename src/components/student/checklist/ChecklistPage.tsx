@@ -533,7 +533,7 @@ const ChecklistPage: React.FC = () => {
 
                     <div className="lg:col-span-3 space-y-6">
                         <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
-                            <CardHeader className="border-b border-border bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-6 py-5">
+                            <CardHeader className="border-b border-border bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 dark:from-primary/20 dark:via-primary/10 dark:to-primary/20 px-6 py-5">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm">
@@ -568,7 +568,7 @@ const ChecklistPage: React.FC = () => {
                                 <ProgressBar percentage={currentProgress} />
                             </CardHeader>
 
-                            <CardContent className="p-6 bg-gradient-to-b from-muted/20 to-muted/5 min-h-[320px]">
+                            <CardContent className="p-6 bg-gradient-to-b from-muted/20 to-muted/5 dark:from-muted/30 dark:to-muted/10 min-h-[320px]">
                                 <div className="space-y-4 mb-6">
                                     <ChecklistFilters
                                         searchQuery={searchQuery}
@@ -582,7 +582,7 @@ const ChecklistPage: React.FC = () => {
                                 </div>
 
                                 {filteredTasks.length === 0 ? (
-                                    <div className="text-center py-12 rounded-2xl border border-dashed border-border bg-muted/20">
+                                    <div className="text-center py-12 rounded-2xl border border-dashed border-border bg-muted/20 dark:bg-muted/30">
                                         <p className="text-muted-foreground">
                                             {currentStageTasks.length === 0
                                                 ? 'Không có công việc nào trong giai đoạn này.'
@@ -611,7 +611,7 @@ const ChecklistPage: React.FC = () => {
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-gradient-to-br from-amber-500/5 to-transparent"
+                            className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-gradient-to-br from-amber-500/5 to-transparent dark:from-amber-500/10 dark:to-transparent"
                         >
                             <div className="flex items-start gap-3 p-5">
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400">

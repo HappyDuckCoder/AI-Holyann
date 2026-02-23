@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { format } from "date-fns";
 import { Message } from "./types";
 import { MessageBubble } from "./MessageBubble";
 import { MessagesListSkeleton } from "./MessageSkeleton";
+import { formatDateLabel } from "./utils";
 
 interface MessagesListProps {
     messages: Message[];
@@ -59,6 +61,22 @@ export const MessagesList: React.FC<MessagesListProps> = ({
         }
     }, [messages, conversationId, hasInitialScrolled, messagesContainerRef, messagesEndRef]);
 
+    // Group messages by date and build render list (date separators + messages)
+    const items = useMemo(() => {
+        const list: Array<{ type: "date"; label: string } | { type: "message"; message: Message }> = [];
+        let lastDateKey = "";
+        for (const msg of messages) {
+            const d = new Date(msg.timestamp);
+            const dateKey = format(d, "yyyy-MM-dd");
+            if (dateKey !== lastDateKey) {
+                list.push({ type: "date", label: formatDateLabel(msg.timestamp) });
+                lastDateKey = dateKey;
+            }
+            list.push({ type: "message", message: msg });
+        }
+        return list;
+    }, [messages]);
+
     if (loading) {
         return (
             <div
@@ -80,16 +98,25 @@ export const MessagesList: React.FC<MessagesListProps> = ({
             ref={messagesContainerRef}
             className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4 bg-gradient-to-b from-muted/30 to-background min-h-0"
         >
-            <div className="flex items-center justify-center">
-                <div className="px-3 md:px-4 py-1 md:py-1.5 bg-muted rounded-full text-xs text-muted-foreground font-medium">
-                    Hôm nay
+            {items.length === 0 ? (
+                <div className="flex items-center justify-center">
+                    <div className="px-3 md:px-4 py-1 md:py-1.5 bg-muted rounded-full text-xs text-muted-foreground font-medium">
+                        Hôm nay
+                    </div>
                 </div>
-            </div>
-
-            {/* Messages */}
-            {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
-            ))}
+            ) : (
+                items.map((item, i) =>
+                    item.type === "date" ? (
+                        <div key={`date-${i}`} className="flex items-center justify-center">
+                            <div className="px-3 md:px-4 py-1 md:py-1.5 bg-muted rounded-full text-xs text-muted-foreground font-medium">
+                                {item.label}
+                            </div>
+                        </div>
+                    ) : (
+                        <MessageBubble key={item.message.id} message={item.message} />
+                    )
+                )
+            )}
             <div ref={messagesEndRef} />
         </div>
     );

@@ -17,7 +17,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ percentage, colorClass = 'bg-
                     <span className="text-sm font-semibold text-foreground">{Math.round(clampedPercentage)}%</span>
                 </div>
             )}
-            <div className="w-full bg-muted/80 rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-muted/80 dark:bg-muted/60 rounded-full h-2.5 overflow-hidden">
                 <div
                     className={`h-2.5 rounded-full transition-all duration-500 ease-out ${isDefault ? 'bg-gradient-to-r from-emerald-500 to-primary' : colorClass}`}
                     style={{ width: `${clampedPercentage}%` }}

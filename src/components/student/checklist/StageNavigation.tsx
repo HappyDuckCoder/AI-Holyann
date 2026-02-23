@@ -12,8 +12,8 @@ interface StageNavigationProps {
 
 const StageNavigation: React.FC<StageNavigationProps> = ({ stages, currentStageId, onSelectStage, completedStages }) => {
     return (
-        <Card className="rounded-2xl border border-border shadow-sm h-fit sticky top-6 overflow-hidden">
-            <CardHeader className="border-b border-border bg-gradient-to-b from-emerald-500/10 to-primary/5 px-5 py-4">
+        <Card className="rounded-2xl border border-border dark:border-border/80 shadow-sm h-fit sticky top-6 overflow-hidden">
+            <CardHeader className="border-b border-border bg-gradient-to-b from-emerald-500/10 to-primary/5 dark:from-emerald-500/20 dark:to-primary/10 px-5 py-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
                         <MapPin className="size-4" aria-hidden />
@@ -41,7 +41,7 @@ const StageNavigation: React.FC<StageNavigationProps> = ({ stages, currentStageI
                         textClass = "text-primary font-bold";
                     } else if (isLocked) {
                         Icon = Lock;
-                        colorClass = "text-muted-foreground border-border bg-muted/30";
+                        colorClass = "text-muted-foreground border-border bg-muted/30 dark:bg-muted/50";
                         textClass = "text-muted-foreground";
                     } else {
                         textClass = "text-muted-foreground hover:text-primary";

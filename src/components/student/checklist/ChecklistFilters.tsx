@@ -39,11 +39,11 @@ export function ChecklistFilters({
           placeholder="Tìm task..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 h-10 rounded-xl border-border bg-background"
+          className="pl-9 h-10 rounded-xl border-border bg-background text-foreground"
         />
       </div>
       <Select value={subjectFilter ? subjectFilter : "all"} onValueChange={(v) => onSubjectFilterChange(v === "all" ? "" : v)}>
-        <SelectTrigger className="w-full sm:w-[180px] h-10 rounded-xl">
+        <SelectTrigger className="w-full sm:w-[180px] h-10 rounded-xl text-foreground">
           <SelectValue placeholder="Môn / Giai đoạn" />
         </SelectTrigger>
         <SelectContent>
@@ -56,7 +56,7 @@ export function ChecklistFilters({
         </SelectContent>
       </Select>
       <Select value={sortBy} onValueChange={(v) => onSortChange(v as "due" | "priority" | "title")}>
-        <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-xl">
+        <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-xl text-foreground">
           <SelectValue placeholder="Sắp xếp" />
         </SelectTrigger>
         <SelectContent>

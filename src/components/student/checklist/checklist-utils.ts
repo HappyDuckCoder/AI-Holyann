@@ -21,7 +21,9 @@ export function getTaskGroup(task: Task): TaskGroupKey {
   today.setHours(0, 0, 0, 0);
   const day = new Date(d);
   day.setHours(0, 0, 0, 0);
-  const diff = Math.ceil((day.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const diff = Math.ceil(
+    (day.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
   if (diff < 0) return "overdue";
   if (diff === 0) return "today";
   return "upcoming";
@@ -37,7 +39,9 @@ export function getTaskPriority(task: Task): "low" | "medium" | "high" {
   today.setHours(0, 0, 0, 0);
   const day = new Date(d);
   day.setHours(0, 0, 0, 0);
-  const diff = Math.ceil((day.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const diff = Math.ceil(
+    (day.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
   if (diff < 0) return "high";
   if (diff <= 3) return "high";
   if (diff <= 7) return "medium";
@@ -74,7 +78,7 @@ function taskDueTime(task: Task): number {
 
 export function sortTasks(
   tasks: Task[],
-  sortBy: "due" | "priority" | "title"
+  sortBy: "due" | "priority" | "title",
 ): Task[] {
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   const sorted = [...tasks];
@@ -83,7 +87,7 @@ export function sortTasks(
   } else if (sortBy === "priority") {
     sorted.sort(
       (a, b) =>
-        priorityOrder[getTaskPriority(a)] - priorityOrder[getTaskPriority(b)]
+        priorityOrder[getTaskPriority(a)] - priorityOrder[getTaskPriority(b)],
     );
   } else {
     sorted.sort((a, b) => a.title.localeCompare(b.title));

@@ -11,10 +11,10 @@ import type { TaskCardProps } from "./TaskCard";
 const groupOrder: TaskGroupKey[] = ["overdue", "today", "upcoming", "completed"];
 
 const sectionStyles: Record<TaskGroupKey, string> = {
-  overdue: "border-l-destructive/60 bg-destructive/5",
-  today: "border-l-primary/60 bg-primary/5",
-  upcoming: "border-l-muted",
-  completed: "border-l-muted bg-muted/5",
+  overdue: "border-l-destructive/60 bg-destructive/5 dark:bg-destructive/10",
+  today: "border-l-primary/60 bg-primary/5 dark:bg-primary/10",
+  upcoming: "border-l-muted dark:bg-muted/20",
+  completed: "border-l-muted bg-muted/5 dark:bg-muted/10",
 };
 
 export interface TaskGroupSectionProps
@@ -63,7 +63,7 @@ export function TaskGroupSection(props: TaskGroupSectionProps) {
             transition={{ duration: 0.35, ease: "easeOut" }}
             className={`rounded-2xl border border-border border-l-4 p-4 sm:p-5 ${sectionStyles[key]}`}
           >
-            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-muted-foreground dark:text-foreground/80 uppercase tracking-wider mb-4 flex items-center gap-2">
               <span
                 className={`w-2 h-2 rounded-full ${
                   key === "overdue"
