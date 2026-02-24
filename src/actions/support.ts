@@ -3,7 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-config";
+import { supabaseAdmin } from "@/lib/supabase";
 import { z } from "zod";
+import type { SupportRequestInput, SupportRequestResult } from "@/types/support";
 
 // ============================================================
 // ZOD VALIDATION SCHEMA
@@ -17,24 +19,6 @@ const SupportRequestSchema = z.object({
   imageUrl: z.string().url("URL hình ảnh không hợp lệ").nullable().optional(),
 });
 
-// ============================================================
-// DATA TYPES
-// ============================================================
-
-export interface SupportRequestInput {
-  description: string;
-  imageUrl?: string | null;
-}
-
-export interface SupportRequestResult {
-  success: boolean;
-  message?: string;
-  error?: string;
-  data?: {
-    id: string;
-    created_at: Date;
-  };
-}
 
 // ============================================================
 // SERVER ACTIONS
@@ -273,3 +257,66 @@ export async function updateSupportRequestStatus(
     return { success: false, error: "Không thể cập nhật trạng thái" };
   }
 }
+
+/**
+ * Upload ảnh hỗ trợ lên Supabase Storage (server-side, bypass RLS)
+ */
+export async function uploadSupportImage(
+  formData: FormData
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return { success: false, error: "Bạn chưa đăng nhập" };
+    }
+
+    const file = formData.get("file") as File | null;
+    if (!file) {
+      return { success: false, error: "Không tìm thấy file" };
+    }
+
+    // Validate file type
+    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      return { success: false, error: "Chỉ hỗ trợ file PNG, JPG, WEBP" };
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return { success: false, error: "File vượt quá 5MB" };
+    }
+
+    const timestamp = Date.now();
+    const cleanFileName = file.name
+      .replace(/[^a-zA-Z0-9.]/g, "_")
+      .toLowerCase();
+    const filePath = `support/${session.user.id}/${timestamp}_${cleanFileName}`;
+
+    // Convert File to Buffer for server-side upload
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("hoex-documents")
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("[Support] Upload error:", uploadError);
+      return { success: false, error: `Upload thất bại: ${uploadError.message}` };
+    }
+
+    const { data: urlData } = supabaseAdmin.storage
+      .from("hoex-documents")
+      .getPublicUrl(filePath);
+
+    return { success: true, url: urlData.publicUrl };
+  } catch (error) {
+    console.error("[Support] Upload error:", error);
+    return { success: false, error: "Lỗi khi upload ảnh" };
+  }
+}
+

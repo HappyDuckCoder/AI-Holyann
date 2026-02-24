@@ -8,8 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { HelpCircle, Upload, X } from "lucide-react";
-import { submitSupportRequest } from "@/actions/support";
-import { uploadFileToSupabase } from "@/lib/uploadFileToSupabase";
+import { submitSupportRequest, uploadSupportImage } from "@/actions/support";
 import { toast } from "sonner";
 
 const supportSchema = z.object({
@@ -55,11 +54,11 @@ export function FloatingHelpButton() {
     setUploading(true);
     let imageUrl: string | null = null;
     try {
+      // 1. Upload ảnh nếu có (qua server action, bypass RLS)
       if (values.image instanceof File) {
-        // Validate file type and size
-        const validTypes = ["image/png", "image/jpeg", "image/jpg"];
+        const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
         if (!validTypes.includes(values.image.type)) {
-          toast.error("Chỉ hỗ trợ file PNG, JPG");
+          toast.error("Chỉ hỗ trợ file PNG, JPG, WEBP");
           setUploading(false);
           return;
         }
@@ -68,12 +67,25 @@ export function FloatingHelpButton() {
           setUploading(false);
           return;
         }
-        imageUrl = await uploadFileToSupabase(values.image);
+
+        const formData = new FormData();
+        formData.append("file", values.image);
+        const uploadRes = await uploadSupportImage(formData);
+
+        if (!uploadRes.success || !uploadRes.url) {
+          toast.error(uploadRes.error || "Upload ảnh thất bại");
+          setUploading(false);
+          return;
+        }
+        imageUrl = uploadRes.url;
       }
+
+      // 2. Gửi yêu cầu hỗ trợ với URL ảnh thật (hoặc null)
       const res = await submitSupportRequest({
         description: values.description,
         imageUrl,
       });
+
       if (res.success) {
         toast.success("Gửi yêu cầu thành công!");
         reset();
@@ -183,7 +195,7 @@ export function FloatingHelpButton() {
               className="bg-primary text-white hover:bg-primary/90 min-w-[120px]"
               disabled={isSubmitting || uploading}
             >
-              {(isSubmitting || uploading) ? "Đang gửi..." : "Gửi yêu cầu"}
+              {uploading ? "Đang tải ảnh..." : isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
             </Button>
           </div>
         </form>

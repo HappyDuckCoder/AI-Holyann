@@ -39,7 +39,7 @@ export default function MentorNavbar() {
     }
 
     return (
-        <header className="navbar-header sticky top-0 z-50 w-full px-4 sm:px-6 md:px-8">
+        <header className="navbar-header sticky top-0 z-50 w-full px-4 sm:px-6 md:px-8 bg-[linear-gradient(to_right,#0f4c81,#00b4db)] dark:bg-[rgb(15_23_42_/_0.85)] dark:backdrop-blur-md border-b border-white/10 dark:border-white/[0.06]">
             <div className="container flex h-16 max-w-screen-2xl items-center justify-between gap-4">
                 {/* Logo */}
                 <div className="flex items-center gap-3">
