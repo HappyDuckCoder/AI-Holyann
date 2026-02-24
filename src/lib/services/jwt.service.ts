@@ -43,24 +43,41 @@ export class JWTService {
     }
   }
 
-  /** Tạo refresh token và lưu hash vào DB. Trả về token (plain) để gửi client. */
+  /** Tạo refresh token và lưu hash vào DB. Trả về token (plain) để gửi client. Nếu bảng refresh_tokens không tồn tại thì vẫn trả về token để login không lỗi. */
   static async createRefreshToken(userId: string): Promise<{ token: string; expiresAt: Date }> {
     const token = randomBytes(40).toString('hex');
     const tokenHash = createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + REFRESH_EXPIRES_DAYS * 24 * 60 * 60 * 1000);
-    await prisma.refresh_tokens.create({
-      data: { user_id: userId, token_hash: tokenHash, expires_at: expiresAt },
-    });
+    try {
+      await prisma.refresh_tokens.create({
+        data: { user_id: userId, token_hash: tokenHash, expires_at: expiresAt },
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('does not exist') || (err as { code?: string })?.code === 'P2021') {
+        console.warn('[JWTService] refresh_tokens table missing, skip create:', msg);
+      } else {
+        throw err;
+      }
+    }
     return { token, expiresAt };
   }
 
   static async verifyRefreshToken(token: string): Promise<{ userId: string } | null> {
-    const tokenHash = createHash('sha256').update(token).digest('hex');
-    const row = await prisma.refresh_tokens.findFirst({
-      where: { token_hash: tokenHash, expires_at: { gt: new Date() } },
-    });
-    if (!row) return null;
-    return { userId: row.user_id };
+    try {
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      const row = await prisma.refresh_tokens.findFirst({
+        where: { token_hash: tokenHash, expires_at: { gt: new Date() } },
+      });
+      if (!row) return null;
+      return { userId: row.user_id };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('does not exist') || (err as { code?: string })?.code === 'P2021') {
+        return null;
+      }
+      throw err;
+    }
   }
 
   /**
