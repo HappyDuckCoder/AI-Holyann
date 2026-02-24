@@ -230,27 +230,56 @@ export class DatabaseService {
                 is_active: true
             };
 
-            // 1. Ghi vào Supabase
-            const {data: supabaseUser, error: supabaseError} = await supabaseAdmin
-                .from('users')
-                .insert(userData)
-                .select()
-                .single();
+            let createdUser: User | null = null;
 
-            if (supabaseError) {
-                console.error('❌ [DatabaseService] Supabase error:', supabaseError);
-                throw new Error(`Supabase insert failed: ${supabaseError.message}${supabaseError.code ? ` (code: ${supabaseError.code})` : ''}`);
+            // 1. Thử ghi vào Supabase
+            try {
+                const {data: supabaseUser, error: supabaseError} = await supabaseAdmin
+                    .from('users')
+                    .insert(userData)
+                    .select()
+                    .single();
+
+                if (supabaseError) {
+                    // Duplicate key hoặc lỗi khác → fallback Prisma
+                    console.warn('⚠️ [DatabaseService] Supabase OAuth insert failed:', supabaseError.message);
+                    throw new Error('FALLBACK_TO_PRISMA');
+                }
+
+                createdUser = supabaseUser as User;
+
+                // 2. Đồng bộ vào Local Database (Prisma) với retry
+                await this.syncToLocalDB(userData);
+            } catch (supabaseError: any) {
+                // Fallback: Tạo user bằng Prisma
+                console.log('ℹ️ [DatabaseService] Falling back to Prisma for OAuth user creation');
+                try {
+                    const prismaUser = await prisma.users.create({
+                        data: userData
+                    });
+                    createdUser = prismaUser as User;
+                } catch (prismaError: any) {
+                    // Nếu Prisma cũng duplicate → user đã tồn tại, thử tìm lại
+                    if (prismaError.message?.includes('Unique constraint')) {
+                        console.log('ℹ️ [DatabaseService] User already exists in Prisma, finding...');
+                        const existingUser = await prisma.users.findFirst({
+                            where: { email, is_active: true }
+                        });
+                        if (existingUser) {
+                            createdUser = existingUser as User;
+                        }
+                    } else {
+                        console.error('❌ [DatabaseService] Prisma OAuth insert failed:', prismaError.message);
+                    }
+                }
             }
 
-            // OAuth user created in Supabase
-
-            // 2. Đồng bộ vào Local Database (Prisma) với retry
-            await this.syncToLocalDB(userData);
-
             // 3. Tạo hồ sơ student (OAuth user mặc định là STUDENT)
-            await this.createStudentProfile(userId);
+            if (createdUser) {
+                await this.createStudentProfile(createdUser.id);
+            }
 
-            return supabaseUser as User;
+            return createdUser;
         } catch (error: any) {
             console.error('❌ [DatabaseService] Exception in createOAuthUser:', {
                 message: error.message,

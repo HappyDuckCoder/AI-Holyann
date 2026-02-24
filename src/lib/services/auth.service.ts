@@ -188,17 +188,9 @@ export class AuthService {
                     }
                 }
             } else {
-                // Kiểm tra provider có khớp không
-                if (user.auth_provider !== provider) {
-                    console.error('❌ [AuthService] Provider mismatch:', {
-                        expected: provider,
-                        got: user.auth_provider
-                    });
-                    return {
-                        success: false,
-                        message: `Tài khoản này đã đăng ký bằng ${user.auth_provider}. Vui lòng sử dụng phương thức đó để đăng nhập.`
-                    }
-                }
+                // User đã tồn tại — cho phép đăng nhập bất kể provider
+                // (hỗ trợ link account: user đã đăng ký LOCAL vẫn login được bằng Google)
+                console.log(`ℹ️ [AuthService] Existing user login via ${provider}, auth_provider in DB: ${user.auth_provider}`);
             }
 
             // Tạo JWT token

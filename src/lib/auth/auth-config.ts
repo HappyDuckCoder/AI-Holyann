@@ -59,6 +59,8 @@ export const authOptions: NextAuthOptions = {
       // Google OAuth: tạo user + student trong DB (giống logic email/password)
       if (account?.provider === 'google' && user.email) {
         try {
+          console.log('🔑 [NextAuth] Google signIn started for:', user.email);
+
           const result = await AuthService.oauthLogin(
             user.email,
             user.name || 'Google User',
@@ -67,9 +69,17 @@ export const authOptions: NextAuthOptions = {
             user.image || undefined
           );
 
+          console.log('🔑 [NextAuth] oauthLogin result:', {
+            success: result.success,
+            userId: result.user?.id,
+            role: result.user?.role,
+            hasStudent: !!result.student,
+            message: result.message
+          });
+
           if (!result.success || !result.user) {
             console.error('❌ [NextAuth] Google OAuth failed:', result.message);
-            return false;
+            return `/login?error=OAuthFailed&message=${encodeURIComponent(result.message || 'Unknown error')}`;
           }
 
           // Gán DB user data vào user object → jwt callback sẽ nhận được
@@ -82,7 +92,7 @@ export const authOptions: NextAuthOptions = {
           return true;
         } catch (error) {
           console.error('❌ [NextAuth] Google signIn error:', error);
-          return false;
+          return `/login?error=OAuthException`;
         }
       }
 
