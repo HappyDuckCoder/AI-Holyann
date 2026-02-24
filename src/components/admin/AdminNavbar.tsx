@@ -17,7 +17,8 @@ import {
     Shield,
     Settings,
     GraduationCap,
-    UserCheck
+    UserCheck,
+    MessageSquareText
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
@@ -34,6 +35,7 @@ export default function AdminNavbar() {
         { name: 'Học viên', href: '/admin/students', icon: GraduationCap },
         { name: 'Cố vấn', href: '/admin/mentors', icon: UserCog },
         { name: 'Guests', href: '/admin/guests', icon: UserCheck },
+        { name: 'Feedback', href: '/admin/feedback', icon: MessageSquareText },
         // { name: 'Discussion', href: '/admin/chat', icon: MessageCircle }, // tạm ẩn
         { name: 'Cài đặt', href: '/admin/settings', icon: Settings },
     ]

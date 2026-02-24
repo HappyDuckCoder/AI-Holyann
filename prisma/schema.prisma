@@ -106,6 +106,12 @@ model users {
 
   // Improve: mentor comments on essays
   essay_comments essay_comments[]
+
+  // Consultation meetings
+  consultation_meetings consultation_meetings[] @relation("MentorMeetings")
+
+  // Support requests
+  support_requests support_requests[] @relation("StudentSupportRequests")
 }
 
 // ==================== 3. MENTOR SYSTEM ====================
@@ -919,5 +925,46 @@ model leads {
 
   @@index([status])
   @@index([email])
+  @@index([created_at])
+}
+
+// ==================== CONSULTATION MEETINGS ====================
+
+model consultation_meetings {
+  id              String   @id @default(uuid()) @db.Uuid
+  title           String   @db.VarChar(255)
+  description     String?  @db.Text
+  mentor_id       String   @db.Uuid
+  mentor_email    String   @db.VarChar(255)
+  student_email   String   @db.VarChar(255)
+  start_time      DateTime @db.Timestamp(6)
+  end_time        DateTime @db.Timestamp(6)
+  meet_link       String?  @db.VarChar(500)
+  google_event_id String?  @db.VarChar(255)
+  created_at      DateTime @default(now()) @db.Timestamp(6)
+
+  // Relations
+  mentor users @relation("MentorMeetings", fields: [mentor_id], references: [id], onDelete: Cascade)
+
+  @@index([mentor_id])
+  @@index([student_email])
+  @@index([start_time])
+}
+
+// ==================== SUPPORT REQUESTS ====================
+
+model support_requests {
+  id          String   @id @default(uuid()) @db.Uuid
+  student_id  String   @db.Uuid
+  description String   @db.Text
+  image_url   String?  @db.VarChar(500)
+  status      String   @default("PENDING") @db.VarChar(50)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+
+  // Relations
+  student users @relation("StudentSupportRequests", fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@index([status])
   @@index([created_at])
 }

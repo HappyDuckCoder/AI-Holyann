@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Users, Calendar, Star, AlertTriangle, Clock, ArrowRight, CalendarClock } from 'lucide-react';
 import StatsCard from './StatsCard';
@@ -18,6 +19,7 @@ interface DeadlineTask {
 }
 
 export default function MentorDashboardContent() {
+  const { data: session } = useSession();
   const [stats, setStats] = useState<MentorDashboardStats>({
     totalActiveStudents: 0,
     weeklyDeadlines: 0,
@@ -229,7 +231,7 @@ export default function MentorDashboardContent() {
           </div>
 
           {/* Schedule */}
-          <UpcomingSchedule events={events} />
+          <UpcomingSchedule events={events} mentorEmail={session?.user?.email || ''} />
         </div>
       </div>
     </div>

@@ -1,19 +1,19 @@
 'use client';
 
+import { useState } from 'react';
 import { Calendar, Clock, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { toast } from 'sonner';
 import type { ScheduleEvent } from '@/types/mentor';
+import CreateMeetingModal from '@/components/meetings/CreateMeetingModal';
 
 interface UpcomingScheduleProps {
   events: ScheduleEvent[];
+  mentorEmail?: string;
 }
 
-export default function UpcomingSchedule({ events }: UpcomingScheduleProps) {
-  const handleAddConsultation = () => {
-    toast.info('Chức năng thêm buổi tư vấn sẽ được triển khai');
-  };
+export default function UpcomingSchedule({ events, mentorEmail = '' }: UpcomingScheduleProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm">
@@ -65,13 +65,20 @@ export default function UpcomingSchedule({ events }: UpcomingScheduleProps) {
 
         <button
           type="button"
-          onClick={handleAddConsultation}
+          onClick={() => setIsModalOpen(true)}
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         >
           <Plus className="h-5 w-5" />
           Thêm buổi tư vấn
         </button>
       </div>
+
+      {/* Create Meeting Modal */}
+      <CreateMeetingModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        mentorEmail={mentorEmail}
+      />
     </div>
   );
 }

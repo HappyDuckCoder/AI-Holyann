@@ -62,7 +62,7 @@ export async function sendChatNotificationEmail(input: EmailNotificationInput) {
 
     // Option 1: Sử dụng Resend (Recommended) - optional dependency
     if (process.env.RESEND_API_KEY) {
-      // @ts-expect-error - optional: install "resend" when using RESEND_API_KEY
+      // @ts-ignore - optional: install "resend" when using RESEND_API_KEY
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -78,7 +78,7 @@ export async function sendChatNotificationEmail(input: EmailNotificationInput) {
 
     // Option 2: Sử dụng Nodemailer (Fallback) - optional dependency
     if (process.env.SMTP_HOST) {
-      // @ts-expect-error - optional: install "nodemailer" when using SMTP_* env
+      // @ts-ignore - optional: install "nodemailer" when using SMTP_* env
       const nodemailer = await import('nodemailer');
 
       const transporter = nodemailer.createTransport({
