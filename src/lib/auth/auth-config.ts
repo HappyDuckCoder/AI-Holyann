@@ -4,6 +4,9 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { AuthService } from '@/lib/auth/service/auth.service'
 import { JWTService } from '@/lib/services/jwt.service'
 
+// Production redirect_uri_mismatch? Set NEXTAUTH_URL on Vercel, then in Google Console
+// add to Authorized redirect URIs: https://<your-domain>/api/auth/callback/google
+
 const INVALID_CREDENTIALS_MESSAGE = 'Invalid credentials'
 
 export const authOptions: NextAuthOptions = {
