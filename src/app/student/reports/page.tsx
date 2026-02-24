@@ -404,8 +404,8 @@ export default function ReportsPage() {
                 </Card>
               )}
 
-              {/* 3. Module 2 – MBTI, Grit, RIASEC (3 compact cards) */}
-              {profileData?.feature2_output?.assessment && (
+              {/* 3. Module 2 – MBTI, Grit, RIASEC (chỉ hiện khi có ít nhất một kết quả test thật, không hiện mock) */}
+              {(profileData?.feature2_output?.assessment?.mbti || profileData?.feature2_output?.assessment?.grit || profileData?.feature2_output?.assessment?.riasec) && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 print:grid-cols-3">
                   {profileData.feature2_output.assessment.mbti && (
                     <Card className="border border-border print:shadow-none">

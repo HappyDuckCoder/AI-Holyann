@@ -201,7 +201,8 @@ export class DatabaseService {
     }
 
     /**
-     * Tạo user từ OAuth provider (Google, Facebook) - đồng bộ cả 2 DB
+     * Tạo user từ OAuth provider (Google, Facebook) - đồng bộ cả 2 DB.
+     * Fallback sang Prisma khi Supabase lỗi permission (giống createUser) để Google đăng ký không bị "không có quyền".
      */
     static async createOAuthUser(
         email: string,
@@ -223,32 +224,54 @@ export class DatabaseService {
                 is_active: true
             };
 
-            // 1. Ghi vào Supabase
-            const {data: supabaseUser, error: supabaseError} = await supabaseAdmin
-                .from('users')
-                .insert(userData)
-                .select()
-                .single();
+            let createdUser: User | null = null;
 
-            if (supabaseError) {
-                console.error('❌ [DatabaseService] Supabase error:', supabaseError);
-                throw new Error(`Supabase insert failed: ${supabaseError.message}${supabaseError.code ? ` (code: ${supabaseError.code})` : ''}`);
+            // 1. Thử ghi vào Supabase trước
+            try {
+                const {data: supabaseUser, error: supabaseError} = await supabaseAdmin
+                    .from('users')
+                    .insert(userData)
+                    .select()
+                    .single();
+
+                if (supabaseError) {
+                    if (supabaseError.code === '42501' || supabaseError.message.includes('permission denied')) {
+                        console.warn('⚠️ [DatabaseService] Supabase permission denied (OAuth), falling back to Prisma...');
+                        throw new Error('FALLBACK_TO_PRISMA');
+                    }
+                    throw new Error(`Supabase insert failed: ${supabaseError.message}${supabaseError.code ? ` (code: ${supabaseError.code})` : ''}`);
+                }
+
+                createdUser = supabaseUser as User;
+                await this.syncToLocalDB(userData);
+            } catch (supabaseError: any) {
+                if (supabaseError.message === 'FALLBACK_TO_PRISMA' || supabaseError.message?.includes?.('permission denied')) {
+                    try {
+                        const prismaUser = await prisma.users.create({
+                            data: userData
+                        });
+                        createdUser = prismaUser as User;
+                        try {
+                            await supabase.from('users').insert(userData);
+                        } catch (syncErr) {
+                            console.warn('⚠️ [DatabaseService] Could not sync OAuth user to Supabase');
+                        }
+                    } catch (prismaError: any) {
+                        console.error('❌ [DatabaseService] Prisma OAuth insert failed:', prismaError?.message);
+                        return null;
+                    }
+                } else {
+                    console.error('❌ [DatabaseService] createOAuthUser Supabase error:', supabaseError?.message);
+                    return null;
+                }
             }
 
-            // OAuth user created in Supabase
+            if (!createdUser) return null;
 
-            // 2. Đồng bộ vào Local Database (Prisma) với retry
-            await this.syncToLocalDB(userData);
-
-            // 3. Tạo hồ sơ student (OAuth user mặc định là STUDENT)
             await this.createStudentProfile(userId);
-
-            return supabaseUser as User;
+            return createdUser;
         } catch (error: any) {
-            console.error('❌ [DatabaseService] Exception in createOAuthUser:', {
-                message: error.message,
-                stack: error.stack
-            });
+            console.error('❌ [DatabaseService] Exception in createOAuthUser:', { message: error?.message });
             return null;
         }
     }
@@ -509,6 +532,68 @@ export class DatabaseService {
         } catch (error) {
             console.error('Error in updateUser:', error)
             return null
+        }
+    }
+
+    /**
+     * Cập nhật password hash (đồng bộ Prisma + Supabase). Không log password.
+     */
+    static async updatePassword(userId: string, passwordHash: string): Promise<boolean> {
+        try {
+            await prisma.users.update({
+                where: { id: userId },
+                data: { password_hash: passwordHash }
+            });
+            try {
+                await supabaseAdmin.from('users').update({ password_hash: passwordHash }).eq('id', userId);
+            } catch (e) {
+                console.warn('⚠️ [DatabaseService] Supabase password sync failed');
+            }
+            return true;
+        } catch (error: any) {
+            console.error('❌ [DatabaseService] updatePassword failed:', error?.message);
+            return false;
+        }
+    }
+
+    /**
+     * Link Google provider cho user đã có (email trùng, auth_provider LOCAL).
+     * Cập nhật auth_provider thành "LOCAL,google" và auth_provider_id.
+     */
+    static async linkGoogleProvider(userId: string, googleProviderId: string): Promise<boolean> {
+        try {
+            const updated = await prisma.users.update({
+                where: { id: userId },
+                data: {
+                    auth_provider: 'LOCAL,google',
+                    auth_provider_id: googleProviderId
+                }
+            });
+            try {
+                await supabaseAdmin.from('users').update({
+                    auth_provider: 'LOCAL,google',
+                    auth_provider_id: googleProviderId
+                }).eq('id', userId);
+            } catch (e) {
+                console.warn('⚠️ [DatabaseService] Supabase linkGoogle sync failed');
+            }
+            return !!updated;
+        } catch (error: any) {
+            console.error('❌ [DatabaseService] linkGoogleProvider failed:', error?.message);
+            return false;
+        }
+    }
+
+    /**
+     * Xóa user (và cascade: students, refresh_tokens). Dùng khi user xóa tài khoản.
+     */
+    static async deleteUser(userId: string): Promise<boolean> {
+        try {
+            await prisma.users.delete({ where: { id: userId } });
+            return true;
+        } catch (error: any) {
+            console.error('❌ [DatabaseService] deleteUser failed:', error?.message);
+            return false;
         }
     }
 }

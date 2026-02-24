@@ -1,10 +1,6 @@
 import { NextRequest } from 'next/server';
 import { AuthController } from '@/lib/auth/controller/auth.controller';
 
-/**
- * Register endpoint. Giữ URL cho UI cũ.
- * 409 khi email đã tồn tại, validate bằng schema (email + password strength).
- */
 export async function POST(request: NextRequest) {
   return AuthController.register(request);
 }

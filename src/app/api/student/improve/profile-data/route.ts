@@ -38,6 +38,7 @@ function buildFeature1FromProfile(analysis: {
   };
 }
 
+/** Chỉ trả assessment từ dữ liệu test thật; không thêm mock MBTI/Grit/RIASEC khi chưa làm bài. */
 function buildFeature2FromTests(
   mbti: { result_type: string | null; score_e: number | null; score_i: number | null; score_s: number | null; score_n: number | null; score_t: number | null; score_f: number | null; score_j: number | null; score_p: number | null } | null,
   grit: { total_score: number | null; passion_score: number | null; perseverance_score: number | null; level: string | null; description: string | null } | null,
@@ -59,8 +60,6 @@ function buildFeature2FromTests(
       },
       confidence: 0.9,
     };
-  } else {
-    assessment.mbti = { personality_type: 'INTJ', dimension_scores: { E: 0.2, I: 0.8, S: 0.3, N: 0.7, T: 0.7, F: 0.3, J: 0.8, P: 0.2 }, confidence: 0.5 };
   }
   if (grit) {
     assessment.grit = {
@@ -70,8 +69,6 @@ function buildFeature2FromTests(
       passion_score: grit.passion_score,
       perseverance_score: grit.perseverance_score,
     };
-  } else {
-    assessment.grit = { score: 3.5, level: 'Trung bình', description: 'Chưa có điểm Grit.', passion_score: 3.5, perseverance_score: 3.5 };
   }
   if (riasec) {
     const scores = {
@@ -96,8 +93,6 @@ function buildFeature2FromTests(
         .slice(0, 3) as [string, number][];
     }
     assessment.riasec = { code: riasec.result_code ?? top3.map(([c]) => c).join(''), scores, top3 };
-  } else {
-    assessment.riasec = { code: 'RIA', scores: { Realistic: 80, Investigative: 100, Artistic: 60, Social: 40, Enterprising: 30, Conventional: 50 }, top3: [['Investigative', 100], ['Realistic', 80], ['Artistic', 60]] };
   }
   return { success: true, assessment, recommendations: [] };
 }
@@ -136,18 +131,12 @@ export async function GET() {
     const gritOk = grit?.status === TestStatus.COMPLETED ? grit : null;
     const riasecOk = riasec?.status === TestStatus.COMPLETED ? riasec : null;
 
-    const feature1_output = latestAnalysis
-      ? buildFeature1FromProfile(latestAnalysis)
-      : buildFeature1FromProfile({
-          summary: null,
-          swot_data: null,
-          overall_score: 75,
-          academic_score: 7.5,
-          extracurricular_score: 7,
-        });
+    // Chỉ trả feature1 khi đã có phân tích hồ sơ thật; không trả dữ liệu mặc định cho báo cáo.
+    const feature1_output = latestAnalysis ? buildFeature1FromProfile(latestAnalysis) : null;
 
     const feature2_output = buildFeature2FromTests(mbtiOk, gritOk, riasecOk);
 
+    // Chỉ trả feature3 khi đã có gợi ý trường; không trả object rỗng để tránh hiển thị section trống.
     const feature3_output = latestF3
       ? {
           success: true,
@@ -155,12 +144,7 @@ export async function GET() {
           roadmap: latestF3.roadmap ?? {},
           summary: latestF3.summary ?? {},
         }
-      : {
-          success: true,
-          universities: {},
-          roadmap: {},
-          summary: {},
-        };
+      : null;
 
     return NextResponse.json({
       success: true,

@@ -47,5 +47,7 @@ export interface AuthResponse {
         current_address?: string | null
     }
     token?: string
+    refreshToken?: string
+    expiresAt?: string
 }
 

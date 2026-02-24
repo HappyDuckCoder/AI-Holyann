@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, memo } from "react";
+import Image from "next/image";
 import { MessageCircle, Search, X } from "lucide-react";
 import { Conversation } from "./types";
 import { getRoleIcon, getRoleColor, formatTime } from "./utils";
@@ -146,6 +147,20 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <ConversationListSkeleton count={5} />
+        ) : filteredConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+            <div className="relative w-32 h-32 md:w-40 md:h-40 mb-4">
+              <Image
+                src="/images/holi/pencil.png"
+                alt=""
+                fill
+                className="object-contain opacity-80"
+                sizes="(max-width: 768px) 128px, 160px"
+              />
+            </div>
+            <p className="text-sm font-medium text-foreground">Không có cuộc trò chuyện nào</p>
+            <p className="text-xs text-muted-foreground mt-1">Cuộc trao đổi với mentor sẽ hiển thị tại đây</p>
+          </div>
         ) : (
           filteredConversations.map((conv) => (
             <ConversationCard

@@ -1,7 +1,10 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { AuthService } from '@/lib/services/auth.service'
+import { AuthService } from '@/lib/auth/service/auth.service'
+import { JWTService } from '@/lib/services/jwt.service'
+
+const INVALID_CREDENTIALS_MESSAGE = 'Invalid credentials'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -18,33 +21,26 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.error('❌ [NextAuth] Missing credentials');
-          throw new Error('Email và mật khẩu không được để trống');
+          throw new Error(INVALID_CREDENTIALS_MESSAGE)
         }
 
-        try {
-          const result = await AuthService.login({
-            email: credentials.email,
-            password: credentials.password
-          });
+        const result = await AuthService.login({
+          email: credentials.email,
+          password: credentials.password
+        })
 
-          if (!result.success || !result.user) {
-            console.error('❌ [NextAuth] Login failed:', result.message);
-            throw new Error(result.message || 'Đăng nhập thất bại');
-          }
+        if (!result.success || !result.user) {
+          throw new Error(INVALID_CREDENTIALS_MESSAGE)
+        }
 
-          return {
-            id: result.user.id,
-            email: result.user.email,
-            name: result.user.full_name,
-            role: result.user.role,
-            image: result.user.avatar_url,
-            accessToken: result.token,
-            student: result.student || null
-          };
-        } catch (error: any) {
-          console.error('❌ [NextAuth] Authorization error:', error);
-          throw new Error(error.message || 'Đã xảy ra lỗi khi đăng nhập');
+        return {
+          id: result.user.id,
+          email: result.user.email,
+          name: result.user.full_name,
+          role: result.user.role,
+          image: result.user.avatar_url,
+          accessToken: result.token,
+          student: result.student || null
         }
       }
     }),
@@ -55,12 +51,34 @@ export const authOptions: NextAuthOptions = {
     updateAge: 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
         token.role = user.role;
         token.student = user.student || undefined;
         if (account?.provider === 'google') {
           token.accessToken = account.access_token;
+          // NextAuth mặc định dùng Google sub làm token.sub → sai với user đã đăng ký email.
+          // Gọi DB: tìm/link/tạo user theo email Google, dùng id của user trong DB làm token.sub.
+          const googleProfile = (profile ?? user) as { email?: string; name?: string; sub?: string; picture?: string; image?: string };
+            if (googleProfile?.email) {
+            const dbUser = await AuthService.findOrCreateOrLinkByGoogleProfile({
+              email: googleProfile.email,
+              name: googleProfile.name ?? (user as { name?: string }).name ?? null,
+              sub: googleProfile.sub ?? (user.id as string),
+              picture: googleProfile.picture ?? (user as { image?: string }).image ?? null,
+            });
+            if (dbUser) {
+              token.sub = dbUser.id;
+              token.role = dbUser.role;
+              (token as { student?: unknown }).student = dbUser.student ?? undefined;
+              // Dùng JWT của app làm accessToken để API (đổi mật khẩu, v.v.) nhận dạng user
+              token.accessToken = JWTService.generateToken({
+                userId: dbUser.id,
+                email: dbUser.email,
+                role: dbUser.role as 'STUDENT' | 'MENTOR' | 'ADMIN',
+              });
+            }
+          }
         } else if (user.accessToken) {
           token.accessToken = user.accessToken;
         }

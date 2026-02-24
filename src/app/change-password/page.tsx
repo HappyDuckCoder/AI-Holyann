@@ -1,13 +1,13 @@
 "use client";
 
-import ForgotPassword from "@/components/auth/ForgotPassword";
+import ChangePassword from "@/components/auth/ChangePassword";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { motion } from "framer-motion";
 
-export default function ForgotPasswordPage() {
+export default function ChangePasswordPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground overflow-x-hidden overflow-y-auto transition-colors duration-300 dark:auth-page-grid">
-      {/* Left: Marketing section — giống hệt login/register */}
+      {/* Left: Marketing section - giống hệt login/register */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
           <ThemeToggle variant="icon" className="rounded-full border border-border bg-muted/30 hover:bg-muted/50" />
         </div>
         <div className="w-full max-w-[400px]">
-          <ForgotPassword />
+          <ChangePassword />
         </div>
       </motion.div>
     </div>
