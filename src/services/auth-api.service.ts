@@ -20,10 +20,12 @@ export type AuthApiResult<T = unknown> =
   | { ok: true; data: T }
   | { ok: false; status: number; message: string };
 
+type AuthFetchOptions = Omit<RequestInit, 'body'> & { body?: object };
+
 async function authFetch(
   token: string | undefined,
   path: string,
-  options: RequestInit & { method?: string; body?: object } = {}
+  options: AuthFetchOptions = {}
 ): Promise<Response> {
   if (!token) {
     return new Response(JSON.stringify({ success: false, message: 'Unauthorized' }), { status: 401 });
@@ -40,7 +42,7 @@ async function authFetch(
     ...rest,
     method,
     headers,
-    ...(body ? { body: JSON.stringify(body) } : {}),
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
 }
 

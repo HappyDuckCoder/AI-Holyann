@@ -54,7 +54,7 @@ export const googleIdTokenSchema = z.object({
 /** Xóa tài khoản: password để xác nhận (bỏ qua nếu Google-only), checkbox đã đọc */
 export const deleteAccountSchema = z.object({
   password: z.string().optional(),
-  confirmIrreversible: z.literal(true, { errorMap: () => ({ message: 'Bạn phải xác nhận hiểu hành động này không thể hoàn tác' }) }),
+  confirmIrreversible: z.literal(true, { message: 'Bạn phải xác nhận hiểu hành động này không thể hoàn tác' }),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

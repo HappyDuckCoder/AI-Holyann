@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, Mail, User } from 'lucide-react';
 import { StudentPageContainer } from '@/components/student';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { authApi } from '@/services/auth-api.service';
+import { authApi, type AccountMe } from '@/services/auth-api.service';
 import { ChangePasswordCard } from '@/components/student/settings/ChangePasswordCard';
 import { DeleteAccountCard } from '@/components/student/settings/DeleteAccountCard';
 
@@ -14,7 +14,7 @@ export default function StudentSettingsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  const [account, setAccount] = useState<{ email: string; provider: string; createdAt: string | null; hasPassword: boolean } | null>(null);
+  const [account, setAccount] = useState<AccountMe | null>(null);
   const [accountLoading, setAccountLoading] = useState(true);
 
   const accessToken = (session as { accessToken?: string } | null)?.accessToken;
