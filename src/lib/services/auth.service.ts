@@ -208,6 +208,22 @@ export class AuthService {
                 role: user.role
             })
 
+            // Fetch student data nếu user là STUDENT
+            let studentData = null;
+            if (user.role === 'STUDENT') {
+                // Đợi student profile tạo xong (trường hợp user mới)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                studentData = await DatabaseService.findStudentByUserId(user.id);
+
+                // Nếu user đã tồn tại nhưng chưa có student record → tạo mới
+                if (!studentData) {
+                    console.log('⚠️ [AuthService] Student profile missing for existing user, creating...');
+                    await DatabaseService.createStudentProfileForUser(user.id);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    studentData = await DatabaseService.findStudentByUserId(user.id);
+                }
+            }
+
             return {
                 success: true,
                 message: 'Đăng nhập thành công',
@@ -218,6 +234,15 @@ export class AuthService {
                     role: user.role,
                     avatar_url: user.avatar_url
                 },
+                student: studentData ? {
+                    user_id: studentData.user_id,
+                    current_school: studentData.current_school,
+                    current_grade: studentData.current_grade,
+                    intended_major: studentData.intended_major,
+                    target_country: studentData.target_country,
+                    date_of_birth: studentData.date_of_birth,
+                    current_address: studentData.current_address
+                } : undefined,
                 token
             }
         } catch (error) {

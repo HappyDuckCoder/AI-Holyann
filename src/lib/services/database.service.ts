@@ -109,6 +109,13 @@ export class DatabaseService {
     }
 
     /**
+     * Public wrapper: Tạo hồ sơ student cho user đã tồn tại nhưng chưa có student record
+     */
+    static async createStudentProfileForUser(userId: string): Promise<void> {
+        return this.createStudentProfile(userId);
+    }
+
+    /**
      * Tạo user mới trong database (đồng bộ cả Supabase và Local DB)
      */
     static async createUser(data: RegisterData): Promise<User | null> {

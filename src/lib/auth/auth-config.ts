@@ -55,10 +55,48 @@ export const authOptions: NextAuthOptions = {
     updateAge: 24 * 60 * 60,
   },
   callbacks: {
+    async signIn({ user, account }) {
+      // Google OAuth: tạo user + student trong DB (giống logic email/password)
+      if (account?.provider === 'google' && user.email) {
+        try {
+          const result = await AuthService.oauthLogin(
+            user.email,
+            user.name || 'Google User',
+            'GOOGLE',
+            account.providerAccountId,
+            user.image || undefined
+          );
+
+          if (!result.success || !result.user) {
+            console.error('❌ [NextAuth] Google OAuth failed:', result.message);
+            return false;
+          }
+
+          // Gán DB user data vào user object → jwt callback sẽ nhận được
+          user.id = result.user.id;
+          user.role = result.user.role;
+          user.student = result.student || null;
+          // Lưu thêm dbUserId riêng phòng trường hợp id bị overwrite
+          (user as any).dbUserId = result.user.id;
+
+          return true;
+        } catch (error) {
+          console.error('❌ [NextAuth] Google signIn error:', error);
+          return false;
+        }
+      }
+
+      return true;
+    },
     async jwt({ token, user, account }) {
+      // Lần đầu login (user != null) → lưu thông tin vào token
       if (user) {
-        token.role = user.role;
+        // Ưu tiên dbUserId (set trong signIn callback) → đảm bảo dùng DB id, không phải Google id
+        const dbId = (user as any).dbUserId || user.id;
+        token.sub = dbId;
+        token.role = user.role || 'STUDENT';
         token.student = user.student || undefined;
+
         if (account?.provider === 'google') {
           token.accessToken = account.access_token;
         } else if (user.accessToken) {
