@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, ImageIcon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { BRAND_COLORS } from "../../lib/data";
 
 const container = {
   hidden: { opacity: 0 },
@@ -19,72 +21,21 @@ const item = {
   visible: { opacity: 1, y: 0 },
 };
 
-const HERO_CARD_IMAGES = [
-  "/images/landing/hero-card-1.jpg",
-  "/images/landing/hero-card-2.jpg",
-  "/images/landing/hero-card-3.jpg",
-  "/images/landing/hero-card-4.jpg",
-];
-
-const bentoLabels = ["Hồ sơ", "AI hỗ trợ", "Target trường", "Mentor"];
-
-function HeroCard({
-  imageSrc,
-  label,
-  delay,
-}: {
-  imageSrc: string;
-  label: string;
-  delay: number;
-}) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
-  const showPlaceholder = !imgLoaded || imgError;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-      whileHover={{ y: -2 }}
-      className="relative aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-100 select-none border border-slate-200/80 transition-shadow hover:shadow-lg"
-    >
-      {showPlaceholder ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
-          <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.5} />
-          <span className="text-xs font-medium">Thêm ảnh</span>
-          <span className="text-[10px] text-slate-400/80 px-2 text-center">
-            {label}
-          </span>
-        </div>
-      ) : null}
-      <img
-        src={imageSrc}
-        alt={label}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${showPlaceholder ? "opacity-0" : "opacity-100"}`}
-        onLoad={() => setImgLoaded(true)}
-        onError={() => setImgError(true)}
-      />
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-        <span className="text-white font-semibold text-sm sm:text-base drop-shadow-sm">
-          {label}
-        </span>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-white selection:bg-sky-200 selection:text-slate-900">
-      <div className="absolute inset-0 pointer-events-none" aria-hidden>
-        <div className="absolute top-0 left-0 right-0 h-[70vh] max-h-[600px] bg-gradient-to-b from-sky-50/90 via-cyan-50/50 to-transparent" />
-        <div className="absolute top-[15%] right-0 w-[50vw] max-w-[600px] h-[400px] bg-gradient-to-l from-cyan-100/40 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-[20%] left-0 w-[40vw] max-w-[400px] h-[300px] bg-gradient-to-r from-sky-100/30 to-transparent rounded-full blur-3xl" />
-      </div>
+    <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center overflow-hidden bg-white selection:bg-sky-200 selection:text-slate-900">
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(148, 163, 184, 0.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.10) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
 
-      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <motion.div
             variants={container}
             initial="hidden"
@@ -93,24 +44,25 @@ export default function HeroSection() {
           >
             <motion.p
               variants={item}
-              className="inline-block text-xs font-semibold uppercase tracking-[0.2em] text-sky-600 mb-6 select-text"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-slate-500 shadow-sm"
             >
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
               Holyann Explore
             </motion.p>
 
             <motion.h1
               variants={item}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.1] mb-6 select-text"
+              className="mb-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.05]"
             >
               <span className="block">Vẽ đường tương lai.</span>
-              <span className="block bg-gradient-to-r from-sky-600 to-cyan-500 bg-clip-text text-transparent">
+              <span className={`block ${BRAND_COLORS.textGradient}`}>
                 Định hình ngày mai.
               </span>
             </motion.h1>
 
             <motion.p
               variants={item}
-              className="text-lg sm:text-xl text-slate-600 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed select-text"
+              className="mb-10 max-w-xl mx-auto lg:mx-0 text-lg sm:text-xl text-slate-600 leading-relaxed"
             >
               Nền tảng đồng hành du học toàn diện — từ hồ sơ, bài test đến gợi ý
               trường và kết nối mentor. Một chìa khóa cho thành công của bạn.
@@ -123,23 +75,23 @@ export default function HeroSection() {
               <Button
                 asChild
                 size="lg"
-                className="rounded-full h-12 px-8 text-base font-semibold bg-gradient-to-r from-sky-600 to-cyan-500 text-white shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/30 transition-shadow duration-200"
+                className="group h-12 rounded-full px-8 text-base font-semibold bg-gradient-to-r from-sky-600 to-cyan-500 text-white shadow-md shadow-sky-500/20 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/30"
               >
                 <Link
                   href="/dashboard"
                   className="inline-flex items-center gap-2"
                 >
                   Khám phá ngay
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
               </Button>
               <Button
                 asChild
                 size="lg"
-                className="rounded-full h-12 px-8 text-base font-semibold border-2 border-slate-300 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 active:scale-[0.98] transition-all duration-200"
+                className="h-12 rounded-full px-8 text-base font-semibold border-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all duration-200"
               >
                 <Link
-                  href="/login"
+                  href="#gioi-thieu"
                   className="inline-flex items-center justify-center gap-2"
                 >
                   Tìm hiểu thêm
@@ -149,19 +101,33 @@ export default function HeroSection() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="grid grid-cols-2 gap-4 sm:gap-5 max-w-md mx-auto lg:max-w-none lg:mx-0"
+            initial={{ opacity: 0, x: 40, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+            className="relative flex justify-center lg:justify-end"
           >
-            {HERO_CARD_IMAGES.map((src, i) => (
-              <HeroCard
-                key={i}
-                imageSrc={src}
-                label={bentoLabels[i]}
-                delay={0.3 + i * 0.06}
+            <motion.div
+              className="relative w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] md:w-[320px] md:h-[320px] lg:w-[360px] lg:h-[360px]"
+              animate={{
+                x: [-20, -8, 0, 12, 24, 12, 0, -8, -20],
+                y: [0, -10, -18, -24, -18, -10, 0, -6, -12],
+                rotate: [-10, -6, -3, 0, 3, 0, -3, -6, -10],
+              }}
+              transition={{
+                duration: 14,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Image
+                src="/images/holy/pencil.png"
+                alt="Holy đang bay cùng bạn"
+                fill
+                className="object-contain drop-shadow-xl"
+                sizes="(max-width: 1024px) 260px, 340px"
+                priority
               />
-            ))}
+            </motion.div>
           </motion.div>
         </div>
       </div>
