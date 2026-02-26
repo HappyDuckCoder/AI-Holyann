@@ -34,7 +34,7 @@ export default function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16 md:py-24">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <motion.div
             variants={container}
@@ -52,7 +52,7 @@ export default function HeroSection() {
 
             <motion.h1
               variants={item}
-              className="mb-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.05]"
+              className="mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-[1.05]"
             >
               <span className="block">Vẽ đường tương lai.</span>
               <span className={`block ${BRAND_COLORS.textGradient}`}>
@@ -64,8 +64,20 @@ export default function HeroSection() {
               variants={item}
               className="mb-10 max-w-xl mx-auto lg:mx-0 text-lg sm:text-xl text-slate-600 leading-relaxed"
             >
-              Nền tảng đồng hành du học toàn diện — từ hồ sơ, bài test đến gợi ý
-              trường và kết nối mentor. Một chìa khóa cho thành công của bạn.
+              Đừng bước ra thế giới một mình khi bạn có thể có những người bạn
+              đồng hành luôn nỗ lực hết sức vì bạn. Với tư duy tiên phong và
+              những phương pháp sáng tạo mới mẻ, nền tảng của chúng tôi kết hợp
+              {` `}
+              <span className="font-semibold text-amber-400">
+                sự thông minh của công nghệ
+              </span>
+              {` `}
+              cùng{` `}
+              <span className="font-semibold text-amber-400">
+                tâm huyết của người đi trước
+              </span>
+              . Chúng tôi sát sao dìu dắt, lấy nỗ lực của chính mình làm bệ
+              phóng vững chắc cho mọi bứt phá của bạn.
             </motion.p>
 
             <motion.div
@@ -107,7 +119,7 @@ export default function HeroSection() {
             className="relative flex justify-center lg:justify-end"
           >
             <motion.div
-              className="relative w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] md:w-[320px] md:h-[320px] lg:w-[360px] lg:h-[360px]"
+              className="relative w-[500px] h-[500px] sm:w-[500px] sm:h-[500px] md:w-[500px] md:h-[500px] lg:w-[500px] lg:h-[500px]"
               animate={{
                 x: [-20, -8, 0, 12, 24, 12, 0, -8, -20],
                 y: [0, -10, -18, -24, -18, -10, 0, -6, -12],
