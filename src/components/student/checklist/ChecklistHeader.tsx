@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { StudentHeroShell } from "../StudentHeroShell";
 
 interface ChecklistHeaderProps {
   /** 0–100 overall completion */
@@ -23,62 +24,80 @@ export function ChecklistHeader({
   const clamped = Math.min(100, Math.max(0, progressPercent));
   const offset = circumference - (clamped / 100) * circumference;
 
+  const progressCircle = (
+    <div className="relative flex items-center justify-center">
+      <svg
+        width={CIRCLE_SIZE}
+        height={CIRCLE_SIZE}
+        className="rotate-[-90deg]"
+        aria-hidden
+      >
+        <circle
+          cx={C}
+          cy={C}
+          r={R}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={STROKE}
+          className="text-muted/40"
+        />
+        <motion.circle
+          cx={C}
+          cy={C}
+          r={R}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={STROKE}
+          strokeLinecap="round"
+          className="text-primary"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground tabular-nums">
+        {Math.round(clamped)}%
+      </span>
+    </div>
+  );
+
   return (
-    <motion.header
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="relative rounded-2xl overflow-hidden border border-border/60 dark:border-border/80 bg-card shadow-sm"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] via-transparent to-primary/[0.04] dark:from-primary/[0.12] dark:to-primary/[0.06]" />
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/[0.08] to-transparent dark:from-primary/[0.15] pointer-events-none" />
-      <div className="relative flex flex-col sm:flex-row sm:items-center gap-6 px-6 py-6 sm:px-8 sm:py-8">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-shrink-0">
-            <svg
-              width={CIRCLE_SIZE}
-              height={CIRCLE_SIZE}
-              className="rotate-[-90deg]"
-              aria-hidden
-            >
-              <circle
-                cx={C}
-                cy={C}
-                r={R}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={STROKE}
-                className="text-muted/50"
-              />
-              <motion.circle
-                cx={C}
-                cy={C}
-                r={R}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                className="text-primary"
-                strokeDasharray={circumference}
-                initial={{ strokeDashoffset: circumference }}
-                animate={{ strokeDashoffset: offset }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground tabular-nums">
-              {Math.round(clamped)}%
-            </span>
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Checklist
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5 max-w-md">
-              {subtitle}
-            </p>
+    <StudentHeroShell
+      ariaLabel="Checklist hồ sơ du học"
+      left={
+        <>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/80">
+            Lộ trình checklist
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl leading-tight">
+            Checklist hồ sơ du học
+          </h1>
+          <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {subtitle}
+          </p>
+        </>
+      }
+      right={
+        <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-background/80 p-5 shadow-md backdrop-blur-sm">
+          <div className="absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent opacity-70" />
+          <div className="relative flex items-center gap-4">
+            {progressCircle}
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Tiến độ tổng thể
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Bạn đã hoàn thành{" "}
+                <span className="font-semibold text-foreground">
+                  {Math.round(clamped)}%
+                </span>{" "}
+                checklist.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.header>
+      }
+    />
   );
 }

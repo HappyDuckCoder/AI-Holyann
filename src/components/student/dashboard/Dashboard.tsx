@@ -84,9 +84,9 @@ export default function Dashboard({ userName, data, isLoading, error }: Dashboar
       className="min-h-[60vh] rounded-2xl bg-surface px-6 py-8 sm:px-8 lg:px-8 max-w-[1600px] mx-auto pb-12"
       style={{ paddingLeft: "clamp(24px, 5vw, 32px)", paddingRight: "clamp(24px, 5vw, 32px)" }}
     >
-      <DashboardHero userName={userName} />
+      <DashboardHero userName={userName} stats={data.quickStats} />
 
-      <div className="mt-10">
+      <div id="progress-section" className="mt-10">
         <QuickStatsGrid items={data.quickStats} />
       </div>
 

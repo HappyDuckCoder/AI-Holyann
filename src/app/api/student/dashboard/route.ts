@@ -142,15 +142,20 @@ export async function GET() {
       },
       {
         id: "courses",
-        label: "Completed Courses",
+        label: "Khóa đã hoàn thành",
         value: completedCount,
-        trend: { value: 0, label: "Checklist" },
+        trend: totalTasks
+          ? {
+              value: Math.round((completedCount / totalTasks) * 100),
+              label: "Mức hoàn thành Checklist",
+            }
+          : undefined,
         icon: "BookOpen",
         accent: "emerald" as const,
       },
       {
         id: "tasks",
-        label: "Pending Tasks",
+        label: "Nhiệm vụ đang chờ",
         value: pendingCount + inProgressCount,
         trend: undefined,
         icon: "CheckSquare",
