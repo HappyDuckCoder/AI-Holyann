@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import Image from "next/image";
 
 /** Lock body scroll when Discussion page is mounted - prevents double scrollbar */
 function useBodyScrollLock() {
@@ -253,17 +254,15 @@ export const ChatPage: React.FC = () => {
               <p className="text-sm font-medium">
                 Chọn một cuộc hội thoại để bắt đầu
               </p>
-              <div className="relative w-48 h-32 rounded-xl overflow-hidden border border-border shadow-sm">
-                <img
-                  src="/images/HOEX_IMAGES/discussion-empty.jpg"
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "/images/auth/left.jpg";
-                  }}
+              <div className="relative w-48 h-32 rounded-xl overflow-hidden border border-border shadow-sm bg-background/40">
+                <Image
+                  src="/holy/3.png"
+                  alt="Holy đang chờ bạn bắt đầu cuộc trò chuyện"
+                  fill
+                  className="object-contain"
+                  sizes="192px"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-background/60 to-transparent" />
               </div>
             </div>
           )}

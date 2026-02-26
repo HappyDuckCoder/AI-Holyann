@@ -24,7 +24,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       className="relative rounded-2xl overflow-hidden mb-4 sm:mb-6 lg:mb-8 border border-border bg-card shadow-sm transition-colors duration-300"
       aria-label="Tiêu đề hồ sơ"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10" />
+      <div className="absolute inset-0 bg-linear-to-br from-primary/20 via-primary/10 to-secondary/10" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,var(--tw-gradient-from),transparent)] from-primary/25 to-transparent" />
       <div
         className="absolute inset-0 opacity-[0.06]"
@@ -34,8 +34,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       />
       <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
         <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-          <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm">
-            <User className="size-5 sm:size-6" aria-hidden />
+          <div className="relative h-16 w-16 shrink-0 rounded-xl overflow-hidden">
+            <Image
+              src="/holy/2.png"
+              alt="Biểu tượng hồ sơ Holyann"
+              fill
+              className="object-contain"
+              sizes="64px"
+              priority
+            />
           </div>
           <div>
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground tracking-tight">
@@ -65,18 +72,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <span className="sm:hidden">Sửa</span>
             <span className="hidden sm:inline">Cập nhật hồ sơ</span>
           </button>
-          <div className="hidden md:flex items-center gap-2">
-            <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-border shadow-md">
-              <Image
-                src="/images/auth/left.jpg"
-                alt=""
-                fill
-                className="object-cover"
-                sizes="80px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
-            </div>
-          </div>
         </div>
       </div>
     </motion.header>
