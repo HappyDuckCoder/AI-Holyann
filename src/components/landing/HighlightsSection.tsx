@@ -28,12 +28,8 @@ export default function HighlightsSection() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="group flex gap-5 p-6 bg-white rounded-2xl shadow-sm h-full border border-transparent hover:border-blue-200 cursor-pointer"
               >
-                <motion.div
-                  className="shrink-0"
-                  whileHover={{ scale: 1.2, rotate: 360 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <CheckCircle2 className="w-8 h-8 text-[var(--brand-cyan)] group-hover:text-[var(--brand-blue)] transition-colors duration-300" />
+                <motion.div className="shrink-0" transition={{ duration: 0.5 }}>
+                  <CheckCircle2 className="w-8 h-8 text-sky-400 group-hover:text-sky-600 transition-colors duration-300" />
                 </motion.div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">

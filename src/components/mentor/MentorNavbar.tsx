@@ -1,12 +1,13 @@
-'use client'
+"use client"
 
-import Link from 'next/link'
-import {useAuthSession} from '@/hooks/useAuthSession'
-import {signOut} from 'next-auth/react'
-import { useState, useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, LayoutDashboard, Users, User, MessageCircle, LogOut, GraduationCap, CalendarClock } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme/ThemeToggle'
+import Link from "next/link"
+import Image from "next/image"
+import {useAuthSession} from "@/hooks/useAuthSession"
+import {signOut} from "next-auth/react"
+import { useState, useEffect, useRef } from "react"
+import { usePathname } from "next/navigation"
+import { Menu, X, ChevronDown, LayoutDashboard, Users, User, MessageCircle, LogOut, GraduationCap, CalendarClock } from "lucide-react"
+import { ThemeToggle } from "@/components/theme/ThemeToggle"
 
 export default function MentorNavbar() {
     const {user, isAuthenticated} = useAuthSession()
@@ -39,13 +40,20 @@ export default function MentorNavbar() {
     }
 
     return (
-        <header className="navbar-header sticky top-0 z-50 w-full px-4 sm:px-6 md:px-8 bg-[linear-gradient(to_right,#0f4c81,#00b4db)] dark:bg-[rgb(15_23_42_/_0.85)] dark:backdrop-blur-md border-b border-white/10 dark:border-white/[0.06]">
+        <header className="navbar-header sticky top-0 z-50 w-full px-4 sm:px-6 md:px-8 bg-[linear-gradient(to_right,#0f4c81,#00b4db)] dark:bg-[rgb(15_23_42/0.85)] dark:backdrop-blur-md border-b border-white/10 dark:border-white/6">
             <div className="container flex h-16 max-w-screen-2xl items-center justify-between gap-4">
                 {/* Logo */}
                 <div className="flex items-center gap-3">
                     <Link href="/mentor/dashboard" className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-lg transition-all duration-200 ease-in-out active:scale-[0.98]">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-foreground/10 border border-primary-foreground/20 transition-colors group-hover:bg-primary-foreground/15 dark:bg-white/10 dark:border-white/10 dark:group-hover:bg-white/15 md:h-10 md:w-10">
-                            <GraduationCap className="h-4 w-4 text-accent md:h-5 md:w-5" />
+                        <div className="relative h-9 w-9 md:h-10 md:w-10 rounded-full overflow-hidden bg-white/10 border border-white/15">
+                            <Image
+                                src="/holy/1.png"
+                                alt="Holyann logo"
+                                fill
+                                className="object-contain"
+                                sizes="40px"
+                                priority
+                            />
                         </div>
                         <div className="flex flex-col leading-none gap-0.5">
                             <span className="font-semibold tracking-[0.08em] text-primary-foreground dark:text-white">HOLYANN</span>
@@ -66,7 +74,11 @@ export default function MentorNavbar() {
                                 className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium tracking-wide transition-all duration-200 ease-in-out cursor-pointer
                                   focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900
                                   hover:scale-[1.02] active:scale-[0.98]
-                                  ${active ? 'bg-primary-foreground/20 text-primary-foreground dark:bg-gradient-to-r dark:from-indigo-600/20 dark:to-blue-500/20 dark:text-white dark:shadow-[0_1px_0_0_rgba(255,255,255,0.08)]' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-white/80 dark:hover:bg-slate-800 dark:hover:text-white'}`}
+                                  ${
+                                    active
+                                        ? 'bg-primary-foreground/20 text-primary-foreground dark:bg-linear-to-r dark:from-indigo-600/20 dark:to-blue-500/20 dark:text-white dark:shadow-[0_1px_0_0_rgba(255,255,255,0.08)]'
+                                        : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-white/80 dark:hover:bg-slate-800 dark:hover:text-white'
+                                  }`}
                             >
                                 <Icon className={`h-4 w-4 shrink-0 ${active ? 'opacity-100' : 'opacity-70'}`} />
                                 {item.name}
@@ -129,7 +141,11 @@ export default function MentorNavbar() {
                             const active = isActive(pathname, item.href)
                             return (
                                 <Link key={item.name} href={item.href} onClick={() => setMobileMenuOpen(false)}
-                                    className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200 ${active ? 'bg-primary-foreground/20 text-primary-foreground dark:bg-gradient-to-r dark:from-indigo-600/20 dark:to-blue-500/20 dark:text-white' : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-white/80 dark:hover:bg-slate-800 dark:hover:text-white'}`}>
+                                    className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                                        active
+                                            ? 'bg-primary-foreground/20 text-primary-foreground dark:bg-linear-to-r dark:from-indigo-600/20 dark:to-blue-500/20 dark:text-white'
+                                            : 'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-white/80 dark:hover:bg-slate-800 dark:hover:text-white'
+                                    }`}>
                                     <Icon className={`h-4 w-4 shrink-0 ${active ? 'opacity-100' : 'opacity-70'}`} />
                                     {item.name}
                                 </Link>
