@@ -998,3 +998,29 @@ model support_requests {
   @@index([status])
   @@index([created_at])
 }
+
+// ==================== AUTH TOKENS ====================
+
+/// Token OTP 6 số dùng cho quên mật khẩu (email hoặc số điện thoại)
+model verification_tokens {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String   @db.VarChar(255) // email hoặc số điện thoại
+  token      String   @db.VarChar(6) // OTP 6 chữ số
+  expires    DateTime @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@unique([identifier, token])
+  @@index([identifier])
+}
+
+/// Token dạng UUID dùng cho flow đặt lại mật khẩu qua link email (legacy)
+model password_reset_tokens {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String   @unique @db.VarChar(255)
+  token      String   @unique @db.VarChar(255)
+  expires    DateTime @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([token])
+  @@index([email])
+}

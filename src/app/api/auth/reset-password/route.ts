@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+
+interface OtpRow {
+  id: string;
+  email: string;
+  otp: string;
+  expires_at: Date;
+  created_at: Date;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,65 +28,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify OTP
-    const { data: otpRecord, error: otpError } = await supabase
-      .from('password_reset_otps')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .eq('otp', otp)
-      .single();
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (otpError || !otpRecord) {
+    // 1. Tìm OTP bằng raw SQL
+    const records = await prisma.$queryRawUnsafe<OtpRow[]>(
+      `SELECT * FROM password_reset_otps WHERE email = $1 AND otp = $2 LIMIT 1`,
+      normalizedEmail,
+      otp
+    );
+
+    if (!records || records.length === 0) {
       return NextResponse.json(
         { error: 'Mã xác thực không đúng' },
         { status: 400 }
       );
     }
 
-    // Check expiry
+    const otpRecord = records[0];
     const now = new Date();
     const expiresAt = new Date(otpRecord.expires_at);
 
     if (now > expiresAt) {
-      await supabase
-        .from('password_reset_otps')
-        .delete()
-        .eq('email', email.toLowerCase());
-
+      await prisma.$executeRawUnsafe(
+        `DELETE FROM password_reset_otps WHERE email = $1`,
+        normalizedEmail
+      );
       return NextResponse.json(
         { error: 'Mã xác thực đã hết hạn' },
         { status: 400 }
       );
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    // 2. Hash mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    const isDevelopment = process.env.NODE_ENV === 'development';
+    // 3. Cập nhật mật khẩu bằng Prisma
+    const user = await prisma.users.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
+    });
 
-    // Update password (skip if user doesn't exist in dev mode)
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ password_hash: hashedPassword })
-      .eq('email', email.toLowerCase());
-
-    if (updateError) {
-      if (isDevelopment) {
-      } else {
-        console.error('Error updating password:', updateError);
-        return NextResponse.json(
-          { error: 'Không thể cập nhật mật khẩu' },
-          { status: 500 }
-        );
-      }
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Không tìm thấy tài khoản' },
+        { status: 404 }
+      );
     }
 
-    // Delete OTP
-    await supabase
-      .from('password_reset_otps')
-      .delete()
-      .eq('email', email.toLowerCase());
+    await prisma.users.update({
+      where: { id: user.id },
+      data: {
+        password_hash: hashedPassword,
+        auth_provider: 'LOCAL',
+      },
+    });
+
+    // 4. Xóa OTP đã dùng
+    await prisma.$executeRawUnsafe(
+      `DELETE FROM password_reset_otps WHERE email = $1`,
+      normalizedEmail
+    );
 
     return NextResponse.json({
       success: true,

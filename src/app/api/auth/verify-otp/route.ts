@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { prisma } from '@/lib/prisma';
+
+interface OtpRow {
+  id: string;
+  email: string;
+  otp: string;
+  expires_at: Date;
+  created_at: Date;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,31 +20,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get OTP from database
-    const { data: otpRecord, error: otpError } = await supabase
-      .from('password_reset_otps')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .eq('otp', otp)
-      .single();
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (otpError || !otpRecord) {
+    // Tìm OTP bằng raw SQL (bypass RLS)
+    const records = await prisma.$queryRawUnsafe<OtpRow[]>(
+      `SELECT * FROM password_reset_otps WHERE email = $1 AND otp = $2 LIMIT 1`,
+      normalizedEmail,
+      otp
+    );
+
+    if (!records || records.length === 0) {
       return NextResponse.json(
         { error: 'Mã xác thực không đúng' },
         { status: 400 }
       );
     }
 
-    // Check if OTP is expired
+    const otpRecord = records[0];
     const now = new Date();
     const expiresAt = new Date(otpRecord.expires_at);
 
     if (now > expiresAt) {
-      // Delete expired OTP
-      await supabase
-        .from('password_reset_otps')
-        .delete()
-        .eq('email', email.toLowerCase());
+      await prisma.$executeRawUnsafe(
+        `DELETE FROM password_reset_otps WHERE email = $1`,
+        normalizedEmail
+      );
 
       return NextResponse.json(
         { error: 'Mã xác thực đã hết hạn. Vui lòng yêu cầu mã mới.' },
@@ -48,7 +56,6 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Mã xác thực hợp lệ',
     });
-
   } catch (error) {
     console.error('Verify OTP error:', error);
     return NextResponse.json(

@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, BarChart3, Monitor, Moon, Sun } from 'lucide-react';
+import { ArrowRight, BarChart3, KeyRound, Monitor, Moon, Sun } from 'lucide-react';
 import { StudentPageContainer } from '@/components/student';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/contexts/ThemeContext';
+import { ChangePasswordDialog } from '@/components/student/ChangePasswordDialog';
 
 export default function StudentSettingsPage() {
   const { theme, resolvedTheme, setTheme, mounted } = useTheme();
@@ -48,6 +49,22 @@ export default function StudentSettingsPage() {
                 Mở trang
                 <ArrowRight className="size-4" />
               </Link>
+            </div>
+
+            {/* Đổi mật khẩu */}
+            <div className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <KeyRound className="size-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Đổi mật khẩu</p>
+                  <p className="text-sm text-muted-foreground">
+                    Cập nhật mật khẩu đăng nhập của tài khoản
+                  </p>
+                </div>
+              </div>
+              <ChangePasswordDialog />
             </div>
 
             {/* Chế độ hiển thị / Theme */}
