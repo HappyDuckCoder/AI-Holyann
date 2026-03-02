@@ -30,20 +30,34 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const STUDENT_BASE = "/student";
 
+/** Navbar tổng: Tổng quan, Hồ sơ, Test, Mục tiêu, Cải Thiện */
 const navItems = [
   { name: "Tổng quan", href: `${STUDENT_BASE}/dashboard`, icon: LayoutDashboard },
   { name: "Hồ sơ", href: `${STUDENT_BASE}/profile`, icon: User },
-  { name: "Hạn nộp", href: `${STUDENT_BASE}/deadlines`, icon: CalendarClock },
-  { name: "Danh sách công việc", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
-  { name: "Trao đổi", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
+  { name: "Test", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
+  { name: "Mục tiêu", href: `${STUDENT_BASE}/target`, icon: Target },
+  { name: "Cải Thiện", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
 ];
 
-const functionalityItems = [
+/** Combobox feature: Deadline, Checklist, Chat, Báo cáo, Phân tích hồ sơ */
+const featureDropdownItems = [
   {
-    name: "Bài kiểm tra",
-    href: `${STUDENT_BASE}/tests`,
-    icon: ClipboardList,
-    description: "Bài kiểm tra năng lực và định hướng nghề nghiệp",
+    name: "Deadline",
+    href: `${STUDENT_BASE}/deadlines`,
+    icon: CalendarClock,
+    description: "Theo dõi hạn nộp hồ sơ, bài luận và các mốc quan trọng",
+  },
+  {
+    name: "Checklist",
+    href: `${STUDENT_BASE}/checklist`,
+    icon: CheckSquare,
+    description: "Danh sách công việc cần hoàn thành theo từng giai đoạn",
+  },
+  {
+    name: "Chat",
+    href: `${STUDENT_BASE}/chat`,
+    icon: MessageCircle,
+    description: "Trao đổi với tư vấn viên và hỗ trợ từ AI",
   },
   {
     name: "Báo cáo",
@@ -55,19 +69,7 @@ const functionalityItems = [
     name: "Phân tích hồ sơ",
     href: `${STUDENT_BASE}/profile-analysis`,
     icon: BarChart3,
-    description: "Phân tích điểm mạnh – điểm yếu hồ sơ",
-  },
-  {
-    name: "Mục tiêu",
-    href: `${STUDENT_BASE}/target`,
-    icon: Target,
-    description: "Trường và ngành mục tiêu phù hợp với bạn",
-  },
-  {
-    name: "Cải thiện",
-    href: `${STUDENT_BASE}/improve`,
-    icon: Sparkles,
-    description: "Gợi ý cải thiện CV, luận văn với AI",
+    description: "Phân tích điểm mạnh – điểm yếu hồ sơ ứng tuyển",
   },
 ];
 
@@ -83,9 +85,12 @@ export default function StudentNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [functionalitiesOpen, setFunctionalitiesOpen] = useState(false);
-  const [mobileFunctionalitiesOpen, setMobileFunctionalitiesOpen] = useState(false);
+  const [mobileFunctionalitiesOpen, setMobileFunctionalitiesOpen] =
+    useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const functionalitiesCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const functionalitiesCloseTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const showFunctionalities = () => {
     if (functionalitiesCloseTimerRef.current) {
@@ -95,7 +100,10 @@ export default function StudentNavbar() {
     setFunctionalitiesOpen(true);
   };
   const hideFunctionalities = () => {
-    functionalitiesCloseTimerRef.current = setTimeout(() => setFunctionalitiesOpen(false), 250);
+    functionalitiesCloseTimerRef.current = setTimeout(
+      () => setFunctionalitiesOpen(false),
+      250,
+    );
   };
   const clearFunctionalitiesTimer = () => {
     if (functionalitiesCloseTimerRef.current) {
@@ -165,7 +173,9 @@ export default function StudentNavbar() {
                       : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-white/80 dark:hover:bg-slate-800 dark:hover:text-white"
                   }`}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${active ? "opacity-100" : "opacity-70"}`} />
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${active ? "opacity-100" : "opacity-70"}`}
+                />
                 {item.name}
               </Link>
             );
@@ -208,7 +218,7 @@ export default function StudentNavbar() {
                       <p className="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-white/60">
                         Tính năng
                       </p>
-                      {functionalityItems.map((item) => {
+                      {featureDropdownItems.map((item) => {
                         const Icon = item.icon;
                         return (
                           <Link
@@ -223,9 +233,11 @@ export default function StudentNavbar() {
                             <Icon className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground dark:text-white/60" />
                             <div className="min-w-0">
                               <span className="font-medium block">{item.name}</span>
-                              <span className="text-xs text-muted-foreground block mt-0.5 dark:text-white/60">
-                                {item.description}
-                              </span>
+                              {item.description && (
+                                <span className="text-xs text-muted-foreground block mt-0.5 dark:text-white/60">
+                                  {item.description}
+                                </span>
+                              )}
                             </div>
                           </Link>
                         );
@@ -234,7 +246,9 @@ export default function StudentNavbar() {
                   )}
                   <div className="w-56 shrink-0 rounded-xl border border-border bg-popover dark:border-white/10 dark:bg-slate-900/95 dark:backdrop-blur-md p-1 shadow-lg text-foreground animate-in fade-in-0 zoom-in-95 duration-200">
                     <div className="px-2 py-2 border-b border-border dark:border-white/10">
-                      <p className="text-xs text-muted-foreground dark:text-white/60">Xin chào</p>
+                      <p className="text-xs text-muted-foreground dark:text-white/60">
+                        Xin chào
+                      </p>
                       <p className="truncate text-sm font-medium text-foreground dark:text-white">
                         {user?.name}
                       </p>
@@ -323,13 +337,15 @@ export default function StudentNavbar() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                      active
-                        ? "bg-primary-foreground/20 text-primary-foreground dark:bg-linear-to-r dark:from-indigo-600/20 dark:to-blue-500/20 dark:text-white"
-                        : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-white/80 dark:hover:bg-slate-800 dark:hover:text-white"
-                    }`}
+                  className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                    active
+                      ? "bg-primary-foreground/20 text-primary-foreground dark:bg-linear-to-r dark:from-indigo-600/20 dark:to-blue-500/20 dark:text-white"
+                      : "text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground dark:text-white/80 dark:hover:bg-slate-800 dark:hover:text-white"
+                  }`}
                 >
-                  <Icon className={`h-4 w-4 shrink-0 ${active ? "opacity-100" : "opacity-70"}`} />
+                  <Icon
+                    className={`h-4 w-4 shrink-0 ${active ? "opacity-100" : "opacity-70"}`}
+                  />
                   {item.name}
                 </Link>
               );
@@ -351,7 +367,7 @@ export default function StudentNavbar() {
                 </button>
                 {mobileFunctionalitiesOpen && (
                   <div className="ml-4 mt-1 space-y-1 border-l-2 border-white/10 pl-3">
-                    {functionalityItems.map((item) => {
+                    {featureDropdownItems.map((item) => {
                       const Icon = item.icon;
                       return (
                         <Link
@@ -366,9 +382,11 @@ export default function StudentNavbar() {
                           <Icon className="h-4 w-4 shrink-0 mt-0.5 opacity-70" />
                           <div className="min-w-0">
                             <span className="font-medium block">{item.name}</span>
-                            <span className="text-xs text-primary-foreground/70 block mt-0.5 dark:text-white/60">
-                              {item.description}
-                            </span>
+                            {item.description && (
+                              <span className="text-xs text-primary-foreground/70 block mt-0.5 dark:text-white/60">
+                                {item.description}
+                              </span>
+                            )}
                           </div>
                         </Link>
                       );
