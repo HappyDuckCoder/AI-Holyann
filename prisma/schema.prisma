@@ -742,6 +742,36 @@ model improve_jobs {
 
 // ==================== 8. UNIVERSITIES & APPLICATIONS ====================
 
+// QS World University Rankings 2024 – public list/detail (no auth required)
+model university_rankings {
+  id                    String   @id @default(cuid())
+  qs_rank               Int
+  name                  String   @db.VarChar(500)
+  country               String   @db.VarChar(100)
+  country_code          String   @db.VarChar(2)
+  city                  String   @db.VarChar(150)
+  region                String   @db.VarChar(80)
+  type                  String   @db.VarChar(50)
+  founded_year          Int?
+  total_students        Int?
+  website               String?  @db.VarChar(500)
+  qs_overall_score      Float
+  academic_reputation   Float
+  employer_reputation   Float
+  faculty_student_ratio Float
+  citations_per_faculty Float
+  international_faculty Float
+  international_students Float
+  strong_subjects       String[] @default([])
+  description          String?  @db.Text
+  created_at            DateTime @default(now()) @db.Timestamp(6)
+  updated_at            DateTime @updatedAt @db.Timestamp(6)
+
+  @@unique([qs_rank])
+  @@index([region])
+  @@index([country_code])
+}
+
 model universities {
   id                   Int                    @id @default(autoincrement())
   name                 String                 @db.VarChar(255)
