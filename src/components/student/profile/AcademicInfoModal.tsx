@@ -131,7 +131,7 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
         grade12: ''
     });
 
-    const [englishCerts, setEnglishCerts] = useState<any[]>([{ type: '', score: '', date: '' }]);
+    const [englishCerts, setEnglishCerts] = useState<any[]>([{ type: '', score: '', date: '', level: '' }]);
     const [standardizedTests, setStandardizedTests] = useState<any[]>([{ type: '', score: '', date: '' }]);
     const [intendedMajor, setIntendedMajor] = useState('');
 
@@ -780,14 +780,18 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                 <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => updateEnglishCerts([...englishCerts, { type: '', score: '', date: '' }])}
+                                    onClick={() => updateEnglishCerts([...englishCerts, { type: '', score: '', date: '', level: '' }])}
                                 >
                                     <Plus className="w-4 h-4 mr-1" />
                                     Thêm
                                 </Button>
                             </div>
-                            {englishCerts.map((cert, index) => (
-                                <div key={index} className="grid grid-cols-4 gap-3 mb-3 items-end">
+                            {englishCerts.map((cert, index) => {
+                                // Kiểm tra xem chứng chỉ này có cần cấp độ không
+                                const hasLevel = ['HSK', 'TOPIK', 'JLPT'].includes(cert.type);
+
+                                return (
+                                <div key={index} className={`grid ${hasLevel ? 'grid-cols-5' : 'grid-cols-4'} gap-3 mb-3 items-end`}>
               <div>
                 <Label className="text-sm">Loại chứng chỉ</Label>
                 {cert.type === '__CUSTOM__' || (cert.type && !['IELTS', 'DET', 'TOEIC', 'HSK', 'TOPIK', 'JLPT', ''].includes(cert.type)) ? (
@@ -825,6 +829,10 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                       } else {
                         newCerts[index].type = value;
                       }
+                      // Reset level khi đổi loại chứng chỉ
+                      if (!['HSK', 'TOPIK', 'JLPT'].includes(value)) {
+                        newCerts[index].level = '';
+                      }
                       updateEnglishCerts(newCerts);
                     }}
                   >
@@ -843,6 +851,57 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                   </Select>
                 )}
               </div>
+
+              {/* Cấp độ - Chỉ hiển thị cho HSK, TOPIK, JLPT */}
+              {hasLevel && (
+                <div>
+                  <Label className="text-sm">Cấp độ</Label>
+                  <Select
+                    value={cert.level || ''}
+                    onValueChange={(value) => {
+                      const newCerts = [...englishCerts];
+                      newCerts[index].level = value;
+                      updateEnglishCerts(newCerts);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Chọn cấp độ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cert.type === 'HSK' && (
+                        <>
+                          <SelectItem value="1">HSK 1</SelectItem>
+                          <SelectItem value="2">HSK 2</SelectItem>
+                          <SelectItem value="3">HSK 3</SelectItem>
+                          <SelectItem value="4">HSK 4</SelectItem>
+                          <SelectItem value="5">HSK 5</SelectItem>
+                          <SelectItem value="6">HSK 6</SelectItem>
+                        </>
+                      )}
+                      {cert.type === 'TOPIK' && (
+                        <>
+                          <SelectItem value="1">TOPIK 1</SelectItem>
+                          <SelectItem value="2">TOPIK 2</SelectItem>
+                          <SelectItem value="3">TOPIK 3</SelectItem>
+                          <SelectItem value="4">TOPIK 4</SelectItem>
+                          <SelectItem value="5">TOPIK 5</SelectItem>
+                          <SelectItem value="6">TOPIK 6</SelectItem>
+                        </>
+                      )}
+                      {cert.type === 'JLPT' && (
+                        <>
+                          <SelectItem value="N5">N5 (Cơ bản)</SelectItem>
+                          <SelectItem value="N4">N4</SelectItem>
+                          <SelectItem value="N3">N3 (Trung cấp)</SelectItem>
+                          <SelectItem value="N2">N2</SelectItem>
+                          <SelectItem value="N1">N1 (Nâng cao)</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
                                     <div>
                                         <Label className="text-sm">Điểm số</Label>
                                         <Input 
@@ -877,7 +936,8 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                                         <Trash2 className="w-4 h-4 text-destructive" />
                                     </Button>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* Bài thi chuẩn hóa */}

@@ -23,6 +23,7 @@ export interface Document {
 export interface EnglishCertificate {
     type: string;
     score: string;
+    level?: string; // Cấp độ (optional) - VD: HSK 1-6, TOPIK 1-6, JLPT N1-N5
 }
 
 export interface StudentProfile {

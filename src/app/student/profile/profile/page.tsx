@@ -179,7 +179,11 @@ export default function ProfilePageWrapper() {
 
           gpaScale: 10.0,
           englishLevel: data.academicProfile?.english_certificates?.[0]?.type
-            ? `${data.academicProfile.english_certificates[0].type} ${data.academicProfile.english_certificates[0].score}`
+            ? (() => {
+                const c = data.academicProfile.english_certificates[0];
+                const level = c.level ? ` ${c.type === 'JLPT' ? c.level : `cấp ${c.level}`}` : '';
+                return `${c.type}${level} ${c.score}`;
+              })()
             : "Chưa cập nhật",
           targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
           targetCountry: data.studentInfo?.target_country || "Chưa xác định",

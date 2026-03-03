@@ -154,7 +154,10 @@ export default function ReportsPage() {
             gpa: 0,
             gpaScale: 10,
             englishLevel: Array.isArray(data.academicProfile?.english_certificates)
-              ? data.academicProfile.english_certificates.map((c: { type?: string; score?: string }) => `${c.type || ""} ${c.score ?? ""}`.trim()).filter(Boolean).join(", ") || "Chưa cập nhật"
+              ? data.academicProfile.english_certificates.map((c: { type?: string; score?: string; level?: string }) => {
+                  const level = c.level ? ` ${c.type === 'JLPT' ? c.level : `cấp ${c.level}`}` : '';
+                  return `${c.type || ""}${level} ${c.score ?? ""}`.trim();
+                }).filter(Boolean).join(", ") || "Chưa cập nhật"
               : "Chưa cập nhật",
             targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
             targetCountry: data.studentInfo?.target_country || "Chưa xác định",

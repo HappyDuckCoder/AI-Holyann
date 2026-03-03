@@ -177,6 +177,7 @@ export default function ProfilePageWrapper() {
             ? data.academicProfile.english_certificates.map((c: any) => ({
                 type: c.type || "",
                 score: String(c.score ?? ""),
+                level: c.level || "",
               }))
             : [],
           englishLevel: (() => {
@@ -185,7 +186,10 @@ export default function ProfilePageWrapper() {
               return "Chưa cập nhật";
             return (
               certs
-                .map((c: any) => `${c.type || ""} ${c.score ?? ""}`.trim())
+                .map((c: any) => {
+                  const level = c.level ? ` ${c.type === 'JLPT' ? c.level : `cấp ${c.level}`}` : '';
+                  return `${c.type || ""}${level} ${c.score ?? ""}`.trim();
+                })
                 .filter(Boolean)
                 .join(", ") || "Chưa cập nhật"
             );
