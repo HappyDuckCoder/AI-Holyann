@@ -134,7 +134,7 @@ export async function GET() {
     const quickStats = [
       {
         id: "gpa",
-        label: "GPA",
+        label: "GPA hiện tại",
         value: gpaInfo ? `${gpaInfo.value}/${gpaInfo.scale}` : "—",
         trend: undefined as { value: number; label: string } | undefined,
         icon: "GraduationCap",
@@ -163,7 +163,7 @@ export async function GET() {
       },
       {
         id: "deadlines",
-        label: "Upcoming Deadlines",
+        label: "Hạn nộp sắp tới",
         value: upcomingDeadlines.length,
         trend: undefined,
         icon: "Calendar",
@@ -171,7 +171,7 @@ export async function GET() {
       },
       {
         id: "attendance",
-        label: "Attendance Rate",
+        label: "Tỉ lệ tham gia",
         value: "—",
         trend: undefined,
         icon: "UserCheck",

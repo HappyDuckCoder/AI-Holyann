@@ -27,7 +27,11 @@ const STUDENT_BASE = "/student";
 
 const QUICK_LINKS = [
   { name: "Hồ sơ", href: `${STUDENT_BASE}/profile`, icon: User },
-  { name: "Danh sách công việc", href: `${STUDENT_BASE}/checklist`, icon: CheckSquare },
+  {
+    name: "Danh sách công việc",
+    href: `${STUDENT_BASE}/checklist`,
+    icon: CheckSquare,
+  },
   { name: "Bài kiểm tra", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
   { name: "Cải thiện", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
   { name: "Mục tiêu", href: `${STUDENT_BASE}/target`, icon: GraduationCap },
@@ -55,7 +59,12 @@ interface DashboardProps {
   error?: string | null;
 }
 
-export default function Dashboard({ userName, data, isLoading, error }: DashboardProps) {
+export default function Dashboard({
+  userName,
+  data,
+  isLoading,
+  error,
+}: DashboardProps) {
   if (isLoading) {
     return (
       <div className="px-6 py-8 sm:px-8 lg:px-8 max-w-[1600px] mx-auto">
@@ -67,7 +76,9 @@ export default function Dashboard({ userName, data, isLoading, error }: Dashboar
   if (error || !data) {
     return (
       <div className="px-6 py-8 max-w-[1600px] mx-auto flex flex-col items-center justify-center min-h-[40vh]">
-        <p className="text-muted-foreground">{error || "Không tải được dữ liệu dashboard."}</p>
+        <p className="text-muted-foreground">
+          {error || "Không tải được dữ liệu dashboard."}
+        </p>
         <button
           type="button"
           onClick={() => window.location.reload()}
@@ -80,76 +91,93 @@ export default function Dashboard({ userName, data, isLoading, error }: Dashboar
   }
 
   return (
-    <div
-      className="min-h-[60vh] rounded-2xl bg-surface px-6 py-8 sm:px-8 lg:px-8 max-w-[1600px] mx-auto pb-12"
-      style={{ paddingLeft: "clamp(24px, 5vw, 32px)", paddingRight: "clamp(24px, 5vw, 32px)" }}
-    >
+    <div>
       <DashboardHero userName={userName} stats={data.quickStats} />
-
-      <div id="progress-section" className="mt-10">
-        <QuickStatsGrid items={data.quickStats} />
-      </div>
-
-      {/* Quick access – compact feature links */}
-      <motion.section
-        initial="hidden"
-        animate="show"
-        variants={container}
-        className="mt-8 rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
-      >
-        <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
-          <div className="flex items-center gap-2">
-            <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-base font-semibold m-0">Truy cập nhanh</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4">
-          <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2" aria-label="Truy cập nhanh">
-            {QUICK_LINKS.map((link) => {
-              const Icon = link.icon;
-              return (
-                <motion.div key={link.name} variants={itemVariant}>
-                  <Link
-                    href={link.href}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-background p-3 hover:bg-muted/50 hover:border-primary/20 transition-all duration-200 group"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-sm font-medium text-foreground truncate">{link.name}</span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </nav>
-        </CardContent>
-      </motion.section>
-
-      {/* Pie + Deadlines | Activity + AI */}
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="lg:row-span-2"
-        >
-          <Card className="rounded-2xl border border-border shadow-sm overflow-hidden h-full">
-            <CardHeader className="border-b border-border px-6 py-4">
-              <CardTitle className="text-base font-semibold m-0">Hoàn thành công việc</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">Tỷ lệ</p>
-            </CardHeader>
-            <CardContent className="px-6 py-4">
-              <TaskCompletionChart data={data.taskCompletion} />
-            </CardContent>
-          </Card>
-        </motion.div>
-        <div className="lg:col-span-2">
-          <UpcomingDeadlines items={data.deadlines} />
+      <div className="min-h-[60vh] mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <div id="progress-section">
+          <QuickStatsGrid items={data.quickStats} />
         </div>
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <RecentActivityFeed items={data.activity} />
-          <AIInsightsPanel items={data.aiInsights} />
+
+        <motion.section
+          initial="hidden"
+          animate="show"
+          variants={container}
+          className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
+        >
+          <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
+            <div className="flex items-center gap-2">
+              <LayoutDashboard className="h-5 w-5 text-primary" />
+              <CardTitle className="font-heading text-base font-bold text-primary m-0">
+                Truy cập nhanh
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <nav
+              className="grid grid-cols-3 sm:grid-cols-6 gap-3"
+              aria-label="Truy cập nhanh"
+            >
+              {QUICK_LINKS.map((link, i) => {
+                const Icon = link.icon;
+                return (
+                  <motion.div
+                    key={link.name}
+                    variants={itemVariant}
+                    transition={{ delay: i * 0.03 }}
+                  >
+                    <Link
+                      href={link.href}
+                      className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-md"
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-primary transition-all duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-xs font-sans font-medium text-foreground group-hover:text-primary-foreground">
+                        {link.name}
+                      </span>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </nav>
+          </CardContent>
+        </motion.section>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="lg:row-span-2"
+          >
+            <div className="card-holyann h-full">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                      ✓
+                    </span>
+                    <h2 className="font-heading text-base font-bold text-primary">
+                      Tiến độ checklist
+                    </h2>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Tỷ lệ hoàn thành các nhiệm vụ quan trọng
+                  </p>
+                </div>
+              </div>
+              <TaskCompletionChart data={data.taskCompletion} />
+            </div>
+          </motion.div>
+
+          <div className="lg:col-span-2">
+            <UpcomingDeadlines items={data.deadlines} />
+          </div>
+
+          <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
+            <RecentActivityFeed items={data.activity} />
+            <AIInsightsPanel items={data.aiInsights} />
+          </div>
         </div>
       </div>
     </div>
