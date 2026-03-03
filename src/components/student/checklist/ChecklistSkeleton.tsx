@@ -4,27 +4,7 @@ import React from "react";
 
 export function ChecklistSkeleton() {
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-8 pb-8 space-y-8" aria-hidden>
-      {/* Header skeleton - matches ChecklistHeader */}
-      <div className="rounded-2xl overflow-hidden border border-border/60 dark:border-border/80 bg-card shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-6 px-6 py-6 sm:px-8 sm:py-8">
-          <div className="flex items-center gap-4">
-            <div className="h-[72px] w-[72px] rounded-full bg-muted/80 dark:bg-muted/60 animate-pulse shrink-0" />
-            <div className="space-y-2 min-w-0">
-              <div className="h-7 w-28 bg-muted/80 dark:bg-muted/60 rounded-lg animate-pulse" />
-              <div className="h-4 w-48 sm:w-64 bg-muted/60 dark:bg-muted/50 rounded animate-pulse" />
-            </div>
-          </div>
-          <div className="flex-1 min-w-0 space-y-2 sm:pl-4">
-            <div className="flex items-center justify-between">
-              <div className="h-3 w-24 bg-muted/80 dark:bg-muted/60 rounded animate-pulse" />
-              <div className="h-4 w-10 bg-muted/80 dark:bg-muted/60 rounded animate-pulse" />
-            </div>
-            <div className="h-2.5 w-full rounded-full bg-muted/80 dark:bg-muted/60 animate-pulse" />
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-8 animate-in fade-in duration-300" aria-hidden>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Sidebar skeleton - matches StageNavigation card */}
         <div className="lg:col-span-1">

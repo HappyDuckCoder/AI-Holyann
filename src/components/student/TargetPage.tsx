@@ -15,6 +15,7 @@ import {
   MapPin,
   Calendar,
 } from 'lucide-react';
+import { TargetSkeleton } from './TargetSkeleton';
 
 type UniRecItem = {
   id: number;
@@ -123,24 +124,54 @@ export default function TargetPage() {
   const hasRoadmap = roadmap && (roadmap.overall_goals?.length || roadmap.key_milestones?.length || roadmap.monthly_plans?.length);
 
   return (
-    <div className="min-h-screen bg-background text-foreground" aria-label="Trang Target - gợi ý trường và roadmap">
-      {/* Hero - compact, no top bar */}
-      <header className="border-b border-border bg-muted/30 px-4 py-8 sm:px-6 md:px-8">
-        <div className="mx-auto">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+    <div
+      className="min-h-screen bg-background text-foreground"
+      aria-label="Trang Target - gợi ý trường và roadmap"
+    >
+      {/* Hero - match dashboard style */}
+      <header
+        className="relative mb-6 overflow-hidden text-white"
+        style={{
+          background:
+            'linear-gradient(135deg, var(--primary) 0%, var(--brand-deep) 50%, var(--brand-cyan) 100%)',
+        }}
+      >
+        {/* Decorative blobs */}
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-8 right-1/4 h-40 w-80 rounded-full bg-(--brand-cyan)/20 blur-2xl" />
+
+        {/* Subtle grid overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
+        />
+
+        <div className="relative px-6 py-8 sm:px-10 sm:py-10">
+          <p className="text-[11px] font-sans font-semibold uppercase tracking-[0.22em] text-white/70">
+            Mục tiêu du học
+          </p>
+          <h1 className="mt-2 font-heading text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl">
             Gợi ý trường & roadmap
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Khám phá danh sách trường QS và gợi ý trường phù hợp với profile (Reach / Match / Safety).
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70">
+            Khám phá danh sách trường QS và gợi ý Reach / Match / Safety được cá nhân hóa theo
+            hồ sơ của bạn.
           </p>
         </div>
       </header>
 
       <div className="w-full px-4 py-6 sm:px-6 md:px-8">
         {/* Layout: 2 columns on large - left: CTA + stats, right: Gợi ý + tabs */}
-        <div className="grid gap-6 lg:grid-cols-12">
-          {/* Left column: Khám phá 100+ trường + Summary stats */}
-          <aside className="space-y-4 lg:col-span-4">
+        {loadingSaved && !recommendation && !recError ? (
+          <TargetSkeleton />
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-12">
+            {/* Left column: Khám phá 100+ trường + Summary stats */}
+            <aside className="space-y-4 lg:col-span-4">
             <Link
               href="/universities"
               className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/50 hover:bg-primary/5"
@@ -184,10 +215,10 @@ export default function TargetPage() {
                 </div>
               </div>
             )}
-          </aside>
+            </aside>
 
-          {/* Right column: Gợi ý trường (Module 3) - trigger + tabs + list */}
-          <div className="lg:col-span-8">
+            {/* Right column: Gợi ý trường (Module 3) - trigger + tabs + list */}
+            <div className="lg:col-span-8">
             <div className="rounded-2xl border border-border bg-card overflow-hidden">
               <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                 <div>
@@ -315,8 +346,9 @@ export default function TargetPage() {
                 )}
               </div>
             </div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Roadmap: Timeline chart */}
         {hasRoadmap && (
