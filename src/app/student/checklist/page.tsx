@@ -5,7 +5,7 @@ import { StudentPageContainer } from '@/components/student';
 
 export default function Checklist() {
   return (
-    <StudentPageContainer>
+    <StudentPageContainer noPadding>
       <ChecklistPage />
     </StudentPageContainer>
   );

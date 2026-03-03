@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { AuthService } from '@/lib/services/auth.service'
+import { prisma } from '@/lib/prisma'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -121,9 +122,22 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).role = token.role as string;
         (session.user as any).student = token.student;
         (session as any).accessToken = token.accessToken as string;
+
+        // Attach subscription plan for student actor (used by subscription system)
+        try {
+          const user = await prisma.users.findUnique({
+            where: { id: token.sub as string },
+          });
+          (session.user as any).subscriptionPlan = (user as any)?.subscriptionPlan ?? 'FREE';
+          (session.user as any).reportsUsed = (user as any)?.reportsUsed ?? 0;
+        } catch (error) {
+          console.error('[NextAuth] Failed to load subscription fields:', error);
+          (session.user as any).subscriptionPlan = 'FREE';
+          (session.user as any).reportsUsed = 0;
+        }
       }
       return session;
-    }
+    },
   },
   pages: {
     signIn: '/login',

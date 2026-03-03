@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -13,6 +13,8 @@ import {
   Calendar,
   UserCheck,
   Brain,
+  CalendarClock,
+  ListTodo,
   LucideIcon,
 } from "lucide-react";
 import { QuickStatItem } from "./types";
@@ -27,47 +29,106 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Brain,
 };
 
-const ACCENT_STYLES: Record<
-  QuickStatItem["accent"],
-  { bg: string; icon: string; trendUp: string; trendDown: string }
-> = {
+type AccentStyle = {
+  iconBg: string;
+  iconText: string;
+  borderLeft: string;
+  trendUp: string;
+  trendDown: string;
+};
+
+const BASE_ACCENT_STYLES: Record<QuickStatItem["accent"], AccentStyle> = {
   blue: {
-    bg: "bg-blue-500/10 dark:bg-blue-500/15",
-    icon: "text-blue-600 dark:text-blue-400",
-    trendUp: "text-blue-600 dark:text-blue-400",
-    trendDown: "text-red-500",
+    iconBg: "bg-primary/10",
+    iconText: "text-primary",
+    borderLeft: "border-l-primary",
+    trendUp: "text-primary",
+    trendDown: "text-destructive",
   },
   emerald: {
-    bg: "bg-emerald-500/10 dark:bg-emerald-500/15",
-    icon: "text-emerald-600 dark:text-emerald-400",
-    trendUp: "text-emerald-600 dark:text-emerald-400",
-    trendDown: "text-red-500",
+    iconBg: "bg-secondary/10",
+    iconText: "text-secondary",
+    borderLeft: "border-l-secondary",
+    trendUp: "text-secondary",
+    trendDown: "text-destructive",
   },
   amber: {
-    bg: "bg-amber-500/10 dark:bg-amber-500/15",
-    icon: "text-amber-600 dark:text-amber-400",
-    trendUp: "text-amber-600 dark:text-amber-400",
-    trendDown: "text-red-500",
+    iconBg: "bg-accent/10",
+    iconText: "text-accent",
+    borderLeft: "border-l-accent",
+    trendUp: "text-accent",
+    trendDown: "text-destructive",
   },
   violet: {
-    bg: "bg-violet-500/10 dark:bg-violet-500/15",
-    icon: "text-violet-600 dark:text-violet-400",
-    trendUp: "text-violet-600 dark:text-violet-400",
-    trendDown: "text-red-500",
+    iconBg: "bg-accent/10",
+    iconText: "text-accent",
+    borderLeft: "border-l-accent",
+    trendUp: "text-accent",
+    trendDown: "text-destructive",
   },
   rose: {
-    bg: "bg-rose-500/10 dark:bg-rose-500/15",
-    icon: "text-rose-600 dark:text-rose-400",
-    trendUp: "text-rose-600 dark:text-rose-400",
-    trendDown: "text-red-500",
+    iconBg: "bg-secondary/10",
+    iconText: "text-secondary",
+    borderLeft: "border-l-secondary",
+    trendUp: "text-secondary",
+    trendDown: "text-destructive",
   },
   sky: {
-    bg: "bg-sky-500/10 dark:bg-sky-500/15",
-    icon: "text-sky-600 dark:text-sky-400",
-    trendUp: "text-sky-600 dark:text-sky-400",
-    trendDown: "text-red-500",
+    iconBg: "bg-primary/10",
+    iconText: "text-primary",
+    borderLeft: "border-l-primary",
+    trendUp: "text-primary",
+    trendDown: "text-destructive",
   },
 };
+
+function getAccentStyle(item: QuickStatItem): AccentStyle {
+  const base = BASE_ACCENT_STYLES[item.accent];
+
+  if (item.id === "gpa") {
+    return {
+      ...base,
+      iconBg: "bg-primary/10",
+      iconText: "text-primary",
+      borderLeft: "border-l-primary",
+    };
+  }
+
+  if (item.id === "courses") {
+    return {
+      ...base,
+      iconBg: "bg-secondary/10",
+      iconText: "text-secondary",
+      borderLeft: "border-l-secondary",
+    };
+  }
+
+  if (item.id === "tasks") {
+    return {
+      ...base,
+      iconBg: "bg-accent/10",
+      iconText: "text-accent",
+      borderLeft: "border-l-accent",
+    };
+  }
+
+  if (item.id === "deadlines") {
+    return {
+      ...base,
+      iconBg: "bg-destructive/10",
+      iconText: "text-destructive",
+      borderLeft: "border-l-destructive",
+    };
+  }
+
+  return base;
+}
+
+function getIconOverride(item: QuickStatItem): LucideIcon | null {
+  if (item.id === "tasks") return ListTodo;
+  if (item.id === "deadlines") return CalendarClock;
+  return null;
+}
 
 interface QuickStatCardProps {
   item: QuickStatItem;
@@ -75,8 +136,41 @@ interface QuickStatCardProps {
 }
 
 export function QuickStatCard({ item, index }: QuickStatCardProps) {
-  const Icon = ICON_MAP[item.icon] ?? GraduationCap;
-  const style = ACCENT_STYLES[item.accent];
+  const iconOverride = getIconOverride(item);
+  const Icon = iconOverride ?? ICON_MAP[item.icon] ?? GraduationCap;
+  const style = getAccentStyle(item);
+
+  const [displayNumber, setDisplayNumber] = useState<number | null>(
+    typeof item.value === "number" ? 0 : null,
+  );
+
+  useEffect(() => {
+    if (typeof item.value !== "number") {
+      setDisplayNumber(null);
+      return;
+    }
+
+    const target = item.value;
+    const duration = 800;
+    const start = performance.now();
+
+    let frameId: number;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(target * eased);
+      setDisplayNumber(current);
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(tick);
+      }
+    };
+
+    frameId = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [item.value]);
 
   return (
     <motion.div
@@ -84,29 +178,30 @@ export function QuickStatCard({ item, index }: QuickStatCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05 }}
       whileHover={{ y: -2 }}
-      className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:border-border/80 dark:shadow-black/10 dark:hover:shadow-black/20"
+      className={`card-holyann flex min-h-[120px] flex-col gap-3 border-l-4 ${style.borderLeft}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style.bg} ${style.icon}`}>
+      <div className="flex items-center gap-2">
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${style.iconBg} ${style.iconText}`}
+        >
           <Icon className="h-5 w-5" />
         </div>
-        {item.trend && (
-          <span
-            className={`inline-flex items-center gap-1 text-xs font-medium ${
-              item.trend.value >= 0 ? style.trendUp : style.trendDown
-            }`}
-          >
-            {item.trend.value > 0 && <TrendingUp className="h-3.5 w-3.5" />}
-            {item.trend.value < 0 && <TrendingDown className="h-3.5 w-3.5" />}
-            {item.trend.value === 0 && <Minus className="h-3.5 w-3.5" />}
-            {item.trend.label}
-          </span>
-        )}
+        <span className="text-xs font-sans text-muted-foreground">
+          {item.label}
+        </span>
       </div>
-      <p className="mt-3 text-2xl font-bold tracking-tight text-foreground tabular-nums">
-        {item.value}
+      <p className="font-heading text-3xl font-bold tracking-tight text-primary dark:text-foreground tabular-nums">
+        {displayNumber != null ? displayNumber : item.value}
       </p>
-      <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
+      {item.trend && (
+        <p
+          className={`text-xs text-muted-foreground ${
+            item.trend.value >= 0 ? style.trendUp : style.trendDown
+          }`}
+        >
+          {item.trend.label}
+        </p>
+      )}
     </motion.div>
   );
 }
