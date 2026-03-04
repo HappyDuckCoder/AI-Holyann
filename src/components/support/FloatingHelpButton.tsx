@@ -29,7 +29,6 @@ export function FloatingHelpButton() {
     handleSubmit,
     setValue,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<SupportFormValues>({
     resolver: zodResolver(supportSchema),
@@ -128,48 +127,49 @@ export function FloatingHelpButton() {
             </Button>
           </div>
           {/* Upload Area */}
-          <div className="px-5 pt-5">
-            <div
-              className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg p-4 mb-3 cursor-pointer hover:bg-gray-100 transition"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {imagePreview ? (
-                <div className="flex flex-col items-center gap-2 w-full">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-24 h-24 object-cover rounded-md border"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-1"
-                    onClick={e => {
-                      e.stopPropagation();
-                      removeImage();
-                    }}
-                  >
-                    Xóa ảnh
-                  </Button>
+            {/* Upload Area */}
+            <div className="px-5 pt-5">
+                <div
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/50 rounded-lg p-4 mb-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/80 transition-colors duration-200"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    {imagePreview ? (
+                        <div className="flex flex-col items-center gap-2 w-full">
+                            <img
+                                src={imagePreview}
+                                alt="Preview"
+                                className="w-24 h-24 object-cover rounded-md border border-border"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="mt-1"
+                                onClick={e => {
+                                    e.stopPropagation();
+                                    removeImage();
+                                }}
+                            >
+                                Xóa ảnh
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center gap-2">
+                            <Upload className="w-6 h-6 text-primary" />
+                            <span className="text-sm font-medium text-primary">Tải lên ảnh chụp vấn đề</span>
+                            <span className="text-xs text-muted-foreground">Định dạng file png, jpg, tối đa 5MB</span>
+                        </div>
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        ref={fileInputRef}
+                        onChange={onSelectFile}
+                        tabIndex={-1}
+                    />
                 </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <Upload className="w-6 h-6 text-primary" />
-                  <span className="text-sm font-medium text-primary">Tải lên ảnh chụp vấn đề</span>
-                  <span className="text-xs text-gray-500">Định dạng file png, jpg, tối đa 5MB</span>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                ref={fileInputRef}
-                onChange={onSelectFile}
-                tabIndex={-1}
-              />
             </div>
-          </div>
           {/* Textarea */}
           <div className="px-5 pb-2">
             <label className="block mb-1 font-medium text-sm">
@@ -189,7 +189,7 @@ export function FloatingHelpButton() {
             )}
           </div>
           {/* Footer */}
-          <div className="flex justify-end px-5 py-3 border-t bg-gray-50 rounded-b-xl">
+          <div className="flex justify-end px-5 py-3 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 rounded-b-xl">
             <Button
               type="submit"
               className="bg-primary text-white hover:bg-primary/90 min-w-[120px]"
