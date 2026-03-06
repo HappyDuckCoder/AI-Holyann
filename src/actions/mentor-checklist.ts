@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { TaskStatus } from '@prisma/client'
+import crypto from 'crypto'
 
 // ==================== TYPES ====================
 
@@ -104,7 +105,7 @@ export async function getStudentChecklist(studentId: string): Promise<StudentChe
     // 2. Lấy tất cả tasks với stage info và progress của học viên
     const tasksWithProgress = await prisma.checklist_tasks.findMany({
       include: {
-        stage: {
+        checklist_stages: {
           select: {
             id: true,
             name: true,
@@ -112,7 +113,7 @@ export async function getStudentChecklist(studentId: string): Promise<StudentChe
             order_index: true
           }
         },
-        student_progress: {
+        student_task_progress: {
           where: {
             student_id: studentId
           },
@@ -129,7 +130,7 @@ export async function getStudentChecklist(studentId: string): Promise<StudentChe
         }
       },
       orderBy: [
-        { stage: { order_index: 'asc' } },
+        { checklist_stages: { order_index: 'asc' } },
         { order_index: 'asc' }
       ]
     })
@@ -143,8 +144,8 @@ export async function getStudentChecklist(studentId: string): Promise<StudentChe
       link_to: task.link_to,
       is_required: task.is_required,
       order_index: task.order_index,
-      stage: task.stage,
-      progress: task.student_progress[0] || undefined // First match (should be only one due to unique constraint)
+      stage: task.checklist_stages,
+      progress: task.student_task_progress[0] || undefined // First match (should be only one due to unique constraint)
     }))
 
     // 4. Group by stages
@@ -265,6 +266,7 @@ export async function updateStudentTaskStatus(
         }
       },
       create: {
+        id: crypto.randomUUID(),
         student_id: studentId,
         task_id: taskId,
         status: newStatus,
@@ -436,6 +438,7 @@ export async function updateTaskDeadline(
         }
       },
       create: {
+        id: crypto.randomUUID(),
         student_id: studentId,
         task_id: taskId,
         status: 'PENDING',

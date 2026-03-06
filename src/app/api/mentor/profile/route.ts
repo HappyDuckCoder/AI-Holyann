@@ -21,7 +21,7 @@ export async function GET() {
     const mentor = await prisma.mentors.findUnique({
       where: { user_id: userId },
       include: {
-        user: {
+        users: {
           select: {
             full_name: true,
             email: true,
@@ -43,10 +43,10 @@ export async function GET() {
     const profileData = {
       user_id: mentor.user_id,
       user: {
-        full_name: mentor.user.full_name,
-        email: mentor.user.email,
-        phone_number: mentor.user.phone_number,
-        avatar_url: mentor.user.avatar_url,
+        full_name: mentor.users.full_name,
+        email: mentor.users.email,
+        phone_number: mentor.users.phone_number,
+        avatar_url: mentor.users.avatar_url,
       },
       specialization: mentor.specialization,
       bio: mentor.bio,
@@ -134,7 +134,7 @@ export async function PUT(request: Request) {
         updated_at: new Date(),
       },
       include: {
-        user: {
+        users: {
           select: {
             full_name: true,
             email: true,
@@ -149,10 +149,10 @@ export async function PUT(request: Request) {
     const profileData = {
       user_id: updatedMentor.user_id,
       user: {
-        full_name: updatedMentor.user.full_name,
-        email: updatedMentor.user.email,
-        phone_number: updatedMentor.user.phone_number,
-        avatar_url: updatedMentor.user.avatar_url,
+        full_name: updatedMentor.users.full_name,
+        email: updatedMentor.users.email,
+        phone_number: updatedMentor.users.phone_number,
+        avatar_url: updatedMentor.users.avatar_url,
       },
       specialization: updatedMentor.specialization,
       bio: updatedMentor.bio,

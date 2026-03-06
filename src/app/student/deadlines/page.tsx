@@ -73,12 +73,12 @@ export default async function StudentDeadlinesPage() {
     prisma.student_task_progress.findMany({
       where: { student_id: studentId, deadline: { not: null } },
       include: {
-        task: {
+        checklist_tasks: {
           select: {
             id: true,
             title: true,
             description: true,
-            stage: { select: { name: true } },
+            checklist_stages: { select: { name: true } },
           },
         },
       },
@@ -113,15 +113,15 @@ export default async function StudentDeadlinesPage() {
   };
 
   const checklistRows: UnifiedRow[] = tasksWithDeadlines
-    .filter((t) => t.task && t.deadline)
+    .filter((t) => t.checklist_tasks && t.deadline)
     .map((t) => {
       const deadlineStatus = getDeadlineStatus(t.deadline!, t.status);
       return {
         id: t.id,
         type: "checklist" as RowType,
-        title: t.task!.title,
-        description: t.task!.description,
-        stageName: t.task!.stage?.name ?? null,
+        title: t.checklist_tasks!.title,
+        description: t.checklist_tasks!.description,
+        stageName: t.checklist_tasks!.checklist_stages?.name ?? null,
         deadline: t.deadline!.toISOString(),
         status: t.status,
         mentor_note: t.mentor_note ?? null,

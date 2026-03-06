@@ -34,7 +34,7 @@ type MentorWithUser = {
     is_accepting_students: boolean | null
     max_students: number | null
     rating: number | null
-    user: {
+    users: {
         id: string
         full_name: string
         email: string
@@ -44,7 +44,7 @@ type MentorWithUser = {
         is_active: boolean | null
         created_at: Date | null
     }
-    assignments: any[]
+    mentor_assignments: any[]
 }
 
 type StudentOption = { id: string; name: string | null; email: string | null }
@@ -90,11 +90,11 @@ export default function MentorManagement() {
     const openEdit = (mentor: MentorWithUser) => {
         setEditingMentor(mentor)
         setEditForm({
-            full_name: mentor.user.full_name,
-            email: mentor.user.email,
-            phone_number: mentor.user.phone_number ?? '',
-            role: (mentor.user as { role?: string }).role ?? 'MENTOR',
-            is_active: mentor.user.is_active ?? true,
+            full_name: mentor.users.full_name,
+            email: mentor.users.email,
+            phone_number: mentor.users.phone_number ?? '',
+            role: (mentor.users as { role?: string }).role ?? 'MENTOR',
+            is_active: mentor.users.is_active ?? true,
             specialization: mentor.specialization,
             bio: mentor.bio ?? '',
             linkedin_url: mentor.linkedin_url ?? '',
@@ -218,7 +218,7 @@ export default function MentorManagement() {
         const mentorType = assignMentor.specialization as 'AS' | 'ACS' | 'ARD'
         if (!['AS', 'ACS', 'ARD'].includes(mentorType)) return
 
-        const currentCount = (assignMentor.assignments ?? []).filter(
+        const currentCount = (assignMentor.mentor_assignments ?? []).filter(
             (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
         ).length
         const maxStudents = assignMentor.max_students ?? 0
@@ -314,8 +314,8 @@ export default function MentorManagement() {
     }, [])
 
     const filteredMentors = mentors.filter(mentor =>
-        mentor.user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mentor.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        mentor.users.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        mentor.users.email.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     if (loading) {
@@ -325,7 +325,7 @@ export default function MentorManagement() {
                     <h1 className="text-xl font-semibold text-foreground">Mentors</h1>
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <span className="ml-3 text-muted-foreground">Loading…</span>
+                        <span className="ml-3 text-muted-foreground">Loadingâ€¦</span>
                     </div>
                 </div>
             </div>
@@ -383,34 +383,34 @@ export default function MentorManagement() {
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center">
-                                                        {mentor.user.avatar_url ? (
-                                                            <img src={mentor.user.avatar_url} alt={mentor.user.full_name} className="w-full h-full object-cover" />
+                                                        {mentor.users.avatar_url ? (
+                                                            <img src={mentor.users.avatar_url} alt={mentor.users.full_name} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <span className="text-lg font-semibold text-primary">
-                                                                {mentor.user.full_name?.charAt(0)?.toUpperCase() ?? 'M'}
+                                                                {mentor.users.full_name?.charAt(0)?.toUpperCase() ?? 'M'}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <div className="font-semibold text-foreground">{mentor.user.full_name}</div>
-                                                        <div className="text-xs text-muted-foreground md:hidden">{mentor.user.email}</div>
+                                                        <div className="font-semibold text-foreground">{mentor.users.full_name}</div>
+                                                        <div className="text-xs text-muted-foreground md:hidden">{mentor.users.email}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="py-3 px-4 text-sm text-muted-foreground hidden md:table-cell">
-                                                {mentor.user.email}
+                                                {mentor.users.email}
                                             </td>
                                             <td className="py-3 px-4 text-sm text-muted-foreground hidden lg:table-cell max-w-[180px] truncate" title={mentor.specialization}>
-                                                {mentor.specialization || '–'}
+                                                {mentor.specialization || 'â€“'}
                                             </td>
                                             <td className="py-3 px-4">
                                                 <span className="inline-flex items-center gap-1 text-sm">
                                                     <Star size={14} className="text-amber-500 shrink-0" fill="currentColor" />
-                                                    {mentor.rating != null ? mentor.rating.toFixed(1) : '–'}
+                                                    {mentor.rating != null ? mentor.rating.toFixed(1) : 'â€“'}
                                                 </span>
                                             </td>
                                             <td className="py-3 px-4 text-sm text-muted-foreground">
-                                                {(mentor.assignments ?? []).filter((a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE').length}/{mentor.max_students ?? '–'}
+                                                {(mentor.mentor_assignments ?? []).filter((a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE').length}/{mentor.max_students ?? 'â€“'}
                                             </td>
                                             <td className="py-3 px-4">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -651,7 +651,7 @@ export default function MentorManagement() {
                                 <div className="flex justify-end gap-2 px-6 py-4 border-t border-border">
                                     <Button type="button" variant="outline" onClick={closeEdit}>Cancel</Button>
                                     <Button type="submit" disabled={editLoading}>
-                                        {editLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</> : 'Save'}
+                                        {editLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Savingâ€¦</> : 'Save'}
                                     </Button>
                                 </div>
                             </form>
@@ -659,7 +659,7 @@ export default function MentorManagement() {
                     </DialogContent>
                 </Dialog>
 
-                {/* Mentor view modal – redesigned */}
+                {/* Mentor view modal â€“ redesigned */}
                 <Dialog open={profileOpen} onOpenChange={(open) => !open && closeProfile()}>
                     <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
                         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
@@ -671,14 +671,14 @@ export default function MentorManagement() {
                                     {/* Header card */}
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border">
                                         <div className="w-20 h-20 rounded-full overflow-hidden shrink-0 bg-muted flex items-center justify-center">
-                                            {selectedMentor.user.avatar_url ? (
-                                                <img src={selectedMentor.user.avatar_url} alt={selectedMentor.user.full_name} className="w-full h-full object-cover" />
+                                            {selectedMentor.users.avatar_url ? (
+                                                <img src={selectedMentor.users.avatar_url} alt={selectedMentor.users.full_name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <span className="text-2xl font-bold text-primary">{selectedMentor.user.full_name?.charAt(0) ?? 'M'}</span>
+                                                <span className="text-2xl font-bold text-primary">{selectedMentor.users.full_name?.charAt(0) ?? 'M'}</span>
                                             )}
                                         </div>
                                         <div className="min-w-0">
-                                            <h2 className="text-xl font-semibold text-foreground">{selectedMentor.user.full_name}</h2>
+                                            <h2 className="text-xl font-semibold text-foreground">{selectedMentor.users.full_name}</h2>
                                             <p className="text-sm text-primary font-medium flex items-center gap-1.5 mt-0.5">
                                                 <Briefcase size={14} />
                                                 {selectedMentor.current_job_title || 'Mentor'} @ {selectedMentor.current_company || 'Freelance'}
@@ -687,12 +687,12 @@ export default function MentorManagement() {
                                                 {selectedMentor.specialization}
                                             </span>
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-sm text-muted-foreground">
-                                                <a href={`mailto:${selectedMentor.user.email}`} className="flex items-center gap-1 hover:text-foreground">
-                                                    <Mail size={14} /> {selectedMentor.user.email}
+                                                <a href={`mailto:${selectedMentor.users.email}`} className="flex items-center gap-1 hover:text-foreground">
+                                                    <Mail size={14} /> {selectedMentor.users.email}
                                                 </a>
-                                                {selectedMentor.user.phone_number && (
+                                                {selectedMentor.users.phone_number && (
                                                     <span className="flex items-center gap-1">
-                                                        <Phone size={14} /> {selectedMentor.user.phone_number}
+                                                        <Phone size={14} /> {selectedMentor.users.phone_number}
                                                     </span>
                                                 )}
                                             </div>
@@ -718,11 +718,11 @@ export default function MentorManagement() {
                                             <div className="text-xs text-muted-foreground">Years exp.</div>
                                         </div>
                                         <div className="rounded-xl border border-border p-3 text-center">
-                                            <div className="text-lg font-bold text-foreground">{selectedMentor.rating != null ? selectedMentor.rating.toFixed(1) : '–'}</div>
+                                            <div className="text-lg font-bold text-foreground">{selectedMentor.rating != null ? selectedMentor.rating.toFixed(1) : 'â€“'}</div>
                                             <div className="text-xs text-muted-foreground">Rating</div>
                                         </div>
                                         <div className="rounded-xl border border-border p-3 text-center">
-                                            <div className="text-lg font-bold text-foreground">{(selectedMentor.assignments ?? []).filter((a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE').length}/{selectedMentor.max_students ?? '–'}</div>
+                                            <div className="text-lg font-bold text-foreground">{(selectedMentor.mentor_assignments ?? []).filter((a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE').length}/{selectedMentor.max_students ?? 'â€"'}</div>
                                             <div className="text-xs text-muted-foreground">Active</div>
                                         </div>
                                         <div className="rounded-xl border border-border p-3 text-center">
@@ -746,7 +746,7 @@ export default function MentorManagement() {
                                         {selectedMentor.university_name ? (
                                             <div>
                                                 <p className="font-medium text-foreground">{selectedMentor.university_name}</p>
-                                                <p className="text-sm text-muted-foreground">{selectedMentor.degree} – {selectedMentor.major}</p>
+                                                <p className="text-sm text-muted-foreground">{selectedMentor.degree} â€“ {selectedMentor.major}</p>
                                                 {selectedMentor.graduation_year && (
                                                     <p className="text-xs text-muted-foreground mt-1">Graduated {selectedMentor.graduation_year}</p>
                                                 )}
@@ -766,7 +766,7 @@ export default function MentorManagement() {
                                             <ul className="space-y-2">
                                                 {selectedMentor.outstanding_achievements.map((item: any, idx: number) => (
                                                     <li key={idx} className="text-sm text-foreground flex items-start gap-2 py-2 border-b border-border last:border-0">
-                                                        <span className="text-amber-500 mt-0.5">•</span>
+                                                        <span className="text-amber-500 mt-0.5">â€¢</span>
                                                         <span>{typeof item === 'string' ? item : JSON.stringify(item)}</span>
                                                     </li>
                                                 ))}
@@ -784,14 +784,14 @@ export default function MentorManagement() {
                     <DialogContent className="max-w-md max-h-[90vh] flex flex-col gap-0">
                         <DialogHeader className="pb-3 border-b border-border">
                             <DialogTitle className="text-lg">
-                                {assignMentor?.user.full_name}
+                                {assignMentor?.users.full_name}
                             </DialogTitle>
                             <p className="text-sm text-muted-foreground">
                                 {assignMentor?.specialization}
                                 {assignMentor && (
                                     <span className="ml-2 font-medium text-foreground">
-                                        · {(() => {
-                                            const n = (assignMentor.assignments ?? []).filter(
+                                        Â· {(() => {
+                                            const n = (assignMentor.mentor_assignments ?? []).filter(
                                                 (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
                                             ).length
                                             const max = assignMentor.max_students ?? 0
@@ -811,17 +811,17 @@ export default function MentorManagement() {
                             </div>
                         )}
                         {assignMentor && (() => {
-                            const assignedList = (assignMentor.assignments ?? []).filter(
+                            const assignedList = (assignMentor.mentor_assignments ?? []).filter(
                                 (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
-                            ).map((a: { student_id: string; student?: { users?: { full_name?: string } } }) => ({
+                            ).map((a: { student_id: string; students?: { users?: { full_name?: string } } }) => ({
                                 student_id: a.student_id,
-                                name: a.student?.users?.full_name ?? 'N/A'
+                                name: a.students?.users?.full_name ?? 'N/A'
                             }))
                             const assignedIds = new Set(assignedList.map((a) => a.student_id))
                             const studentsToAssign = assignStudents.filter((s) => !assignedIds.has(s.id))
                             return (
                         <div className="flex flex-col gap-4 pt-4 overflow-y-auto min-h-0 flex-1">
-                            {/* Section: Currently assigned — Unassign */}
+                            {/* Section: Currently assigned â€” Unassign */}
                             {assignedList.length > 0 && (
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
@@ -893,7 +893,7 @@ export default function MentorManagement() {
                                 </div>
                                 <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
                                     {assignStudents.length === 0 ? (
-                                        <div className="p-4 text-center text-sm text-muted-foreground">Loading…</div>
+                                        <div className="p-4 text-center text-sm text-muted-foreground">Loadingâ€¦</div>
                                     ) : studentsToAssign.length === 0 ? (
                                         <div className="p-4 text-center text-sm text-muted-foreground">All students are already assigned.</div>
                                     ) : (
@@ -932,7 +932,7 @@ export default function MentorManagement() {
                                         {assignLoading ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Assigning…
+                                                Assigningâ€¦
                                             </>
                                         ) : (
                                             `Assign (${assignStudentIds.size})`
@@ -947,7 +947,7 @@ export default function MentorManagement() {
                 </Dialog>
             </div>
             <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border mt-4">
-                Admin © 2025 <span className="text-primary font-heading font-bold">HOLYANN EXPLORE</span>
+                Admin Â© 2025 <span className="text-primary font-heading font-bold">HOLYANN EXPLORE</span>
             </footer>
         </div>
     )

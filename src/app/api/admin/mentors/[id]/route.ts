@@ -84,7 +84,7 @@ export async function PATCH(
     const updated = await prisma.mentors.findUnique({
       where: { user_id: userId },
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             full_name: true,

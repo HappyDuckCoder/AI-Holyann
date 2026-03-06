@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-config";
 import { supabaseAdmin } from "@/lib/supabase";
 import { z } from "zod";
+import crypto from "crypto";
 import type { SupportRequestInput, SupportRequestResult } from "@/types/support";
 
 // ============================================================
@@ -55,6 +56,7 @@ export async function submitSupportRequest(
     // 3. Lưu vào database
     const supportRequest = await prisma.support_requests.create({
       data: {
+        id: crypto.randomUUID(),
         student_id: studentId,
         description: description,
         image_url: imageUrl || null,
@@ -146,7 +148,7 @@ export async function getAllSupportRequests(params?: {
     image_url: string | null;
     status: string;
     created_at: Date;
-    student: {
+    users: {
       id: string;
       full_name: string;
       email: string;
@@ -192,7 +194,7 @@ export async function getAllSupportRequests(params?: {
           image_url: true,
           status: true,
           created_at: true,
-          student: {
+          users: {
             select: {
               id: true,
               full_name: true,

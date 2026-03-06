@@ -52,7 +52,7 @@ interface SupportRequest {
   image_url: string | null;
   status: string;
   created_at: Date;
-  student: {
+  users: {
     id: string;
     full_name: string;
     email: string;
@@ -143,10 +143,10 @@ function AdminFeedbackPage() {
   const filteredRequests = searchQuery
     ? requests.filter(
         (r) =>
-          r.student.full_name
+          r.users.full_name
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          r.student.email
+          r.users.email
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
           r.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -288,14 +288,14 @@ function AdminFeedbackPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                        {req.student.full_name?.charAt(0).toUpperCase() || "?"}
+                        {req.users.full_name?.charAt(0).toUpperCase() || "?"}
                       </div>
                       <div className="min-w-0">
                         <p className="truncate font-medium text-sm">
-                          {req.student.full_name}
+                          {req.users.full_name}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {req.student.email}
+                          {req.users.email}
                         </p>
                       </div>
                     </div>
@@ -378,16 +378,16 @@ function AdminFeedbackPage() {
               {/* Student info */}
               <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                  {selectedRequest.student.full_name
+                  {selectedRequest.users.full_name
                     ?.charAt(0)
                     .toUpperCase() || "?"}
                 </div>
                 <div>
                   <p className="font-medium">
-                    {selectedRequest.student.full_name}
+                    {selectedRequest.users.full_name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedRequest.student.email}
+                    {selectedRequest.users.email}
                   </p>
                 </div>
               </div>

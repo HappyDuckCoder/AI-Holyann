@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { TaskStatus } from '@prisma/client';
+import crypto from 'crypto';
 
 /**
  * Lấy checklist data cho student từ database
@@ -21,7 +22,7 @@ export async function getStudentChecklistData(studentId: string) {
         { order_index: 'asc' },
       ],
       include: {
-        stage: true,
+        checklist_stages: true,
       },
     });
 
@@ -29,7 +30,7 @@ export async function getStudentChecklistData(studentId: string) {
     const progressRecords = await prisma.student_task_progress.findMany({
       where: { student_id: studentId },
       include: {
-        task: true,
+        checklist_tasks: true,
       },
     });
 
@@ -57,7 +58,7 @@ export async function getStudentChecklistData(studentId: string) {
         description: task.description || '',
         deadline: '', // Không có deadline trong DB, có thể thêm sau
         isCompleted: progress ? progress.status === TaskStatus.COMPLETED : false,
-        category: task.stage.name,
+        category: task.checklist_stages.name,
         linkTo: task.link_to || undefined,
         requiresFile: false, // Có thể thêm field này vào DB sau
 
@@ -135,6 +136,7 @@ export async function updateStudentTaskStatus(
       // Tạo mới
       await prisma.student_task_progress.create({
         data: {
+          id: crypto.randomUUID(),
           student_id: studentId,
           task_id: taskId,
           status,

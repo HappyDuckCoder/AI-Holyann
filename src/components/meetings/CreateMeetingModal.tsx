@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,8 +11,9 @@ import {
   Clock,
   Users,
   Video,
-  AlignLeft,
   Loader2,
+  ChevronDown,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -23,9 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -33,43 +31,33 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { createConsultationEvent } from "@/actions/calendar";
+import {
+  createConsultationEvent,
+  getAssignedStudentsForMentor,
+} from "@/actions/calendar";
+
+// ============================================================
+// TYPES
+// ============================================================
+
+interface AssignedStudent {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url: string | null;
+}
 
 // ============================================================
 // VALIDATION SCHEMA
 // ============================================================
 
-const meetingFormSchema = z
-  .object({
-    title: z.string().min(1, "Vui lòng nhập tiêu đề cuộc họp"),
-    studentEmail: z
-      .string()
-      .min(1, "Vui lòng nhập email học viên")
-      .email("Email không hợp lệ"),
-    startDate: z.date(),
-    startTime: z.string().min(1, "Vui lòng chọn giờ bắt đầu"),
-    endDate: z.date(),
-    endTime: z.string().min(1, "Vui lòng chọn giờ kết thúc"),
-    description: z.string().optional(),
-    isCreateMeet: z.boolean(),
-  })
-  .refine(
-    (data) => {
-      const start = new Date(data.startDate);
-      const [startH, startM] = data.startTime.split(":").map(Number);
-      start.setHours(startH, startM, 0, 0);
-
-      const end = new Date(data.endDate);
-      const [endH, endM] = data.endTime.split(":").map(Number);
-      end.setHours(endH, endM, 0, 0);
-
-      return end > start;
-    },
-    {
-      message: "Thời gian kết thúc phải sau thời gian bắt đầu",
-      path: ["endTime"],
-    }
-  );
+const meetingFormSchema = z.object({
+  content: z.string().min(1, "Vui lòng nhập nội dung cuộc họp"),
+  studentId: z.string().min(1, "Vui lòng chọn học viên"),
+  startDate: z.date(),
+  startTime: z.string().min(1, "Vui lòng chọn giờ bắt đầu"),
+  duration: z.string().min(1, "Vui lòng chọn thời lượng"),
+});
 
 type MeetingFormValues = z.infer<typeof meetingFormSchema>;
 
@@ -81,26 +69,29 @@ interface CreateMeetingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mentorEmail: string;
+  onMeetingCreated?: () => void;
 }
 
 export default function CreateMeetingModal({
   open,
   onOpenChange,
   mentorEmail,
+  onMeetingCreated,
 }: CreateMeetingModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [students, setStudents] = useState<AssignedStudent[]>([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const [studentDropdownOpen, setStudentDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const form = useForm<MeetingFormValues>({
     resolver: zodResolver(meetingFormSchema),
     defaultValues: {
-      title: "",
-      studentEmail: "",
+      content: "",
+      studentId: "",
       startDate: new Date(),
       startTime: "09:00",
-      endDate: new Date(),
-      endTime: "10:00",
-      description: "",
-      isCreateMeet: true,
+      duration: "60",
     },
   });
 
@@ -114,40 +105,65 @@ export default function CreateMeetingModal({
   } = form;
 
   const watchStartDate = watch("startDate");
-  const watchEndDate = watch("endDate");
-  const watchIsCreateMeet = watch("isCreateMeet");
+  const watchDuration = watch("duration");
+  const watchStudentId = watch("studentId");
+
+  // Lấy thông tin student được chọn
+  const selectedStudent = students.find((s) => s.id === watchStudentId);
+
+  // Fetch danh sách học viên khi mở modal
+  useEffect(() => {
+    if (open) {
+      setIsLoadingStudents(true);
+      getAssignedStudentsForMentor()
+        .then((result) => {
+          if (result.success && result.data) {
+            setStudents(result.data as AssignedStudent[]);
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching students:", err);
+        })
+        .finally(() => {
+          setIsLoadingStudents(false);
+        });
+    }
+  }, [open]);
+
+  // Lọc danh sách học viên theo search
+  const filteredStudents = students.filter(
+    (s) =>
+      s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const onSubmit = async (data: MeetingFormValues) => {
     setIsSubmitting(true);
 
     try {
-      // Tạo Date objects cho start và end time
       const startDateTime = new Date(data.startDate);
       const [startH, startM] = data.startTime.split(":").map(Number);
       startDateTime.setHours(startH, startM, 0, 0);
 
-      const endDateTime = new Date(data.endDate);
-      const [endH, endM] = data.endTime.split(":").map(Number);
-      endDateTime.setHours(endH, endM, 0, 0);
+      const durationMinutes = Number(data.duration);
 
       const result = await createConsultationEvent({
-        title: data.title,
-        description: data.description || "",
+        content: data.content,
         startTime: startDateTime,
-        endTime: endDateTime,
+        durationMinutes: durationMinutes,
         mentorEmail: mentorEmail,
-        studentEmail: data.studentEmail,
-        isCreateMeet: data.isCreateMeet,
+        studentId: data.studentId,
       });
 
       if (result.success) {
         toast.success("Đã tạo lịch tư vấn thành công!", {
           description: result.meetLink
-            ? "Email mời đã được gửi cho học viên."
+            ? `Link phòng họp: ${result.meetLink}`
             : "Lịch đã được tạo.",
         });
         reset();
         onOpenChange(false);
+        onMeetingCreated?.();
       } else {
         toast.error("Không thể tạo lịch", {
           description: result.error || "Đã xảy ra lỗi",
@@ -173,31 +189,22 @@ export default function CreateMeetingModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
-          {/* Title Input - Material Design style */}
+          {/* Content Input */}
           <div className="space-y-2">
             <Input
-              {...register("title")}
-              placeholder="Thêm tiêu đề"
+              {...register("content")}
+              placeholder="Nội dung buổi tư vấn"
               className="border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 text-lg font-medium placeholder:text-muted-foreground/50 focus:border-primary focus:ring-0 focus-visible:ring-0"
             />
-            {errors.title && (
-              <p className="text-sm text-destructive">{errors.title.message}</p>
+            {errors.content && (
+              <p className="text-sm text-destructive">
+                {errors.content.message}
+              </p>
             )}
-          </div>
-
-          {/* Tabs - Event/Task (decorative) */}
-          <div className="flex gap-2">
-            <span className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground">
-              Sự kiện
-            </span>
-            <span className="rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-muted-foreground">
-              Nhiệm vụ
-            </span>
           </div>
 
           {/* Date & Time Picker */}
           <div className="space-y-4">
-            {/* Start */}
             <div className="flex items-center gap-3">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <div className="flex flex-1 flex-wrap items-center gap-2">
@@ -223,13 +230,7 @@ export default function CreateMeetingModal({
                     <Calendar
                       mode="single"
                       selected={watchStartDate}
-                      onSelect={(date) => {
-                        if (date) {
-                          setValue("startDate", date);
-                          // Auto set end date = start date
-                          setValue("endDate", date);
-                        }
-                      }}
+                      onSelect={(date) => date && setValue("startDate", date)}
                       autoFocus
                     />
                   </PopoverContent>
@@ -240,97 +241,155 @@ export default function CreateMeetingModal({
                   {...register("startTime")}
                   className="w-[120px]"
                 />
-                <span className="text-muted-foreground">đến</span>
               </div>
             </div>
+          </div>
 
-            {/* End */}
-            <div className="flex items-center gap-3">
-              <div className="h-5 w-5" /> {/* Spacer */}
-              <div className="flex flex-1 flex-wrap items-center gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        "w-[160px] justify-start text-left font-normal",
-                        !watchEndDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {watchEndDate ? (
-                        format(watchEndDate, "dd/MM/yyyy", { locale: vi })
-                      ) : (
-                        <span>Chọn ngày</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={watchEndDate}
-                      onSelect={(date) => date && setValue("endDate", date)}
-                      autoFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <Input
-                  type="time"
-                  {...register("endTime")}
-                  className="w-[120px]"
-                />
-              </div>
+          {/* Duration Buttons */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">
+              Thời lượng:
+            </label>
+            <input type="hidden" {...register("duration")} />
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "30", label: "30 phút" },
+                { value: "60", label: "1 giờ" },
+                { value: "90", label: "1.5 giờ" },
+                { value: "120", label: "2 giờ" },
+              ].map((opt) => (
+                <Button
+                  key={opt.value}
+                  type="button"
+                  size="sm"
+                  variant={watchDuration === opt.value ? "default" : "outline"}
+                  onClick={() => setValue("duration", opt.value)}
+                  className="rounded-full px-4"
+                >
+                  {opt.label}
+                </Button>
+              ))}
             </div>
-            {errors.endTime && (
-              <p className="pl-8 text-sm text-destructive">
-                {errors.endTime.message}
+            {errors.duration && (
+              <p className="text-sm text-destructive">
+                {errors.duration.message}
               </p>
             )}
           </div>
 
-          {/* Student Email */}
-          <div className="flex items-center gap-3">
-            <Users className="h-5 w-5 text-muted-foreground" />
-            <div className="flex-1 space-y-1">
-              <Input
-                {...register("studentEmail")}
-                placeholder="Email học viên"
-                type="email"
-              />
-              {errors.studentEmail && (
-                <p className="text-sm text-destructive">
-                  {errors.studentEmail.message}
-                </p>
-              )}
+          {/* Student Selector */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">
+                Chọn học viên:
+              </span>
             </div>
+            <input type="hidden" {...register("studentId")} />
+            <Popover
+              open={studentDropdownOpen}
+              onOpenChange={setStudentDropdownOpen}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={studentDropdownOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {isLoadingStudents ? (
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Đang tải...
+                    </span>
+                  ) : selectedStudent ? (
+                    <span className="flex items-center gap-2 truncate">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {selectedStudent.full_name.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="truncate">
+                        {selectedStudent.full_name}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        ({selectedStudent.email})
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Chọn học viên...
+                    </span>
+                  )}
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <div className="flex items-center border-b px-3 py-2">
+                  <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <input
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    placeholder="Tìm học viên..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="max-h-[200px] overflow-y-auto p-1">
+                  {filteredStudents.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-muted-foreground">
+                      {students.length === 0
+                        ? "Chưa có học viên nào được phân công"
+                        : "Không tìm thấy học viên"}
+                    </p>
+                  ) : (
+                    filteredStudents.map((student) => (
+                      <button
+                        key={student.id}
+                        type="button"
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted",
+                          watchStudentId === student.id &&
+                            "bg-primary/10 text-primary"
+                        )}
+                        onClick={() => {
+                          setValue("studentId", student.id);
+                          setStudentDropdownOpen(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                          {student.full_name.charAt(0).toUpperCase()}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground truncate">
+                            {student.full_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {student.email}
+                          </p>
+                        </div>
+                        {watchStudentId === student.id && (
+                          <span className="text-primary text-xs font-medium">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            {errors.studentId && (
+              <p className="text-sm text-destructive">
+                {errors.studentId.message}
+              </p>
+            )}
           </div>
 
-          {/* Google Meet Toggle */}
-          <div className="flex items-center gap-3">
-            <Video className="h-5 w-5 text-muted-foreground" />
-            <div className="flex flex-1 items-center gap-2">
-              <Checkbox
-                id="create-meet"
-                checked={watchIsCreateMeet}
-                onCheckedChange={(checked: boolean) => setValue("isCreateMeet", checked)}
-              />
-              <Label htmlFor="create-meet" className="cursor-pointer">
-                Thêm cuộc họp Google Meet
-              </Label>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="flex items-start gap-3">
-            <AlignLeft className="mt-2 h-5 w-5 text-muted-foreground" />
-            <Textarea
-              {...register("description")}
-              placeholder="Thêm mô tả"
-              rows={3}
-              className="flex-1 resize-none"
-            />
+          {/* Info Note */}
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3 text-sm text-blue-800 dark:text-blue-300">
+            <Video className="inline h-4 w-4 mr-1" />
+            Link phòng họp sẽ tự động được tạo và gửi qua email cho học viên và
+            mentor
           </div>
 
           {/* Actions */}

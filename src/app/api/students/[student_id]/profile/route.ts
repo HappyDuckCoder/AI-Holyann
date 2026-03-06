@@ -76,11 +76,11 @@ export async function GET(
 
                 // Assemble the full object
                  // @ts-ignore
-                studentRecord.background = background;
+                studentRecord.student_backgrounds = background;
                  // @ts-ignore
-                studentRecord.academic_profile = academicProfile;
+                studentRecord.student_academic_profiles = academicProfile;
                  // @ts-ignore
-                studentRecord.parents = parents;
+                studentRecord.student_parents = parents;
                  // @ts-ignore
                 studentRecord.student_skills = skills;
             }
@@ -103,7 +103,7 @@ export async function GET(
                         // Các trường khác để null/default
                     },
                     include: {
-                        background: {
+                        student_backgrounds: {
                             include: {
                                 academic_awards: true,
                                 academic_extracurriculars: true,
@@ -115,8 +115,8 @@ export async function GET(
                                 personal_projects: true,
                             }
                         },
-                        academic_profile: true,
-                        parents: true,
+                        student_academic_profiles: true,
+                        student_parents: true,
                         student_skills: true,
                     }
                 });
@@ -139,14 +139,14 @@ export async function GET(
         );
 
         // Kiểm tra thông tin học thuật đã đủ chưa
-        const academicProfile = user.students?.academic_profile;
+        const academicProfile = user.students?.student_academic_profiles;
         const hasAcademicInfo = !!(
             academicProfile?.gpa_transcript_details ||
             academicProfile?.english_certificates ||
             academicProfile?.standardized_tests
         );
 
-        const background = user.students?.background;
+        const background = user.students?.student_backgrounds;
         const hasExtracurriculars = !!(
             background?.academic_extracurriculars?.length ||
             background?.non_academic_extracurriculars?.length ||
@@ -178,7 +178,7 @@ export async function GET(
             },
             academicProfile: academicProfile || null,
             background: background || null,
-            parents: user.students?.parents || [],
+            parents: user.students?.student_parents || [],
             status: {
                 basicInfoComplete,
                 hasAcademicInfo,

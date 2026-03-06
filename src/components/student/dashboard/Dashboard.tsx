@@ -20,6 +20,7 @@ import { TaskCompletionChart } from "./charts/TaskCompletionChart";
 import { UpcomingDeadlines } from "./UpcomingDeadlines";
 import { RecentActivityFeed } from "./RecentActivityFeed";
 import { AIInsightsPanel } from "./AIInsightsPanel";
+import { StudentUpcomingMeetings } from "./StudentUpcomingMeetings";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import type { DashboardData } from "./types";
 
@@ -172,6 +173,11 @@ export default function Dashboard({
 
           <div className="lg:col-span-2">
             <UpcomingDeadlines items={data.deadlines} />
+          </div>
+
+          {/* Lịch tư vấn sắp tới */}
+          <div className="lg:col-span-2">
+            <StudentUpcomingMeetings />
           </div>
 
           <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">

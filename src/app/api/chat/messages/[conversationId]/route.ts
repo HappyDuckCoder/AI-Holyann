@@ -31,7 +31,7 @@ export async function GET(
                 id: conversationId,
                 OR: [
                     {student_id: userId},
-                    {participants: {some: {user_id: userId, is_active: true}}}
+                    {chat_participants: {some: {user_id: userId, is_active: true}}}
                 ],
                 status: 'ACTIVE',
                 deleted_at: null
@@ -62,7 +62,7 @@ export async function GET(
                         role: true
                     }
                 },
-                attachments: {
+                chat_attachments: {
                     select: {
                         id: true,
                         file_url: true,
@@ -92,8 +92,8 @@ export async function GET(
             senderRole: msg.users.role,
             content: msg.content,
             messageType: msg.type,
-            attachmentUrl: msg.attachments[0]?.file_url || null,
-            attachments: msg.attachments.map(att => ({
+            attachmentUrl: msg.chat_attachments[0]?.file_url || null,
+            attachments: msg.chat_attachments.map(att => ({
                 id: att.id,
                 url: att.file_url,
                 name: att.file_name,
@@ -153,7 +153,7 @@ export async function POST(
                 id: conversationId,
                 OR: [
                     {student_id: userId},
-                    {participants: {some: {user_id: userId, is_active: true}}}
+                    {chat_participants: {some: {user_id: userId, is_active: true}}}
                 ],
                 status: 'ACTIVE',
                 deleted_at: null
@@ -180,7 +180,7 @@ export async function POST(
         // Create attachment if provided (before creating message)
         if (attachmentUrl) {
             const attachmentId = randomUUID();
-            messageData.attachments = {
+            messageData.chat_attachments = {
                 create: {
                     id: attachmentId,
                     file_url: attachmentUrl,
@@ -201,7 +201,7 @@ export async function POST(
                         role: true
                     }
                 },
-                attachments: {
+                chat_attachments: {
                     select: {
                         id: true,
                         file_url: true,
@@ -230,7 +230,7 @@ export async function POST(
             content: newMessage.content,
             messageType: newMessage.type,
             attachmentUrl: attachmentUrl || null,
-            attachments: newMessage.attachments.map(att => ({
+            attachments: newMessage.chat_attachments.map(att => ({
                 id: att.id,
                 url: att.file_url,
                 name: att.file_name,
@@ -280,7 +280,7 @@ export async function PATCH(
                 id: conversationId,
                 OR: [
                     {student_id: userId},
-                    {participants: {some: {user_id: userId, is_active: true}}}
+                    {chat_participants: {some: {user_id: userId, is_active: true}}}
                 ],
                 status: 'ACTIVE',
                 deleted_at: null

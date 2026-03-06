@@ -65,6 +65,7 @@ export async function sendMessageWithAttachment(
       // 1. Create chat message
       const message = await tx.chat_messages.create({
         data: {
+          id: crypto.randomUUID(),
           room_id: roomId,
           sender_id: senderId,
           content: content || null,
@@ -77,6 +78,7 @@ export async function sendMessageWithAttachment(
       if (fileData) {
         attachment = await tx.chat_attachments.create({
           data: {
+            id: crypto.randomUUID(),
             message_id: message.id,
             file_url: fileData.url,
             file_name: fileData.name,
@@ -105,7 +107,7 @@ export async function sendMessageWithAttachment(
               role: true,
             },
           },
-          attachments: {
+          chat_attachments: {
             select: {
               id: true,
               file_url: true,
@@ -138,7 +140,7 @@ export async function sendMessageWithAttachment(
         role: result.users.role,
       },
       isFromMe: true,
-      attachments: result.attachments.map((att) => ({
+      attachments: result.chat_attachments.map((att) => ({
         id: att.id,
         url: att.file_url,
         name: att.file_name,

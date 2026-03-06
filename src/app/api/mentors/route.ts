@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         const mentors = await prisma.mentors.findMany({
             where,
             include: {
-                user: {
+                users: {
                     select: {
                         id: true,
                         full_name: true,
@@ -51,9 +51,9 @@ export async function GET(request: NextRequest) {
         // Transform data
         const transformedMentors = mentors.map(mentor => ({
             id: mentor.user_id,
-            name: mentor.user.full_name,
-            email: mentor.user.email,
-            avatar: mentor.user.avatar_url,
+            name: mentor.users.full_name,
+            email: mentor.users.email,
+            avatar: mentor.users.avatar_url,
             university: mentor.university_name,
             degree: mentor.degree,
             major: mentor.major,
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
             rating: mentor.rating,
             isAccepting: mentor.is_accepting_students,
             maxStudents: mentor.max_students,
-            isActive: mentor.user.is_active
+            isActive: mentor.users.is_active
         }))
 
         // Statistics

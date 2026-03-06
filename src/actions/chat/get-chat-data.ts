@@ -7,7 +7,7 @@ export async function getChatRooms(userId: string) {
     const rooms = await prisma.chat_rooms.findMany({
       where: {
         deleted_at: null,
-        participants: {
+        chat_participants: {
           some: {
             user_id: userId,
             is_active: true,
@@ -15,7 +15,7 @@ export async function getChatRooms(userId: string) {
         },
       },
       include: {
-        participants: {
+        chat_participants: {
           where: { is_active: true },
           include: {
             users: {
@@ -28,7 +28,7 @@ export async function getChatRooms(userId: string) {
             },
           },
         },
-        messages: {
+        chat_messages: {
           where: { deleted_at: null },
           orderBy: { created_at: 'desc' },
           take: 1,
@@ -43,7 +43,7 @@ export async function getChatRooms(userId: string) {
         },
         _count: {
           select: {
-            messages: {
+            chat_messages: {
               where: {
                 deleted_at: null,
               },
@@ -60,7 +60,7 @@ export async function getChatRooms(userId: string) {
     const roomIds = rooms.map(r => r.id);
     const participantsMap = new Map(
       rooms.flatMap(r => 
-        r.participants
+        r.chat_participants
           .filter(p => p.user_id === userId)
           .map(p => [r.id, p.last_read_at || new Date(0)])
       )
@@ -88,7 +88,7 @@ export async function getChatRooms(userId: string) {
     const roomsWithUnreadCount = rooms.map((room) => ({
       ...room,
       unreadCount: unreadCountMap.get(room.id) || 0,
-      lastMessage: room.messages[0] || null,
+      lastMessage: room.chat_messages[0] || null,
     }));
 
     return {
@@ -138,7 +138,7 @@ export async function getChatMessages(roomId: string, userId: string, limit = 50
             role: true,
           },
         },
-        attachments: true,
+        chat_attachments: true,
       },
       orderBy: {
         created_at: 'desc',

@@ -42,6 +42,7 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       // 1. Tạo mentor assignments (mỗi mentor type một assignment riêng)
       const assignmentAS = await tx.mentor_assignments.create({
         data: {
+          id: crypto.randomUUID(),
           student_id: studentId,
           mentor_id: mentorASId,
           type: MentorType.AS,
@@ -51,6 +52,7 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
 
       const assignmentACS = await tx.mentor_assignments.create({
         data: {
+          id: crypto.randomUUID(),
           student_id: studentId,
           mentor_id: mentorACSId,
           type: MentorType.ACS,
@@ -60,6 +62,7 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
 
       const assignmentARD = await tx.mentor_assignments.create({
         data: {
+          id: crypto.randomUUID(),
           student_id: studentId,
           mentor_id: mentorARDId,
           type: MentorType.ARD,
@@ -70,14 +73,15 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       // 2. Tạo phòng AS
       const roomAS = await tx.chat_rooms.create({
         data: {
+          id: crypto.randomUUID(),
           name: `${student.full_name} - Mentor AS`,
           type: RoomType.PRIVATE,
           student_id: studentId,
           mentor_type: MentorType.AS,
-          participants: {
+          chat_participants: {
             create: [
-              { user_id: studentId },
-              { user_id: mentorASId },
+              { id: crypto.randomUUID(), user_id: studentId },
+              { id: crypto.randomUUID(), user_id: mentorASId },
             ],
           },
         },
@@ -86,14 +90,15 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       // 3. Tạo phòng ACS
       const roomACS = await tx.chat_rooms.create({
         data: {
+          id: crypto.randomUUID(),
           name: `${student.full_name} - Mentor ACS`,
           type: RoomType.PRIVATE,
           student_id: studentId,
           mentor_type: MentorType.ACS,
-          participants: {
+          chat_participants: {
             create: [
-              { user_id: studentId },
-              { user_id: mentorACSId },
+              { id: crypto.randomUUID(), user_id: studentId },
+              { id: crypto.randomUUID(), user_id: mentorACSId },
             ],
           },
         },
@@ -102,14 +107,15 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       // 4. Tạo phòng ARD
       const roomARD = await tx.chat_rooms.create({
         data: {
+          id: crypto.randomUUID(),
           name: `${student.full_name} - Mentor ARD`,
           type: RoomType.PRIVATE,
           student_id: studentId,
           mentor_type: MentorType.ARD,
-          participants: {
+          chat_participants: {
             create: [
-              { user_id: studentId },
-              { user_id: mentorARDId },
+              { id: crypto.randomUUID(), user_id: studentId },
+              { id: crypto.randomUUID(), user_id: mentorARDId },
             ],
           },
         },
@@ -118,15 +124,16 @@ export async function assignMentorsToStudent(input: AssignMentorsInput) {
       // 5. Tạo phòng Group
       const groupRoom = await tx.chat_rooms.create({
         data: {
+          id: crypto.randomUUID(),
           name: `Nhóm mentor - ${student.full_name}`,
           type: RoomType.GROUP,
           student_id: studentId,
-          participants: {
+          chat_participants: {
             create: [
-              { user_id: studentId },
-              { user_id: mentorASId },
-              { user_id: mentorACSId },
-              { user_id: mentorARDId },
+              { id: crypto.randomUUID(), user_id: studentId },
+              { id: crypto.randomUUID(), user_id: mentorASId },
+              { id: crypto.randomUUID(), user_id: mentorACSId },
+              { id: crypto.randomUUID(), user_id: mentorARDId },
             ],
           },
         },

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     try {
         const mentors = await prisma.mentors.findMany({
             include: {
-                user: {
+                users: {
                     select: {
                         id: true,
                         full_name: true,
@@ -28,14 +28,14 @@ export async function GET(request: NextRequest) {
         // Transform data to match expected format for AssignMentorForm
         const formattedMentors = mentors.map(mentor => ({
             id: mentor.user_id, // Use user_id as it's the primary key in mentors table
-            name: mentor.user.full_name,
-            email: mentor.user.email,
+            name: mentor.users.full_name,
+            email: mentor.users.email,
             specialization: mentor.specialization,
             university: mentor.university_name || 'N/A',
             rating: mentor.rating || 0,
-            isActive: mentor.user.is_active,
-            avatarUrl: mentor.user.avatar_url,
-            createdAt: mentor.user.created_at,
+            isActive: mentor.users.is_active,
+            avatarUrl: mentor.users.avatar_url,
+            createdAt: mentor.users.created_at,
             isAcceptingStudents: mentor.is_accepting_students
         }))
 

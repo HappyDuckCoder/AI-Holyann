@@ -54,7 +54,7 @@ export async function GET(
                         role: true
                     }
                 },
-                attachments: {
+                chat_attachments: {
                     select: {
                         id: true,
                         file_url: true,
@@ -85,7 +85,7 @@ export async function GET(
                 role: msg.users.role
             },
             isFromMe: msg.sender_id === userId,
-            attachments: msg.attachments.map(att => ({
+            attachments: msg.chat_attachments.map(att => ({
                 id: att.id,
                 url: att.file_url,
                 name: att.file_name,
@@ -174,13 +174,15 @@ export async function POST(
         // Create message
         const message = await prisma.chat_messages.create({
             data: {
+                id: crypto.randomUUID(),
                 room_id: roomId,
                 sender_id: userId,
                 content,
                 type,
-                attachments: attachments.length > 0 ? {
+                chat_attachments: attachments.length > 0 ? {
                     createMany: {
                         data: attachments.map((att: any) => ({
+                            id: crypto.randomUUID(),
                             file_url: att.url,
                             file_name: att.name,
                             file_type: att.type,
@@ -199,7 +201,7 @@ export async function POST(
                         role: true
                     }
                 },
-                attachments: true
+                chat_attachments: true
             }
         })
 
@@ -222,7 +224,7 @@ export async function POST(
                     avatar: message.users.avatar_url,
                     role: message.users.role
                 },
-                attachments: message.attachments.map(att => ({
+                attachments: message.chat_attachments.map(att => ({
                     id: att.id,
                     url: att.file_url,
                     name: att.file_name,

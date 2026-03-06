@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
                             }
                         }
                     },
-                    participants: {
+                    chat_participants: {
                         where: {
                             user_id: {not: userId},
                             is_active: true
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
                             }
                         }
                     },
-                    messages: {
+                    chat_messages: {
                         orderBy: {created_at: 'desc'},
                         take: 1,
                         select: {
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
                     },
                     _count: {
                         select: {
-                            messages: {
+                            chat_messages: {
                                 where: {
                                     sender_id: {not: userId}
                                 }
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
             })
             : await prisma.chat_rooms.findMany({
                 where: {
-                    participants: {
+                    chat_participants: {
                         some: {
                             user_id: userId,
                             is_active: true
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
                             }
                         }
                     },
-                    participants: {
+                    chat_participants: {
                         where: {
                             user_id: {not: userId},
                             is_active: true
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
                             }
                         }
                     },
-                    messages: {
+                    chat_messages: {
                         orderBy: {created_at: 'desc'},
                         take: 1,
                         select: {
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
                     },
                     _count: {
                         select: {
-                            messages: {
+                            chat_messages: {
                                 where: {
                                     sender_id: {not: userId}
                                 }
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
             
             if (user.role === 'STUDENT' || user.role === 'ADMIN') {
                 // For students/admins: get mentor from participants
-                participant = conv.participants[0]?.users;
+                participant = conv.chat_participants[0]?.users;
             } else {
                 // For mentors: get student from users relation
                 participant = conv.users;
@@ -183,9 +183,9 @@ export async function GET(request: NextRequest) {
                         targetCountry: conv.users.students?.target_country
                     } : {})
                 } : null,
-                lastMessage: conv.messages[0]?.content || '',
-                lastMessageTime: conv.messages[0]?.created_at || conv.created_at,
-                unreadCount: conv._count.messages,
+                lastMessage: conv.chat_messages[0]?.content || '',
+                lastMessageTime: conv.chat_messages[0]?.created_at || conv.created_at,
+                unreadCount: conv._count.chat_messages,
                 createdAt: conv.created_at,
                 updatedAt: conv.updated_at
             };
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
         const existingRoom = await prisma.chat_rooms.findFirst({
             where: {
                 student_id: finalStudentId,
-                participants: {
+                chat_participants: {
                     some: {
                         user_id: finalMentorId,
                         is_active: true
@@ -272,7 +272,7 @@ export async function POST(request: NextRequest) {
                         avatar_url: true
                     }
                 },
-                participants: {
+                chat_participants: {
                     where: {is_active: true},
                     include: {
                         users: {
@@ -289,7 +289,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (existingRoom) {
-            const mentorParticipant = existingRoom.participants.find(p => p.user_id === finalMentorId);
+            const mentorParticipant = existingRoom.chat_participants.find(p => p.user_id === finalMentorId);
             return NextResponse.json({
                 conversation: {
                     id: existingRoom.id,
@@ -310,10 +310,10 @@ export async function POST(request: NextRequest) {
                 type: 'PRIVATE',
                 status: 'ACTIVE',
                 student_id: finalStudentId,
-                participants: {
+                chat_participants: {
                     create: [
-                        {user_id: finalStudentId, is_active: true},
-                        {user_id: finalMentorId, is_active: true}
+                        {id: randomUUID(), user_id: finalStudentId, is_active: true},
+                        {id: randomUUID(), user_id: finalMentorId, is_active: true}
                     ]
                 }
             },
@@ -326,7 +326,7 @@ export async function POST(request: NextRequest) {
                         avatar_url: true
                     }
                 },
-                participants: {
+                chat_participants: {
                     where: {is_active: true},
                     include: {
                         users: {
@@ -345,7 +345,7 @@ export async function POST(request: NextRequest) {
         const newConversation = {
             id: newRoom.id,
             student: newRoom.users,
-            mentor: newRoom.participants.find(p => p.user_id === finalMentorId)?.users
+            mentor: newRoom.chat_participants.find(p => p.user_id === finalMentorId)?.users
         };
 
         return NextResponse.json({

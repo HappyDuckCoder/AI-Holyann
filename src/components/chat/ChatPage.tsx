@@ -23,6 +23,7 @@ import ChatHeader from "./ChatHeader";
 import { MessagesList } from "./MessagesList";
 import { MessageInput } from "./MessageInput";
 import { DiscussionInfoPanel } from "./info-panel/DiscussionInfoPanel";
+import UpcomingMeetingBanner from "./UpcomingMeetingBanner";
 
 // Main Component
 export const ChatPage: React.FC = () => {
@@ -229,6 +230,11 @@ export const ChatPage: React.FC = () => {
                 onToggleMobileConversations={() =>
                   setShowMobileConversations(!showMobileConversations)
                 }
+              />
+
+              <UpcomingMeetingBanner
+                partnerId={selectedConversation.mentor.id}
+                currentUserId={user?.id || ""}
               />
 
               <MessagesList
