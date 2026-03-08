@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
                 completed_at: true,
                 created_at: true,
                 updated_at: true,
-                student: {
+                students: {
                     select: {
                         users: {
                             select: {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
                         }
                     }
                 },
-                task: {
+                checklist_tasks: {
                     select: {
                         title: true,
                         description: true

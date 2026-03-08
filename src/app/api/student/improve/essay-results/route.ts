@@ -3,6 +3,7 @@
  * POST /api/student/improve/essay-results — Lưu analysis/enhance hoặc rating. Body: essay_id, analysis?, enhance?, analysis_rating?, enhance_rating?.
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { Prisma } from '@prisma/client';
@@ -22,9 +23,9 @@ export async function GET(request: NextRequest) {
   try {
     const essay = await prisma.essays.findFirst({
       where: { id: essayId, student_id: studentId },
-      include: { improve_result: true },
+      include: { essay_improve_results: true },
     });
-    if (!essay?.improve_result) {
+    if (!essay?.essay_improve_results) {
       return NextResponse.json({
         analysis: null,
         enhance: null,
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
         enhance_at: null,
       });
     }
-    const r = essay.improve_result;
+    const r = essay.essay_improve_results;
     return NextResponse.json({
       analysis: r.analysis_result as Record<string, unknown> | null,
       enhance: r.enhance_result as Record<string, unknown> | null,
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
     if (enhance_rating !== undefined) data.enhance_rating = enhance_rating == null ? null : clamp(enhance_rating);
 
     const createPayload: Prisma.essay_improve_resultsUncheckedCreateInput = {
+      id: randomUUID(),
       essay_id: essay_id,
       ...data,
     };

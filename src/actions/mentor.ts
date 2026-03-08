@@ -19,7 +19,7 @@ export async function getMentorStudents(mentorId: string): Promise<AssignedStude
         status: 'ACTIVE',
       },
       include: {
-        student: {
+        students: {
           include: {
             users: {
               select: {
@@ -30,7 +30,7 @@ export async function getMentorStudents(mentorId: string): Promise<AssignedStude
               },
             },
             // Chỉ lấy những task đã COMPLETED hoặc SUBMITTED
-            checklist_progress: {
+            student_task_progress: {
               where: {
                 status: {
                   in: [TaskStatus.COMPLETED, TaskStatus.SUBMITTED]
@@ -48,12 +48,12 @@ export async function getMentorStudents(mentorId: string): Promise<AssignedStude
     // 3. Transform data và tính toán progress
     const students: AssignedStudent[] = assignments.map((assignment) => {
       // Safety check just in case
-      if (!assignment.student?.users) {
+      if (!assignment.students?.users) {
         console.warn(`[getMentorStudents] Assignment ${assignment.id} has missing student/user data`);
         return null;
       }
 
-      const completedCount = assignment.student.checklist_progress?.length || 0;
+      const completedCount = assignment.students.student_task_progress?.length || 0;
       const progressPercent = totalTasks > 0
         ? Math.round((completedCount / totalTasks) * 100)
         : 0;
@@ -64,10 +64,10 @@ export async function getMentorStudents(mentorId: string): Promise<AssignedStude
         type: assignment.type,
         status: assignment.status,
         student: {
-          full_name: assignment.student.users.full_name || 'Unknown',
-          email: assignment.student.users.email,
-          avatar_url: assignment.student.users.avatar_url,
-          phone_number: assignment.student.users.phone_number,
+          full_name: assignment.students.users.full_name || 'Unknown',
+          email: assignment.students.users.email,
+          avatar_url: assignment.students.users.avatar_url,
+          phone_number: assignment.students.users.phone_number,
         },
         progress: progressPercent,
       };

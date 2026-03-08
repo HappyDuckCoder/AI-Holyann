@@ -49,7 +49,7 @@ export async function assignMentorToStudent(
             const mentor = await tx.mentors.findUnique({
                 where: { user_id: mentorId },
                 include: {
-                    user: {
+                    users: {
                         select: {
                             id: true,
                             full_name: true,
@@ -66,7 +66,7 @@ export async function assignMentorToStudent(
             // Kiểm tra specialization có khớp với type được gán
             if (mentor.specialization !== mentorType) {
                 throw new Error(
-                    `Mentor ${mentor.user.full_name} có chuyên môn ${mentor.specialization}, ` +
+                    `Mentor ${mentor.users.full_name} có chuyên môn ${mentor.specialization}, ` +
                     `không thể gán vào vị trí ${mentorType}`
                 )
             }
@@ -102,9 +102,9 @@ export async function assignMentorToStudent(
                     }
                 },
                 include: {
-                    mentor: {
+                    mentors: {
                         include: {
-                            user: true
+                            users: true
                         }
                     }
                 }
@@ -118,7 +118,7 @@ export async function assignMentorToStudent(
                 if (existingAssignment.status === 'ACTIVE' && existingAssignment.mentor_id === mentorId) {
                     throw new Error(
                         `Học viên ${student.users.full_name} đã được gán ` +
-                        `mentor ${mentor.user.full_name} cho vị trí ${mentorType}`
+                        `mentor ${mentor.users.full_name} cho vị trí ${mentorType}`
                     )
                 }
 
@@ -141,6 +141,7 @@ export async function assignMentorToStudent(
                 // Tạo assignment mới
                 assignment = await tx.mentor_assignments.create({
                     data: {
+                        id: crypto.randomUUID(),
                         student_id: studentId,
                         mentor_id: mentorId,
                         type: mentorType,
@@ -158,7 +159,7 @@ export async function assignMentorToStudent(
                 where: {
                     student_id: studentId,
                     type: 'PRIVATE',
-                    participants: {
+                    chat_participants: {
                         some: {
                             user_id: mentorId
                         }
@@ -177,7 +178,8 @@ export async function assignMentorToStudent(
 
                 privateChatRoom = await tx.chat_rooms.create({
                     data: {
-                        name: `Trao đổi riêng: ${mentor.user.full_name} - ${mentorTypeLabel}`,
+                        id: crypto.randomUUID(),
+                        name: `Trao đổi riêng: ${mentor.users.full_name} - ${mentorTypeLabel}`,
                         type: 'PRIVATE',
                         status: 'ACTIVE',
                         student_id: studentId,
@@ -189,11 +191,13 @@ export async function assignMentorToStudent(
                 await tx.chat_participants.createMany({
                     data: [
                         {
+                            id: crypto.randomUUID(),
                             room_id: privateChatRoom.id,
                             user_id: studentId,
                             is_active: true
                         },
                         {
+                            id: crypto.randomUUID(),
                             room_id: privateChatRoom.id,
                             user_id: mentorId,
                             is_active: true
@@ -204,9 +208,10 @@ export async function assignMentorToStudent(
                 // Tạo tin nhắn welcome
                 await tx.chat_messages.create({
                     data: {
+                        id: crypto.randomUUID(),
                         room_id: privateChatRoom.id,
                         sender_id: mentorId,
-                        content: `Chào ${student.users.full_name}! Tôi là ${mentor.user.full_name}, ` +
+                        content: `Chào ${student.users.full_name}! Tôi là ${mentor.users.full_name}, ` +
                                 `mentor ${mentorTypeLabel} của bạn. Rất vui được hỗ trợ bạn trong hành trình du học!`,
                         type: 'TEXT'
                     }
@@ -224,9 +229,9 @@ export async function assignMentorToStudent(
                     status: 'ACTIVE'
                 },
                 include: {
-                    mentor: {
+                    mentors: {
                         include: {
-                            user: true
+                            users: true
                         }
                     }
                 }
@@ -255,6 +260,7 @@ export async function assignMentorToStudent(
                     // Tạo group chat room
                     groupChatRoom = await tx.chat_rooms.create({
                         data: {
+                            id: crypto.randomUUID(),
                             name: `Nhóm mentor - ${student.users.full_name}`,
                             type: 'GROUP',
                             status: 'ACTIVE',
@@ -271,21 +277,25 @@ export async function assignMentorToStudent(
                     await tx.chat_participants.createMany({
                         data: [
                             {
+                                id: crypto.randomUUID(),
                                 room_id: groupChatRoom.id,
                                 user_id: studentId,
                                 is_active: true
                             },
                             {
+                                id: crypto.randomUUID(),
                                 room_id: groupChatRoom.id,
                                 user_id: asMentor!.mentor_id,
                                 is_active: true
                             },
                             {
+                                id: crypto.randomUUID(),
                                 room_id: groupChatRoom.id,
                                 user_id: acsMentor!.mentor_id,
                                 is_active: true
                             },
                             {
+                                id: crypto.randomUUID(),
                                 room_id: groupChatRoom.id,
                                 user_id: ardMentor!.mentor_id,
                                 is_active: true
@@ -299,9 +309,9 @@ export async function assignMentorToStudent(
                         roomId: groupChatRoom.id,
                         studentName: student.users.full_name,
                         senderId: asMentor!.mentor_id,
-                        asName: asMentor!.mentor.user.full_name,
-                        acsName: acsMentor!.mentor.user.full_name,
-                        ardName: ardMentor!.mentor.user.full_name
+                        asName: asMentor!.mentors.users.full_name,
+                        acsName: acsMentor!.mentors.users.full_name,
+                        ardName: ardMentor!.mentors.users.full_name
                     }
                 }
             }
@@ -328,6 +338,7 @@ export async function assignMentorToStudent(
                 const data = result.welcomeMessageData
                 await prisma.chat_messages.create({
                     data: {
+                        id: crypto.randomUUID(),
                         room_id: data.roomId,
                         sender_id: data.senderId,
                         content: `🎉 Chào mừng ${data.studentName} đến với nhóm hỗ trợ đầy đủ!\n\n` +
@@ -359,15 +370,15 @@ export async function assignMentorToStudent(
         return {
             success: true,
             message: result.isUpdate
-                ? `Đã cập nhật mentor ${result.mentor.user.full_name} (${mentorType}) cho học viên ${result.student.users.full_name}`
-                : `Đã gán mentor ${result.mentor.user.full_name} (${mentorType}) cho học viên ${result.student.users.full_name}`,
+                ? `Đã cập nhật mentor ${result.mentor.users.full_name} (${mentorType}) cho học viên ${result.student.users.full_name}`
+                : `Đã gán mentor ${result.mentor.users.full_name} (${mentorType}) cho học viên ${result.student.users.full_name}`,
             data: {
                 assignmentId: result.assignment.id,
                 privateChatCreated: !!result.privateChatRoom,
                 groupChatCreated: !!result.groupChatRoom,
                 hasFullTeam: result.hasFullTeam,
                 mentorType: mentorType,
-                mentorName: result.mentor.user.full_name,
+                mentorName: result.mentor.users.full_name,
                 studentName: result.student.users.full_name
             }
         }
@@ -394,9 +405,9 @@ export async function getStudentAssignments(studentId: string) {
                 status: 'ACTIVE'
             },
             include: {
-                mentor: {
+                mentors: {
                     include: {
-                        user: {
+                        users: {
                             select: {
                                 id: true,
                                 full_name: true,
@@ -459,7 +470,7 @@ export async function unassignMentor(
                     where: {
                         student_id: studentId,
                         type: 'PRIVATE',
-                        participants: {
+                        chat_participants: {
                             some: {
                                 user_id: assignment.mentor_id
                             }

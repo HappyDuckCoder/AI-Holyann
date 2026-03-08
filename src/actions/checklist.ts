@@ -1,5 +1,6 @@
 'use server'
 
+import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { TaskStatus } from '@prisma/client'
@@ -34,6 +35,7 @@ export async function toggleTaskCompletion(
                 updated_at: new Date(),
             },
             create: {
+                id: randomUUID(),
                 student_id: studentId,
                 task_id: taskId,
                 status: newStatus,
@@ -76,6 +78,7 @@ export async function submitTaskWithFile(
                 updated_at: new Date(),
             },
             create: {
+                id: randomUUID(),
                 student_id: studentId,
                 task_id: taskId,
                 status: 'SUBMITTED',

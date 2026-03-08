@@ -1,8 +1,5 @@
 import React from 'react';
 import MentorNavbar from '@/components/mentor/MentorNavbar';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin', 'vietnamese'] });
 
 export default function MentorLayout({
   children,
@@ -10,7 +7,7 @@ export default function MentorLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${inter.className} min-h-screen bg-background transition-colors duration-300`}>
+    <div className="min-h-screen bg-background transition-colors duration-300">
       {/* Navbar at the top */}
       <MentorNavbar />
       

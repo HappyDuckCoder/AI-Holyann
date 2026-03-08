@@ -42,24 +42,24 @@ export async function GET() {
     const student = await prisma.students.findUnique({
       where: { user_id: studentId },
       include: {
-        background: {
+        student_backgrounds: {
           include: {
             subject_scores: true,
           },
         },
-        academic_profile: true,
+        student_academic_profiles: true,
       },
     });
 
-    const [taskProgressList, customDeadlines, checklistTasks] = await Promise.all([
+    const [taskProgressList, customDeadlines, checklistTasks, meetingCount] = await Promise.all([
       prisma.student_task_progress.findMany({
         where: { student_id: studentId },
         include: {
-          task: {
+          checklist_tasks: {
             select: {
               id: true,
               title: true,
-              stage: { select: { name: true } },
+              checklist_stages: { select: { name: true } },
             },
           },
         },
@@ -76,9 +76,12 @@ export async function GET() {
       }),
       prisma.checklist_tasks.findMany({
         include: {
-          stage: { select: { name: true } },
+          checklist_stages: { select: { name: true } },
         },
-        orderBy: [{ stage: { order_index: "asc" } }, { order_index: "asc" }],
+        orderBy: [{ checklist_stages: { order_index: "asc" } }, { order_index: "asc" }],
+      }),
+      prisma.consultation_meetings.count({
+        where: { student_id: studentId },
       }),
     ]);
 
@@ -94,13 +97,13 @@ export async function GET() {
     const deadlinesWithDue: { id: string; title: string; subject: string; dueDate: Date; priority: "low" | "medium" | "high"; completed: boolean }[] = [];
 
     taskProgressList
-      .filter((p) => p.deadline && p.task)
+      .filter((p) => p.deadline && p.checklist_tasks)
       .forEach((p) => {
         const completed = p.status === TaskStatus.COMPLETED || p.status === TaskStatus.SUBMITTED;
         deadlinesWithDue.push({
           id: p.id,
-          title: p.task!.title,
-          subject: p.task!.stage?.name ?? "—",
+          title: p.checklist_tasks!.title,
+          subject: p.checklist_tasks!.checklist_stages?.name ?? "—",
           dueDate: p.deadline!,
           priority: dueDateToPriority(p.deadline!),
           completed,
@@ -121,11 +124,11 @@ export async function GET() {
     deadlinesWithDue.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
     const upcomingDeadlines = deadlinesWithDue.filter((d) => !d.completed).slice(0, 10);
 
-    const gpaInfo = student?.academic_profile
-      ? getGpaFromProfile(student.academic_profile)
+    const gpaInfo = student?.student_academic_profiles
+      ? getGpaFromProfile(student.student_academic_profiles)
       : null;
 
-    const subjectScores = student?.background?.subject_scores ?? [];
+    const subjectScores = student?.student_backgrounds?.subject_scores ?? [];
     const gradesBySubject = subjectScores.map((s) => ({
       subject: s.subject,
       grade: s.score,
@@ -162,19 +165,19 @@ export async function GET() {
         accent: "amber" as const,
       },
       {
-        id: "deadlines",
-        label: "Hạn nộp sắp tới",
-        value: upcomingDeadlines.length,
+        id: "meetings",
+        label: "Số meeting với mentor",
+        value: meetingCount,
         trend: undefined,
-        icon: "Calendar",
+        icon: "Video",
         accent: "violet" as const,
       },
       {
-        id: "attendance",
-        label: "Tỉ lệ tham gia",
-        value: "—",
+        id: "goal",
+        label: "Mục tiêu hiện tại",
+        value: student?.intended_major?.trim() || "—",
         trend: undefined,
-        icon: "UserCheck",
+        icon: "Target",
         accent: "rose" as const,
       },
     ];
@@ -192,16 +195,21 @@ export async function GET() {
       .filter((p) => p.completed_at)
       .sort((a, b) => (b.completed_at!.getTime() - a.completed_at!.getTime()))
       .slice(0, 5);
-    const activity = recentCompleted.map((p, i) => ({
+    const activity = recentCompleted.map((p) => ({
       id: p.id,
       type: "task" as const,
-      title: p.task ? `Hoàn thành: ${p.task.title}` : "Hoàn thành nhiệm vụ",
+      title: p.checklist_tasks ? `Hoàn thành: ${p.checklist_tasks.title}` : "Hoàn thành nhiệm vụ",
       time: formatTimeAgo(p.completed_at!),
-      meta: p.task?.stage?.name ?? undefined,
+      meta: p.checklist_tasks?.checklist_stages?.name ?? undefined,
     }));
 
     return NextResponse.json({
       quickStats,
+      currentGoal: {
+        intendedMajor: student?.intended_major ?? null,
+        targetCountry: student?.target_country ?? null,
+        personalDesire: student?.personal_desire ?? null,
+      },
       deadlines: upcomingDeadlines.map((d) => ({
         id: d.id,
         title: d.title,

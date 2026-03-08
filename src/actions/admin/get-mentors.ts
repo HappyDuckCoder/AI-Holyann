@@ -19,7 +19,7 @@ export async function getMentorsAction() {
 
         const mentors = await prisma.mentors.findMany({
             include: {
-                user: {
+                users: {
                     select: {
                         id: true,
                         full_name: true,
@@ -31,9 +31,9 @@ export async function getMentorsAction() {
                         created_at: true
                     }
                 },
-                assignments: {
+                mentor_assignments: {
                     include: {
-                        student: {
+                        students: {
                             include: {
                                 users: {
                                     select: {

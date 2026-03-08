@@ -183,7 +183,7 @@ export default async function MentorDeadlinesPage() {
     status: string;
     mentor_note: string | null;
     student_note: string | null;
-    student: { user_id: string; users: { full_name: string | null; email: string | null } | null };
+    students: { user_id: string; users: { full_name: string | null; email: string | null } | null };
   };
   const [tasksWithDeadlines, customDeadlines] = await Promise.all([
     prisma.student_task_progress.findMany({
@@ -193,14 +193,14 @@ export default async function MentorDeadlinesPage() {
         status: { in: ["PENDING", "IN_PROGRESS", "NEEDS_REVISION"] },
       },
       include: {
-        task: {
+        checklist_tasks: {
           select: {
             id: true,
             title: true,
-            stage: { select: { name: true } },
+            checklist_stages: { select: { name: true } },
           },
         },
-        student: {
+        students: {
           select: {
             user_id: true,
             users: { select: { full_name: true, email: true } },
@@ -209,31 +209,27 @@ export default async function MentorDeadlinesPage() {
       },
       orderBy: { deadline: "asc" },
     }),
-    (
-      prisma as unknown as {
-        mentor_custom_deadlines: { findMany: (args: unknown) => Promise<CustomDeadlineDb[]> };
-      }
-    ).mentor_custom_deadlines.findMany({
-        where: {
-          mentor_id: mentorId,
-          student_id: { in: studentIds },
-        },
-        include: {
-          student: {
-            select: {
-              user_id: true,
-              users: { select: { full_name: true, email: true } },
-            },
+    prisma.mentor_custom_deadlines.findMany({
+      where: {
+        mentor_id: mentorId,
+        student_id: { in: studentIds },
+      },
+      include: {
+        students: {
+          select: {
+            user_id: true,
+            users: { select: { full_name: true, email: true } },
           },
         },
-        orderBy: [{ deadline: "asc" }, { created_at: "desc" }],
-      }),
+      },
+      orderBy: [{ deadline: "asc" }, { created_at: "desc" }],
+    }),
   ]);
 
   type TaskItem = (typeof tasksWithDeadlines)[0] & { mentor_note?: string | null; student_note?: string | null };
   type ChecklistRow = TaskItem & { deadlineStatus: ReturnType<typeof getDeadlineStatus>; type: "checklist" };
   const processedChecklist: ChecklistRow[] = tasksWithDeadlines
-    .filter((t: (typeof tasksWithDeadlines)[0]): t is TaskItem => !!t.task && !!t.deadline)
+    .filter((t: (typeof tasksWithDeadlines)[0]): t is TaskItem => !!t.checklist_tasks && !!t.deadline)
     .map((t: TaskItem) => {
       const deadlineStatus = getDeadlineStatus(t.deadline!);
       return { ...t, deadlineStatus, type: "checklist" as const };
@@ -249,8 +245,7 @@ export default async function MentorDeadlinesPage() {
     type: "custom";
     id: string;
     student_id: string;
-    task: null;
-    student: { user_id: string; users: { full_name: string | null; email: string | null } | null };
+    students: { user_id: string; users: { full_name: string | null; email: string | null } | null };
     taskTitle: string;
     stageName: null;
     deadline: Date | null;
@@ -278,8 +273,7 @@ export default async function MentorDeadlinesPage() {
       type: "custom",
       id: c.id,
       student_id: c.student_id,
-      task: null,
-      student: c.student,
+      students: c.students,
       taskTitle: c.title,
       stageName: null,
       deadline,
@@ -383,13 +377,13 @@ export default async function MentorDeadlinesPage() {
                   {combinedRows.map((item) => {
                     const StatusIcon = item.deadlineStatus.icon;
                     const statusInfo = getStatusLabel(item.status);
-                    const taskTitle = item.type === "custom" ? item.taskTitle : item.task?.title ?? "";
-                    const stageName = item.type === "custom" ? item.stageName : item.task?.stage?.name ?? null;
+                    const taskTitle = item.type === "custom" ? item.taskTitle : item.checklist_tasks?.title ?? "";
+                    const stageName = item.type === "custom" ? item.stageName : item.checklist_tasks?.checklist_stages?.name ?? null;
                     const viewItem = {
                       id: item.id,
                       student_id: item.student_id,
-                      studentName: item.student?.users?.full_name || "Không rõ",
-                      studentEmail: item.student?.users?.email ?? null,
+                      studentName: item.students?.users?.full_name || "Không rõ",
+                      studentEmail: item.students?.users?.email ?? null,
                       taskTitle,
                       stageName,
                       deadlineLabel: item.deadlineStatus.label,
@@ -409,10 +403,10 @@ export default async function MentorDeadlinesPage() {
                             href={`/mentor/student/${item.student_id}`}
                             className="font-medium text-foreground hover:text-primary hover:underline"
                           >
-                            {item.student?.users?.full_name || "Không rõ"}
+                            {item.students?.users?.full_name || "Không rõ"}
                           </Link>
                           <div className="mt-0.5 text-sm text-muted-foreground">
-                            {item.student?.users?.email}
+                            {item.students?.users?.email}
                           </div>
                         </td>
                         <td className="px-4 py-3 sm:px-6">

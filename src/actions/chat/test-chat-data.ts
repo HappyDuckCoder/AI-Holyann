@@ -7,7 +7,7 @@ export async function testChatData() {
         // Get chat rooms
         const rooms = await prisma.chat_rooms.findMany({
             include: {
-                participants: {
+                chat_participants: {
                     include: {
                         users: {
                             select: {
@@ -17,7 +17,7 @@ export async function testChatData() {
                         }
                     }
                 },
-                messages: {
+                chat_messages: {
                     orderBy: {
                         created_at: 'desc'
                     },

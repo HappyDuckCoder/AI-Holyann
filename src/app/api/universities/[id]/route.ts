@@ -1,7 +1,6 @@
 /**
  * GET /api/universities/[id]
- * Public API – chi tiết một trường QS (no auth).
- * Returns: UniversityRanking | 404
+ * Public API – chi tiết một trường QS (schema: university_rankings).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -17,9 +16,13 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Missing id' }, { status: 400 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- delegate name from schema (university_rankings)
-    const university = await (prisma as any).university_rankings.findUnique({
-      where: { id },
+    const numId = parseInt(id, 10);
+    if (Number.isNaN(numId)) {
+      return NextResponse.json({ success: false, error: 'Invalid id' }, { status: 400 });
+    }
+
+    const university = await prisma.university_rankings.findUnique({
+      where: { id: numId },
     });
 
     if (!university) {

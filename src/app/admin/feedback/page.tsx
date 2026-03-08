@@ -52,7 +52,7 @@ interface SupportRequest {
   image_url: string | null;
   status: string;
   created_at: Date;
-  student: {
+  users: {
     id: string;
     full_name: string;
     email: string;
@@ -143,10 +143,10 @@ function AdminFeedbackPage() {
   const filteredRequests = searchQuery
     ? requests.filter(
         (r) =>
-          r.student.full_name
+          r.users.full_name
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          r.student.email
+          r.users.email
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
           r.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -288,14 +288,14 @@ function AdminFeedbackPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                        {req.student.full_name?.charAt(0).toUpperCase() || "?"}
+                        {req.users.full_name?.charAt(0).toUpperCase() || "?"}
                       </div>
                       <div className="min-w-0">
                         <p className="truncate font-medium text-sm">
-                          {req.student.full_name}
+                          {req.users.full_name}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {req.student.email}
+                          {req.users.email}
                         </p>
                       </div>
                     </div>
@@ -365,29 +365,31 @@ function AdminFeedbackPage() {
 
       {/* Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquareText className="h-5 w-5 text-indigo-500" />
-              Chi tiết phản hồi
-            </DialogTitle>
-          </DialogHeader>
-
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col gap-0 p-0">
+          <div className="shrink-0 px-6 pt-6 pb-2 pr-10 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquareText className="h-5 w-5 text-indigo-500" />
+                Chi tiết phản hồi
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
           {selectedRequest && (
             <div className="space-y-4">
               {/* Student info */}
               <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                  {selectedRequest.student.full_name
+                  {selectedRequest.users.full_name
                     ?.charAt(0)
                     .toUpperCase() || "?"}
                 </div>
                 <div>
                   <p className="font-medium">
-                    {selectedRequest.student.full_name}
+                    {selectedRequest.users.full_name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedRequest.student.email}
+                    {selectedRequest.users.email}
                   </p>
                 </div>
               </div>
@@ -490,6 +492,7 @@ function AdminFeedbackPage() {
               </div>
             </div>
           )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

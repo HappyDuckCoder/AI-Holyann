@@ -44,7 +44,7 @@ export async function sendMessage(input: SendMessageInput) {
     const room = await prisma.chat_rooms.findUnique({
       where: { id: roomId },
       include: {
-        participants: {
+        chat_participants: {
           where: { is_active: true },
           include: { users: true },
         },
@@ -63,12 +63,14 @@ export async function sendMessage(input: SendMessageInput) {
     const message = await prisma.$transaction(async (tx) => {
       const newMessage = await tx.chat_messages.create({
         data: {
+          id: crypto.randomUUID(),
           room_id: roomId,
           sender_id: senderId,
           content,
           type,
-          attachments: {
+          chat_attachments: {
             create: attachments.map((att) => ({
+              id: crypto.randomUUID(),
               file_url: att.fileUrl,
               file_name: att.fileName,
               file_type: att.fileType,
@@ -78,7 +80,7 @@ export async function sendMessage(input: SendMessageInput) {
           },
         },
         include: {
-          attachments: true,
+          chat_attachments: true,
           users: true,
         },
       });
@@ -114,7 +116,7 @@ export async function sendMessage(input: SendMessageInput) {
           avatar_url: message.users.avatar_url,
           role: message.users.role,
         },
-        attachments: message.attachments,
+        attachments: message.chat_attachments,
         is_edited: false,
       };
 
@@ -153,7 +155,7 @@ export async function sendMessage(input: SendMessageInput) {
     }
 
     // Gửi email notification (async, không block)
-    const otherParticipants = room.participants.filter((p) => p.user_id !== senderId);
+    const otherParticipants = room.chat_participants.filter((p) => p.user_id !== senderId);
 
     for (const participant of otherParticipants) {
       // Chỉ gửi email nếu người nhận đã không đọc tin nhắn > 15 phút

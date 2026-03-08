@@ -53,13 +53,13 @@ export async function GET() {
         status: { in: ['PENDING', 'IN_PROGRESS', 'NEEDS_REVISION'] }
       },
       include: {
-        task: {
+        checklist_tasks: {
           select: {
             id: true,
             title: true
           }
         },
-        student: {
+        students: {
           select: {
             user_id: true,
             users: {
@@ -78,7 +78,7 @@ export async function GET() {
 
     // Process and format the data
     const formattedTasks = tasksWithDeadlines
-      .filter(t => t.task && t.deadline)
+      .filter(t => t.checklist_tasks && t.deadline)
       .map(t => {
         const deadlineDate = new Date(t.deadline!);
         deadlineDate.setHours(0, 0, 0, 0);
@@ -88,8 +88,8 @@ export async function GET() {
 
         return {
           id: t.id,
-          task_title: t.task!.title,
-          student_name: t.student.users.full_name,
+          task_title: t.checklist_tasks!.title,
+          student_name: t.students.users?.full_name,
           student_id: t.student_id,
           deadline: t.deadline!.toISOString(),
           status: t.status,

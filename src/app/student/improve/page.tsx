@@ -2392,10 +2392,7 @@ export default function ImprovePage() {
                       <div className="relative min-h-[320px]">
                         {!essayContent.trim() && !currentEssayId && (
                           <div
-                            className="absolute inset-0 p-8 pt-10 pointer-events-none text-muted-foreground text-base leading-relaxed"
-                            style={{
-                              fontFamily: 'Georgia, "Times New Roman", serif',
-                            }}
+                            className="font-essay absolute inset-0 p-8 pt-10 pointer-events-none text-muted-foreground text-base leading-relaxed"
                           >
                             Bắt đầu viết bài luận của bạn... (bấm Lưu bài luận
                             để tạo mới)
@@ -2405,10 +2402,7 @@ export default function ImprovePage() {
                           ref={editorRef}
                           contentEditable
                           suppressContentEditableWarning
-                          className="relative w-full min-h-[320px] p-8 pt-10 rounded-2xl bg-muted/10 dark:bg-muted/20 text-foreground text-base leading-relaxed overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-inset"
-                          style={{
-                            fontFamily: 'Georgia, "Times New Roman", serif',
-                          }}
+                          className="font-essay relative w-full min-h-[320px] p-8 pt-10 rounded-2xl bg-muted/10 dark:bg-muted/20 text-foreground text-base leading-relaxed overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-inset"
                           onInput={(e) =>
                             setEssayContent(
                               (e.target as HTMLDivElement).innerHTML,

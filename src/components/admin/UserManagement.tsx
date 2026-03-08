@@ -204,19 +204,23 @@ export default function UserManagement() {
         }
     }
 
-    const handleToggleStatus = async (user: User) => {
+    const handleSubscriptionChange = async (user: User, plan: string) => {
         try {
-            const response = await fetch(`/api/admin/users/${user.id}/status`, {
+            const response = await fetch(`/api/admin/users/${user.id}/subscription`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ is_active: !user.is_active })
+                body: JSON.stringify({ plan })
             })
 
             if (response.ok) {
                 await fetchUsers()
+            } else {
+                const data = await response.json().catch(() => ({}))
+                alert(data?.message || 'Không thể đổi gói')
             }
         } catch (error) {
-            console.error('Error toggling status:', error)
+            console.error('Error updating subscription:', error)
+            alert('Có lỗi khi đổi gói')
         }
     }
 
@@ -316,7 +320,7 @@ export default function UserManagement() {
                     loading={loading}
                     onEdit={handleEditUser}
                     onDelete={handleDeleteClick}
-                    onToggleStatus={handleToggleStatus}
+                    onSubscriptionChange={handleSubscriptionChange}
                 />
 
                 {/* Pagination */}

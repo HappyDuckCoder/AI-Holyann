@@ -3,9 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
   GraduationCap,
   BookOpen,
   CheckSquare,
@@ -15,6 +12,8 @@ import {
   Brain,
   CalendarClock,
   ListTodo,
+  Video,
+  Target,
   LucideIcon,
 } from "lucide-react";
 import { QuickStatItem } from "./types";
@@ -27,6 +26,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Calendar,
   UserCheck,
   Brain,
+  Video,
+  Target,
 };
 
 type AccentStyle = {
@@ -112,12 +113,21 @@ function getAccentStyle(item: QuickStatItem): AccentStyle {
     };
   }
 
-  if (item.id === "deadlines") {
+  if (item.id === "meetings") {
     return {
       ...base,
-      iconBg: "bg-destructive/10",
-      iconText: "text-destructive",
-      borderLeft: "border-l-destructive",
+      iconBg: "bg-violet-500/10",
+      iconText: "text-violet-600 dark:text-violet-400",
+      borderLeft: "border-l-violet-500",
+    };
+  }
+
+  if (item.id === "goal") {
+    return {
+      ...base,
+      iconBg: "bg-rose-500/10",
+      iconText: "text-rose-600 dark:text-rose-400",
+      borderLeft: "border-l-rose-500",
     };
   }
 
@@ -126,7 +136,8 @@ function getAccentStyle(item: QuickStatItem): AccentStyle {
 
 function getIconOverride(item: QuickStatItem): LucideIcon | null {
   if (item.id === "tasks") return ListTodo;
-  if (item.id === "deadlines") return CalendarClock;
+  if (item.id === "meetings") return Video;
+  if (item.id === "goal") return Target;
   return null;
 }
 
@@ -190,7 +201,11 @@ export function QuickStatCard({ item, index }: QuickStatCardProps) {
           {item.label}
         </span>
       </div>
-      <p className="font-heading text-3xl font-bold tracking-tight text-primary dark:text-foreground tabular-nums">
+      <p
+        className={`font-heading font-bold tracking-tight text-primary dark:text-foreground ${
+          item.id === "goal" ? "text-lg line-clamp-2" : "text-3xl tabular-nums"
+        }`}
+      >
         {displayNumber != null ? displayNumber : item.value}
       </p>
       {item.trend && (

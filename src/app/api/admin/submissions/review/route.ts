@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
                 ...(status === 'COMPLETED' && { completed_at: new Date() })
             },
             include: {
-                student: {
+                students: {
                     include: {
                         users: {
                             select: {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
                         }
                     }
                 },
-                task: {
+                checklist_tasks: {
                     select: {
                         title: true
                     }

@@ -55,7 +55,7 @@ export async function GET(
                         role: true
                     }
                 },
-                attachments: {
+                chat_attachments: {
                     select: {
                         id: true,
                         file_url: true,
@@ -90,7 +90,7 @@ export async function GET(
                 role: message.users.role
             },
             isFromMe: message.sender_id === userId,
-            attachments: message.attachments.map(att => ({
+            attachments: message.chat_attachments.map(att => ({
                 id: att.id,
                 url: att.file_url,
                 name: att.file_name,

@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/auth-config'
 import { TaskStatus } from '@prisma/client'
+import { requirePremium } from '@/lib/api/require-premium'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const forbidden = await requirePremium(request)
+        if (forbidden) return forbidden
+
         const session = await getServerSession(authOptions)
 
         if (!session?.user?.id) {
@@ -48,28 +52,28 @@ export async function GET() {
         // Get tasks with progress
         const tasks = await prisma.checklist_tasks.findMany({
             include: {
-                stage: {
+                checklist_stages: {
                     select: {
                         id: true,
                         name: true,
                         order_index: true
                     }
                 },
-                student_progress: {
+                student_task_progress: {
                     where: {
                         student_id: studentId
                     }
                 }
             },
             orderBy: [
-                { stage: { order_index: 'asc' } },
+                { checklist_stages: { order_index: 'asc' } },
                 { order_index: 'asc' }
             ]
         })
 
         // Transform tasks to include status
         const transformedTasks = tasks.map(task => {
-            const progress = task.student_progress[0] // First match due to unique constraint
+            const progress = task.student_task_progress[0] // First match due to unique constraint
 
             return {
                 id: task.id,

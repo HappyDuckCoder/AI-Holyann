@@ -27,13 +27,13 @@ interface SubmittedFile {
     status: 'SUBMITTED' | 'COMPLETED' | 'NEEDS_REVISION';
     completed_at: string;
     mentor_note?: string;
-    student: {
+    students: {
         users: {
             full_name: string;
             email: string;
         }
     };
-    task: {
+    checklist_tasks: {
         title: string;
         description?: string;
     };
@@ -158,19 +158,19 @@ export default function MentorReviewPage() {
                     <Card key={submission.id} className="hover:shadow-lg transition-shadow">
                         <CardHeader className="pb-4">
                             <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg">{submission.student.users.full_name}</CardTitle>
+                                <CardTitle className="text-lg">{submission.students.users.full_name}</CardTitle>
                                 {getStatusBadge(submission.status)}
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <User size={14}/>
-                                {submission.student.users.email}
+                                {submission.students.users.email}
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <h4 className="font-semibold text-gray-900 mb-1">{submission.task.title}</h4>
-                                {submission.task.description && (
-                                    <p className="text-sm text-gray-600">{submission.task.description}</p>
+                                <h4 className="font-semibold text-gray-900 mb-1">{submission.checklist_tasks.title}</h4>
+                                {submission.checklist_tasks.description && (
+                                    <p className="text-sm text-gray-600">{submission.checklist_tasks.description}</p>
                                 )}
                             </div>
 
@@ -244,8 +244,8 @@ export default function MentorReviewPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--overlay)]">
                     <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                         <CardHeader>
-                            <CardTitle>Review File - {selectedSubmission.student.users.full_name}</CardTitle>
-                            <p className="text-sm text-gray-600">{selectedSubmission.task.title}</p>
+                            <CardTitle>Review File - {selectedSubmission.students.users.full_name}</CardTitle>
+                            <p className="text-sm text-gray-600">{selectedSubmission.checklist_tasks.title}</p>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex gap-2">

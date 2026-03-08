@@ -13,13 +13,13 @@ interface TaskWithProgress {
     link_to: string | null
     is_required: boolean
     order_index: number
-    stage: {
+    checklist_stages: {
         id: number
         name: string
         description: string | null
         order_index: number
     }
-    student_progress: Array<{
+    student_task_progress: Array<{
         id: string
         status: TaskStatus
         submission_url: string | null
@@ -35,7 +35,7 @@ interface StageWithTasks {
     name: string
     description: string | null
     order_index: number
-    tasks: TaskWithProgress[]
+    checklist_tasks: TaskWithProgress[]
 }
 
 export default async function ChecklistDashboardPage() {
@@ -63,9 +63,9 @@ export default async function ChecklistDashboardPage() {
     // 3. Data Fetching - Get stages with tasks and progress
     const stagesWithTasks: StageWithTasks[] = await prisma.checklist_stages.findMany({
         include: {
-            tasks: {
+            checklist_tasks: {
                 include: {
-                    stage: {
+                    checklist_stages: {
                         select: {
                             id: true,
                             name: true,
@@ -73,7 +73,7 @@ export default async function ChecklistDashboardPage() {
                             order_index: true
                         }
                     },
-                    student_progress: {
+                    student_task_progress: {
                         where: {
                             student_id: currentUserId
                         },
@@ -99,15 +99,15 @@ export default async function ChecklistDashboardPage() {
     })
 
     // 4. Data Transformation - Calculate progress stats
-    const allTasks = stagesWithTasks.flatMap(stage => stage.tasks)
+    const allTasks = stagesWithTasks.flatMap(stage => stage.checklist_tasks)
     const completedTasks = allTasks.filter(task =>
-        task.student_progress.some(progress => progress.status === TaskStatus.COMPLETED)
+        task.student_task_progress.some(progress => progress.status === TaskStatus.COMPLETED)
     )
     const submittedTasks = allTasks.filter(task =>
-        task.student_progress.some(progress => progress.status === TaskStatus.SUBMITTED)
+        task.student_task_progress.some(progress => progress.status === TaskStatus.SUBMITTED)
     )
     const inProgressTasks = allTasks.filter(task =>
-        task.student_progress.some(progress => progress.status === TaskStatus.IN_PROGRESS)
+        task.student_task_progress.some(progress => progress.status === TaskStatus.IN_PROGRESS)
     )
 
     const overallProgress = allTasks.length > 0
@@ -116,7 +116,7 @@ export default async function ChecklistDashboardPage() {
 
     // Helper function to get task progress data
     const getTaskInitialData = (task: TaskWithProgress) => {
-        const progress = task.student_progress[0] // Get first (and only) progress record
+        const progress = task.student_task_progress[0] // Get first (and only) progress record
 
         return progress ? {
             status: progress.status,
@@ -213,11 +213,11 @@ export default async function ChecklistDashboardPage() {
                 {/* Stages List */}
                 <div className="space-y-8">
                     {stagesWithTasks.map((stage, stageIndex) => {
-                        const stageCompletedTasks = stage.tasks.filter(task =>
-                            task.student_progress.some(progress => progress.status === TaskStatus.COMPLETED)
+                        const stageCompletedTasks = stage.checklist_tasks.filter(task =>
+                            task.student_task_progress.some(progress => progress.status === TaskStatus.COMPLETED)
                         )
-                        const stageProgress = stage.tasks.length > 0
-                            ? Math.round((stageCompletedTasks.length / stage.tasks.length) * 100)
+                        const stageProgress = stage.checklist_tasks.length > 0
+                            ? Math.round((stageCompletedTasks.length / stage.checklist_tasks.length) * 100)
                             : 0
 
                         // Simple unlock logic: first stage always unlocked, others need previous stage to be 80% complete
@@ -254,7 +254,7 @@ export default async function ChecklistDashboardPage() {
                                                 {stageProgress}%
                                             </div>
                                             <div className="text-xs text-gray-500">
-                                                {stageCompletedTasks.length}/{stage.tasks.length} hoàn thành
+                                                {stageCompletedTasks.length}/{stage.checklist_tasks.length} hoàn thành
                                             </div>
                                         </div>
                                     </div>
@@ -282,7 +282,7 @@ export default async function ChecklistDashboardPage() {
                                 {/* Tasks List */}
                                 {isUnlocked && (
                                     <div className="p-6 space-y-4">
-                                        {stage.tasks.map((task) => {
+                                        {stage.checklist_tasks.map((task) => {
                                             const initialData = getTaskInitialData(task)
 
                                             if (isUploadTask(task)) {

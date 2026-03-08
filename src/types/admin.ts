@@ -12,6 +12,9 @@ export interface User {
   avatar_url: string | null;
   created_at: Date | string;
   auth_provider?: string;
+  subscriptionPlan?: string | null;
+  subscriptionStart?: Date | string | null;
+  subscriptionEnd?: Date | string | null;
 }
 
 export type MentorType = 'AS' | 'ACS' | 'ARD';

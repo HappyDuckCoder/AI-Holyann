@@ -39,7 +39,7 @@ export async function GET(
         content: true,
         created_at: true,
         updated_at: true,
-        _count: { select: { comments: true } },
+        _count: { select: { essay_comments: true } },
       },
     });
 

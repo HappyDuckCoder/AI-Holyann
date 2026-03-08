@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { useSubscription } from "@/hooks/useSubscription";
-import { FeatureGate, LockIcon } from "@/components/FeatureGate";
 import { StudentPageContainer } from "@/components/student";
 import { PageLoading } from "@/components/ui/PageLoading";
 import RoleGuard from "@/components/auth/RoleGuard";
@@ -103,7 +101,6 @@ function safeStr(v: unknown): string {
 
 export default function ReportsPage() {
   const { session, isLoading: sessionLoading, isAuthenticated } = useAuthSession();
-  const subscription = useSubscription();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [improveResults, setImproveResults] = useState<ImproveResults | null>(null);
@@ -285,13 +282,8 @@ export default function ReportsPage() {
                 <FileBarChart className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">
-                  Báo cáo
-                  <LockIcon show={!subscription.hasQuota("reportsCount", (session?.user as any)?.reportsUsed)} />
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Phiên bản in & tải báo cáo tổng hợp hồ sơ và module AI
-                </p>
+                <h1 className="text-2xl font-bold text-foreground">Báo cáo</h1>
+                <p className="text-sm text-muted-foreground">Phiên bản in & tải báo cáo tổng hợp hồ sơ và module AI</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -317,27 +309,20 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* Report content - printable, compact (limited by subscription) */}
-          <FeatureGate
-            isLocked={!subscription.hasQuota("reportsCount", (session?.user as any)?.reportsUsed)}
-            requiredPlan="Plus trở lên"
-            message="Bạn đã dùng hết lượt tạo báo cáo. Nâng cấp để dùng không giới hạn."
+          {/* Report content - printable, compact */}
+          <div
+            id="report-print"
+            ref={reportRef}
+            className="rounded-xl border border-border bg-card overflow-hidden print:border-0 print:shadow-none print:text-black print:bg-white"
           >
-            <div
-              id="report-print"
-              ref={reportRef}
-              className="rounded-xl border border-border bg-card overflow-hidden print:border-0 print:shadow-none print:text-black print:bg-white"
-            >
-              <div className="px-4 py-3 border-b border-border bg-muted/30 print:py-2">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-lg font-bold text-foreground">Báo cáo tổng hợp hồ sơ & Module AI</h2>
-                  <span className="text-xs text-muted-foreground">
-                    {profile?.name ?? "—"} · {new Date().toLocaleDateString("vi-VN")}
-                  </span>
-                </div>
+            <div className="px-4 py-3 border-b border-border bg-muted/30 print:py-2">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-bold text-foreground">Báo cáo tổng hợp hồ sơ & Module AI</h2>
+                <span className="text-xs text-muted-foreground">{profile?.name ?? "—"} · {new Date().toLocaleDateString("vi-VN")}</span>
               </div>
+            </div>
 
-              <div className="p-4 space-y-4 print:p-3 print:space-y-3">
+            <div className="p-4 space-y-4 print:p-3 print:space-y-3">
               {/* Row 1: Profile (compact) + Pillars chart */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print:grid-cols-2 print:gap-3">
                 <Card className="border border-border print:shadow-none">
@@ -575,25 +560,16 @@ export default function ReportsPage() {
                 </Card>
               )}
 
-                {!profileData?.feature1_output?.summary?.total_pillar_scores &&
-                  !profileData?.feature1_output?.summaryText &&
-                  !profileData?.feature1_output?.["B. Phân tích SWOT"] &&
-                  !profileData?.feature2_output?.assessment &&
-                  !profileData?.feature3_output?.universities &&
-                  !profileData?.feature3_output?.summary &&
-                  !profileData?.feature3_output?.roadmap &&
-                  !improveResults?.analysis &&
-                  !improveResults?.enhance && (
-                    <Card className="border border-dashed border-border print:shadow-none">
-                      <CardContent className="py-4 text-center text-muted-foreground text-xs">
-                        <Award className="h-6 w-6 mx-auto mb-1 opacity-50" />
-                        Chưa có dữ liệu module AI. Hoàn thành hồ sơ, bài test và trang Improve.
-                      </CardContent>
-                    </Card>
-                  )}
-              </div>
+              {!profileData?.feature1_output?.summary?.total_pillar_scores && !profileData?.feature1_output?.summaryText && !profileData?.feature1_output?.["B. Phân tích SWOT"] && !profileData?.feature2_output?.assessment && !profileData?.feature3_output?.universities && !profileData?.feature3_output?.summary && !profileData?.feature3_output?.roadmap && !improveResults?.analysis && !improveResults?.enhance && (
+                <Card className="border border-dashed border-border print:shadow-none">
+                  <CardContent className="py-4 text-center text-muted-foreground text-xs">
+                    <Award className="h-6 w-6 mx-auto mb-1 opacity-50" />
+                    Chưa có dữ liệu module AI. Hoàn thành hồ sơ, bài test và trang Improve.
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </FeatureGate>
+          </div>
         </div>
 
       </StudentPageContainer>

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Users, Calendar, Star, AlertTriangle, Clock, ArrowRight, CalendarClock } from 'lucide-react';
 import StatsCard from './StatsCard';
 import UpcomingSchedule from './UpcomingSchedule';
-import type { MentorDashboardStats, ScheduleEvent } from '@/types/mentor';
+import { getMentorMeetings } from '@/actions/calendar';
+import type { MentorDashboardStats } from '@/types/mentor';
 
 interface DeadlineTask {
   id: string;
@@ -18,6 +19,24 @@ interface DeadlineTask {
   days_remaining: number;
 }
 
+interface Meeting {
+  id: string;
+  title: string;
+  description: string | null;
+  student_email: string;
+  start_time: Date;
+  end_time: Date;
+  duration_minutes: number;
+  meet_link: string | null;
+  host_meet_link: string | null;
+  created_at: Date;
+  student_user?: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
 export default function MentorDashboardContent() {
   const { data: session } = useSession();
   const [stats, setStats] = useState<MentorDashboardStats>({
@@ -26,16 +45,27 @@ export default function MentorDashboardContent() {
     averageRating: 5.0,
   });
   const [urgentDeadlines, setUrgentDeadlines] = useState<DeadlineTask[]>([]);
-  const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshMeetings = useCallback(async () => {
+    try {
+      const result = await getMentorMeetings();
+      if (result.success && result.data) {
+        setMeetings(result.data as Meeting[]);
+      }
+    } catch (error) {
+      console.error('Error refreshing meetings:', error);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch stats and urgent deadlines
-        const [statsRes, deadlinesRes] = await Promise.all([
+        const [statsRes, deadlinesRes, meetingsResult] = await Promise.all([
           fetch('/api/mentor/dashboard/stats'),
           fetch('/api/mentor/dashboard/urgent-deadlines'),
+          getMentorMeetings(),
         ]);
 
         if (!statsRes.ok) {
@@ -51,14 +81,14 @@ export default function MentorDashboardContent() {
           averageRating: statsData.averageRating,
         });
 
-        // Handle urgent deadlines
         if (deadlinesRes.ok) {
           const deadlinesData = await deadlinesRes.json();
           setUrgentDeadlines(deadlinesData);
         }
 
-        // Mock events for now
-        setEvents([]);
+        if (meetingsResult.success && meetingsResult.data) {
+          setMeetings(meetingsResult.data as Meeting[]);
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -76,7 +106,6 @@ export default function MentorDashboardContent() {
     return { bg: 'bg-muted/50 dark:bg-muted/30', text: 'text-foreground', border: 'border-border' };
   };
 
-  // Helper to format deadline text
   const getDeadlineText = (daysRemaining: number) => {
     if (daysRemaining < 0) return `Quá hạn ${Math.abs(daysRemaining)} ngày`;
     if (daysRemaining === 0) return 'Hôm nay!';
@@ -231,7 +260,7 @@ export default function MentorDashboardContent() {
           </div>
 
           {/* Schedule */}
-          <UpcomingSchedule events={events} mentorEmail={session?.user?.email || ''} />
+          <UpcomingSchedule meetings={meetings} mentorEmail={session?.user?.email || ''} onMeetingCreated={refreshMeetings} />
         </div>
       </div>
     </div>

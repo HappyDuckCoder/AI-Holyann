@@ -8,7 +8,7 @@ export default function StudentLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300 font-university-sans">
       <StudentNavbar />
       <main className="w-full">{children}</main>
       <FloatingHelpButton />

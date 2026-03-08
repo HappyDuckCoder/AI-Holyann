@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { callProfileAnalysis } from "@/lib/ai-api-client";
 import { revalidatePath } from "next/cache";
+import crypto from "crypto";
 
 // Types
 export interface AnalysisResult {
@@ -94,8 +95,8 @@ async function buildPayloadFromStudent(studentId: string): Promise<any> {
   const student = await prisma.students.findUnique({
     where: { user_id: studentId },
     include: {
-      academic_profile: true,
-      background: {
+      student_academic_profiles: true,
+      student_backgrounds: {
         include: {
           academic_awards: true,
           academic_extracurriculars: true,
@@ -115,7 +116,7 @@ async function buildPayloadFromStudent(studentId: string): Promise<any> {
 
   // Build academic section
   const gpaData =
-    (student.academic_profile?.gpa_transcript_details as any) || {};
+    (student.student_academic_profiles?.gpa_transcript_details as any) || {};
   const gpa =
     gpaData.grade12 ||
     gpaData.grade11 ||
@@ -124,13 +125,13 @@ async function buildPayloadFromStudent(studentId: string): Promise<any> {
     7.0;
 
   const subjectScores =
-    student.background?.subject_scores?.map((s: any) => ({
+    student.student_backgrounds?.subject_scores?.map((s: any) => ({
       subject: s.subject,
       score: s.score,
     })) || [];
 
   const academicAwards =
-    student.background?.academic_awards?.map((a: any) => ({
+    student.student_backgrounds?.academic_awards?.map((a: any) => ({
       award_name: a.award_name,
       year: a.year || undefined,
       rank: a.rank || undefined,
@@ -140,9 +141,9 @@ async function buildPayloadFromStudent(studentId: string): Promise<any> {
 
   // Build language section
   const englishCerts =
-    (student.academic_profile?.english_certificates as any) || {};
+    (student.student_academic_profiles?.english_certificates as any) || {};
   const stdTests =
-    (student.academic_profile?.standardized_tests as any) || {};
+    (student.student_academic_profiles?.standardized_tests as any) || {};
 
   const languages: { language_name: string; score: string }[] = [];
   const standardizedTests: { test_name: string; score: string }[] = [];
@@ -173,13 +174,13 @@ async function buildPayloadFromStudent(studentId: string): Promise<any> {
 
   // Build actions section
   const actions = [
-    ...(student.background?.academic_extracurriculars || []).map((e: any) => ({
+    ...(student.student_backgrounds?.academic_extracurriculars || []).map((e: any) => ({
       action_name: e.activity_name,
       role: e.role?.toUpperCase() || "MEMBER",
       scale: e.scale || 10,
       region: e.region || "school",
     })),
-    ...(student.background?.non_academic_extracurriculars || []).map(
+    ...(student.student_backgrounds?.non_academic_extracurriculars || []).map(
       (e: any) => ({
         action_name: e.activity_name,
         role: e.role?.toUpperCase() || "MEMBER",
@@ -191,7 +192,7 @@ async function buildPayloadFromStudent(studentId: string): Promise<any> {
 
   // Build non-academic awards
   const nonAcademicAwards =
-    student.background?.non_academic_awards?.map((a: any) => ({
+    student.student_backgrounds?.non_academic_awards?.map((a: any) => ({
       award_name: a.award_name,
       category: a.category || "art",
       year: a.year || undefined,
@@ -201,7 +202,7 @@ async function buildPayloadFromStudent(studentId: string): Promise<any> {
 
   // Build personal projects
   const personalProjects =
-    student.background?.personal_projects?.map((p: any) => ({
+    student.student_backgrounds?.personal_projects?.map((p: any) => ({
       project_name: p.project_name,
       topic: p.topic || "Science/Tech",
       description: p.description || undefined,
@@ -316,9 +317,10 @@ async function callAIAndSave(
   } else {
     savedRecord = await prisma.profile_analyses.create({
       data: {
+        id: crypto.randomUUID(),
         student_id: studentId,
         ...updateData,
-      } as Prisma.profile_analysesUncheckedCreateInput,
+      } as unknown as Prisma.profile_analysesUncheckedCreateInput,
     });
   }
 

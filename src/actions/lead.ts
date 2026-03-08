@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import {prisma} from "@/lib/prisma";
 
@@ -84,7 +85,7 @@ export async function submitLeadForm(
 
     // Step 3: Save to database
     await prisma.leads.create({
-      data: sanitizedData,
+      data: { id: randomUUID(), ...sanitizedData },
     });
 
     return {

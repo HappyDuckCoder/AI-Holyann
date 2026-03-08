@@ -1,14 +1,27 @@
 import { User } from '@/types/admin'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+
+const PLAN_OPTIONS = [
+    { value: 'FREE', label: 'Free' },
+    { value: 'PLUS', label: 'Plus' },
+    { value: 'PREMIUM', label: 'Premium' },
+] as const
 
 interface UserTableProps {
     users: User[]
     loading: boolean
     onEdit: (user: User) => void
     onDelete: (user: User) => void
-    onToggleStatus: (user: User) => void
+    onSubscriptionChange: (user: User, plan: string) => void
 }
 
-export default function UserTable({ users, loading, onEdit, onDelete, onToggleStatus }: UserTableProps) {
+export default function UserTable({ users, loading, onEdit, onDelete, onSubscriptionChange }: UserTableProps) {
     const getRoleBadge = (role: string) => {
         const badges = {
             STUDENT: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -57,7 +70,7 @@ export default function UserTable({ users, loading, onEdit, onDelete, onToggleSt
                         <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Người dùng</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground hidden md:table-cell">Email</th>
                         <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Vai trò</th>
-                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Trạng thái</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Gói</th>
                         <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Thao tác</th>
                     </tr>
                 </thead>
@@ -86,9 +99,25 @@ export default function UserTable({ users, loading, onEdit, onDelete, onToggleSt
                                 </span>
                             </td>
                             <td className="py-3 px-4">
-                                <button onClick={() => onToggleStatus(user)} className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${user.is_active ? 'bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
-                                    {user.is_active ? 'Hoạt động' : 'Khóa'}
-                                </button>
+                                {user.role === 'STUDENT' ? (
+                                    <Select
+                                        value={user.subscriptionPlan || 'FREE'}
+                                        onValueChange={(value) => onSubscriptionChange(user, value)}
+                                    >
+                                        <SelectTrigger className="h-8 w-[120px] text-xs font-semibold border-border">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {PLAN_OPTIONS.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value} className="text-sm">
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <span className="text-muted-foreground text-xs">—</span>
+                                )}
                             </td>
                             <td className="py-3 px-4">
                                 <div className="flex items-center justify-end gap-2">

@@ -23,10 +23,10 @@ export async function GET(
     const essay = await prisma.essays.findFirst({
       where: { id, student_id: studentId },
       include: {
-        comments: {
+        essay_comments: {
           orderBy: { created_at: 'asc' },
           include: {
-            author: {
+            users: {
               select: { id: true, full_name: true, email: true },
             },
           },

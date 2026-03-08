@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/get-user'
+import { requirePremium } from '@/lib/api/require-premium'
 
 /**
  * GET /api/chat/rooms
- * Lấy danh sách chat rooms của user hiện tại
+ * Lấy danh sách chat rooms của user hiện tại (Premium only)
  */
 export async function GET(request: NextRequest) {
     try {
+        const forbidden = await requirePremium(request)
+        if (forbidden) return forbidden
+
         const user = await getAuthenticatedUser(request)
         
         if (!user?.id) {
@@ -22,7 +26,7 @@ export async function GET(request: NextRequest) {
         // Lấy tất cả rooms mà user là participant
         const rooms = await prisma.chat_rooms.findMany({
             where: {
-                participants: {
+                chat_participants: {
                     some: {
                         user_id: userId,
                         is_active: true
@@ -32,7 +36,7 @@ export async function GET(request: NextRequest) {
                 status: 'ACTIVE'
             },
             include: {
-                participants: {
+                chat_participants: {
                     include: {
                         users: {
                             select: {
@@ -45,7 +49,7 @@ export async function GET(request: NextRequest) {
                         }
                     }
                 },
-                messages: {
+                chat_messages: {
                     orderBy: {
                         created_at: 'desc'
                     },
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
                 },
                 _count: {
                     select: {
-                        messages: true
+                        chat_messages: true
                     }
                 }
             },
@@ -76,18 +80,18 @@ export async function GET(request: NextRequest) {
 
         // Format dữ liệu để dễ sử dụng ở frontend
         const formattedRooms = rooms.map(room => {
-            const lastMessage = room.messages[0]
+            const lastMessage = room.chat_messages[0]
 
             // Find the current user's participant record
-            const myParticipant = room.participants.find(p => p.user_id === userId)
+            const myParticipant = room.chat_participants.find(p => p.user_id === userId)
 
             // Find other participant (for PRIVATE rooms) or first other participant (for GROUP rooms)
-            const otherParticipant = room.participants.find(p => p.user_id !== userId)
+            const otherParticipant = room.chat_participants.find(p => p.user_id !== userId)
 
             // Count unread messages (messages chưa được user hiện tại đọc)
             const unreadCount = myParticipant?.last_read_at
-                ? room._count.messages // Simplified - should count messages after last_read_at
-                : room._count.messages
+                ? room._count.chat_messages // Simplified - should count messages after last_read_at
+                : room._count.chat_messages
 
             return {
                 id: room.id,
@@ -142,6 +146,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
+        const forbidden = await requirePremium(request)
+        if (forbidden) return forbidden
+
         const user = await getAuthenticatedUser(request)
         
         if (!user?.id) {
@@ -166,6 +173,7 @@ export async function POST(request: NextRequest) {
         // Create room
         const room = await prisma.chat_rooms.create({
             data: {
+                id: crypto.randomUUID(),
                 name,
                 type,
                 student_id: userId, // Current user is the owner
@@ -178,6 +186,7 @@ export async function POST(request: NextRequest) {
         const allParticipantIds = [...new Set([userId, ...participantIds])]
         await prisma.chat_participants.createMany({
             data: allParticipantIds.map(pId => ({
+                id: crypto.randomUUID(),
                 room_id: room.id,
                 user_id: pId,
                 is_active: true

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 
 export type StudentProfileData = {
   student: {
@@ -30,8 +31,8 @@ export class ProfileAnalyzerDBService {
     const student = await prisma.students.findUnique({
       where: { user_id: studentId },
       include: {
-        academic_profile: true,
-        background: {
+        student_academic_profiles: true,
+        student_backgrounds: {
           include: {
             academic_awards: true,
             academic_extracurriculars: true,
@@ -59,25 +60,25 @@ export class ProfileAnalyzerDBService {
         yearly_budget: student.yearly_budget,
         personal_desire: student.personal_desire,
       },
-      academic: student.academic_profile
+      academic: student.student_academic_profiles
         ? {
-            gpa: student.academic_profile.gpa_transcript_details,
-            english: student.academic_profile.english_certificates,
-            standardized_tests: student.academic_profile.standardized_tests,
+            gpa: student.student_academic_profiles.gpa_transcript_details,
+            english: student.student_academic_profiles.english_certificates,
+            standardized_tests: student.student_academic_profiles.standardized_tests,
           }
         : null,
-      background: student.background
+      background: student.student_backgrounds
         ? {
             awards: [
-              ...student.background.academic_awards,
-              ...student.background.non_academic_awards,
+              ...student.student_backgrounds.academic_awards,
+              ...student.student_backgrounds.non_academic_awards,
             ],
             extracurriculars: [
-              ...student.background.academic_extracurriculars,
-              ...student.background.non_academic_extracurriculars,
+              ...student.student_backgrounds.academic_extracurriculars,
+              ...student.student_backgrounds.non_academic_extracurriculars,
             ],
-            research: student.background.research_experiences,
-            work_experience: student.background.work_experiences,
+            research: student.student_backgrounds.research_experiences,
+            work_experience: student.student_backgrounds.work_experiences,
           }
         : null,
     };
@@ -100,6 +101,7 @@ export class ProfileAnalyzerDBService {
   ) {
     return await prisma.profile_analyses.create({
       data: {
+        id: crypto.randomUUID(),
         student_id: studentId,
         overall_score: result.overall_score,
         academic_score: result.academic_score,

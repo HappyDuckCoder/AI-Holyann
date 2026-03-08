@@ -261,7 +261,7 @@ export default function AssignMentorForm({ students, mentors }: AssignMentorForm
                                         {isAlreadyAssigned ? (
                                             <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-2 rounded">
                                                 <span className="text-green-700 dark:text-green-400">
-                                                    ✓ Đã gán: {currentAssignment.mentor.user.full_name}
+                                                    ✓ Đã gán: {currentAssignment.mentors.users.full_name}
                                                 </span>
                                                 <button
                                                     type="button"

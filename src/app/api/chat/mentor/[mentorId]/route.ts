@@ -28,7 +28,7 @@ export async function GET(
         user_id: mentorId
       },
       include: {
-        user: {
+        users: {
           select: {
             id: true,
             full_name: true,
@@ -74,10 +74,10 @@ export async function GET(
     // Format response
     const formattedMentor = {
       id: mentor.user_id,
-      full_name: mentor.user.full_name,
-      email: mentor.user.email,
-      phone_number: mentor.user.phone_number,
-      avatar_url: mentor.user.avatar_url,
+      full_name: mentor.users.full_name,
+      email: mentor.users.email,
+      phone_number: mentor.users.phone_number,
+      avatar_url: mentor.users.avatar_url,
       specialization: mentor.specialization,
       bio: mentor.bio,
       linkedin_url: mentor.linkedin_url,
