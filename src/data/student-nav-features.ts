@@ -52,7 +52,7 @@ export const mainFeatures: NavFeature[] = [
   },
   {
     name: "Danh sách trường",
-    href: "/universities",
+    href: `${STUDENT_BASE}/universities`,
     icon: Building2,
     description: "Khám phá các trường đại học trong và ngoài nước",
     tier: "free",

@@ -13,6 +13,9 @@
   /* Cập nhật Font theo Brand */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  /* Font trang Universities – dùng cho khu vực student */
+  --font-university-sans: "DM Sans", ui-sans-serif, sans-serif;
+  --font-university-display: "Playfair Display", serif;
   /* Provide a safe fallback mono font stack to avoid unresolved custom property */
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
     "Courier New", monospace;
@@ -270,6 +273,14 @@
     @apply fixed inset-0 z-50 flex items-center justify-center;
     background-color: var(--overlay);
   }
+}
+
+/* University / Student fonts (DM Sans + Playfair Display) */
+.font-university-sans {
+  font-family: var(--font-university-sans);
+}
+.font-university-display {
+  font-family: var(--font-university-display);
 }
 
 /* Material Symbols */

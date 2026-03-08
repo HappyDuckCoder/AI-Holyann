@@ -128,6 +128,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+          rel="stylesheet"
+        />
+        <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />

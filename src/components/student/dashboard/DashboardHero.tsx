@@ -62,7 +62,7 @@ export function DashboardHero({ userName, stats }: DashboardHeroProps) {
         </p>
 
         {/* Main heading */}
-        <h1 className="mt-2 font-heading text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl">
+        <h1 className="mt-2 font-university-display text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl">
           Tổng quan hành trình du học
         </h1>
 

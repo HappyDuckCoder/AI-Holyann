@@ -789,6 +789,30 @@ model universities {
   student_match_school student_match_school[]
 }
 
+/// QS World University Rankings 2024 – seed từ prisma/seed-universities.ts
+model university_rankings {
+  id                    Int      @id @default(autoincrement())
+  qs_rank               Int      @unique
+  name                  String   @db.VarChar(500)
+  country               String   @db.VarChar(100)
+  country_code          String   @db.VarChar(10)
+  city                  String?  @db.VarChar(255)
+  region                String?  @db.VarChar(100)
+  type                  String?  @db.VarChar(50)
+  founded_year          Int?
+  total_students        Int?
+  website               String?  @db.VarChar(500)
+  qs_overall_score      Float
+  academic_reputation   Float
+  employer_reputation   Float
+  faculty_student_ratio  Float
+  citations_per_faculty Float
+  international_faculty Float
+  international_students Float
+  strong_subjects       String[]
+  description           String?  @db.Text
+}
+
 model users {
   id                    String                  @id @db.Uuid
   full_name             String                  @db.VarChar(100)
