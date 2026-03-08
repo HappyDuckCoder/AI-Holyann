@@ -90,7 +90,7 @@ export default function HeroSection() {
                 className="group h-12 rounded-full px-8 text-base font-semibold bg-gradient-to-r from-sky-600 to-cyan-500 text-white shadow-md shadow-sky-500/20 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/30"
               >
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   className="inline-flex items-center gap-2"
                 >
                   Khám phá ngay

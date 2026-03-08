@@ -21,7 +21,7 @@ import {
 import { Task, Stage, StudentProfile } from "@/components/types";
 import ProgressBar from "./ProgressBar";
 import StageNavigation from "./StageNavigation";
-import { scanCVWithAI } from "@/service/geminiService";
+import { scanCVWithAI } from "@/services/ai/geminiService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChecklistHeader } from "./ChecklistHeader";
 import { ChecklistFilters } from "./ChecklistFilters";

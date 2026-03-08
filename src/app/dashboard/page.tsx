@@ -1,27 +1,26 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/auth-config";
+import { redirect } from "next/navigation";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthSession } from '@/hooks/useAuthSession';
-import { getRoleDashboardPath } from '@/lib/utils/role-paths';
-import { PageLoading } from '@/components/ui/PageLoading';
-
-export default function DashboardRedirect() {
-  const router = useRouter();
-  const { user, isLoading } = useAuthSession();
-
-  useEffect(() => {
-    if (!isLoading && user) {
-      const dashboardPath = getRoleDashboardPath(user.role);
-      router.replace(dashboardPath);
-    } else if (!isLoading && !user) {
-      router.replace('/login');
-    }
-  }, [user, isLoading, router]);
-
-  return (
-    <div className="min-h-screen bg-background">
-      <PageLoading message="Đang chuyển hướng..." />
-    </div>
-  );
+/**
+ * Trang /dashboard: chuyển hướng theo role sau khi đăng nhập.
+ * - Student / user → /student/dashboard
+ * - Mentor → /mentor/dashboard
+ * - Admin → /admin/dashboard
+ * - Chưa đăng nhập → /login
+ */
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    redirect("/login");
+  }
+  const role = (session.user as { role?: string }).role?.toUpperCase();
+  if (role === "ADMIN") {
+    redirect("/admin/dashboard");
+  }
+  if (role === "MENTOR") {
+    redirect("/mentor/dashboard");
+  }
+  // STUDENT, user, hoặc mặc định
+  redirect("/student/dashboard");
 }

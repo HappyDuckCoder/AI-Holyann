@@ -79,7 +79,7 @@ export default function Register() {
 
     const handleGoogleSignIn = async () => {
         try {
-            await signIn('google', {callbackUrl: '/student/dashboard'})
+            await signIn('google', { callbackUrl: '/dashboard' })
         } catch (error) {
             console.error('Google sign in error:', error)
             setErrorMessage('Đăng nhập Google thất bại')
