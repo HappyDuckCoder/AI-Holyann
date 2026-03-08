@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
@@ -36,9 +37,8 @@ export async function GET() {
     const stageRecords = await prisma.checklist_stages.findMany({ orderBy: { order_index: 'asc' } });
     const [stage1, stage2, stage3, stage4, stage5, stage6] = stageRecords;
 
-    // Create tasks
-    const tasks = await prisma.checklist_tasks.createMany({
-      data: [
+    // Create tasks (each needs id for UUID PK)
+    const taskRows = [
         // Stage 1 - 5 tasks
         { stage_id: stage1.id, title: 'Scan bảng điểm học tập (Transcript)', description: 'Scan bảng điểm các năm học THPT, có xác nhận của nhà trường', is_required: true, order_index: 1 },
         { stage_id: stage1.id, title: 'Chuẩn bị chứng chỉ tiếng Anh', description: 'IELTS/TOEFL score report', link_to: 'https://www.ielts.org/', is_required: true, order_index: 2 },
@@ -89,7 +89,9 @@ export async function GET() {
         { stage_id: stage6.id, title: 'Nhận visa và chuẩn bị hành lý', description: 'Sau khi được duyệt, nhận visa', is_required: true, order_index: 8 },
         { stage_id: stage6.id, title: 'Book vé máy bay và chỗ ở', description: 'Đặt vé máy bay, liên hệ với trường về dormitory', is_required: true, order_index: 9 },
         { stage_id: stage6.id, title: 'Tham gia Orientation (nếu có)', description: 'Đăng ký tham gia các buổi orientation', is_required: false, order_index: 10 },
-      ]
+    ];
+    await prisma.checklist_tasks.createMany({
+      data: taskRows.map((row) => ({ id: randomUUID(), ...row })),
     });
 
     // Verify

@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
     // Tạo test message
     const message = await prisma.chat_messages.create({
       data: {
+        id: randomUUID(),
         room_id: participant.room_id,
         sender_id: session.user.id,
         content: content || 'Test message from Realtime Test',

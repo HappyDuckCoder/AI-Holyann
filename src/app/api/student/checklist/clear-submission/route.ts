@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-config';
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
                 updated_at: new Date(),
             },
             create: {
+                id: randomUUID(),
                 student_id: studentId,
                 task_id: taskId,
                 status: TaskStatus.PENDING,

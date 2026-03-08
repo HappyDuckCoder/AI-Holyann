@@ -3,6 +3,7 @@
  * POST /api/student/essays/[id]/comments — Thêm comment (chỉ MENTOR).
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-config';
@@ -39,7 +40,7 @@ export async function GET(
       where: { essay_id: essayId },
       orderBy: { created_at: 'asc' },
       include: {
-        author: {
+        users: {
           select: { id: true, full_name: true, email: true },
         },
       },
@@ -93,6 +94,7 @@ export async function POST(
 
     const comment = await prisma.essay_comments.create({
       data: {
+        id: randomUUID(),
         essay_id: essayId,
         author_id: session.user.id,
         content,
@@ -100,7 +102,7 @@ export async function POST(
         end_offset: end_offset ?? null,
       },
       include: {
-        author: {
+        users: {
           select: { id: true, full_name: true, email: true },
         },
       },
