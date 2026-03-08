@@ -1,8 +1,8 @@
-# HoEx — Ứng dụng Hướng nghiệp & Du học
+# HOEX — Ứng dụng Hướng nghiệp & Du học
 
 ## Tổng quan
 
-HoEx là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản trị viên với các luồng: **Student**, **Mentor**, **Admin** và trang **Pricing** (gói đăng ký cho học sinh).
+HOEX là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản trị viên với các luồng: **Student**, **Mentor**, **Admin** và trang **Pricing** (gói đăng ký cho học sinh).
 
 ---
 
