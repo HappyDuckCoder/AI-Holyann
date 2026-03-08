@@ -1,8 +1,99 @@
-# HOEX — Ứng dụng Hướng nghiệp & Du học
+# HoEx — Ứng dụng Hướng nghiệp & Du học
 
 ## Tổng quan
 
-HOEX là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản trị viên với các luồng: **Student**, **Mentor**, **Admin** và trang **Pricing** (gói đăng ký cho học sinh).
+HoEx là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản trị viên với các luồng: **Student**, **Mentor**, **Admin** và trang **Pricing**. Đăng nhập xong redirect theo role: Student → `/student/dashboard`, Mentor → `/mentor/dashboard`, Admin → `/admin/dashboard` (qua trang trung gian `/dashboard`).
+
+---
+
+## Cấu trúc thư mục
+
+```
+hoex/
+├── public/                 # Static assets (logo, images)
+├── src/
+│   ├── actions/            # Server actions (admin, calendar, support...)
+│   ├── app/                # Next.js App Router
+│   │   ├── layout.tsx      # Root layout
+│   │   ├── page.tsx        # Landing page (/)
+│   │   ├── globals.css
+│   │   ├── dashboard/      # Redirect theo role → student/mentor/admin dashboard
+│   │   │   └── page.tsx
+│   │   ├── api/            # API routes (auth, student, mentor, admin, chat...)
+│   │   ├── (auth)/         # Route group: không ảnh hưởng URL
+│   │   │   ├── login/
+│   │   │   ├── register/
+│   │   │   ├── forgot-password/
+│   │   │   └── reset-password/
+│   │   ├── (student)/      # Route group Student
+│   │   │   ├── layout.tsx  # Layout + StudentNavbar
+│   │   │   └── student/    # URL base: /student
+│   │   │       ├── dashboard/
+│   │   │       ├── profile/
+│   │   │       ├── profile-analysis/
+│   │   │       ├── target/
+│   │   │       ├── tests/
+│   │   │       ├── improve/
+│   │   │       ├── universities/
+│   │   │       ├── reports/
+│   │   │       ├── pricing/
+│   │   │       ├── checklist/
+│   │   │       ├── deadlines/
+│   │   │       ├── chat/
+│   │   │       ├── settings/
+│   │   │       └── ...
+│   │   ├── (mentor)/       # Route group Mentor
+│   │   │   ├── layout.tsx
+│   │   │   └── mentor/     # URL base: /mentor
+│   │   │       ├── dashboard/
+│   │   │       ├── students/
+│   │   │       ├── deadlines/
+│   │   │       ├── profile/
+│   │   │       └── chat/
+│   │   └── (admin)/        # Route group Admin
+│   │       ├── layout.tsx
+│   │       └── admin/      # URL base: /admin
+│   │           ├── dashboard/
+│   │           ├── users/
+│   │           ├── students/
+│   │           ├── mentors/
+│   │           ├── guests/
+│   │           ├── university-rankings/
+│   │           ├── feedback/
+│   │           └── settings/
+│   ├── components/
+│   │   ├── admin/          # AdminNavbar, UserManagement, MentorManagement, dashboard...
+│   │   ├── auth/           # Login, Register, RoleGuard, AuthProvider
+│   │   ├── chat/           # ChatPage, MessageBubble, ConversationList, info-panel...
+│   │   ├── common/         # FilePreviewModal, DocViewerWrapper
+│   │   ├── dashboard/      # AuthHeader, Register (dashboard), Login, Loading
+│   │   ├── landing/        # HeroSection, AboutSection, ServicesSection, LeadGenerationModal...
+│   │   ├── layout/         # Header, Footer (landing)
+│   │   ├── meetings/       # CreateMeetingModal, CreateReminderModal
+│   │   ├── mentor/         # MentorNavbar, dashboard, student (tabs), deadlines
+│   │   ├── student/        # StudentNavbar, dashboard, profile, checklist, assessments...
+│   │   ├── support/        # FloatingHelpButton
+│   │   ├── theme/          # ThemeToggle, ThemeScript
+│   │   ├── ui/             # Button, Card, Input, Dialog, Tabs, Table...
+│   │   └── ...
+│   ├── constants/          # App constants
+│   ├── data/               # student-nav-features, mbti-questions...
+│   ├── hooks/              # useAuthSession, useSubscription...
+│   ├── lib/                # Prisma, auth, subscription, utils, services
+│   │   ├── auth/           # auth-config, get-user, api-auth
+│   │   ├── services/       # auth.service, jwt.service, database.service
+│   │   ├── utils/          # api-response, validation, rate-limit, redirect
+│   │   └── ...
+│   ├── services/           # AI (geminiService), database (profile-analyzer)
+│   ├── types/              # TypeScript types (admin, auth...)
+│   └── utils/              # Client-side helpers
+├── package.json
+├── next.config.ts
+├── prisma.config.ts
+└── README.md
+```
+
+**Ghi chú route groups:** Trong App Router, `(student)`, `(mentor)`, `(admin)`, `(auth)` là **route groups** — tên trong ngoặc không xuất hiện trên URL. Ví dụ: `app/(student)/student/dashboard/page.tsx` → URL là `/student/dashboard`.
 
 ---
 
@@ -10,6 +101,7 @@ HOEX là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản 
 
 **Base path:** `/student`  
 **Component:** `src/components/student/StudentNavbar.tsx`  
+**Layout:** `src/app/(student)/layout.tsx`  
 **Badge:** HỌC VIÊN
 
 ### Menu chính (nav chính)
@@ -30,7 +122,7 @@ HOEX là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản 
 | Ngành & Trường phù hợp | `/student/target`         | Reach / Match / Safe                       |
 | Cải thiện hồ sơ     | `/student/improve`           | Enhance & phân tích hồ sơ, CV, essay       |
 | Danh sách trường    | `/student/universities`      | Khám phá các trường đại học                |
-| Báo cáo             | `/student/reports`            | Báo cáo tiến độ và kết quả                 |
+| Báo cáo             | `/student/reports`           | Báo cáo tiến độ và kết quả                 |
 
 ### Dropdown user — Premium (premiumFeatures)
 
@@ -55,6 +147,7 @@ Cần gói trả phí; nếu chưa có subscription thì link dẫn về `/stude
 
 **Base path:** `/mentor`  
 **Component:** `src/components/mentor/MentorNavbar.tsx`  
+**Layout:** `src/app/(mentor)/layout.tsx`  
 **Badge:** CỐ VẤN
 
 ### Menu chính
@@ -63,9 +156,9 @@ Cần gói trả phí; nếu chưa có subscription thì link dẫn về `/stude
 |-----------|------------------------|--------------------|
 | Tổng quan | `/mentor/dashboard`    | Dashboard cố vấn   |
 | Học viên  | `/mentor/students`     | Quản lý học viên   |
-| Hạn nộp   | `/mentor/deadlines`    | Theo dõi deadline  |
-| Hồ sơ     | `/mentor/profile`      | Hồ sơ cố vấn       |
-| Trao đổi  | `/mentor/chat`         | Chat với học viên  |
+| Hạn nộp   | `/mentor/deadlines`   | Theo dõi deadline  |
+| Hồ sơ     | `/mentor/profile`     | Hồ sơ cố vấn       |
+| Trao đổi  | `/mentor/chat`        | Chat với học viên  |
 
 ### User dropdown
 
@@ -79,6 +172,7 @@ Cần gói trả phí; nếu chưa có subscription thì link dẫn về `/stude
 
 **Base path:** `/admin`  
 **Component:** `src/components/admin/AdminNavbar.tsx`  
+**Layout:** `src/app/(admin)/layout.tsx`  
 **Badge:** QUẢN TRỊ
 
 ### Menu chính
@@ -102,10 +196,22 @@ Cần gói trả phí; nếu chưa có subscription thì link dẫn về `/stude
 
 ---
 
-## 4. Pricing Page
+## 4. Đăng nhập & Redirect
+
+- **Landing:** `/` (trang chủ). Nút "Khám phá ngay" → `/login`.
+- **Login:** `/login` (credentials + Google). Sau khi đăng nhập thành công → `/dashboard`.
+- **Trang `/dashboard`:** `src/app/dashboard/page.tsx` — đọc session, redirect theo role:
+  - **ADMIN** → `/admin/dashboard`
+  - **MENTOR** → `/mentor/dashboard`
+  - **STUDENT / user** → `/student/dashboard`
+  - Chưa đăng nhập → `/login`.
+
+---
+
+## 5. Pricing Page
 
 **Đường dẫn:** `/student/pricing`  
-**Component:** `src/app/student/pricing/page.tsx`  
+**File:** `src/app/(student)/student/pricing/page.tsx`  
 **Guard:** Chỉ role `user` / `student` / `STUDENT`.
 
 ### Mục đích
@@ -137,15 +243,18 @@ Trang có bảng so sánh chi tiết theo cột **Free | Plus | Premium** cho:
 
 ---
 
-## Cấu trúc file liên quan
+## Tóm tắt file quan trọng
 
-- **Navbars:**  
-  - `src/components/student/StudentNavbar.tsx`  
-  - `src/components/mentor/MentorNavbar.tsx`  
-  - `src/components/admin/AdminNavbar.tsx`
-- **Dữ liệu menu student:** `src/data/student-nav-features.ts` (mainFeatures, premiumFeatures)
-- **Pricing:** `src/app/student/pricing/page.tsx`
-- **Layout theo role:**  
-  - `src/app/student/layout.tsx`  
-  - `src/app/(mentor)/layout.tsx`  
-  - `src/app/admin/layout.tsx`
+| Mục đích           | Đường dẫn |
+|--------------------|-----------|
+| Redirect theo role | `src/app/dashboard/page.tsx` |
+| Landing            | `src/app/page.tsx` |
+| Auth config        | `src/lib/auth/auth-config.ts` |
+| Student layout     | `src/app/(student)/layout.tsx` |
+| Mentor layout      | `src/app/(mentor)/layout.tsx` |
+| Admin layout       | `src/app/(admin)/layout.tsx` |
+| Student navbar     | `src/components/student/StudentNavbar.tsx` |
+| Mentor navbar      | `src/components/mentor/MentorNavbar.tsx` |
+| Admin navbar       | `src/components/admin/AdminNavbar.tsx` |
+| Menu student       | `src/data/student-nav-features.ts` |
+| Pricing page       | `src/app/(student)/student/pricing/page.tsx` |

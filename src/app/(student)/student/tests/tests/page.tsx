@@ -3,10 +3,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { StudentPageContainer } from "@/components/student";
-import TestSelection from "@/components/test/TestSelection";
-import TestView from "@/components/test/TestView";
-import ResultView from "@/components/test/ResultView";
-import CareerAssessmentResults from "@/components/student/assessments/CareerAssessmentResults";
+import {
+  TestSelection,
+  TestView,
+  ResultView,
+  CareerAssessmentResults,
+} from "@/components/student/assessments";
 import {
   TestType,
   Question,
