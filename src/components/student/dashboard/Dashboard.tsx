@@ -23,6 +23,7 @@ import { AIInsightsPanel } from "./AIInsightsPanel";
 import { StudentUpcomingMeetings } from "./StudentUpcomingMeetings";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { mainFeatures, premiumFeatures } from "@/data/student-nav-features";
+import { useSubscription } from "@/hooks/useSubscription";
 import type { DashboardData } from "./types";
 
 const STUDENT_BASE = "/student";
@@ -80,6 +81,8 @@ export default function Dashboard({
   data,
   isLoading,
 }: DashboardProps) {
+  const { isPaid } = useSubscription();
+
   if (isLoading) {
     return (
       <div className="px-6 py-8 sm:px-8 lg:px-8 max-w-[1600px] mx-auto">
@@ -205,12 +208,12 @@ export default function Dashboard({
           </CardContent>
         </motion.section>
 
-        {/* Tính năng Premium — từ combobox "Premium" */}
+        {/* Tính năng Premium — free user: làm mờ, link sang pricing */}
         <motion.section
           initial="hidden"
           animate="show"
           variants={container}
-          className="rounded-2xl border border-amber-500/20 bg-card shadow-sm overflow-hidden dark:border-amber-500/30"
+          className={`rounded-2xl border border-amber-500/20 bg-card shadow-sm overflow-hidden dark:border-amber-500/30 ${!isPaid ? "opacity-85" : ""}`}
           id="tinh-nang-premium"
         >
           <CardHeader className="border-b border-amber-500/10 px-6 py-4 bg-amber-500/5 dark:bg-amber-500/10">
@@ -219,6 +222,11 @@ export default function Dashboard({
               <CardTitle className="font-heading text-base font-bold text-amber-700 dark:text-amber-300 m-0">
                 Tính năng Premium
               </CardTitle>
+              {!isPaid && (
+                <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                  Nâng cấp để mở khóa
+                </span>
+              )}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
               Chat với cố vấn, checklist, deadline, đặt lịch mentor — gói Premium (AI + All Advisors).
@@ -228,11 +236,16 @@ export default function Dashboard({
             <div className="grid gap-4 sm:grid-cols-2">
               {premiumFeatures.map((item, i) => {
                 const Icon = item.icon;
+                const isLocked = !isPaid;
                 return (
                   <motion.div key={item.name} variants={itemVariant}>
                     <Link
-                      href={item.href}
-                      className="group flex gap-4 rounded-xl border border-amber-500/20 bg-background p-4 transition-all duration-200 hover:border-amber-500/40 hover:bg-amber-500/5 dark:border-amber-500/30 dark:hover:bg-amber-500/10"
+                      href={isLocked ? `${STUDENT_BASE}/pricing` : item.href}
+                      className={`group flex gap-4 rounded-xl border bg-background p-4 transition-all duration-200 ${
+                        isLocked
+                          ? "border-amber-500/15 opacity-75 hover:opacity-95 hover:border-amber-500/30 hover:bg-amber-500/5 dark:border-amber-500/20 dark:hover:bg-amber-500/10"
+                          : "border-amber-500/20 hover:border-amber-500/40 hover:bg-amber-500/5 dark:border-amber-500/30 dark:hover:bg-amber-500/10"
+                      }`}
                     >
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 transition-colors group-hover:bg-amber-500/20">
                         <Icon className="h-5 w-5" />
@@ -246,7 +259,7 @@ export default function Dashboard({
                           {item.description}
                         </p>
                         <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-                          Xem tính năng
+                          {isLocked ? "Nâng cấp để sử dụng" : "Xem tính năng"}
                           <ArrowRight className="h-3.5 w-3.5" />
                         </span>
                       </div>
@@ -255,6 +268,20 @@ export default function Dashboard({
                 );
               })}
             </div>
+            {!isPaid && (
+              <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/15 p-4 text-center">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Mở khóa Chat, Checklist, Deadline và Đặt lịch mentor với gói Premium.
+                </p>
+                <Link
+                  href={`${STUDENT_BASE}/pricing`}
+                  className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white shadow-md hover:bg-amber-600 transition-colors"
+                >
+                  <Crown className="h-4 w-4" />
+                  Xem gói Premium
+                </Link>
+              </div>
+            )}
           </CardContent>
         </motion.section>
 

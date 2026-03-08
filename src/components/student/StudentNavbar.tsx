@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { mainFeatures, premiumFeatures } from "@/data/student-nav-features";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const STUDENT_BASE = "/student";
 
@@ -48,6 +49,7 @@ function isActive(pathname: string, href: string) {
 
 export default function StudentNavbar() {
   const { user, isAuthenticated } = useAuthSession();
+  const { isPaid } = useSubscription();
   const logout = () => signOut({ callbackUrl: "/login" });
   const pathname = usePathname();
 
@@ -233,7 +235,7 @@ export default function StudentNavbar() {
                     </div>
                   )}
 
-                  {/* ── Premium features submenu ── */}
+                  {/* ── Premium features submenu (free user: làm mờ, link sang pricing) ── */}
                   {premiumOpen && (
                     <div
                       className="w-80 shrink-0 rounded-xl border border-accent/30 bg-card p-2 shadow-xl text-foreground mr-0"
@@ -246,6 +248,28 @@ export default function StudentNavbar() {
                       </p>
                       {premiumFeatures.map((item) => {
                         const Icon = item.icon;
+                        const isLocked = !isPaid;
+                        if (isLocked) {
+                          return (
+                            <Link
+                              key={item.name}
+                              href={`${STUDENT_BASE}/pricing`}
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                setPremiumOpen(false);
+                              }}
+                              className="flex gap-3 rounded-lg px-2 py-2 text-sm text-muted-foreground hover:bg-amber-500/10 transition-colors opacity-75 hover:opacity-100 border border-transparent hover:border-amber-500/20"
+                            >
+                              <Icon className="h-4 w-4 shrink-0 mt-0.5 text-amber-500/60" />
+                              <div className="min-w-0 flex-1">
+                                <span className="font-semibold block text-foreground/80">{item.name}</span>
+                                <span className="text-xs text-muted-foreground block mt-0.5">{item.description}</span>
+                                <span className="mt-1 inline-block text-[10px] font-medium text-amber-600 dark:text-amber-400">Nâng cấp để mở khóa</span>
+                              </div>
+                              <Lock className="h-3 w-3 shrink-0 mt-1 text-amber-500/70" />
+                            </Link>
+                          );
+                        }
                         return (
                           <Link
                             key={item.name}
@@ -261,7 +285,6 @@ export default function StudentNavbar() {
                               <span className="font-semibold block">{item.name}</span>
                               <span className="text-xs text-muted-foreground block mt-0.5">{item.description}</span>
                             </div>
-                            <Lock className="h-3 w-3 shrink-0 mt-1 text-accent/60" />
                           </Link>
                         );
                       })}
@@ -440,18 +463,20 @@ export default function StudentNavbar() {
                     </p>
                     {premiumFeatures.map((item) => {
                       const Icon = item.icon;
+                      const isLocked = !isPaid;
                       return (
                         <Link
                           key={item.name}
-                          href={item.href}
+                          href={isLocked ? `${STUDENT_BASE}/pricing` : item.href}
                           onClick={() => {
                             setMobileMenuOpen(false);
                             setMobilePremiumOpen(false);
                           }}
-                          className="flex gap-3 rounded-lg px-3 py-2.5 text-sm text-white/85 hover:bg-accent/10 transition-colors"
+                          className={`flex gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${isLocked ? "text-white/60 hover:bg-amber-500/10" : "text-white/85 hover:bg-accent/10"}`}
                         >
-                          <Icon className="h-4 w-4 shrink-0 mt-0.5 text-accent/90" />
+                          <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${isLocked ? "text-amber-400/70" : "text-accent/90"}`} />
                           <span className="font-semibold flex-1">{item.name}</span>
+                          {isLocked && <span className="text-[10px] text-amber-300/90">Nâng cấp</span>}
                           <Lock className="h-3 w-3 shrink-0 mt-0.5 text-accent/60" />
                         </Link>
                       );

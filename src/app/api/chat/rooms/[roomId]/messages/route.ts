@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/get-user'
+import { requirePremium } from '@/lib/api/require-premium'
 
 /**
  * GET /api/chat/rooms/[roomId]/messages
- * Lấy messages của một room
+ * Lấy messages của một room (Premium only)
  */
 export async function GET(
     request: NextRequest,
     context: { params: Promise<{ roomId: string }> }
 ) {
     try {
+        const forbidden = await requirePremium(request)
+        if (forbidden) return forbidden
+
         const user = await getAuthenticatedUser(request)
         
         if (!user?.id) {
@@ -133,6 +137,9 @@ export async function POST(
     context: { params: Promise<{ roomId: string }> }
 ) {
     try {
+        const forbidden = await requirePremium(request)
+        if (forbidden) return forbidden
+
         const user = await getAuthenticatedUser(request)
         
         if (!user?.id) {
