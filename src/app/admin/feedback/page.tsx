@@ -365,14 +365,16 @@ function AdminFeedbackPage() {
 
       {/* Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquareText className="h-5 w-5 text-indigo-500" />
-              Chi tiết phản hồi
-            </DialogTitle>
-          </DialogHeader>
-
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col gap-0 p-0">
+          <div className="shrink-0 px-6 pt-6 pb-2 pr-10 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquareText className="h-5 w-5 text-indigo-500" />
+                Chi tiết phản hồi
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
           {selectedRequest && (
             <div className="space-y-4">
               {/* Student info */}
@@ -490,6 +492,7 @@ function AdminFeedbackPage() {
               </div>
             </div>
           )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

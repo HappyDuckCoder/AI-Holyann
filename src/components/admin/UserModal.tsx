@@ -91,12 +91,15 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{user ? 'Edit user' : 'Create user'}</DialogTitle>
-                </DialogHeader>
+            <DialogContent className="max-w-md flex flex-col gap-0 p-0">
+                <div className="shrink-0 px-6 pt-6 pb-2 pr-10 border-b border-border">
+                    <DialogHeader>
+                        <DialogTitle>{user ? 'Edit user' : 'Create user'}</DialogTitle>
+                    </DialogHeader>
+                </div>
+                <div className="px-6 py-4">
                 {apiError && (
-                    <div className="rounded-lg bg-destructive/10 text-destructive text-sm p-3">
+                    <div className="rounded-lg bg-destructive/10 text-destructive text-sm p-3 mb-4">
                         {apiError}
                     </div>
                 )}
@@ -218,6 +221,7 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
                         </Button>
                     </div>
                 </form>
+                </div>
             </DialogContent>
         </Dialog>
     )
