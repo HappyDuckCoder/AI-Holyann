@@ -1,8 +1,8 @@
-# HoEx — Ứng dụng Hướng nghiệp & Du học
+# HOEX — Ứng dụng Hướng nghiệp & Du học
 
 ## Tổng quan
 
-HoEx là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản trị viên với các luồng: **Student**, **Mentor**, **Admin** và trang **Pricing**. Đăng nhập xong redirect theo role: Student → `/student/dashboard`, Mentor → `/mentor/dashboard`, Admin → `/admin/dashboard` (qua trang trung gian `/dashboard`).
+HOEX là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản trị viên với các luồng: **Student**, **Mentor**, **Admin** và trang **Pricing**. Đăng nhập xong redirect theo role: Student → `/student/dashboard`, Mentor → `/mentor/dashboard`, Admin → `/admin/dashboard` (qua trang trung gian `/dashboard`).
 
 ---
 
