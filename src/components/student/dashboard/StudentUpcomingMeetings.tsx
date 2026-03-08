@@ -213,8 +213,8 @@ export function StudentUpcomingMeetings() {
                           <Video className="h-3.5 w-3.5 shrink-0" />
                           <span>Link phòng họp:</span>
                         </div>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <code className="min-w-0 flex-1 rounded bg-muted px-3 py-2 text-xs text-foreground truncate block max-w-full">
+                        <div className="flex items-center gap-2 min-w-0 w-full overflow-hidden">
+                          <code className="min-w-0 flex-1 rounded bg-muted px-3 py-2 text-xs text-foreground truncate block max-w-full overflow-hidden">
                             {meeting.meet_link}
                           </code>
                           <Button

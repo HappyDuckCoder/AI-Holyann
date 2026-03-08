@@ -781,8 +781,8 @@ export default function MentorManagement() {
 
                 {/* Assign mentor to students (multiple) */}
                 <Dialog open={assignOpen} onOpenChange={(open) => !open && closeAssign()}>
-                    <DialogContent className="max-w-md max-h-[90vh] flex flex-col gap-0">
-                        <DialogHeader className="pb-3 border-b border-border">
+                    <DialogContent className="max-w-md max-h-[90vh] flex flex-col gap-0 p-0">
+                        <DialogHeader className="px-6 pt-6 pb-3 border-b border-border">
                             <DialogTitle className="text-lg">
                                 {assignMentor?.users.full_name}
                             </DialogTitle>
@@ -790,7 +790,7 @@ export default function MentorManagement() {
                                 {assignMentor?.specialization}
                                 {assignMentor && (
                                     <span className="ml-2 font-medium text-foreground">
-                                        Â· {(() => {
+                                        · {(() => {
                                             const n = (assignMentor.mentor_assignments ?? []).filter(
                                                 (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
                                             ).length
@@ -802,7 +802,7 @@ export default function MentorManagement() {
                             </p>
                         </DialogHeader>
                         {assignMessage && (
-                            <div className={`mt-3 px-3 py-2 rounded-md text-sm ${
+                            <div className={`mt-3 mx-6 px-3 py-2 rounded-md text-sm ${
                                 assignMessage.type === 'success'
                                     ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                     : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
@@ -820,7 +820,7 @@ export default function MentorManagement() {
                             const assignedIds = new Set(assignedList.map((a) => a.student_id))
                             const studentsToAssign = assignStudents.filter((s) => !assignedIds.has(s.id))
                             return (
-                        <div className="flex flex-col gap-4 pt-4 overflow-y-auto min-h-0 flex-1">
+                        <div className="flex flex-col gap-4 pt-4 pb-6 px-6 overflow-y-auto min-h-0 flex-1">
                             {/* Section: Currently assigned â€” Unassign */}
                             {assignedList.length > 0 && (
                                 <div className="space-y-2">

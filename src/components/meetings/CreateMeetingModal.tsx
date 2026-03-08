@@ -181,7 +181,7 @@ export default function CreateMeetingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[550px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[550px] p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             Thêm buổi tư vấn mới

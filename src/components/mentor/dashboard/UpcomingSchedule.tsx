@@ -128,8 +128,8 @@ export default function UpcomingSchedule({ meetings: initialMeetings = [], mento
             <Video className="h-3.5 w-3.5 shrink-0" />
             <span>🎯 Link Host (Quyền chủ phòng):</span>
           </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <code className="min-w-0 flex-1 rounded bg-muted px-3 py-2 text-xs text-foreground truncate block max-w-full">
+          <div className="flex items-center gap-2 min-w-0 w-full overflow-hidden">
+            <code className="min-w-0 flex-1 rounded bg-muted px-3 py-2 text-xs text-foreground truncate block max-w-full overflow-hidden">
               {meeting.host_meet_link}
             </code>
             <Button
@@ -165,8 +165,8 @@ export default function UpcomingSchedule({ meetings: initialMeetings = [], mento
             <Video className="h-3.5 w-3.5 shrink-0" />
             <span>Link phòng họp (Học viên):</span>
           </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <code className="min-w-0 flex-1 rounded bg-muted px-3 py-2 text-xs text-foreground truncate block max-w-full">
+          <div className="flex items-center gap-2 min-w-0 w-full overflow-hidden">
+            <code className="min-w-0 flex-1 rounded bg-muted px-3 py-2 text-xs text-foreground truncate block max-w-full overflow-hidden">
               {meeting.meet_link}
             </code>
             <Button
@@ -287,7 +287,7 @@ export default function UpcomingSchedule({ meetings: initialMeetings = [], mento
 
       {/* All Meetings Modal */}
       <Dialog open={isMeetingsModalOpen} onOpenChange={setIsMeetingsModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto overflow-x-hidden p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Video className="h-5 w-5" />
@@ -306,7 +306,7 @@ export default function UpcomingSchedule({ meetings: initialMeetings = [], mento
               <p className="mt-4 text-sm text-muted-foreground">Chưa có cuộc họp nào</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 mt-2">
               {allMeetings.map((meeting) => (
                 <MeetingCard key={meeting.id} meeting={meeting} />
               ))}

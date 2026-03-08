@@ -876,6 +876,9 @@ export default function AcademicInfoModal({ studentId, onClose }: AcademicInfoMo
                           <SelectItem value="4">HSK 4</SelectItem>
                           <SelectItem value="5">HSK 5</SelectItem>
                           <SelectItem value="6">HSK 6</SelectItem>
+n                          <SelectItem value="7">HSK 7</SelectItem>
+                          <SelectItem value="8">HSK 8</SelectItem>
+                          <SelectItem value="9">HSK 9</SelectItem>
                         </>
                       )}
                       {cert.type === 'TOPIK' && (
