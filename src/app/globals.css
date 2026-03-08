@@ -10,17 +10,23 @@
   --color-surface-elevated: var(--surface-elevated);
   --color-overlay: var(--overlay);
 
-  /* Cập nhật Font theo Brand */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  /* Font trang Universities – dùng cho khu vực student */
-  --font-university-sans: "DM Sans", ui-sans-serif, sans-serif;
-  --font-university-display: "Playfair Display", serif;
-  /* Provide a safe fallback mono font stack to avoid unresolved custom property */
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
-    "Courier New", monospace;
+  /* ── Font stack ──────────────────────────────────────────
+     Outfit       → body / general UI
+     Sora         → section headings (non-student)
+     Space Grotesk → student navbar, dashboard, labels
+     Playfair     → decorative / display / hero
+     ─────────────────────────────────────────────────────── */
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-university-sans: var(--font-space), ui-sans-serif, sans-serif;
+  --font-university-display: var(--font-playfair), Georgia, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New",
+    monospace;
+  --font-essay: Georgia, "Times New Roman", serif;
 
-  /* Mapping các biến màu */
+  /* Color tokens */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -43,7 +49,9 @@
   --radius-lg: var(--radius);
 }
 
-/* 3. ROOT VARIABLES - LIGHT MODE (Giao diện Sáng) */
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE
+   ═══════════════════════════════════════════════════════════ */
 :root {
   --radius: 0.625rem;
 
@@ -54,109 +62,96 @@
   --overlay: rgba(0, 0, 0, 0.5);
   --overlay-dark: rgba(0, 0, 0, 0.9);
 
-  /* Chữ màu đen ánh xanh (Dark Text) */
   --foreground: #0f172a;
 
-  /* Card: Nền trắng */
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
 
-  /* PRIMARY: Xanh Holyann Đậm (#0F4C81) - Dùng cho nút chính, tiêu đề */
+  /* PRIMARY: Holyann navy */
   --primary: #0f4c81;
   --primary-foreground: #ffffff;
 
-  /* SECONDARY: Xanh Cyan/Sky (#00B4DB) - Dùng cho Gradient, Icon */
+  /* SECONDARY: Cyan */
   --secondary: #00b4db;
   --secondary-foreground: #ffffff;
 
-  /* BRAND helper colors discovered in codebase */
-  --brand-cyan: #00c6ff; /* used in gradients and accents */
-  --brand-blue: #0072ff; /* brighter blue used for accents */
-  --accent-alt: #f59e0b; /* used in data.ts as accent */
-  --brand-deep: #0f6093; /* darker blue used in dashboard/profile */
-  --brand-deep-darker: #0a4b75; /* hover/darker */
-  --brand-gradient2: #2b8cc9; /* secondary gradient stop */
-  --tick-gray-500: #6b7280; /* alternate tick color */
+  /* Brand helpers */
+  --brand-cyan: #00c6ff;
+  --brand-blue: #0072ff;
+  --accent-alt: #f59e0b;
+  --brand-deep: #0f6093;
+  --brand-deep-darker: #0a4b75;
+  --brand-gradient2: #2b8cc9;
+  --tick-gray-500: #6b7280;
 
-  /* ACCENT: Màu Cam Vàng (#F5A623) - Dùng cho nút CTA quan trọng */
+  /* ACCENT: Amber CTA */
   --accent: #f5a623;
   --accent-foreground: #ffffff;
 
-  /* Extra UI colors */
-  --grit-perseverance: #8b5cf6; /* purple */
-  --grit-consistency: #ec4899; /* pink */
-  --grit-strong: #9333ea; /* purple darker */
-  --muted-light: #e5e7eb; /* gray for lighter fills */
-  --tick-gray: #4b5563; /* axis/tick text */
-  --stroke-blue: #2563eb; /* chart stroke */
-  --tw-blue-500: #3b82f6; /* tailwind blue-500 used in charts */
+  /* Extra UI */
+  --grit-perseverance: #8b5cf6;
+  --grit-consistency: #ec4899;
+  --grit-strong: #9333ea;
+  --muted-light: #e5e7eb;
+  --tick-gray: #4b5563;
+  --stroke-blue: #2563eb;
+  --tw-blue-500: #3b82f6;
 
-  /* Footer background (matches used hex) */
   --footer-bg: #0f172a;
   --instagram: #e1306c;
-
-  /* Google / Facebook brand colors used in social buttons */
   --google-blue: #4285f4;
   --google-green: #34a853;
   --google-yellow: #fbbc05;
   --google-red: #ea4335;
   --facebook-blue: #1877f2;
 
-  /* MUTED: Xám xanh nhạt (#F1F5F9) - Dùng cho nền phụ */
   --muted: #f1f5f9;
-  --muted-foreground: #64748b; /* Slate-500 */
-
+  --muted-foreground: #64748b;
   --destructive: #ef4444;
-
-  /* Border: Xám nhạt */
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #0f4c81; /* Ring focus theo màu brand */
+  --ring: #0f4c81;
 }
 
-/* 4. DARK MODE CONFIG (Giao diện Tối - Layered Depth System) */
+/* ═══════════════════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════════════════ */
 .dark {
-  /* Background hierarchy: deep blue/neutral (not pure black) */
-  --background: #0c1222; /* Deep blue-neutral base */
-  --surface: #131c2e; /* Slightly lighter - section level */
-  --surface-elevated: #1a2742; /* Elevated - cards, modals */
+  --background: #0c1222;
+  --surface: #131c2e;
+  --surface-elevated: #1a2742;
   --overlay: rgba(0, 0, 0, 0.6);
   --overlay-dark: rgba(0, 0, 0, 0.92);
 
-  /* Typography - WCAG AA contrast */
-  --foreground: #f1f5f9; /* Slate-100 - strong readable */
-  --muted-foreground: #94a3b8; /* Slate-400 - muted but readable */
+  --foreground: #f1f5f9;
+  --muted-foreground: #94a3b8;
 
-  /* Card: Elevated surface with subtle depth */
   --card: #1a2742;
   --card-foreground: #f1f5f9;
   --popover: #1a2742;
   --popover-foreground: #f1f5f9;
 
-  /* PRIMARY: Bright for dark backgrounds */
-  --primary: #38bdf8; /* Sky-400 */
+  --primary: #38bdf8;
   --primary-foreground: #0c1222;
 
-  /* SECONDARY: Muted surface tone */
   --secondary: #1e293b;
   --secondary-foreground: #f1f5f9;
 
-  /* ACCENT: Warm contrast */
   --accent: #f5a623;
   --accent-foreground: #0c1222;
 
-  /* MUTED: Section backgrounds */
   --muted: #1e293b;
-  /* muted-foreground already set above */
-
   --destructive: #f87171;
-  --border: #334155; /* Slate-700 - visible but subtle */
+  --border: #334155;
   --input: #1e293b;
   --ring: #38bdf8;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   BASE LAYER
+   ═══════════════════════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -165,41 +160,76 @@
   html {
     scroll-behavior: smooth;
     @apply transition-colors duration-300;
+    /* Better font rendering globally */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
-    @apply bg-background text-foreground font-sans transition-colors duration-300;
+    @apply bg-background text-foreground transition-colors duration-300;
+    font-family: var(--font-sans);
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1,
+      "calt" 1;
+    font-size: 15px; /* Outfit reads 1px smaller than Inter at same size */
+    line-height: 1.6;
+    letter-spacing: -0.01em;
   }
 
-  /* Áp dụng font heading cho các thẻ H */
+  /* Headings → Sora: tighter tracking, stronger weight */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    @apply font-heading font-bold;
-    /* Ở Light mode là màu xanh đậm, Dark mode tự động chuyển theo biến --foreground hoặc --primary */
+    font-family: var(--font-heading);
+    @apply font-bold;
     @apply text-primary dark:text-foreground;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
   }
 
-  /* Custom Scrollbar Styles - Global */
+  h1 {
+    font-size: clamp(1.875rem, 4vw, 3rem);
+    font-weight: 800;
+  }
+  h2 {
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 700;
+  }
+  h3 {
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+  }
+  h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  /* Navbar / dashboard labels → Space Grotesk */
+  .font-university-sans,
+  [data-section="student"] {
+    font-family: var(--font-university-sans);
+    letter-spacing: -0.015em;
+  }
+
+  /* Scrollbar */
   *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
-
   *::-webkit-scrollbar-track {
     @apply bg-muted rounded-full;
   }
-
   *::-webkit-scrollbar-thumb {
-    @apply bg-primary/60 hover:bg-primary/80 rounded-full;
-    border: 2px solid transparent;
+    @apply bg-primary/50 hover:bg-primary/75 rounded-full;
+    border: 1.5px solid transparent;
     background-clip: padding-box;
   }
 
-  /* Firefox - theme-aware */
   * {
     scrollbar-width: thin;
     scrollbar-color: rgb(59 130 246) rgb(243 244 246);
@@ -209,99 +239,133 @@
     scrollbar-width: thin;
     scrollbar-color: var(--border) var(--surface);
   }
-
   .dark *::-webkit-scrollbar-track {
     background: var(--surface);
   }
-
   .dark *::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 9999px;
   }
-
   .dark *::-webkit-scrollbar-thumb:hover {
     background: var(--muted-foreground);
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   COMPONENTS
+   ═══════════════════════════════════════════════════════════ */
 @layer components {
-  /* Navbar - Light: Holyann gradient | Dark: SaaS floating depth */
+  /* ── Navbar ──────────────────────────────────────────────
+     StudentNavbar handles its own classes directly.
+     This .navbar-header class is kept for any legacy usage.
+     ─────────────────────────────────────────────────────── */
   .navbar-header {
     @apply transition-all duration-300;
-    /* Light mode: Holyann brand gradient xanh-trắng */
-    background: linear-gradient(to right, var(--primary), var(--secondary));
-    color: var(--primary-foreground);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  .dark .navbar-header {
-    background: rgb(15 23 42 / 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-family: var(--font-university-sans);
+    letter-spacing: -0.015em;
+
+    /* Light: dark glass — visually distinct from page content */
+    background: rgba(5, 14, 29, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     color: rgb(248 250 252);
+    box-shadow:
+      0 8px 32px -8px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
-  /* Gradient Text thương hiệu */
+  /* Dark: slightly deeper, same glass */
+  .dark .navbar-header {
+    background: rgba(4, 10, 20, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  /* Nav link typography */
+  .nav-link {
+    font-family: var(--font-university-sans);
+    font-weight: 500;
+    font-size: 0.875rem;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Brand gradient text ─────────────────────────────── */
   .text-gradient {
-    @apply bg-gradient-to-r from-[var(--primary)] to-[var(--brand-cyan)] bg-clip-text text-transparent dark:from-[var(--primary)] dark:to-[var(--secondary)];
+    @apply bg-gradient-to-r from-[var(--primary)] to-[var(--brand-cyan)]
+           bg-clip-text text-transparent
+           dark:from-[var(--primary)] dark:to-[var(--secondary)];
   }
 
-  /* Nút bấm Gradient */
+  /* ── Primary CTA button ──────────────────────────────── */
   .btn-holyann {
-    @apply bg-gradient-to-r from-[var(--primary)] to-[var(--brand-cyan)] text-white font-heading font-semibold
-        hover:opacity-90 transition-all duration-300 shadow-md hover:translate-y-[-2px] rounded-lg px-6 py-2
-        dark:from-[var(--primary)] dark:to-[var(--secondary)];
-    /* Gradient sáng hơn trong dark mode */
+    font-family: var(--font-university-sans);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    @apply bg-gradient-to-r from-[var(--primary)] to-[var(--brand-cyan)]
+           text-white rounded-xl px-6 py-2.5
+           hover:opacity-90 hover:-translate-y-px
+           active:scale-[0.98]
+           transition-all duration-200 shadow-md
+           dark:from-[var(--primary)] dark:to-[var(--secondary)];
   }
 
-  /* Tiêu đề Section */
+  /* ── Section title ───────────────────────────────────── */
   .section-title {
-    @apply font-heading text-3xl font-bold text-center uppercase tracking-wide text-primary dark:text-white relative mb-8;
+    font-family: var(--font-heading);
+    @apply text-3xl font-bold text-center uppercase tracking-tight
+           text-primary dark:text-white relative mb-8;
+    letter-spacing: -0.02em;
   }
-
   .section-title::after {
     content: "";
-    @apply block w-16 h-1 bg-[var(--secondary)] dark:bg-[var(--accent)] mx-auto mt-2 rounded-full;
+    @apply block w-12 h-0.5 bg-[var(--secondary)] dark:bg-[var(--accent)]
+           mx-auto mt-3 rounded-full;
   }
 
-  /* Card Style */
+  /* ── Card ────────────────────────────────────────────── */
   .card-holyann {
-    @apply bg-card rounded-2xl shadow-sm border border-border p-6 hover:shadow-md transition-all duration-300;
+    @apply bg-card rounded-2xl shadow-sm border border-border p-6
+           hover:shadow-md transition-all duration-300;
   }
 
-  /* Modal overlay - semantic token */
+  /* ── Modal overlay ───────────────────────────────────── */
   .modal-overlay {
     @apply fixed inset-0 z-50 flex items-center justify-center;
     background-color: var(--overlay);
   }
+
+  /* ── Badge / label (Space Grotesk accent) ────────────── */
+  .badge-hoex {
+    font-family: var(--font-university-sans);
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
 }
 
-/* University / Student fonts (DM Sans + Playfair Display) */
+/* ═══════════════════════════════════════════════════════════
+   FONT UTILITIES
+   ═══════════════════════════════════════════════════════════ */
 .font-university-sans {
   font-family: var(--font-university-sans);
 }
 .font-university-display {
   font-family: var(--font-university-display);
 }
-
-/* Material Symbols */
-.material-symbols-outlined {
-  font-family: "Material Symbols Outlined";
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+.font-essay {
+  font-family: var(--font-essay);
+}
+.font-display {
+  font-family: var(--font-display);
 }
 
-/* Auth pages: grid background in dark mode */
+/* ═══════════════════════════════════════════════════════════
+   BACKGROUND HELPERS
+   ═══════════════════════════════════════════════════════════ */
+
+/* Auth page grid */
 .dark .auth-page-grid {
   background-image:
     linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
@@ -309,7 +373,7 @@
   background-size: 28px 28px;
 }
 
-/* Hero: grid + light rays background - màu xanh Holyann */
+/* Hero grid + rays */
 .hero-grid-bg {
   background-image:
     linear-gradient(to right, rgb(15 76 129 / 0.08) 1px, transparent 1px),
@@ -336,7 +400,7 @@
   );
 }
 
-/* Landing: luôn light mode (override khi dark) */
+/* Landing always light */
 html.dark .landing-light {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -358,9 +422,4 @@ html.dark .landing-light .hero-rays {
     rgb(15 76 129 / 0.12),
     transparent 55%
   );
-}
-
-/* Landing: smooth scroll for anchor links */
-html {
-  scroll-behavior: smooth;
 }

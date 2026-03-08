@@ -58,7 +58,7 @@ export default function AdminNavbar() {
 
     return (
         <header
-            className="sticky top-0 z-50 w-full px-4 sm:px-6 md:px-8
+            className="font-university-sans sticky top-0 z-50 w-full px-4 sm:px-6 md:px-8
                 bg-gradient-to-r from-primary via-primary to-secondary
                 dark:from-background dark:via-[hsl(220,30%,12%)] dark:to-[hsl(220,35%,18%)]
                 border-b-2 border-white/20 dark:border-primary/30
