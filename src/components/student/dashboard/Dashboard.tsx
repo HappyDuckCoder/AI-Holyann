@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   User,
-  CheckSquare,
+  Target,
   ClipboardList,
   Sparkles,
-  GraduationCap,
-  MessageCircle,
   ArrowRight,
+  Crown,
+  Lock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardHero } from "./DashboardHero";
@@ -22,49 +22,67 @@ import { RecentActivityFeed } from "./RecentActivityFeed";
 import { AIInsightsPanel } from "./AIInsightsPanel";
 import { StudentUpcomingMeetings } from "./StudentUpcomingMeetings";
 import { DashboardSkeleton } from "./DashboardSkeleton";
+import { mainFeatures, premiumFeatures } from "@/data/student-nav-features";
 import type { DashboardData } from "./types";
 
 const STUDENT_BASE = "/student";
 
-const QUICK_LINKS = [
+/** Liên kết nhanh theo navbar (Hồ sơ, Mục tiêu, Trắc nghiệm, Cải thiện) */
+const QUICK_NAV = [
   { name: "Hồ sơ", href: `${STUDENT_BASE}/profile`, icon: User },
-  {
-    name: "Danh sách công việc",
-    href: `${STUDENT_BASE}/checklist`,
-    icon: CheckSquare,
-  },
-  { name: "Bài kiểm tra", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
-  { name: "Cải thiện", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
-  { name: "Mục tiêu", href: `${STUDENT_BASE}/target`, icon: GraduationCap },
-  { name: "Trao đổi", href: `${STUDENT_BASE}/chat`, icon: MessageCircle },
+  { name: "Mục tiêu", href: `${STUDENT_BASE}/view-target`, icon: Target },
+  { name: "Trắc nghiệm ngành", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
+  { name: "Cải thiện hồ sơ", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
 ] as const;
 
 const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.04, delayChildren: 0.08 },
   },
 };
 
 const itemVariant = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, y: 10 },
   show: { opacity: 1, y: 0 },
 };
 
 interface DashboardProps {
   userName: string;
-  /** Data from GET /api/student/dashboard – no mock, only real data */
+  /** Từ GET /api/student/dashboard – chỉ hiển thị khi có dữ liệu thật, không mock */
   data: DashboardData | null;
   isLoading?: boolean;
-  error?: string | null;
+}
+
+function hasRealStats(data: DashboardData | null): boolean {
+  const stats = data?.quickStats;
+  if (!stats?.length) return false;
+  return stats.some(
+    (s) => s.value !== undefined && s.value !== "" && Number(s.value) >= 0
+  );
+}
+
+function hasRealTaskCompletion(data: DashboardData | null): boolean {
+  return (data?.taskCompletion?.length ?? 0) > 0;
+}
+
+function hasRealDeadlines(data: DashboardData | null): boolean {
+  return (data?.deadlines?.length ?? 0) > 0;
+}
+
+function hasRealActivity(data: DashboardData | null): boolean {
+  return (data?.activity?.length ?? 0) > 0;
+}
+
+function hasRealAiInsights(data: DashboardData | null): boolean {
+  return (data?.aiInsights?.length ?? 0) > 0;
 }
 
 export default function Dashboard({
   userName,
   data,
   isLoading,
-  error,
 }: DashboardProps) {
   if (isLoading) {
     return (
@@ -74,31 +92,30 @@ export default function Dashboard({
     );
   }
 
-  if (error || !data) {
-    return (
-      <div className="px-6 py-8 max-w-[1600px] mx-auto flex flex-col items-center justify-center min-h-[40vh]">
-        <p className="text-muted-foreground">
-          {error || "Không tải được dữ liệu dashboard."}
-        </p>
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          Thử lại
-        </button>
-      </div>
-    );
-  }
+  const showStats = hasRealStats(data);
+  const showTaskChart = hasRealTaskCompletion(data);
+  const showDeadlines = hasRealDeadlines(data);
+  const showActivity = hasRealActivity(data);
+  const showAiInsights = hasRealAiInsights(data);
 
   return (
     <div>
-      <DashboardHero userName={userName} stats={data.quickStats} />
-      <div className="min-h-[60vh] mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <div id="progress-section">
-          <QuickStatsGrid items={data.quickStats} />
-        </div>
+      <DashboardHero
+        userName={userName}
+        stats={data?.quickStats ?? []}
+      />
+      <div className="min-h-[60vh] mx-auto px-4 sm:px-6 py-6 max-w-[1600px] space-y-8">
+        {/* Tiến độ / thống kê thật (chỉ khi API trả về) */}
+        {showStats && data?.quickStats && (
+          <section id="progress-section" className="space-y-2">
+            <h2 className="text-sm font-semibold text-muted-foreground px-1">
+              Tiến độ của bạn
+            </h2>
+            <QuickStatsGrid items={data.quickStats} />
+          </section>
+        )}
 
+        {/* Bắt đầu nhanh — theo navbar */}
         <motion.section
           initial="hidden"
           animate="show"
@@ -109,31 +126,30 @@ export default function Dashboard({
             <div className="flex items-center gap-2">
               <LayoutDashboard className="h-5 w-5 text-primary" />
               <CardTitle className="font-heading text-base font-bold text-primary m-0">
-                Truy cập nhanh
+                Bắt đầu nhanh
               </CardTitle>
             </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Các mục chính trên thanh điều hướng — truy cập nhanh từ đây.
+            </p>
           </CardHeader>
           <CardContent className="p-4">
             <nav
-              className="grid grid-cols-3 sm:grid-cols-6 gap-3"
-              aria-label="Truy cập nhanh"
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+              aria-label="Bắt đầu nhanh"
             >
-              {QUICK_LINKS.map((link, i) => {
+              {QUICK_NAV.map((link, i) => {
                 const Icon = link.icon;
                 return (
-                  <motion.div
-                    key={link.name}
-                    variants={itemVariant}
-                    transition={{ delay: i * 0.03 }}
-                  >
+                  <motion.div key={link.name} variants={itemVariant}>
                     <Link
                       href={link.href}
-                      className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-center transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-md"
+                      className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-background p-4 text-center transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md"
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-primary transition-all duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <span className="text-xs font-sans font-medium text-foreground group-hover:text-primary-foreground">
+                      <span className="text-xs font-medium text-foreground">
                         {link.name}
                       </span>
                     </Link>
@@ -144,47 +160,155 @@ export default function Dashboard({
           </CardContent>
         </motion.section>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="lg:row-span-2"
-          >
-            <div className="card-holyann h-full">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
-                      ✓
-                    </span>
+        {/* Tính năng chính — từ combobox "Tính năng" */}
+        <motion.section
+          initial="hidden"
+          animate="show"
+          variants={container}
+          className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
+          id="tinh-nang-chinh"
+        >
+          <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
+            <CardTitle className="font-heading text-base font-bold text-primary m-0">
+              Tính năng chính
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Phân tích hồ sơ, trắc nghiệm ngành, ngành & trường phù hợp, cải thiện hồ sơ, danh sách trường, báo cáo.
+            </p>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {mainFeatures.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div key={item.name} variants={itemVariant}>
+                    <Link
+                      href={item.href}
+                      className="group flex gap-4 rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-foreground group-hover:text-primary">
+                          {item.name}
+                        </h3>
+                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                          {item.description}
+                        </p>
+                        <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                          Mở trang
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </motion.section>
+
+        {/* Tính năng Premium — từ combobox "Premium" */}
+        <motion.section
+          initial="hidden"
+          animate="show"
+          variants={container}
+          className="rounded-2xl border border-amber-500/20 bg-card shadow-sm overflow-hidden dark:border-amber-500/30"
+          id="tinh-nang-premium"
+        >
+          <CardHeader className="border-b border-amber-500/10 px-6 py-4 bg-amber-500/5 dark:bg-amber-500/10">
+            <div className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <CardTitle className="font-heading text-base font-bold text-amber-700 dark:text-amber-300 m-0">
+                Tính năng Premium
+              </CardTitle>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Chat với cố vấn, checklist, deadline, đặt lịch mentor — gói Premium (AI + All Advisors).
+            </p>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {premiumFeatures.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div key={item.name} variants={itemVariant}>
+                    <Link
+                      href={item.href}
+                      className="group flex gap-4 rounded-xl border border-amber-500/20 bg-background p-4 transition-all duration-200 hover:border-amber-500/40 hover:bg-amber-500/5 dark:border-amber-500/30 dark:hover:bg-amber-500/10"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 transition-colors group-hover:bg-amber-500/20">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-foreground flex items-center gap-1.5">
+                          {item.name}
+                          <Lock className="h-3.5 w-3.5 text-amber-500/70" aria-hidden />
+                        </h3>
+                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                          {item.description}
+                        </p>
+                        <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                          Xem tính năng
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </motion.section>
+
+        {/* Lịch tư vấn sắp tới — luôn hiển thị (dữ liệu từ API thật) */}
+        <section>
+          <StudentUpcomingMeetings />
+        </section>
+
+        {/* Khối dữ liệu thật từ GET /api/student/dashboard — chỉ khi có dữ liệu, không mock */}
+        {(showTaskChart || showDeadlines || showActivity || showAiInsights) && data && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 space-y-6 lg:space-y-0">
+            {showTaskChart && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="lg:row-span-2"
+              >
+                <div className="card-holyann h-full">
+                  <div className="mb-4">
                     <h2 className="font-heading text-base font-bold text-primary">
                       Tiến độ checklist
                     </h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Tỷ lệ hoàn thành các nhiệm vụ quan trọng
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Tỷ lệ hoàn thành các nhiệm vụ quan trọng
-                  </p>
+                  <TaskCompletionChart data={data.taskCompletion} />
                 </div>
+              </motion.div>
+            )}
+
+            {showDeadlines && (
+              <div className="lg:col-span-2">
+                <UpcomingDeadlines items={data.deadlines} />
               </div>
-              <TaskCompletionChart data={data.taskCompletion} />
-            </div>
-          </motion.div>
+            )}
 
-          <div className="lg:col-span-2">
-            <UpcomingDeadlines items={data.deadlines} />
+            {(showActivity || showAiInsights) && (
+              <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
+                {showActivity && (
+                  <RecentActivityFeed items={data.activity} />
+                )}
+                {showAiInsights && (
+                  <AIInsightsPanel items={data.aiInsights} />
+                )}
+              </div>
+            )}
           </div>
-
-          {/* Lịch tư vấn sắp tới */}
-          <div className="lg:col-span-2">
-            <StudentUpcomingMeetings />
-          </div>
-
-          <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
-            <RecentActivityFeed items={data.activity} />
-            <AIInsightsPanel items={data.aiInsights} />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -79,23 +79,17 @@ export function DashboardHero({ userName, stats }: DashboardHeroProps) {
             size="sm"
             className="rounded-lg bg-white px-5 font-sans font-semibold text-[var(--primary)] shadow-md transition-all hover:-translate-y-0.5 hover:bg-white/90 hover:shadow-lg"
           >
-            <Link href="/student/checklist" className="whitespace-nowrap">
-              Tiếp tục học →
+            <Link href="#tinh-nang-chinh" className="whitespace-nowrap">
+              Khám phá tính năng →
             </Link>
           </Button>
           <Button
-            type="button"
+            asChild
             size="sm"
             variant="outline"
             className="whitespace-nowrap rounded-lg border border-white/40 bg-white/10 px-5 font-sans font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-            onClick={() => {
-              if (typeof document === "undefined") return;
-              const target = document.getElementById("progress-section");
-              if (target)
-                target.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
           >
-            Xem tiến độ
+            <Link href="/student/tests">Làm trắc nghiệm ngành</Link>
           </Button>
         </div>
       </div>
