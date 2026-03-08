@@ -1,13 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, BarChart3, KeyRound, Monitor, Moon, Sun } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, BarChart3, Crown, KeyRound, Monitor, Moon, Sun } from 'lucide-react';
 import { StudentPageContainer } from '@/components/student';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ChangePasswordDialog } from '@/components/student/ChangePasswordDialog';
+import { premiumFeatures } from '@/data/student-nav-features';
 
 export default function StudentSettingsPage() {
+  const router = useRouter();
   const { theme, resolvedTheme, setTheme, mounted } = useTheme();
   const isDarkMode = resolvedTheme === 'dark';
 
@@ -17,7 +27,7 @@ export default function StudentSettingsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Cài đặt</h1>
           <p className="mt-2 text-muted-foreground">
-            Quản lý liên kết nhanh và giao diện.
+            Quản lý liên kết nhanh, tính năng Premium và giao diện.
           </p>
         </div>
 
@@ -25,7 +35,7 @@ export default function StudentSettingsPage() {
           <CardHeader className="border-b border-border bg-muted/30">
             <CardTitle className="text-lg">Tùy chọn</CardTitle>
             <CardDescription>
-              Phân tích hồ sơ và chế độ hiển thị
+              Phân tích hồ sơ, đổi mật khẩu và chế độ hiển thị
             </CardDescription>
           </CardHeader>
           <CardContent className="divide-y divide-border">
@@ -67,7 +77,38 @@ export default function StudentSettingsPage() {
               <ChangePasswordDialog />
             </div>
 
-            {/* Chế độ hiển thị / Theme */}
+            {/* Tính năng Premium — combobox riêng */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Crown className="size-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Tính năng Premium</p>
+                  <p className="text-sm text-muted-foreground">
+                    Chuyển nhanh tới Chat, Checklist, Deadline, Đặt lịch mentor
+                  </p>
+                </div>
+              </div>
+              <Select
+                onValueChange={(href) => {
+                  if (href) router.push(href);
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-[200px] shrink-0">
+                  <SelectValue placeholder="Chọn tính năng Premium…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {premiumFeatures.map((item) => (
+                    <SelectItem key={item.href} value={item.href}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Chế độ tối / Chế độ hiển thị */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
@@ -80,7 +121,7 @@ export default function StudentSettingsPage() {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Chế độ hiển thị</p>
+                  <p className="font-medium text-foreground">Chế độ tối</p>
                   <p className="text-sm text-muted-foreground">
                     Sáng, tối, hoặc theo hệ thống
                   </p>
