@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { TestStatus } from '@prisma/client';
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
       if (testType === 'mbti') {
         newTest = await prisma.mbti_tests.create({
           data: {
+            id: randomUUID(),
             student_id,
             status: TestStatus.IN_PROGRESS,
           },
@@ -100,6 +102,7 @@ export async function POST(request: NextRequest) {
       } else if (testType === 'grit') {
         newTest = await prisma.grit_tests.create({
           data: {
+            id: randomUUID(),
             student_id,
             status: TestStatus.IN_PROGRESS,
           },
@@ -107,6 +110,7 @@ export async function POST(request: NextRequest) {
       } else if (testType === 'riasec') {
         newTest = await prisma.riasec_tests.create({
           data: {
+            id: randomUUID(),
             student_id,
             status: TestStatus.IN_PROGRESS,
           },

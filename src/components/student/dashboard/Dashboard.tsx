@@ -168,10 +168,10 @@ export default function Dashboard({
           id="tinh-nang-chinh"
         >
           <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
-            <CardTitle className="font-heading text-base font-bold text-primary m-0">
+            <CardTitle className="font-heading text-sm font-bold text-primary m-0">
               Tính năng chính
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Phân tích hồ sơ, trắc nghiệm ngành, ngành & trường phù hợp, cải thiện hồ sơ, danh sách trường, báo cáo.
             </p>
           </CardHeader>
@@ -183,21 +183,21 @@ export default function Dashboard({
                   <motion.div key={item.name} variants={itemVariant}>
                     <Link
                       href={item.href}
-                      className="group flex gap-4 rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+                      className="group flex gap-3 rounded-xl border border-border bg-background p-3 sm:p-4 transition-all duration-200 hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
                     >
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                        <Icon className="h-5 w-5" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                        <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-foreground group-hover:text-primary">
+                        <h3 className="text-sm font-semibold text-foreground group-hover:text-primary">
                           {item.name}
                         </h3>
-                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                        <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-2 leading-snug">
                           {item.description}
                         </p>
-                        <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                        <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
                           Mở trang
-                          <ArrowRight className="h-3.5 w-3.5" />
+                          <ArrowRight className="h-3 w-3" />
                         </span>
                       </div>
                     </Link>
@@ -251,16 +251,16 @@ export default function Dashboard({
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-foreground flex items-center gap-1.5">
+                        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                           {item.name}
-                          <Lock className="h-3.5 w-3.5 text-amber-500/70" aria-hidden />
+                          <Lock className="h-3 w-3 text-amber-500/70" aria-hidden />
                         </h3>
-                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                        <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-2 leading-snug">
                           {item.description}
                         </p>
-                        <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                        <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
                           {isLocked ? "Nâng cấp để sử dụng" : "Xem tính năng"}
-                          <ArrowRight className="h-3.5 w-3.5" />
+                          <ArrowRight className="h-3 w-3" />
                         </span>
                       </div>
                     </Link>

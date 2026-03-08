@@ -313,7 +313,7 @@
   /* ── Section title ───────────────────────────────────── */
   .section-title {
     font-family: var(--font-heading);
-    @apply text-3xl font-bold text-center uppercase tracking-tight
+    @apply text-xl font-bold text-center uppercase tracking-tight
            text-primary dark:text-white relative mb-8;
     letter-spacing: -0.02em;
   }

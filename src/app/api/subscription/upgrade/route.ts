@@ -52,16 +52,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const amount = plan === 'PLUS' ? PLUS_AMOUNT[billingCycle] : 0;
-    await prisma.payments.create({
-      data: {
-        user_id: updatedUser.id,
-        plan: plan as any,
-        amount,
-        currency: 'VND',
-        status: 'success',
-      },
-    });
+    // TODO: Add payments model to schema and uncomment when payment gateway is integrated
+    // const amount = plan === 'PLUS' ? PLUS_AMOUNT[billingCycle] : 0;
+    // await prisma.payments.create({ data: { user_id: updatedUser.id, plan, amount, currency: 'VND', status: 'success' } });
 
     return NextResponse.json({
       success: true,

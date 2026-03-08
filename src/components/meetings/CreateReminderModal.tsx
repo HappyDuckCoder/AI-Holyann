@@ -133,7 +133,7 @@ export default function CreateReminderModal({
         startTime: startDateTime,
         durationMinutes: durationMinutes,
         mentorEmail: mentorEmail,
-x           studentId: data.studentEmail,
+        studentId: data.studentEmail,
       });
 
       if (result.success) {

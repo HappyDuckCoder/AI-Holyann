@@ -34,32 +34,32 @@ const ConversationCard = memo(function ConversationCard({
           isOnline={conv.mentor.isOnline}
         />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between gap-2 mb-0.5">
             <h3
-              className={`font-semibold truncate ${
+              className={`text-sm font-semibold truncate ${
                 isSelected ? "text-primary" : "text-foreground"
               }`}
             >
               {conv.mentor.name}
             </h3>
-            <span className="text-xs text-muted-foreground shrink-0 ml-2">
+            <span className="text-[11px] text-muted-foreground shrink-0">
               {formatTime(conv.lastMessageTime)}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="flex items-center gap-1.5 mb-1">
             <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${convColors.bg} ${convColors.text}`}
+              className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${convColors.bg} ${convColors.text}`}
             >
-              <ConvIcon size={12} />
+              <ConvIcon size={10} />
               {conv.mentor.roleCode}
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground truncate pr-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground truncate min-w-0">
               {conv.lastMessage}
             </p>
             {conv.unreadCount > 0 && (
-              <span className="shrink-0 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-semibold">
+              <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 bg-primary text-primary-foreground text-[11px] rounded-full flex items-center justify-center font-semibold">
                 {conv.unreadCount}
               </span>
             )}

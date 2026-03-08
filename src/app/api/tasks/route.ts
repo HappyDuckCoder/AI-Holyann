@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
@@ -6,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const tasks = await prisma.checklist_tasks.findMany({
       include: {
-        stage: true,
+        checklist_stages: true,
       },
       orderBy: [
         { stage_id: 'asc' },
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
     // Create task
     const newTask = await prisma.checklist_tasks.create({
       data: {
+        id: randomUUID(),
         stage_id: parseInt(stage_id),
         title,
         description: description || null,
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest) {
         is_required: true,
       },
       include: {
-        stage: true,
+        checklist_stages: true,
       },
     });
 
@@ -106,7 +108,7 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: updateData,
       include: {
-        stage: true,
+        checklist_stages: true,
       },
     });
 

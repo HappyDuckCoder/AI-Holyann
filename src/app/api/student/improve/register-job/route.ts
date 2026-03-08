@@ -4,6 +4,7 @@
  * Body: { job_type, external_job_id, essay_id? }
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-config';
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
 
     const row = await prisma.improve_jobs.create({
       data: {
+        id: randomUUID(),
         student_id: studentId,
         job_type,
         external_job_id,
