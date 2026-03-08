@@ -13,14 +13,14 @@ function getFlagEmoji(countryCode: string): string {
 }
 
 type University = {
-  id: string;
+  id: number;
   qs_rank: number;
   name: string;
   country: string;
   country_code: string;
-  city: string;
-  region: string;
-  type: string;
+  city: string | null;
+  region: string | null;
+  type: string | null;
   founded_year: number | null;
   total_students: number | null;
   website: string | null;
@@ -45,7 +45,7 @@ const SCORE_KEYS: { key: keyof University; label: string }[] = [
   { key: 'international_students', label: 'International Students' },
 ];
 
-export default function UniversityDetailPage({
+export default function StudentUniversityDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -55,9 +55,7 @@ export default function UniversityDetailPage({
   const [id, setId] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.resolve(params as Promise<{ id: string }> | { id: string }).then((p) =>
-      setId(p.id)
-    );
+    void Promise.resolve(params).then((p) => setId(p.id));
   }, [params]);
 
   useEffect(() => {
@@ -73,7 +71,7 @@ export default function UniversityDetailPage({
 
   if (loading || !id) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+      <div className="flex min-h-[50vh] items-center justify-center bg-background text-foreground">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
@@ -81,9 +79,9 @@ export default function UniversityDetailPage({
 
   if (!university) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4 text-foreground">
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 bg-background px-4 text-foreground">
         <p className="text-muted-foreground">Không tìm thấy trường.</p>
-        <Link href="/universities" className="text-primary hover:underline">
+        <Link href="/student/universities" className="text-primary hover:underline">
           ← Quay lại danh sách
         </Link>
       </div>
@@ -98,20 +96,15 @@ export default function UniversityDetailPage({
     'Latin America': 'from-rose-500/20 to-background',
     'Middle East & Africa': 'from-violet-500/20 to-background',
   };
-  const heroGradient = regionGradients[university.region] || 'from-muted to-background';
+  const heroGradient =
+    (university.region && regionGradients[university.region]) || 'from-muted to-background';
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
-      <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
-        rel="stylesheet"
-      />
-
-      {/* Back link */}
+    <div className="min-h-screen bg-background text-foreground">
       <div className="border-b border-border px-4 py-4 sm:px-6 md:px-8">
         <div className="mx-auto max-w-4xl">
           <Link
-            href="/universities"
+            href="/student/universities"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
           >
             ← Quay lại danh sách
@@ -119,8 +112,7 @@ export default function UniversityDetailPage({
         </div>
       </div>
 
-      {/* Hero */}
-      <header className={`bg-linear-to-b ${heroGradient} px-4 py-12 sm:px-6 md:px-8`}>
+      <header className={`bg-linear-to-b ${heroGradient} px-4 py-10 sm:px-6 md:px-8`}>
         <div className="mx-auto max-w-4xl">
           <div className="mb-4 flex items-center gap-3">
             <span
@@ -138,10 +130,7 @@ export default function UniversityDetailPage({
               {getFlagEmoji(university.country_code)} {university.country}
             </span>
           </div>
-          <h1
-            className="text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
+          <h1 className="font-university-display text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl">
             {university.name}
           </h1>
           {university.description && (
@@ -153,7 +142,6 @@ export default function UniversityDetailPage({
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 md:px-8">
-        {/* Info grid */}
         <section className="mb-10">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Thông tin
@@ -163,14 +151,18 @@ export default function UniversityDetailPage({
               <p className="text-xs text-muted-foreground">Quốc gia</p>
               <p className="font-medium text-foreground">{university.country}</p>
             </div>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs text-muted-foreground">Thành phố</p>
-              <p className="font-medium text-foreground">{university.city}</p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs text-muted-foreground">Loại trường</p>
-              <p className="font-medium text-foreground">{university.type}</p>
-            </div>
+            {university.city && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Thành phố</p>
+                <p className="font-medium text-foreground">{university.city}</p>
+              </div>
+            )}
+            {university.type && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Loại trường</p>
+                <p className="font-medium text-foreground">{university.type}</p>
+              </div>
+            )}
             {university.founded_year != null && (
               <div className="rounded-xl border border-border bg-card p-4">
                 <p className="text-xs text-muted-foreground">Năm thành lập</p>
@@ -194,14 +186,19 @@ export default function UniversityDetailPage({
                   rel="noopener noreferrer"
                   className="font-medium text-primary hover:underline"
                 >
-                  {new URL(university.website).hostname}
+                  {(() => {
+                    try {
+                      return new URL(university.website!).hostname;
+                    } catch {
+                      return 'Link';
+                    }
+                  })()}
                 </a>
               </div>
             )}
           </div>
         </section>
 
-        {/* QS Scores */}
         <section className="mb-10">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             QS Scores breakdown
@@ -228,8 +225,7 @@ export default function UniversityDetailPage({
           </div>
         </section>
 
-        {/* Strong subjects */}
-        {university.strong_subjects.length > 0 && (
+        {university.strong_subjects && university.strong_subjects.length > 0 && (
           <section className="mb-10">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Ngành mạnh

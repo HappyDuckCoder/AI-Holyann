@@ -155,8 +155,7 @@ export default function EssayTab({ studentId }: EssayTabProps) {
         ) : essayDetail ? (
           <>
             <div
-              className="px-4 sm:px-6 py-6 min-h-[200px] border-b border-border bg-muted dark:bg-muted/40 text-foreground [&_p]:text-foreground [&_p]:leading-relaxed [&_p]:my-3 [&_p]:text-[15px]"
-              style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+              className="font-essay px-4 sm:px-6 py-6 min-h-[200px] border-b border-border bg-muted dark:bg-muted/40 text-foreground [&_p]:text-foreground [&_p]:leading-relaxed [&_p]:my-3 [&_p]:text-[15px]"
               dangerouslySetInnerHTML={{ __html: essayDetail.content || '<p style="color: var(--muted-foreground)">(Trống)</p>' }}
             />
             <div className="p-6">

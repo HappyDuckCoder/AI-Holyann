@@ -51,7 +51,7 @@ export async function GET() {
       },
     });
 
-    const [taskProgressList, customDeadlines, checklistTasks] = await Promise.all([
+    const [taskProgressList, customDeadlines, checklistTasks, meetingCount] = await Promise.all([
       prisma.student_task_progress.findMany({
         where: { student_id: studentId },
         include: {
@@ -79,6 +79,9 @@ export async function GET() {
           checklist_stages: { select: { name: true } },
         },
         orderBy: [{ checklist_stages: { order_index: "asc" } }, { order_index: "asc" }],
+      }),
+      prisma.consultation_meetings.count({
+        where: { student_id: studentId },
       }),
     ]);
 
@@ -162,19 +165,19 @@ export async function GET() {
         accent: "amber" as const,
       },
       {
-        id: "deadlines",
-        label: "Hạn nộp sắp tới",
-        value: upcomingDeadlines.length,
+        id: "meetings",
+        label: "Số meeting với mentor",
+        value: meetingCount,
         trend: undefined,
-        icon: "Calendar",
+        icon: "Video",
         accent: "violet" as const,
       },
       {
-        id: "attendance",
-        label: "Tỉ lệ tham gia",
-        value: "—",
+        id: "goal",
+        label: "Mục tiêu hiện tại",
+        value: student?.intended_major?.trim() || "—",
         trend: undefined,
-        icon: "UserCheck",
+        icon: "Target",
         accent: "rose" as const,
       },
     ];
@@ -202,6 +205,11 @@ export async function GET() {
 
     return NextResponse.json({
       quickStats,
+      currentGoal: {
+        intendedMajor: student?.intended_major ?? null,
+        targetCountry: student?.target_country ?? null,
+        personalDesire: student?.personal_desire ?? null,
+      },
       deadlines: upcomingDeadlines.map((d) => ({
         id: d.id,
         title: d.title,

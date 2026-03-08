@@ -2,67 +2,79 @@
 
 import { useState } from 'react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { DISPLAY_PLANS, type SubscriptionPlan } from '@/lib/subscription';
 import { StudentPageContainer } from '@/components/student';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { Lock } from 'lucide-react';
 
-type PlanKey = 'FREE' | 'PLUS' | 'ADVANCED' | 'PREMIUM';
+type BillingCycle = '6months' | '1year';
+
+const PLUS_PRICE = {
+  '6months': { amount: 399000, label: '399.000đ', period: '/6 tháng' },
+  '1year': { amount: 599000, label: '599.000đ', period: '/năm' },
+} as const;
 
 const PLANS: {
-  key: PlanKey;
+  key: SubscriptionPlan;
   name: string;
   priceLabel: string;
+  pricePeriod?: string;
   description: string;
   badge?: string;
+  contactSales?: boolean;
 }[] = [
   {
     key: 'FREE',
     name: 'Free',
     priceLabel: '0đ',
-    description: 'Dùng thử cơ bản với 1 lần cho mỗi module AI chính.',
+    description: 'Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.',
   },
   {
     key: 'PLUS',
     name: 'Plus (AI)',
-    priceLabel: '$10',
+    priceLabel: PLUS_PRICE['6months'].label,
+    pricePeriod: PLUS_PRICE['6months'].period,
     description: 'Mở khóa đầy đủ chi tiết AI cho profile & ngành học.',
     badge: 'Phổ biến',
   },
   {
-    key: 'ADVANCED',
-    name: 'Advanced (AI + Advisor ACS)',
-    priceLabel: '$20',
-    description: 'Thêm cố vấn ACS cho luận & hồ sơ học thuật.',
-    badge: 'Học thuật chuyên sâu',
-  },
-  {
     key: 'PREMIUM',
     name: 'Premium (AI + All Advisors)',
-    priceLabel: '$30',
+    priceLabel: 'Liên hệ',
     description: 'Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.',
     badge: 'Tốt nhất',
+    contactSales: true,
   },
 ];
 
 const CHECK = '✓';
-const LOCK = '🔒';
 
 export default function StudentPricingPage() {
   const { plan: currentPlan } = useSubscription();
-  const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<SubscriptionPlan | null>(null);
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('6months');
 
-  async function handleUpgrade(targetPlan: PlanKey) {
+  const plusPrice = PLUS_PRICE[billingCycle];
+
+  async function handleUpgrade(targetPlan: SubscriptionPlan) {
     if (targetPlan === 'FREE') return;
+    if (targetPlan === 'PREMIUM') {
+      // Contact sales: open mailto or track CTA
+      window.location.href = 'mailto:sales@holyann.com?subject=Đăng ký gói Premium';
+      return;
+    }
     setLoadingPlan(targetPlan);
     try {
       const res = await fetch('/api/subscription/upgrade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: targetPlan }),
+        body: JSON.stringify({ plan: targetPlan, billingCycle }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
@@ -90,11 +102,33 @@ export default function StudentPricingPage() {
             </p>
           </div>
 
-          {/* Plan cards */}
-          <div className="grid gap-4 md:grid-cols-4">
-            {PLANS.map((p) => {
+          {/* 6‑month cycle callout */}
+          <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-center text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Tất cả gói được tính theo chu kỳ 6 tháng</span>
+            {' — '}
+            Tính năng và lượt dùng sẽ được làm mới mỗi 6 tháng.
+          </div>
+
+          {/* Billing toggle for Plus (6‑month vs 1‑year) */}
+          <div className="flex justify-center">
+            <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as BillingCycle)}>
+              <TabsList className="grid w-full max-w-[280px] grid-cols-2">
+                <TabsTrigger value="6months">6 tháng</TabsTrigger>
+                <TabsTrigger value="1year">1 năm</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Plan cards — only Free, Plus, Premium */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {PLANS.filter((p) => DISPLAY_PLANS.includes(p.key)).map((p) => {
               const isCurrent = currentPlan === p.key;
-              const isUpgradable = !isCurrent && p.key !== 'FREE';
+              const isUpgradable = !isCurrent && p.key !== 'FREE' && !p.contactSales;
+              const isContactSales = p.contactSales;
+              const priceLabel =
+                p.key === 'PLUS' ? plusPrice.label : p.priceLabel;
+              const pricePeriod = p.key === 'PLUS' ? plusPrice.period : p.pricePeriod;
+
               return (
                 <Card key={p.key} className={p.key === 'PREMIUM' ? 'border-primary/60 shadow-md' : ''}>
                   <CardHeader className="space-y-1">
@@ -110,8 +144,8 @@ export default function StudentPricingPage() {
                       )}
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-xl font-semibold">{p.priceLabel}</span>
-                      {p.key !== 'FREE' && <span className="text-xs text-muted-foreground">/tháng</span>}
+                      <span className="text-xl font-semibold">{priceLabel}</span>
+                      {pricePeriod && <span className="text-xs text-muted-foreground">{pricePeriod}</span>}
                     </div>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground">
@@ -121,6 +155,13 @@ export default function StudentPricingPage() {
                     {isCurrent ? (
                       <Button className="w-full" variant="outline" disabled>
                         Gói hiện tại
+                      </Button>
+                    ) : isContactSales ? (
+                      <Button
+                        className="w-full"
+                        onClick={() => handleUpgrade(p.key)}
+                      >
+                        Liên hệ bán hàng
                       </Button>
                     ) : isUpgradable ? (
                       <Button
@@ -141,131 +182,111 @@ export default function StudentPricingPage() {
             })}
           </div>
 
-          {/* Comparison table */}
+          {/* Comparison table — 3 columns: Free, Plus, Premium */}
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">So sánh chi tiết 6 Feature AI</h2>
             <div className="overflow-x-auto rounded-lg border">
-              <Table className="min-w-[720px] text-xs">
+              <Table className="min-w-[640px] text-xs">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-56">Tính năng</TableHead>
                     <TableHead>Free</TableHead>
                     <TableHead>Plus</TableHead>
-                    <TableHead>Advanced</TableHead>
                     <TableHead>Premium</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {/* Feature 1 — Profile Analysis */}
                   <TableRow>
-                    <TableCell colSpan={5} className="font-medium bg-muted">
+                    <TableCell colSpan={4} className="font-medium bg-muted">
                       Feature 1 — Profile Analysis
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Phân tích profile gốc</TableCell>
-                    <TableCell>1 lần (mờ detail)</TableCell>
+                    <TableCell>1 lần (điểm + nhận xét ngắn, chi tiết mờ)</TableCell>
                     <TableCell>1 lần đầy đủ</TableCell>
                     <TableCell>1 lần đầy đủ</TableCell>
-                    <TableCell>1 lần đầy đủ</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Lưu profile &amp; nhận xét</TableCell>
-                    <TableCell>
-                      {LOCK} {LOCK && 'Không lưu chi tiết'}
-                    </TableCell>
-                    <TableCell>{CHECK}</TableCell>
-                    <TableCell>{CHECK}</TableCell>
-                    <TableCell>{CHECK}</TableCell>
                   </TableRow>
 
-                  {/* Feature 2 — Trắc nghiệm → Ngành */}
+                  {/* Feature 2 — Career Quiz → Major Matching */}
                   <TableRow>
-                    <TableCell colSpan={5} className="font-medium bg-muted">
+                    <TableCell colSpan={4} className="font-medium bg-muted">
                       Feature 2 — Trắc nghiệm → Ngành
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Làm trắc nghiệm</TableCell>
-                    <TableCell>1 lần</TableCell>
-                    <TableCell>1 lần</TableCell>
-                    <TableCell>1 lần</TableCell>
-                    <TableCell>1 lần</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Danh sách ngành</TableCell>
-                    <TableCell>3 ngành (mờ % phù hợp)</TableCell>
-                    <TableCell>10 ngành full</TableCell>
-                    <TableCell>10 ngành full</TableCell>
-                    <TableCell>10 ngành full</TableCell>
+                    <TableCell>1 lần (chỉ 3 ngành, % mờ; làm lại sau 6 tháng)</TableCell>
+                    <TableCell>1 lần — 15 ngành, đầy đủ</TableCell>
+                    <TableCell>1 lần — 15 ngành, đầy đủ</TableCell>
                   </TableRow>
 
                   {/* Feature 3 — Reach / Match / Safe */}
                   <TableRow>
-                    <TableCell colSpan={5} className="font-medium bg-muted">
+                    <TableCell colSpan={4} className="font-medium bg-muted">
                       Feature 3 — Reach / Match / Safe
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Phân loại Reach / Match / Safe</TableCell>
-                    <TableCell>5 ngành (1R/2M/2S, mờ dưới)</TableCell>
-                    <TableCell>9 ngành chi tiết</TableCell>
-                    <TableCell>9 ngành chi tiết</TableCell>
-                    <TableCell>9 ngành chi tiết</TableCell>
+                    <TableCell>Số lần sử dụng</TableCell>
+                    <TableCell>1 lần tổng</TableCell>
+                    <TableCell>15 lần/tháng</TableCell>
+                    <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Sự phù hợp từng ngành</TableCell>
-                    <TableCell>1 ngành cao nhất {LOCK}</TableCell>
-                    <TableCell>3 ngành cao nhất {LOCK}</TableCell>
-                    <TableCell>5 ngành cao nhất</TableCell>
-                    <TableCell>9 ngành cao nhất</TableCell>
+                    <TableCell>Ngành/trường phù hợp hiển thị</TableCell>
+                    <TableCell>5 ngành (1R, 2M, 2S); dưới mờ</TableCell>
+                    <TableCell>30 (10R, 10M, 10S), đầy đủ</TableCell>
+                    <TableCell>30 (10R, 10M, 10S), đầy đủ</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Major fit % (từ Feature 2)</TableCell>
+                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> Chỉ 1 ngành cao nhất</span></TableCell>
+                    <TableCell>Top 15 ngành {CHECK}</TableCell>
+                    <TableCell>Top 15 ngành {CHECK}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Match score chi tiết</TableCell>
-                    <TableCell>Mờ {LOCK}</TableCell>
-                    <TableCell>{CHECK}</TableCell>
+                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> Mờ</span></TableCell>
                     <TableCell>{CHECK}</TableCell>
                     <TableCell>{CHECK}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Roadmap cải thiện</TableCell>
-                    <TableCell>Chung chung {LOCK}</TableCell>
-                    <TableCell>Chi tiết</TableCell>
-                    <TableCell>Chi tiết</TableCell>
-                    <TableCell>Chi tiết</TableCell>
+                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> Chung chung, chi tiết mờ</span></TableCell>
+                    <TableCell>Đầy đủ</TableCell>
+                    <TableCell>Đầy đủ</TableCell>
                   </TableRow>
 
-                  {/* Feature 4 — Enhance & Re-analysis */}
+                  {/* Feature 4 — Profile/CV/Essay Enhancement */}
                   <TableRow>
-                    <TableCell colSpan={5} className="font-medium bg-muted">
+                    <TableCell colSpan={4} className="font-medium bg-muted">
                       Feature 4 — Enhance &amp; Re-analysis
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Enhance profile &amp; phân tích lại</TableCell>
-                    <TableCell>1 lần enhance + 1 analysis {LOCK}</TableCell>
-                    <TableCell>5 lần enhance + 5 analysis</TableCell>
-                    <TableCell>5 lần enhance + 5 analysis</TableCell>
+                    <TableCell>Profile: enhance + analysis</TableCell>
+                    <TableCell>1 enhance + 1 analysis (mờ)</TableCell>
+                    <TableCell>10 enhance + 10 analysis</TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Analysis CV / Enhance CV</TableCell>
-                    <TableCell>1 lần up CV + 1 enhance + 1 analysis</TableCell>
-                    <TableCell>1 lần up CV + 5 enhance + 5 analysis</TableCell>
-                    <TableCell>1 lần up CV + 5 enhance + 5 analysis</TableCell>
+                    <TableCell>CV: upload + enhance + analysis</TableCell>
+                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> 1 upload (khóa) + 1 enhance + 1 analysis</span></TableCell>
+                    <TableCell>1 upload (khóa) + 10 enhance + 10 analysis</TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Đánh giá &amp; định hướng cải thiện luận</TableCell>
-                    <TableCell>1 lần enhance + 1 analysis</TableCell>
-                    <TableCell>5 lần enhance + 5 analysis</TableCell>
-                    <TableCell>5 lần enhance + 5 analysis + mentor</TableCell>
+                    <TableCell>Essay: enhance + analysis</TableCell>
+                    <TableCell>1 enhance + 1 analysis</TableCell>
+                    <TableCell>10 enhance + 10 analysis</TableCell>
                     <TableCell>Không giới hạn + mentor</TableCell>
                   </TableRow>
 
-                  {/* Feature 5 — Danh sách trường */}
+                  {/* Feature 5 — School List */}
                   <TableRow>
-                    <TableCell colSpan={5} className="font-medium bg-muted">
+                    <TableCell colSpan={4} className="font-medium bg-muted">
                       Feature 5 — Danh sách trường
                     </TableCell>
                   </TableRow>
@@ -274,31 +295,26 @@ export default function StudentPricingPage() {
                     <TableCell>Miễn phí</TableCell>
                     <TableCell>Miễn phí</TableCell>
                     <TableCell>Miễn phí</TableCell>
-                    <TableCell>Miễn phí</TableCell>
                   </TableRow>
 
                   {/* Feature 6 — Reports */}
                   <TableRow>
-                    <TableCell colSpan={5} className="font-medium bg-muted">
+                    <TableCell colSpan={4} className="font-medium bg-muted">
                       Feature 6 — Reports
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Báo cáo tổng hợp (PDF / in)</TableCell>
-                    <TableCell>1 lần {LOCK}</TableCell>
-                    <TableCell>Không giới hạn</TableCell>
+                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> 1 lần</span></TableCell>
                     <TableCell>Không giới hạn</TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
-            <p className="text-xs text-muted-foreground">
-            </p>
           </div>
         </div>
       </StudentPageContainer>
     </RoleGuard>
   );
 }
-

@@ -3,9 +3,19 @@
  * Run: npm run seed:universities  or  npx tsx prisma/seed-universities.ts
  */
 
+import 'dotenv/config';
+import { Pool } from 'pg';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const connectionUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? '';
+if (!connectionUrl) {
+  console.error('❌ DATABASE_URL or DIRECT_URL required');
+  process.exit(1);
+}
+const pool = new Pool({ connectionString: connectionUrl });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const universities = [
   { qsRank: 1, name: "Massachusetts Institute of Technology (MIT)", country: "United States", countryCode: "US", city: "Cambridge, MA", region: "North America", type: "Private", foundedYear: 1861, totalStudents: 11574, website: "https://web.mit.edu", qsOverallScore: 100, academicReputation: 100, employerReputation: 100, facultyStudentRatio: 99.7, citationsPerFaculty: 99.9, internationalFaculty: 92.4, internationalStudents: 90.8, strongSubjects: ["Engineering", "Computer Science", "Physics", "Mathematics", "Architecture"], description: "MIT là viện công nghệ hàng đầu thế giới, nổi tiếng với nghiên cứu đột phá và văn hóa đổi mới sáng tạo." },
@@ -161,9 +171,13 @@ async function main() {
 }
 
 main()
-  .then(() => prisma.$disconnect())
-  .catch((e) => {
+  .then(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  })
+  .catch(async (e) => {
     console.error(e);
-    prisma.$disconnect();
+    await prisma.$disconnect();
+    await pool.end();
     process.exit(1);
   });

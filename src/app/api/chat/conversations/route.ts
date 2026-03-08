@@ -4,10 +4,14 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {verifyToken} from '@/lib/auth';
 import {prisma} from '@/lib/prisma';
+import {requirePremium} from '@/lib/api/require-premium';
 
-// GET - Get all conversations for current user
+// GET - Get all conversations for current user (Premium only)
 export async function GET(request: NextRequest) {
     try {
+        const forbidden = await requirePremium(request);
+        if (forbidden) return forbidden;
+
         const token = request.headers.get('Authorization')?.replace('Bearer ', '');
         if (!token) {
             return NextResponse.json({error: 'Unauthorized'}, {status: 401});
@@ -208,6 +212,9 @@ export async function GET(request: NextRequest) {
 // POST - Create new conversation
 export async function POST(request: NextRequest) {
     try {
+        const forbidden = await requirePremium(request);
+        if (forbidden) return forbidden;
+
         const token = request.headers.get('Authorization')?.replace('Bearer ', '');
         if (!token) {
             return NextResponse.json({error: 'Unauthorized'}, {status: 401});
