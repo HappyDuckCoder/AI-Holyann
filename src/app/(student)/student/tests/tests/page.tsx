@@ -3,9 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { StudentPageContainer } from "@/components/student";
-import TestSelection from "@/components/Test/TestSelection";
-import TestView from "@/components/Test/TestView";
-import ResultView from "@/components/Test/ResultView";
+import TestSelection from "@/components/test/TestSelection";
+import TestView from "@/components/test/TestView";
+import ResultView from "@/components/test/ResultView";
 import CareerAssessmentResults from "@/components/student/assessments/CareerAssessmentResults";
 import {
   TestType,
@@ -27,7 +27,7 @@ import {
   calculateGritResult as calculateGritScores,
   GRIT_COMPONENTS,
 } from "@/data/grit-questions";
-import { getMajorRecommendations } from "@/service/geminiService";
+import { getMajorRecommendations } from "@/services/ai/geminiService";
 import { useTestProgress } from "@/hooks/useTestProgress";
 import { useSession } from "next-auth/react";
 
@@ -38,7 +38,7 @@ export default function TestsPage() {
   const [currentTestType, setCurrentTestType] = useState<TestType | null>(null);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [recommendations, setRecommendations] = useState<MajorRecommendation[]>(
-    []
+    [],
   );
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const { data: session } = useSession();
@@ -71,7 +71,8 @@ export default function TestsPage() {
   // No need to create it here - if missing, it's a data sync issue that should be fixed at the source
 
   // Hook để quản lý tiến độ test - giờ lấy từ database
-  const { progress, isLoaded, saveTestResult, refreshProgress } = useTestProgress(studentId);
+  const { progress, isLoaded, saveTestResult, refreshProgress } =
+    useTestProgress(studentId);
 
   const getStudentId = () => studentId;
 
@@ -80,7 +81,7 @@ export default function TestsPage() {
     setCurrentAllCompleted(progress.allCompleted);
     const allTests: TestType[] = ["MBTI", "GRIT", "RIASEC"];
     setCurrentRemainingTests(
-      allTests.filter((t) => !progress.completedTests.includes(t))
+      allTests.filter((t) => !progress.completedTests.includes(t)),
     );
   }, [progress]);
 
@@ -101,7 +102,8 @@ export default function TestsPage() {
     // Check if test is already completed - prevent retaking
     if (progress.completedTests.includes(type)) {
       toast.info("Bài test đã hoàn thành", {
-        description: "Bạn chỉ có thể xem kết quả, không thể làm lại bài test này.",
+        description:
+          "Bạn chỉ có thể xem kết quả, không thể làm lại bài test này.",
       });
       handleViewResult(type);
       return;
@@ -168,7 +170,7 @@ export default function TestsPage() {
 
   const submitAnswersToApi = async (
     answers: Record<number, string | number | boolean>,
-    testType: TestType
+    testType: TestType,
   ) => {
     if (!currentTestId) return;
     const studentId = getStudentId();
@@ -207,7 +209,7 @@ export default function TestsPage() {
   };
 
   const calculateMBTIResult = (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ): TestResult => {
     // Chuyển đổi answers sang Record<number, number> cho hàm tính điểm
     const numericAnswers: Record<number, number> = {};
@@ -230,7 +232,7 @@ export default function TestsPage() {
   };
 
   const calculateGritResult = (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ): TestResult => {
     // Chuyển đổi answers sang Record<number, number> cho hàm tính điểm
     const numericAnswers: Record<number, number> = {};
@@ -264,7 +266,7 @@ export default function TestsPage() {
   };
 
   const calculateRIASECResult = (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ): TestResult => {
     // Chuyển đổi answers sang Record<number, boolean> cho hàm tính điểm
     const booleanAnswers: Record<number, boolean> = {};
@@ -292,7 +294,7 @@ export default function TestsPage() {
   };
 
   const handleTestComplete = async (
-    answers: Record<number, string | number | boolean>
+    answers: Record<number, string | number | boolean>,
   ) => {
     if (!currentTestType) return;
     const studentId = getStudentId();
@@ -338,7 +340,7 @@ export default function TestsPage() {
           // API submit failed - don't use fallback, show error
           throw new Error(
             apiResult?.error ||
-              "Không thể phân tích MBTI. Vui lòng thử lại sau."
+              "Không thể phân tích MBTI. Vui lòng thử lại sau.",
           );
         }
       }
@@ -349,7 +351,9 @@ export default function TestsPage() {
         if (apiResult) {
           if (currentTestType === "RIASEC" && apiResult.result_code) {
             const top3Desc = Array.isArray(apiResult.top3)
-              ? apiResult.top3.map((t: string[] | unknown) => (Array.isArray(t) ? t[0] : t)).join(", ")
+              ? apiResult.top3
+                  .map((t: string[] | unknown) => (Array.isArray(t) ? t[0] : t))
+                  .join(", ")
               : "";
             computedResult = {
               type: "RIASEC",
@@ -363,7 +367,7 @@ export default function TestsPage() {
           ) {
             // API không trả Đam mê/Kiên trì → tính từ đáp án để hiển thị breakdown
             const numericAnswers = Object.fromEntries(
-              Object.entries(answers).map(([k, v]) => [Number(k), Number(v)])
+              Object.entries(answers).map(([k, v]) => [Number(k), Number(v)]),
             ) as Record<number, number>;
             const localGrit = calculateGritScores(numericAnswers);
             computedResult = {
@@ -371,7 +375,8 @@ export default function TestsPage() {
               scores: {
                 Grit: apiResult.total_score,
                 "Đam mê": apiResult.passion_score ?? localGrit.passionScore,
-                "Kiên trì": apiResult.perseverance_score ?? localGrit.perseveranceScore,
+                "Kiên trì":
+                  apiResult.perseverance_score ?? localGrit.perseveranceScore,
               },
               rawLabel: apiResult.level,
               description: apiResult.description || "",
@@ -404,7 +409,7 @@ export default function TestsPage() {
         ? progress.completedTests
         : [...progress.completedTests, currentTestType];
       const remaining = allTests.filter(
-        (t) => !newCompleted.includes(t)
+        (t) => !newCompleted.includes(t),
       ) as TestType[];
       setCurrentRemainingTests(remaining);
       const newAllCompleted = newCompleted.length >= 3;
@@ -467,7 +472,7 @@ export default function TestsPage() {
             careerPaths: [],
             requiredSkills: [],
             matchPercentage: r.match_percentage,
-          })
+          }),
         );
         setCareerRecs(recs);
         setRecommendations(recs);
@@ -599,7 +604,9 @@ export default function TestsPage() {
           <>
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-foreground">Bài test</h1>
-              <p className="text-muted-foreground mt-1">Khám phá bản thân qua MBTI, GRIT và Holland.</p>
+              <p className="text-muted-foreground mt-1">
+                Khám phá bản thân qua MBTI, GRIT và Holland.
+              </p>
             </div>
             <TestSelection
               onStartTest={handleStartTest}
