@@ -34,9 +34,17 @@ export interface AIInsight {
   tone: "positive" | "warning" | "neutral";
 }
 
+/** Mục tiêu hiện tại từ student profile */
+export interface DashboardCurrentGoal {
+  intendedMajor: string | null;
+  targetCountry: string | null;
+  personalDesire: string | null;
+}
+
 /** Payload from GET /api/student/dashboard */
 export interface DashboardData {
   quickStats: QuickStatItem[];
+  currentGoal?: DashboardCurrentGoal;
   deadlines: DashboardDeadline[];
   taskCompletion: { name: string; value: number }[];
   gradesBySubject: { subject: string; grade: number }[];

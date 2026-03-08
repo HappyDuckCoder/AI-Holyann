@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardHero } from "./DashboardHero";
 import { QuickStatsGrid } from "./QuickStatsGrid";
 import { TaskCompletionChart } from "./charts/TaskCompletionChart";
-import { UpcomingDeadlines } from "./UpcomingDeadlines";
+import { CurrentGoalCard } from "./CurrentGoalCard";
 import { RecentActivityFeed } from "./RecentActivityFeed";
 import { AIInsightsPanel } from "./AIInsightsPanel";
 import { StudentUpcomingMeetings } from "./StudentUpcomingMeetings";
@@ -56,19 +56,15 @@ interface DashboardProps {
 }
 
 function hasRealStats(data: DashboardData | null): boolean {
-  const stats = data?.quickStats;
-  if (!stats?.length) return false;
-  return stats.some(
-    (s) => s.value !== undefined && s.value !== "" && Number(s.value) >= 0
-  );
+  return (data?.quickStats?.length ?? 0) > 0;
 }
 
 function hasRealTaskCompletion(data: DashboardData | null): boolean {
   return (data?.taskCompletion?.length ?? 0) > 0;
 }
 
-function hasRealDeadlines(data: DashboardData | null): boolean {
-  return (data?.deadlines?.length ?? 0) > 0;
+function hasCurrentGoal(data: DashboardData | null): boolean {
+  return data?.currentGoal != null;
 }
 
 function hasRealActivity(data: DashboardData | null): boolean {
@@ -94,7 +90,7 @@ export default function Dashboard({
 
   const showStats = hasRealStats(data);
   const showTaskChart = hasRealTaskCompletion(data);
-  const showDeadlines = hasRealDeadlines(data);
+  const showCurrentGoal = hasCurrentGoal(data);
   const showActivity = hasRealActivity(data);
   const showAiInsights = hasRealAiInsights(data);
 
@@ -268,7 +264,7 @@ export default function Dashboard({
         </section>
 
         {/* Khối dữ liệu thật từ GET /api/student/dashboard — chỉ khi có dữ liệu, không mock */}
-        {(showTaskChart || showDeadlines || showActivity || showAiInsights) && data && (
+        {(showTaskChart || showCurrentGoal || showActivity || showAiInsights) && data && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 space-y-6 lg:space-y-0">
             {showTaskChart && (
               <motion.div
@@ -291,9 +287,9 @@ export default function Dashboard({
               </motion.div>
             )}
 
-            {showDeadlines && (
+            {showCurrentGoal && data.currentGoal && (
               <div className="lg:col-span-2">
-                <UpcomingDeadlines items={data.deadlines} />
+                <CurrentGoalCard currentGoal={data.currentGoal} />
               </div>
             )}
 
