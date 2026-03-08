@@ -1,13 +1,10 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
-  binaryTargets   = ["native"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 model academic_awards {
@@ -803,6 +800,9 @@ model users {
   auth_provider_id      String?                 @db.VarChar(255)
   avatar_url            String?
   is_active             Boolean?                @default(true)
+  subscriptionPlan      String?                 @map("subscription_plan") @db.VarChar(20)
+  subscriptionStart     DateTime?               @map("subscription_start") @db.Timestamp(6)
+  subscriptionEnd       DateTime?               @map("subscription_end") @db.Timestamp(6)
   created_at            DateTime?               @default(now()) @db.Timestamp(6)
   chat_messages         chat_messages[]
   chat_participants     chat_participants[]
