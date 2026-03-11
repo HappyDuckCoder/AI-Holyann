@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Upload, ImageIcon, X as XIcon, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { uploadFileServerAction } from "@/actions/upload";
 
 interface AcademicInfoModalProps {
   studentId: string;
@@ -34,6 +35,65 @@ export default function AcademicInfoModal({
   const [activeTab, setActiveTab] = useState("basic");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Proof images state for each section
+  const [gpaProofImages, setGpaProofImages] = useState<string[]>([]);
+  const [englishCertProofImages, setEnglishCertProofImages] = useState<string[]>([]);
+  const [standardizedTestProofImages, setStandardizedTestProofImages] = useState<string[]>([]);
+  const [subjectScoreProofImages, setSubjectScoreProofImages] = useState<string[]>([]);
+
+  // Ref đánh dấu proof_images đã được load từ DB (tránh ghi đè rỗng khi chưa load xong)
+  const proofImagesLoadedRef = useRef(false);
+
+  // Uploading states
+  const [uploadingGpa, setUploadingGpa] = useState(false);
+  const [uploadingEnglishCert, setUploadingEnglishCert] = useState(false);
+  const [uploadingStandardizedTest, setUploadingStandardizedTest] = useState(false);
+  const [uploadingSubjectScore, setUploadingSubjectScore] = useState(false);
+
+  // File input refs
+  const gpaFileRef = useRef<HTMLInputElement>(null);
+  const englishCertFileRef = useRef<HTMLInputElement>(null);
+  const standardizedTestFileRef = useRef<HTMLInputElement>(null);
+  const subjectScoreFileRef = useRef<HTMLInputElement>(null);
+
+  // Generic upload handler
+  const handleProofImageUpload = async (
+    file: File,
+    setImages: React.Dispatch<React.SetStateAction<string[]>>,
+    setUploading: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    if (!file) return;
+    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Chỉ hỗ trợ file PNG, JPG, WEBP");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File vượt quá 10MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userId", studentId);
+      formData.append("category", "academic");
+      const result = await uploadFileServerAction(formData);
+      if (result.success && result.url) {
+        setImages((prev) => [...prev, result.url!]);
+        // Đánh dấu tab academic đã chỉnh sửa để trigger save
+        markTabModified("academic");
+        toast.success("Tải ảnh bằng chứng thành công");
+      } else {
+        toast.error(result.error || "Tải ảnh thất bại");
+      }
+    } catch {
+      toast.error("Có lỗi khi tải ảnh");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Track which tabs have been modified
   const [modifiedTabs, setModifiedTabs] = useState<Set<string>>(new Set());
@@ -320,6 +380,32 @@ export default function AcademicInfoModal({
           setStandardizedTests(data.academicProfile.standardized_tests);
         }
 
+        // Populate Proof Images từ DB
+        const rawProofImages = data.academicProfile?.proof_images;
+        let proofImages: Record<string, string[]> = {};
+        if (rawProofImages) {
+          // Xử lý cả trường hợp Prisma trả về string JSON hoặc object trực tiếp
+          if (typeof rawProofImages === "string") {
+            try { proofImages = JSON.parse(rawProofImages); } catch { proofImages = {}; }
+          } else if (typeof rawProofImages === "object" && !Array.isArray(rawProofImages)) {
+            proofImages = rawProofImages as Record<string, string[]>;
+          }
+        }
+        if (Array.isArray(proofImages?.gpa) && proofImages.gpa.length > 0) {
+          setGpaProofImages(proofImages.gpa);
+        }
+        if (Array.isArray(proofImages?.english_cert) && proofImages.english_cert.length > 0) {
+          setEnglishCertProofImages(proofImages.english_cert);
+        }
+        if (Array.isArray(proofImages?.standardized_test) && proofImages.standardized_test.length > 0) {
+          setStandardizedTestProofImages(proofImages.standardized_test);
+        }
+        if (Array.isArray(proofImages?.subject_score) && proofImages.subject_score.length > 0) {
+          setSubjectScoreProofImages(proofImages.subject_score);
+        }
+        // Đánh dấu đã load xong proof_images từ DB
+        proofImagesLoadedRef.current = true;
+
         // Populate Intended Major
         updateIntendedMajor(data.studentInfo?.intended_major || "");
 
@@ -531,6 +617,15 @@ export default function AcademicInfoModal({
         gpa_transcript_details: gpaData,
         english_certificates: cleanedEnglishCerts,
         standardized_tests: standardizedTests.filter((t) => t.type),
+        // Chỉ lưu proof_images khi đã load xong từ DB (tránh ghi đè rỗng)
+        ...(proofImagesLoadedRef.current && {
+          proof_images: {
+            gpa: gpaProofImages,
+            english_cert: englishCertProofImages,
+            standardized_test: standardizedTestProofImages,
+            subject_score: subjectScoreProofImages,
+          },
+        }),
       }),
     });
 
@@ -949,6 +1044,59 @@ export default function AcademicInfoModal({
                       ),
                     )}
                   </div>
+                  {/* Proof Image Upload */}
+                  <div className="mt-4 border-t border-primary/20 pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        📎 Ảnh bằng chứng (học bạ, bảng điểm...)
+                      </Label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploadingGpa}
+                        onClick={() => gpaFileRef.current?.click()}
+                        className="text-xs"
+                      >
+                        {uploadingGpa ? (
+                          <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Đang tải...</>
+                        ) : (
+                          <><Upload className="w-3 h-3 mr-1" />Tải ảnh lên</>
+                        )}
+                      </Button>
+                      <input
+                        ref={gpaFileRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleProofImageUpload(file, setGpaProofImages, setUploadingGpa);
+                          e.target.value = "";
+                        }}
+                      />
+                    </div>
+                    {gpaProofImages.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {gpaProofImages.map((url, i) => (
+                          <div key={i} className="relative group">
+                            <a href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt={`GPA proof ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setGpaProofImages((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <XIcon className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {gpaProofImages.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Chưa có ảnh bằng chứng. Hỗ trợ PNG, JPG, WEBP (tối đa 10MB)</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Chứng chỉ Tiếng Anh */}
@@ -1162,6 +1310,59 @@ export default function AcademicInfoModal({
                       </div>
                     );
                   })}
+                  {/* Proof Image Upload */}
+                  <div className="mt-4 border-t border-primary/20 pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        📎 Ảnh bằng chứng (bằng chứng chỉ, kết quả thi...)
+                      </Label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploadingEnglishCert}
+                        onClick={() => englishCertFileRef.current?.click()}
+                        className="text-xs"
+                      >
+                        {uploadingEnglishCert ? (
+                          <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Đang tải...</>
+                        ) : (
+                          <><Upload className="w-3 h-3 mr-1" />Tải ảnh lên</>
+                        )}
+                      </Button>
+                      <input
+                        ref={englishCertFileRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleProofImageUpload(file, setEnglishCertProofImages, setUploadingEnglishCert);
+                          e.target.value = "";
+                        }}
+                      />
+                    </div>
+                    {englishCertProofImages.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {englishCertProofImages.map((url, i) => (
+                          <div key={i} className="relative group">
+                            <a href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt={`English cert proof ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setEnglishCertProofImages((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <XIcon className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {englishCertProofImages.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Chưa có ảnh bằng chứng. Hỗ trợ PNG, JPG, WEBP (tối đa 10MB)</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Bài thi chuẩn hóa */}
@@ -1249,6 +1450,59 @@ export default function AcademicInfoModal({
                       </Button>
                     </div>
                   ))}
+                  {/* Proof Image Upload */}
+                  <div className="mt-4 border-t border-primary/20 pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        📎 Ảnh bằng chứng (score report, kết quả thi...)
+                      </Label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploadingStandardizedTest}
+                        onClick={() => standardizedTestFileRef.current?.click()}
+                        className="text-xs"
+                      >
+                        {uploadingStandardizedTest ? (
+                          <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Đang tải...</>
+                        ) : (
+                          <><Upload className="w-3 h-3 mr-1" />Tải ảnh lên</>
+                        )}
+                      </Button>
+                      <input
+                        ref={standardizedTestFileRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleProofImageUpload(file, setStandardizedTestProofImages, setUploadingStandardizedTest);
+                          e.target.value = "";
+                        }}
+                      />
+                    </div>
+                    {standardizedTestProofImages.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {standardizedTestProofImages.map((url, i) => (
+                          <div key={i} className="relative group">
+                            <a href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt={`Test proof ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setStandardizedTestProofImages((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <XIcon className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {standardizedTestProofImages.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Chưa có ảnh bằng chứng. Hỗ trợ PNG, JPG, WEBP (tối đa 10MB)</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* NEW: Điểm từng môn học */}
@@ -1351,6 +1605,59 @@ export default function AcademicInfoModal({
                       </Button>
                     </div>
                   ))}
+                  {/* Proof Image Upload */}
+                  <div className="mt-4 border-t border-primary/20 pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        📎 Ảnh bằng chứng (bảng điểm từng môn, sổ điểm...)
+                      </Label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploadingSubjectScore}
+                        onClick={() => subjectScoreFileRef.current?.click()}
+                        className="text-xs"
+                      >
+                        {uploadingSubjectScore ? (
+                          <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Đang tải...</>
+                        ) : (
+                          <><Upload className="w-3 h-3 mr-1" />Tải ảnh lên</>
+                        )}
+                      </Button>
+                      <input
+                        ref={subjectScoreFileRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleProofImageUpload(file, setSubjectScoreProofImages, setUploadingSubjectScore);
+                          e.target.value = "";
+                        }}
+                      />
+                    </div>
+                    {subjectScoreProofImages.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {subjectScoreProofImages.map((url, i) => (
+                          <div key={i} className="relative group">
+                            <a href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt={`Subject score proof ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setSubjectScoreProofImages((prev) => prev.filter((_, idx) => idx !== i))}
+                              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <XIcon className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {subjectScoreProofImages.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Chưa có ảnh bằng chứng. Hỗ trợ PNG, JPG, WEBP (tối đa 10MB)</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Ngành dự định học */}

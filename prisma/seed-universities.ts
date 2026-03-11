@@ -122,50 +122,28 @@ const universities = [
 
 async function main() {
   for (const u of universities) {
-    await prisma.university_rankings.upsert({
-      where: { qs_rank: u.qsRank },
-      update: {
-        name: u.name,
-        country: u.country,
-        country_code: u.countryCode,
-        city: u.city,
-        region: u.region,
-        type: u.type,
-        founded_year: u.foundedYear,
-        total_students: u.totalStudents,
-        website: u.website ?? null,
-        qs_overall_score: u.qsOverallScore,
-        academic_reputation: u.academicReputation,
-        employer_reputation: u.employerReputation,
-        faculty_student_ratio: u.facultyStudentRatio,
-        citations_per_faculty: u.citationsPerFaculty,
-        international_faculty: u.internationalFaculty,
-        international_students: u.internationalStudents,
-        strong_subjects: u.strongSubjects,
-        description: u.description ?? null,
-      },
-      create: {
-        qs_rank: u.qsRank,
-        name: u.name,
-        country: u.country,
-        country_code: u.countryCode,
-        city: u.city,
-        region: u.region,
-        type: u.type,
-        founded_year: u.foundedYear,
-        total_students: u.totalStudents,
-        website: u.website ?? null,
-        qs_overall_score: u.qsOverallScore,
-        academic_reputation: u.academicReputation,
-        employer_reputation: u.employerReputation,
-        faculty_student_ratio: u.facultyStudentRatio,
-        citations_per_faculty: u.citationsPerFaculty,
-        international_faculty: u.internationalFaculty,
-        international_students: u.internationalStudents,
-        strong_subjects: u.strongSubjects,
-        description: u.description ?? null,
-      },
+    const data = {
+      current_ranking: u.qsRank,
+      name: u.name,
+      country: u.country,
+      state: u.city, // mapping city to state
+      website_url: u.website ?? null,
+    };
+
+    const existing = await prisma.universities.findFirst({
+      where: { name: u.name },
     });
+
+    if (existing) {
+      await prisma.universities.update({
+        where: { id: existing.id },
+        data,
+      });
+    } else {
+      await prisma.universities.create({
+        data,
+      });
+    }
   }
   console.log(`✅ Seeded ${universities.length} universities`);
 }

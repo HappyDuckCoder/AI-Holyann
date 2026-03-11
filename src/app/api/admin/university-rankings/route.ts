@@ -19,8 +19,8 @@ export async function GET() {
     if (!isAdmin(session)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    const list = await prisma.university_rankings.findMany({
-      orderBy: { qs_rank: 'asc' },
+    const list = await prisma.universities.findMany({
+      orderBy: { current_ranking: 'asc' },
     });
     return NextResponse.json({ universities: list });
   } catch (error) {
@@ -43,65 +43,28 @@ export async function POST(request: NextRequest) {
       qs_rank,
       name,
       country,
-      country_code,
       city,
-      region,
-      type,
-      founded_year,
-      total_students,
       website,
-      qs_overall_score,
-      academic_reputation,
-      employer_reputation,
-      faculty_student_ratio,
-      citations_per_faculty,
-      international_faculty,
-      international_students,
-      strong_subjects,
-      description,
     } = body;
 
     if (
       qs_rank == null ||
       !name ||
-      !country ||
-      !country_code ||
-      qs_overall_score == null ||
-      academic_reputation == null ||
-      employer_reputation == null ||
-      faculty_student_ratio == null ||
-      citations_per_faculty == null ||
-      international_faculty == null ||
-      international_students == null
+      !country
     ) {
       return NextResponse.json(
-        { error: 'Thiếu trường bắt buộc: qs_rank, name, country, country_code, các điểm số' },
+        { error: 'Thiếu trường bắt buộc: qs_rank, name, country' },
         { status: 400 }
       );
     }
 
-    const subjects = Array.isArray(strong_subjects) ? strong_subjects : [];
-    const created = await prisma.university_rankings.create({
+    const created = await prisma.universities.create({
       data: {
-        qs_rank: Number(qs_rank),
+        current_ranking: Number(qs_rank),
         name: String(name),
         country: String(country),
-        country_code: String(country_code),
-        city: city != null ? String(city) : null,
-        region: region != null ? String(region) : null,
-        type: type != null ? String(type) : null,
-        founded_year: founded_year != null && founded_year !== '' ? Number(founded_year) : null,
-        total_students: total_students != null && total_students !== '' ? Number(total_students) : null,
-        website: website != null && website !== '' ? String(website) : null,
-        qs_overall_score: Number(qs_overall_score),
-        academic_reputation: Number(academic_reputation),
-        employer_reputation: Number(employer_reputation),
-        faculty_student_ratio: Number(faculty_student_ratio),
-        citations_per_faculty: Number(citations_per_faculty),
-        international_faculty: Number(international_faculty),
-        international_students: Number(international_students),
-        strong_subjects: subjects.map(String),
-        description: description != null && description !== '' ? String(description) : null,
+        state: city != null ? String(city) : null,
+        website_url: website != null && website !== '' ? String(website) : null,
       },
     });
     return NextResponse.json({ university: created });

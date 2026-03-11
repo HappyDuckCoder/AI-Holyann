@@ -107,18 +107,22 @@ export function ChangePasswordDialog() {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Đổi mật khẩu</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-md p-8">
+        <DialogHeader className="mb-2">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Đổi mật khẩu
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-500 mt-1">
             Nhập mật khẩu hiện tại và mật khẩu mới để cập nhật.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit} className="space-y-6 pt-2">
           {/* Current password */}
-          <div className="space-y-1.5">
-            <Label htmlFor="current-password">Mật khẩu hiện tại</Label>
+          <div className="space-y-1">
+            <Label htmlFor="current-password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Mật khẩu hiện tại
+            </Label>
             <div className="relative">
               <Input
                 id="current-password"
@@ -128,11 +132,12 @@ export function ChangePasswordDialog() {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 autoComplete="current-password"
                 disabled={loading}
+                className="border-0 border-b border-gray-300 dark:border-gray-600 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-primary px-0 bg-transparent pr-8"
               />
               <button
                 type="button"
                 onClick={() => setShowCurrent((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 tabIndex={-1}
               >
                 {showCurrent ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -141,8 +146,10 @@ export function ChangePasswordDialog() {
           </div>
 
           {/* New password */}
-          <div className="space-y-1.5">
-            <Label htmlFor="new-password">Mật khẩu mới</Label>
+          <div className="space-y-1">
+            <Label htmlFor="new-password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Mật khẩu mới
+            </Label>
             <div className="relative">
               <Input
                 id="new-password"
@@ -152,11 +159,12 @@ export function ChangePasswordDialog() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
                 disabled={loading}
+                className="border-0 border-b border-gray-300 dark:border-gray-600 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-primary px-0 bg-transparent pr-8"
               />
               <button
                 type="button"
                 onClick={() => setShowNew((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 tabIndex={-1}
               >
                 {showNew ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -165,8 +173,10 @@ export function ChangePasswordDialog() {
           </div>
 
           {/* Confirm password */}
-          <div className="space-y-1.5">
-            <Label htmlFor="confirm-password">Xác nhận mật khẩu mới</Label>
+          <div className="space-y-1">
+            <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Xác nhận mật khẩu mới
+            </Label>
             <div className="relative">
               <Input
                 id="confirm-password"
@@ -176,11 +186,12 @@ export function ChangePasswordDialog() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 autoComplete="new-password"
                 disabled={loading}
+                className="border-0 border-b border-gray-300 dark:border-gray-600 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-primary px-0 bg-transparent pr-8"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirm((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 tabIndex={-1}
               >
                 {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -200,16 +211,17 @@ export function ChangePasswordDialog() {
             </p>
           )}
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-2 flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={loading}
+              className="rounded-full w-full sm:w-auto"
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="rounded-full w-full sm:w-auto">
               {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
               Lưu mật khẩu
             </Button>
