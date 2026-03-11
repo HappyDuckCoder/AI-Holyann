@@ -1,282 +1,260 @@
-# Feature 1 - Hệ thống đánh giá hồ sơ học sinh
+# HOEX — Ứng dụng Hướng nghiệp & Du học
 
 ## Tổng quan
 
-Hệ thống đánh giá hồ sơ học sinh với các tính năng:
-1. Phân bổ dữ liệu đầu vào vào 4 trụ cột (Academic, Language, HDNK, Skill) theo trọng số
-2. Tính điểm theo 3 vùng (Mỹ, Châu Á, Âu/Úc/Canada) với công thức trọng số khác nhau
-3. Nhận diện Spike và tính Sharpness
-4. Tạo output template với Score Evaluation, SWOT Analysis, và Spike Identification
+HOEX là ứng dụng web (Next.js) dành cho học sinh, cố vấn và quản trị viên với các luồng: **Student**, **Mentor**, **Admin** và trang **Pricing**. Đăng nhập xong redirect theo role: Student → `/student/dashboard`, Mentor → `/mentor/dashboard`, Admin → `/admin/dashboard` (qua trang trung gian `/dashboard`).
 
-## Cấu trúc Module
+---
 
-### 1. `input_processor.py`
-Xử lý dữ liệu đầu vào và phân bổ vào 4 trụ cột:
-- **Academic (Aca)**: GPA, điểm môn học, giải thưởng học thuật
-- **Language (Lan)**: Chứng chỉ ngôn ngữ, bài thi chuẩn hóa
-- **HDNK**: Dự án xã hội, giải thưởng ngoài học thuật, dự án cá nhân
-- **Skill**: Kỹ năng cứng và kỹ năng mềm
+## Cấu trúc thư mục
 
-**Phân bổ trọng số:**
-- Môn Tự nhiên: 100% Aca
-- Môn Ngôn ngữ: 60% Aca + 40% Lan
-- Môn Xã hội: 60% Aca + 40% Skill
-- Language Cert: 100% Lan
-- SAT/ACT: 65% Aca + 35% Lan
-- A-Level/AP/IB: 80% Aca + 20% Lan
-- Social Projects: 100% HDNK
-- Personal Projects: Phân bổ theo topic
-- Hard Skills: Phân bổ theo category
-- Soft Skills: 100% Skill
-
-### 2. `regional_scorer.py`
-Tính điểm theo 3 vùng với trọng số khác nhau:
-
-**Vùng A - Mỹ (Toàn diện):**
-- Score = 0.25(Aca) + 0.25(Lan) + 0.25(HDNK) + 0.25(Skill)
-
-**Vùng B - Châu Á & Nội địa:**
-- Score = 0.35(Aca) + 0.30(Lan) + 0.175(HDNK) + 0.175(Skill)
-
-**Vùng C - Canada, Úc, Anh, Châu Âu:**
-- Score = 0.40(Aca) + 0.30(Lan) + 0.15(HDNK) + 0.15(Skill)
-
-**Xếp loại:**
-- High: ≥ 75.0
-- Med: 50.0 - 74.9
-- Low: < 50.0
-
-### 3. `spike_detector.py`
-Thuật toán nhận diện Spike:
-
-**Quy trình:**
-1. Input Scan: Quét toàn bộ dữ liệu đã phân loại
-2. Condition Check: Đối chiếu với bộ từ khóa và tiêu chí nhóm
-3. Magnitude Check: So sánh cường độ thành tích
-4. Output Generation: Xác định Main Spike và Sharpness
-
-**12 loại Spike:**
-1. Academic Excellence
-2. Research
-3. Olympiad / Competition
-4. Leadership
-5. Social Impact / Community Service
-6. Entrepreneurship
-7. Artistic
-8. Athletic
-9. Media / Content Creation
-10. Tech
-11. Financial Hardship
-12. Personal Story
-
-**Sharpness Levels:**
-- Exceptional: ≥ 20.0
-- High: 12.0 - 19.9
-- Med: 6.0 - 11.9
-- Low: < 6.0
-
-### 4. `output_generator.py`
-Tạo output template với:
-- **Score Evaluation**: Điểm số và xếp loại theo từng vùng
-- **SWOT Analysis**: Phân tích điểm mạnh, yếu, cơ hội, thách thức
-- **Spike Identification**: Thông tin về spike chính và sharpness
-
-### 5. `main_processor.py`
-Module chính tích hợp tất cả các module:
-- Xử lý flow từ input đến output
-- Tích hợp tất cả các bước xử lý
-- Format output thành dictionary
-
-## Cách sử dụng
-
-### Cơ bản
-
-```python
-from hoexapp.module.feature1 import process_profile
-
-input_data = {
-    "academic": {
-        "gpa": 8.5,
-        "subject_scores": [
-            {"subject": "Toán", "score": 9.0},
-            {"subject": "Vật Lý", "score": 8.5}
-        ],
-        "academic_awards": [
-            {
-                "award_name": "Olympic Toán Học Quốc Gia",
-                "year": 2024,
-                "rank": 1,
-                "region": "national",
-                "category": "science"
-            }
-        ]
-    },
-    "language_and_standardized": {
-        "languages": [
-            {"language_name": "IELTS", "score": "7.5"}
-        ],
-        "standardized_tests": [
-            {"test_name": "SAT", "score": "1450"}
-        ]
-    },
-    "action": {
-        "actions": [
-            {
-                "action_name": "Chủ Tịch Hội Sinh Viên",
-                "role": "LEADER",
-                "scale": 200,
-                "region": "school"
-            }
-        ]
-    },
-    "skill": {
-        "skills": [
-            {"skill_name": "Python Programming", "proficiency": "ADVANCED"}
-        ]
-    }
-}
-
-result = process_profile(input_data)
-print(result)
+```
+hoex/
+├── public/                 # Static assets (logo, images)
+├── src/
+│   ├── actions/            # Server actions (admin, calendar, support...)
+│   ├── app/                # Next.js App Router
+│   │   ├── layout.tsx      # Root layout
+│   │   ├── page.tsx        # Landing page (/)
+│   │   ├── globals.css
+│   │   ├── dashboard/      # Redirect theo role → student/mentor/admin dashboard
+│   │   │   └── page.tsx
+│   │   ├── api/            # API routes (auth, student, mentor, admin, chat...)
+│   │   ├── (auth)/         # Route group: không ảnh hưởng URL
+│   │   │   ├── login/
+│   │   │   ├── register/
+│   │   │   ├── forgot-password/
+│   │   │   └── reset-password/
+│   │   ├── (student)/      # Route group Student
+│   │   │   ├── layout.tsx  # Layout + StudentNavbar
+│   │   │   └── student/    # URL base: /student
+│   │   │       ├── dashboard/
+│   │   │       ├── profile/
+│   │   │       ├── profile-analysis/
+│   │   │       ├── target/
+│   │   │       ├── tests/
+│   │   │       ├── improve/
+│   │   │       ├── universities/
+│   │   │       ├── reports/
+│   │   │       ├── pricing/
+│   │   │       ├── checklist/
+│   │   │       ├── deadlines/
+│   │   │       ├── chat/
+│   │   │       ├── settings/
+│   │   │       └── ...
+│   │   ├── (mentor)/       # Route group Mentor
+│   │   │   ├── layout.tsx
+│   │   │   └── mentor/     # URL base: /mentor
+│   │   │       ├── dashboard/
+│   │   │       ├── students/
+│   │   │       ├── deadlines/
+│   │   │       ├── profile/
+│   │   │       └── chat/
+│   │   └── (admin)/        # Route group Admin
+│   │       ├── layout.tsx
+│   │       └── admin/      # URL base: /admin
+│   │           ├── dashboard/
+│   │           ├── users/
+│   │           ├── students/
+│   │           ├── mentors/
+│   │           ├── guests/
+│   │           ├── university-rankings/
+│   │           ├── feedback/
+│   │           └── settings/
+│   ├── components/
+│   │   ├── admin/          # AdminNavbar, UserManagement, MentorManagement, dashboard...
+│   │   ├── auth/           # Login, Register, RoleGuard, AuthProvider
+│   │   ├── chat/           # ChatPage, MessageBubble, ConversationList, info-panel...
+│   │   ├── common/         # FilePreviewModal, DocViewerWrapper
+│   │   ├── dashboard/      # AuthHeader, Register (dashboard), Login, Loading
+│   │   ├── landing/        # HeroSection, AboutSection, ServicesSection, LeadGenerationModal...
+│   │   ├── layout/         # Header, Footer (landing)
+│   │   ├── meetings/       # CreateMeetingModal, CreateReminderModal
+│   │   ├── mentor/         # MentorNavbar, dashboard, student (tabs), deadlines
+│   │   ├── student/        # StudentNavbar, dashboard, profile, checklist, assessments...
+│   │   ├── support/        # FloatingHelpButton
+│   │   ├── theme/          # ThemeToggle, ThemeScript
+│   │   ├── ui/             # Button, Card, Input, Dialog, Tabs, Table...
+│   │   └── ...
+│   ├── constants/          # App constants
+│   ├── data/               # student-nav-features, mbti-questions...
+│   ├── hooks/              # useAuthSession, useSubscription...
+│   ├── lib/                # Prisma, auth, subscription, utils, services
+│   │   ├── auth/           # auth-config, get-user, api-auth
+│   │   ├── services/       # auth.service, jwt.service, database.service
+│   │   ├── utils/          # api-response, validation, rate-limit, redirect
+│   │   └── ...
+│   ├── services/           # AI (geminiService), database (profile-analyzer)
+│   ├── types/              # TypeScript types (admin, auth...)
+│   └── utils/              # Client-side helpers
+├── package.json
+├── next.config.ts
+├── prisma.config.ts
+└── README.md
 ```
 
-### Sử dụng từng module riêng lẻ
+**Ghi chú route groups:** Trong App Router, `(student)`, `(mentor)`, `(admin)`, `(auth)` là **route groups** — tên trong ngoặc không xuất hiện trên URL. Ví dụ: `app/(student)/student/dashboard/page.tsx` → URL là `/student/dashboard`.
 
-```python
-from hoexapp.module.feature1 import (
-    InputProcessor, RegionalScorer, SpikeDetector, OutputGenerator
-)
+---
 
-# 1. Xử lý input
-processor = InputProcessor()
-pillar_scores = processor.process_all(input_data)
+## 1. Student Navbar
 
-# 2. Tính điểm theo vùng
-scorer = RegionalScorer()
-regional_scores = scorer.calculate_all_regions(pillar_scores)
+**Base path:** `/student`  
+**Component:** `src/components/student/StudentNavbar.tsx`  
+**Layout:** `src/app/(student)/layout.tsx`  
+**Badge:** HỌC VIÊN
 
-# 3. Nhận diện spike
-detector = SpikeDetector()
-spike_result = detector.detect_spike(processor)
+### Menu chính (nav chính)
 
-# 4. Tạo output
-generator = OutputGenerator()
-output = generator.generate_output(regional_scores, spike_result, pillar_scores)
-formatted = generator.format_output(output)
-```
+| Tên           | Đường dẫn              | Mô tả                |
+|---------------|-------------------------|----------------------|
+| Tổng quan     | `/student/dashboard`    | Dashboard học viên   |
+| Hồ sơ         | `/student/profile`      | Hồ sơ cá nhân        |
+| Trắc nghiệm ngành | `/student/tests`    | Trắc nghiệm chọn ngành |
+| Cải thiện hồ sơ | `/student/improve`   | Enhance hồ sơ, CV, essay |
 
-## Format Input
+### Dropdown user — Tính năng chính (mainFeatures)
 
-### Academic
-```json
-{
-  "academic": {
-    "gpa": 8.5,
-    "subject_scores": [
-      {"subject": "Toán", "score": 9.0, "semester": 1}
-    ],
-    "academic_awards": [
-      {
-        "award_name": "Olympic Toán Học",
-        "year": 2024,
-        "rank": 1,
-        "region": "national",
-        "category": "science"
-      }
-    ]
-  }
-}
-```
+| Tên                 | Đường dẫn                    | Mô tả                                      |
+|---------------------|------------------------------|--------------------------------------------|
+| Phân tích hồ sơ     | `/student/profile-analysis`  | Phân tích điểm mạnh – điểm yếu hồ sơ       |
+| Trắc nghiệm ngành   | `/student/tests`             | Khám phá ngành học phù hợp                 |
+| Ngành & Trường phù hợp | `/student/target`         | Reach / Match / Safe                       |
+| Cải thiện hồ sơ     | `/student/improve`           | Enhance & phân tích hồ sơ, CV, essay       |
+| Danh sách trường    | `/student/universities`      | Khám phá các trường đại học                |
+| Báo cáo             | `/student/reports`           | Báo cáo tiến độ và kết quả                 |
 
-### Language & Standardized Tests
-```json
-{
-  "language_and_standardized": {
-    "languages": [
-      {"language_name": "IELTS", "score": "7.5"}
-    ],
-    "standardized_tests": [
-      {"test_name": "SAT", "score": "1450"},
-      {"test_name": "AP", "score": "5", "subject": "Calculus"}
-    ]
-  }
-}
-```
+### Dropdown user — Premium (premiumFeatures)
 
-### Actions (HDNK)
-```json
-{
-  "action": {
-    "actions": [
-      {
-        "action_name": "Chủ Tịch Hội Sinh Viên",
-        "role": "LEADER",
-        "scale": 200,
-        "region": "school",
-        "duration_months": 12
-      }
-    ]
-  }
-}
-```
+Cần gói trả phí; nếu chưa có subscription thì link dẫn về `/student/pricing`.
 
-### Skills
-```json
-{
-  "skill": {
-    "skills": [
-      {"skill_name": "Python Programming", "proficiency": "ADVANCED"},
-      {"skill_name": "Leadership", "proficiency": "EXPERT"}
-    ]
-  }
-}
-```
+| Tên               | Đường dẫn            | Mô tả                          |
+|-------------------|------------------------|--------------------------------|
+| Chat với cố vấn   | `/student/chat`        | Trao đổi với mentor và AI      |
+| Checklist         | `/student/checklist`   | Danh sách công việc            |
+| Deadline          | `/student/deadlines`   | Hạn nộp hồ sơ, mốc quan trọng  |
+| Đặt lịch mentor   | `/student/meeting`     | Đặt lịch gặp 1-1 với mentor    |
 
-## Format Output
+### User menu khác
 
-Output bao gồm:
-1. **Đánh giá điểm số**: Điểm và xếp loại theo từng vùng
-2. **Phân tích SWOT**: Strengths, Weaknesses, Opportunities, Threats
-3. **Nhận diện Spike**: Loại spike, bằng chứng, sharpness, nhận xét
-4. **Điểm số gốc**: Điểm của 4 trụ cột trước khi nhân trọng số
+- **Cài đặt:** `/student/settings`
+- **Pricing:** `/student/pricing` (trang gói đăng ký)
+- Chế độ sáng/tối, Đăng xuất
 
-## Các giá trị hợp lệ
+---
 
-### Region
-- `international` - Quốc Tế
-- `national` - Quốc Gia
-- `province` - Tỉnh/Thành
-- `city` - Thành Phố
-- `school` - Trường
-- `local` - Địa Phương
+## 2. Mentor Navbar
 
-### Role
-- `LEADER` - Lãnh Đạo
-- `CORE` - Thành Viên Cốt Cán
-- `MEMBER` - Thành Viên
-- `HELP` - Hỗ Trợ
+**Base path:** `/mentor`  
+**Component:** `src/components/mentor/MentorNavbar.tsx`  
+**Layout:** `src/app/(mentor)/layout.tsx`  
+**Badge:** CỐ VẤN
 
-### Proficiency
-- `BEGINNER` - Sơ Cấp
-- `INTERMEDIATE` - Trung Cấp
-- `ADVANCED` - Cao Cấp
-- `EXPERT` - Chuyên Gia
+### Menu chính
 
-## Files
+| Tên       | Đường dẫn             | Mô tả              |
+|-----------|------------------------|--------------------|
+| Tổng quan | `/mentor/dashboard`    | Dashboard cố vấn   |
+| Học viên  | `/mentor/students`     | Quản lý học viên   |
+| Hạn nộp   | `/mentor/deadlines`   | Theo dõi deadline  |
+| Hồ sơ     | `/mentor/profile`     | Hồ sơ cố vấn       |
+| Trao đổi  | `/mentor/chat`        | Chat với học viên  |
 
-- `input_processor.py`: Xử lý input và phân bổ trọng số
-- `regional_scorer.py`: Tính điểm theo vùng
-- `spike_detector.py`: Nhận diện spike
-- `output_generator.py`: Tạo output template
-- `main_processor.py`: Module chính tích hợp
-- `spike.json`: Cấu hình spike detection
-- `__init__.py`: Module exports
-- `demo_app.py`: Ví dụ sử dụng
+### User dropdown
 
-## Lưu ý
+- Hồ sơ: `/mentor/profile`
+- Chế độ sáng/tối
+- Đăng xuất
 
-1. Tất cả điểm số được tính trên thang 0-100
-2. Trọng số được áp dụng theo yêu cầu cụ thể
-3. Spike detection dựa trên keywords và magnitude
-4. SWOT analysis được tạo tự động dựa trên điểm số và spike
+---
 
+## 3. Admin Navbar
+
+**Base path:** `/admin`  
+**Component:** `src/components/admin/AdminNavbar.tsx`  
+**Layout:** `src/app/(admin)/layout.tsx`  
+**Badge:** QUẢN TRỊ
+
+### Menu chính
+
+| Tên       | Đường dẫn                | Mô tả           |
+|-----------|---------------------------|-----------------|
+| Tổng quan | `/admin/dashboard`        | Dashboard admin |
+| Người dùng| `/admin/users`            | Quản lý user    |
+| Học viên  | `/admin/students`         | Quản lý học viên|
+| Cố vấn    | `/admin/mentors`          | Quản lý cố vấn  |
+| Guests    | `/admin/guests`           | Quản lý khách   |
+
+### User dropdown (menu phụ)
+
+| Tên            | Đường dẫn                     |
+|----------------|--------------------------------|
+| Xếp hạng trường| `/admin/university-rankings`   |
+| Feedback       | `/admin/feedback`              |
+| Cài đặt        | `/admin/settings`              |
+| Chế độ sáng/tối, Đăng xuất | —                    |
+
+---
+
+## 4. Đăng nhập & Redirect
+
+- **Landing:** `/` (trang chủ). Nút "Khám phá ngay" → `/login`.
+- **Login:** `/login` (credentials + Google). Sau khi đăng nhập thành công → `/dashboard`.
+- **Trang `/dashboard`:** `src/app/dashboard/page.tsx` — đọc session, redirect theo role:
+  - **ADMIN** → `/admin/dashboard`
+  - **MENTOR** → `/mentor/dashboard`
+  - **STUDENT / user** → `/student/dashboard`
+  - Chưa đăng nhập → `/login`.
+
+---
+
+## 5. Pricing Page
+
+**Đường dẫn:** `/student/pricing`  
+**File:** `src/app/(student)/student/pricing/page.tsx`  
+**Guard:** Chỉ role `user` / `student` / `STUDENT`.
+
+### Mục đích
+
+Trang gói đăng ký Holyann cho học sinh: so sánh Free, Plus (AI), Premium (AI + All Advisors) và thực hiện nâng cấp / liên hệ bán hàng.
+
+### Gói hiển thị
+
+| Gói      | Tên hiển thị                    | Giá (Plus)     | Ghi chú                    |
+|----------|----------------------------------|----------------|----------------------------|
+| **FREE** | Free                             | 0đ             | Dùng thử, 1 lần/module AI  |
+| **PLUS** | Plus (AI)                        | 399.000đ/6 tháng hoặc 599.000đ/năm | Phổ biến, mở khóa chi tiết AI |
+| **PREMIUM** | Premium (AI + All Advisors)  | Liên hệ        | Tốt nhất, CTA "Liên hệ bán hàng" |
+
+- **Chu kỳ thanh toán:** Tabs 6 tháng / 1 năm (chỉ áp dụng cho Plus).
+- **Premium:** Nút "Liên hệ bán hàng" → `mailto:sales@holyann.com?subject=Đăng ký gói Premium`.
+- Nâng cấp Plus: gọi `POST /api/subscription/upgrade` với `{ plan, billingCycle }`.
+
+### Bảng so sánh (6 Feature AI)
+
+Trang có bảng so sánh chi tiết theo cột **Free | Plus | Premium** cho:
+
+1. **Feature 1 — Profile Analysis:** Phân tích profile gốc (số lần, mức độ chi tiết).
+2. **Feature 2 — Trắc nghiệm → Ngành:** Số lần làm, số ngành hiển thị, % mờ/đầy đủ.
+3. **Feature 3 — Reach / Match / Safe:** Số lần dùng, số ngành/trường, major fit %, match score, roadmap.
+4. **Feature 4 — Enhance & Re-analysis:** Profile/CV/Essay — enhance + analysis (số lần / không giới hạn).
+5. **Feature 5 — Danh sách trường:** Hiển thị danh sách trường (miễn phí cho mọi gói).
+6. **Feature 6 — Reports:** Báo cáo PDF/in (1 lần Free, không giới hạn Plus/Premium).
+
+---
+
+## Tóm tắt file quan trọng
+
+| Mục đích           | Đường dẫn |
+|--------------------|-----------|
+| Redirect theo role | `src/app/dashboard/page.tsx` |
+| Landing            | `src/app/page.tsx` |
+| Auth config        | `src/lib/auth/auth-config.ts` |
+| Student layout     | `src/app/(student)/layout.tsx` |
+| Mentor layout      | `src/app/(mentor)/layout.tsx` |
+| Admin layout       | `src/app/(admin)/layout.tsx` |
+| Student navbar     | `src/components/student/StudentNavbar.tsx` |
+| Mentor navbar      | `src/components/mentor/MentorNavbar.tsx` |
+| Admin navbar       | `src/components/admin/AdminNavbar.tsx` |
+| Menu student       | `src/data/student-nav-features.ts` |
+| Pricing page       | `src/app/(student)/student/pricing/page.tsx` |
