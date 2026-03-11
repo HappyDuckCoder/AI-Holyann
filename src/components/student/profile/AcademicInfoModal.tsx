@@ -201,13 +201,13 @@ export default function AcademicInfoModal({
     hobbies: "",
   });
 
-  // Academic Info State
   const [gpaData, setGpaData] = useState({
     grade9: "",
     grade10: "",
     grade11: "",
     grade12: "",
   });
+  const [isGpaScale4, setIsGpaScale4] = useState(false);
 
   const [englishCerts, setEnglishCerts] = useState<any[]>([
     { type: "", score: "", date: "", level: "" },
@@ -610,11 +610,24 @@ export default function AcademicInfoModal({
         type: c.type,
       }));
 
+    // Process GPA logic
+    const processedGpaData = { ...gpaData };
+    if (isGpaScale4) {
+      for (const key of Object.keys(processedGpaData)) {
+        const val = parseFloat(processedGpaData[key as keyof typeof processedGpaData]);
+        if (!isNaN(val)) {
+          processedGpaData[key as keyof typeof processedGpaData] = (val * 2.5).toFixed(2);
+        }
+      }
+    }
+
+    console.log("PAYLOAD TO SEND - isGpaScale4:", isGpaScale4, "processedGpaData:", processedGpaData);
+
     await fetch(`/api/students/${studentId}/academic`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        gpa_transcript_details: gpaData,
+        gpa_transcript_details: processedGpaData,
         english_certificates: cleanedEnglishCerts,
         standardized_tests: standardizedTests.filter((t) => t.type),
         // Chỉ lưu proof_images khi đã load xong từ DB (tránh ghi đè rỗng)
@@ -1014,9 +1027,48 @@ export default function AcademicInfoModal({
               <TabsContent value="academic" className="space-y-4 mt-6">
                 {/* GPA */}
                 <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-lg transition-colors duration-300">
-                  <h3 className="font-bold text-foreground mb-4 text-lg">
-                    GPA (Lớp 9, 10, 11, 12)
-                  </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-foreground text-lg">
+                      GPA (Lớp 9, 10, 11, 12)
+                    </h3>
+                    <div className="flex items-center space-x-2 bg-background/50 px-3 py-1.5 rounded-md border border-primary/20">
+                      <input 
+                        type="checkbox" 
+                        id="gpa-scale-toggle"
+                        className="rounded text-primary focus:ring-primary h-4 w-4"
+                        checked={isGpaScale4}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          setIsGpaScale4(isChecked);
+                          
+                          // Automatically convert displayed data
+                          const newData = { ...gpaData };
+                          for (const key of Object.keys(newData)) {
+                            const val = parseFloat(newData[key as keyof typeof newData]);
+                            if (!isNaN(val)) {
+                              if (isChecked) {
+                                // Scale 10 to Scale 4
+                                newData[key as keyof typeof newData] = (val / 2.5).toFixed(2);
+                              } else {
+                                // Scale 4 to Scale 10
+                                newData[key as keyof typeof newData] = (val * 2.5).toFixed(2);
+                              }
+                            }
+                          }
+                          setGpaData(newData);
+                          markTabModified("academic");
+                        }}
+                      />
+                      <div>
+                        <Label htmlFor="gpa-scale-toggle" className="text-sm font-medium cursor-pointer">
+                          Sử dụng thang điểm 4
+                        </Label>
+                        <p className="text-[10px] text-muted-foreground">
+                          (Hệ thống sẽ tự động quy đổi về thang 10)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-4 gap-4">
                     {["grade9", "grade10", "grade11", "grade12"].map(
                       (grade, idx) => (
@@ -1030,9 +1082,10 @@ export default function AcademicInfoModal({
                             value={gpaData[grade as keyof typeof gpaData]}
                             onChange={(e) => {
                               const value = parseFloat(e.target.value);
+                              const maxGpa = isGpaScale4 ? 4 : 10;
                               if (
                                 e.target.value === "" ||
-                                (!isNaN(value) && value >= 0 && value <= 10)
+                                (!isNaN(value) && value >= 0 && value <= maxGpa)
                               ) {
                                 updateGpaData({ [grade]: e.target.value });
                               }
