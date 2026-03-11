@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ChangePasswordDialog } from '@/components/student/ChangePasswordDialog';
 import { premiumFeatures } from '@/data/student-nav-features';
 
 export default function StudentSettingsPage() {
@@ -74,7 +73,13 @@ export default function StudentSettingsPage() {
                   </p>
                 </div>
               </div>
-              <ChangePasswordDialog />
+              <Link
+                href="/change-password"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline shrink-0"
+              >
+                Đổi mật khẩu
+                <KeyRound className="size-4" />
+              </Link>
             </div>
 
             {/* Tính năng Premium — combobox riêng */}

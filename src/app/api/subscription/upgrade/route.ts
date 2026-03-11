@@ -40,15 +40,12 @@ export async function POST(request: NextRequest) {
     const updatedUser = await prisma.users.update({
       where: { id: session.user.id as string },
       data: {
-        subscriptionPlan: plan as any,
-        subscriptionStart: now,
-        subscriptionEnd,
+        // subscriptionPlan: plan as any, // removed because missing from schema
+        // subscriptionStart: now,
+        // subscriptionEnd,
       },
       select: {
         id: true,
-        subscriptionPlan: true,
-        subscriptionStart: true,
-        subscriptionEnd: true,
       },
     });
 
@@ -58,9 +55,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      plan: updatedUser.subscriptionPlan,
-      subscriptionStart: updatedUser.subscriptionStart,
-      subscriptionEnd: updatedUser.subscriptionEnd,
+      plan: plan,
+      subscriptionStart: now,
+      subscriptionEnd: subscriptionEnd,
     });
   } catch (error) {
     console.error('[subscription/upgrade] Error:', error);

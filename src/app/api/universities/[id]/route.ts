@@ -21,7 +21,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Invalid id' }, { status: 400 });
     }
 
-    const university = await prisma.university_rankings.findUnique({
+    const university = await prisma.universities.findUnique({
       where: { id: numId },
     });
 

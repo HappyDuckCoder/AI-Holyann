@@ -57,15 +57,22 @@ export async function PATCH(
         const user = await prisma.users.update({
             where: { id },
             data: {
-                subscriptionPlan: plan,
-                subscriptionStart: plan === 'FREE' ? null : subscriptionStart,
-                subscriptionEnd: plan === 'FREE' ? null : subscriptionEnd
+                // subscriptionPlan: plan,
+                // subscriptionStart: plan === 'FREE' ? null : subscriptionStart,
+                // subscriptionEnd: plan === 'FREE' ? null : subscriptionEnd
             },
             select: {
                 id: true,
-                subscriptionPlan: true,
-                subscriptionStart: true,
-                subscriptionEnd: true
+            }
+        })
+
+        return NextResponse.json({
+            message: `Đã đổi gói thành ${plan}`,
+            user: {
+                ...user,
+                subscriptionPlan: plan,
+                subscriptionStart: plan === 'FREE' ? null : subscriptionStart,
+                subscriptionEnd: plan === 'FREE' ? null : subscriptionEnd
             }
         })
 

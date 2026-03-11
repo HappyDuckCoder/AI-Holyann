@@ -16,9 +16,9 @@ export async function GET() {
                 avatar_url: true,
                 created_at: true,
                 auth_provider: true,
-                subscriptionPlan: true,
-                subscriptionStart: true,
-                subscriptionEnd: true
+                // subscriptionPlan: true,
+                // subscriptionStart: true,
+                // subscriptionEnd: true
             },
             orderBy: {
                 created_at: 'desc'

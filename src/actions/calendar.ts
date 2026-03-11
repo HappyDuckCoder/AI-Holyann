@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import nodemailer from "nodemailer";
 import { format, addMinutes } from "date-fns";
 import { vi } from "date-fns/locale";
+import { handleServerError } from "@/lib/handle-error";
 
 // ============================================================
 // NODEMAILER CONFIGURATION
@@ -602,13 +603,7 @@ export async function createConsultationEvent(
 
     return { success: true, meetLink: roomUrl, emailSent };
   } catch (error) {
-    console.error("[Meeting] Error:", error);
-
-    if (error instanceof Error) {
-      return { success: false, error: `Lỗi: ${error.message}` };
-    }
-
-    return { success: false, error: "Lỗi không xác định" };
+    return { success: false, error: handleServerError(error) };
   }
 }
 
