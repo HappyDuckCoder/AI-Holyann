@@ -3,6 +3,7 @@
  * POST /api/student/university-recommendation — Gọi Module 3, lưu kết quả vào DB, trả về.
  */
 
+import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-config';
@@ -239,6 +240,7 @@ export async function POST() {
       try {
         await prisma.student_university_recommendations.create({
           data: {
+            id: randomUUID(),
             student_id: studentId,
             summary: (payload.summary && typeof payload.summary === 'object') ? payload.summary : {},
             roadmap: (payload.roadmap && typeof payload.roadmap === 'object') ? payload.roadmap : {},

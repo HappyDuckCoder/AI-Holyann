@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-config';
@@ -90,12 +91,14 @@ export async function POST(
 
     const created = await prisma.mentor_custom_deadlines.create({
       data: {
+        id: randomUUID(),
         student_id: studentId,
         mentor_id: session.user.id,
         title,
         description,
         deadline,
         status: 'PENDING',
+        updated_at: new Date(),
       },
     });
 

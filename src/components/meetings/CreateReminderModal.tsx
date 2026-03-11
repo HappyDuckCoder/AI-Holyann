@@ -133,7 +133,7 @@ export default function CreateReminderModal({
         startTime: startDateTime,
         durationMinutes: durationMinutes,
         mentorEmail: mentorEmail,
-        studentEmail: data.studentEmail,
+        studentId: data.studentEmail,
       });
 
       if (result.success) {
@@ -164,7 +164,7 @@ export default function CreateReminderModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-background dark:bg-slate-900">
+      <DialogContent className="sm:max-w-[500px] bg-background dark:bg-slate-900 p-6">
         <DialogHeader className="border-b dark:border-slate-700 pb-4">
           <DialogTitle className="text-xl font-semibold text-foreground">
             Tạo nhắc hẹn

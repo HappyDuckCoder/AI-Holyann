@@ -3,9 +3,19 @@
  * Run: npm run seed:universities  or  npx tsx prisma/seed-universities.ts
  */
 
+import 'dotenv/config';
+import { Pool } from 'pg';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+const connectionUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? '';
+if (!connectionUrl) {
+  console.error('❌ DATABASE_URL or DIRECT_URL required');
+  process.exit(1);
+}
+const pool = new Pool({ connectionString: connectionUrl });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const universities = [
   { qsRank: 1, name: "Massachusetts Institute of Technology (MIT)", country: "United States", countryCode: "US", city: "Cambridge, MA", region: "North America", type: "Private", foundedYear: 1861, totalStudents: 11574, website: "https://web.mit.edu", qsOverallScore: 100, academicReputation: 100, employerReputation: 100, facultyStudentRatio: 99.7, citationsPerFaculty: 99.9, internationalFaculty: 92.4, internationalStudents: 90.8, strongSubjects: ["Engineering", "Computer Science", "Physics", "Mathematics", "Architecture"], description: "MIT là viện công nghệ hàng đầu thế giới, nổi tiếng với nghiên cứu đột phá và văn hóa đổi mới sáng tạo." },
@@ -112,58 +122,40 @@ const universities = [
 
 async function main() {
   for (const u of universities) {
-    await prisma.university_rankings.upsert({
-      where: { qs_rank: u.qsRank },
-      update: {
-        name: u.name,
-        country: u.country,
-        country_code: u.countryCode,
-        city: u.city,
-        region: u.region,
-        type: u.type,
-        founded_year: u.foundedYear,
-        total_students: u.totalStudents,
-        website: u.website ?? null,
-        qs_overall_score: u.qsOverallScore,
-        academic_reputation: u.academicReputation,
-        employer_reputation: u.employerReputation,
-        faculty_student_ratio: u.facultyStudentRatio,
-        citations_per_faculty: u.citationsPerFaculty,
-        international_faculty: u.internationalFaculty,
-        international_students: u.internationalStudents,
-        strong_subjects: u.strongSubjects,
-        description: u.description ?? null,
-      },
-      create: {
-        qs_rank: u.qsRank,
-        name: u.name,
-        country: u.country,
-        country_code: u.countryCode,
-        city: u.city,
-        region: u.region,
-        type: u.type,
-        founded_year: u.foundedYear,
-        total_students: u.totalStudents,
-        website: u.website ?? null,
-        qs_overall_score: u.qsOverallScore,
-        academic_reputation: u.academicReputation,
-        employer_reputation: u.employerReputation,
-        faculty_student_ratio: u.facultyStudentRatio,
-        citations_per_faculty: u.citationsPerFaculty,
-        international_faculty: u.internationalFaculty,
-        international_students: u.internationalStudents,
-        strong_subjects: u.strongSubjects,
-        description: u.description ?? null,
-      },
+    const data = {
+      current_ranking: u.qsRank,
+      name: u.name,
+      country: u.country,
+      state: u.city, // mapping city to state
+      website_url: u.website ?? null,
+    };
+
+    const existing = await prisma.universities.findFirst({
+      where: { name: u.name },
     });
+
+    if (existing) {
+      await prisma.universities.update({
+        where: { id: existing.id },
+        data,
+      });
+    } else {
+      await prisma.universities.create({
+        data,
+      });
+    }
   }
   console.log(`✅ Seeded ${universities.length} universities`);
 }
 
 main()
-  .then(() => prisma.$disconnect())
-  .catch((e) => {
+  .then(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  })
+  .catch(async (e) => {
     console.error(e);
-    prisma.$disconnect();
+    await prisma.$disconnect();
+    await pool.end();
     process.exit(1);
   });

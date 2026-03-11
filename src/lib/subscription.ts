@@ -1,10 +1,14 @@
 export type SubscriptionPlan = 'FREE' | 'PLUS' | 'ADVANCED' | 'PREMIUM';
 
+/** Plans shown on pricing page (ADVANCED kept for backward compatibility only). */
+export const DISPLAY_PLANS: SubscriptionPlan[] = ['FREE', 'PLUS', 'PREMIUM'];
+
 export type SubscriptionFeature =
   | 'profileAnalysisDetail'
   | 'majorListCount'
   | 'majorFitShowCount'
   | 'classificationCount'
+  | 'classificationAttemptsLimit'
   | 'matchScoreDetail'
   | 'roadmapDetail'
   | 'enhanceCount'
@@ -15,12 +19,16 @@ export type SubscriptionFeature =
 
 type PlanConfig = Record<SubscriptionFeature, number | boolean>;
 
+/** Plus Feature 3: 15 attempts per month (exception to 6‑month cycle). */
+export const PLUS_CLASSIFICATION_PERIOD_MONTHLY = true;
+
 export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
   FREE: {
     profileAnalysisDetail: false,
     majorListCount: 3,
     majorFitShowCount: 1,
-    classificationCount: 5, // 1 reach / 2 match / 2 safety
+    classificationCount: 5, // 1 reach, 2 match, 2 safety
+    classificationAttemptsLimit: 1,
     matchScoreDetail: false,
     roadmapDetail: false,
     enhanceCount: 1,
@@ -31,35 +39,39 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
   },
   PLUS: {
     profileAnalysisDetail: true,
-    majorListCount: 10,
-    majorFitShowCount: 3,
-    classificationCount: 9,
+    majorListCount: 15,
+    majorFitShowCount: 15,
+    classificationCount: 30, // 10 reach, 10 match, 10 safety
+    classificationAttemptsLimit: 15, // per month
     matchScoreDetail: true,
     roadmapDetail: true,
-    enhanceCount: 5,
-    cvAnalysisCount: 5,
-    essayAnalysisCount: 5,
+    enhanceCount: 10,
+    cvAnalysisCount: 10,
+    essayAnalysisCount: 10,
     essayMentor: false,
     reportsCount: -1,
   },
+  /** Legacy: same limits as PREMIUM for existing subscribers. */
   ADVANCED: {
     profileAnalysisDetail: true,
-    majorListCount: 10,
-    majorFitShowCount: 5,
-    classificationCount: 9,
+    majorListCount: 15,
+    majorFitShowCount: 15,
+    classificationCount: 30,
+    classificationAttemptsLimit: -1,
     matchScoreDetail: true,
     roadmapDetail: true,
-    enhanceCount: 5,
-    cvAnalysisCount: 5,
-    essayAnalysisCount: 5,
+    enhanceCount: -1,
+    cvAnalysisCount: -1,
+    essayAnalysisCount: -1,
     essayMentor: true,
     reportsCount: -1,
   },
   PREMIUM: {
     profileAnalysisDetail: true,
-    majorListCount: 10,
-    majorFitShowCount: 9,
-    classificationCount: 9,
+    majorListCount: 15,
+    majorFitShowCount: 15,
+    classificationCount: 30,
+    classificationAttemptsLimit: -1,
     matchScoreDetail: true,
     roadmapDetail: true,
     enhanceCount: -1,

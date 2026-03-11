@@ -1,0 +1,24 @@
+﻿
+> holyann-ai-web@0.1.0 mcp:typecheck
+> tsc --noEmit
+
+prisma/seed-universities.ts(125,18): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<{ adapter: PrismaPg; }, never, DefaultArgs>'.
+src/app/api/admin/university-rankings/[id]/route.ts(53,42): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/university-rankings/[id]/route.ts(74,34): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/university-rankings/[id]/route.ts(102,18): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/university-rankings/bulk/route.ts(143,39): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/university-rankings/bulk/route.ts(146,22): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/university-rankings/route.ts(22,31): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/university-rankings/route.ts(84,34): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/users/[id]/subscription/route.ts(60,17): error TS2353: Object literal may only specify known properties, and 'subscriptionPlan' does not exist in type '(Without<usersUpdateInput, usersUncheckedUpdateInput> & usersUncheckedUpdateInput) | (Without<...> & usersUpdateInput)'.
+src/app/api/admin/users/[id]/subscription/route.ts(66,17): error TS2353: Object literal may only specify known properties, and 'subscriptionPlan' does not exist in type 'usersSelect<DefaultArgs>'.
+src/app/api/admin/users/route.ts(19,17): error TS2353: Object literal may only specify known properties, and 'subscriptionPlan' does not exist in type 'usersSelect<DefaultArgs>'.
+src/app/api/subscription/upgrade/route.ts(43,9): error TS2353: Object literal may only specify known properties, and 'subscriptionPlan' does not exist in type '(Without<usersUpdateInput, usersUncheckedUpdateInput> & usersUncheckedUpdateInput) | (Without<...> & usersUpdateInput)'.
+src/app/api/subscription/upgrade/route.ts(49,9): error TS2353: Object literal may only specify known properties, and 'subscriptionPlan' does not exist in type 'usersSelect<DefaultArgs>'.
+src/app/api/subscription/upgrade/route.ts(61,25): error TS2339: Property 'subscriptionPlan' does not exist on type '{ id: string; role: UserRole; email: string; created_at: Date | null; full_name: string; phone_number: string | null; password_hash: string | null; auth_provider: string | null; auth_provider_id: string | null; avatar_url: string | null; is_active: boolean | null; }'.
+src/app/api/subscription/upgrade/route.ts(62,38): error TS2339: Property 'subscriptionStart' does not exist on type '{ id: string; role: UserRole; email: string; created_at: Date | null; full_name: string; phone_number: string | null; password_hash: string | null; auth_provider: string | null; auth_provider_id: string | null; avatar_url: string | null; is_active: boolean | null; }'.
+src/app/api/subscription/upgrade/route.ts(63,36): error TS2339: Property 'subscriptionEnd' does not exist on type '{ id: string; role: UserRole; email: string; created_at: Date | null; full_name: string; phone_number: string | null; password_hash: string | null; auth_provider: string | null; auth_provider_id: string | null; avatar_url: string | null; is_active: boolean | null; }'.
+src/app/api/universities/[id]/route.ts(24,37): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/universities/route.ts(56,31): error TS2339: Property 'university_rankings' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/api/require-premium.ts(37,15): error TS2353: Object literal may only specify known properties, and 'subscriptionPlan' does not exist in type 'usersSelect<DefaultArgs>'.
+src/lib/api/require-premium.ts(41,22): error TS2339: Property 'subscriptionPlan' does not exist on type '{ id: string; role: UserRole; email: string; created_at: Date | null; full_name: string; phone_number: string | null; password_hash: string | null; auth_provider: string | null; auth_provider_id: string | null; avatar_url: string | null; is_active: boolean | null; }'.

@@ -15,7 +15,10 @@ export async function GET() {
                 is_active: true,
                 avatar_url: true,
                 created_at: true,
-                auth_provider: true
+                auth_provider: true,
+                // subscriptionPlan: true,
+                // subscriptionStart: true,
+                // subscriptionEnd: true
             },
             orderBy: {
                 created_at: 'desc'

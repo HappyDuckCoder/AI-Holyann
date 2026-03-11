@@ -1,5 +1,6 @@
 'use server'
 
+import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
@@ -90,6 +91,7 @@ export async function createMentorAction(
       // 1. Tạo User
       const newUser = await tx.users.create({
         data: {
+          id: randomUUID(),
           full_name: data.fullName,
           email: data.email,
           password_hash: hashedPassword,

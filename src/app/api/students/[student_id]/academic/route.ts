@@ -10,18 +10,26 @@ export async function POST(
         const { student_id } = await params;
         const body = await request.json();
 
+        // Nếu có proof_images mới gửi lên, merge với dữ liệu hiện có
+        let proofImagesToSave: Record<string, string[]> | undefined = undefined;
+        if (body.proof_images !== undefined) {
+            proofImagesToSave = body.proof_images;
+        }
+
         const academicProfile = await prisma.student_academic_profiles.upsert({
             where: { student_id },
             update: {
                 gpa_transcript_details: body.gpa_transcript_details || undefined,
                 english_certificates: body.english_certificates || undefined,
                 standardized_tests: body.standardized_tests || undefined,
+                ...(proofImagesToSave !== undefined && { proof_images: proofImagesToSave }),
             },
             create: {
                 student_id,
                 gpa_transcript_details: body.gpa_transcript_details || {},
                 english_certificates: body.english_certificates || {},
                 standardized_tests: body.standardized_tests || {},
+                proof_images: proofImagesToSave || {},
             }
         });
 

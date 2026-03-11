@@ -3,6 +3,7 @@
  * POST /api/student/essays — Tạo essay mới (student).
  */
 
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-config';
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     const essay = await prisma.essays.create({
       data: {
+        id: randomUUID(),
         student_id: studentId,
         title: title || null,
         content,

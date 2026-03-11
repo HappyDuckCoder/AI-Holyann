@@ -19,14 +19,14 @@ export default function StudentDashboardPage() {
     setError(null);
     fetch("/api/student/dashboard")
       .then((res) => {
-        if (!res.ok) throw new Error("Lỗi tải dashboard");
+        if (!res.ok) return null;
         return res.json();
       })
       .then((json) => {
-        if (!cancelled) setData(json);
+        if (!cancelled) setData(json ?? null);
       })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Lỗi");
+      .catch(() => {
+        if (!cancelled) setData(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -43,7 +43,6 @@ export default function StudentDashboardPage() {
           userName={user?.name || "Người dùng"}
           data={data}
           isLoading={loading}
-          error={error}
         />
       </StudentPageContainer>
     </RoleGuard>

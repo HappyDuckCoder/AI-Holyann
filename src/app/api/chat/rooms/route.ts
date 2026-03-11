@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/auth/get-user'
+import { requirePremium } from '@/lib/api/require-premium'
 
 /**
  * GET /api/chat/rooms
- * Lấy danh sách chat rooms của user hiện tại
+ * Lấy danh sách chat rooms của user hiện tại (Premium only)
  */
 export async function GET(request: NextRequest) {
     try {
+        const forbidden = await requirePremium(request)
+        if (forbidden) return forbidden
+
         const user = await getAuthenticatedUser(request)
         
         if (!user?.id) {
@@ -142,6 +146,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
+        const forbidden = await requirePremium(request)
+        if (forbidden) return forbidden
+
         const user = await getAuthenticatedUser(request)
         
         if (!user?.id) {

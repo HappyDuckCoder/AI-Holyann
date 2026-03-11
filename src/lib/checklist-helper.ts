@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { TaskStatus } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
@@ -35,6 +36,7 @@ export async function autoCompleteChecklistTask(studentId: string, pathKeyword: 
         },
       },
       create: {
+        id: randomUUID(),
         student_id: studentId,
         task_id: task.id,
         status: TaskStatus.COMPLETED,

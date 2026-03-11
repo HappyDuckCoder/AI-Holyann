@@ -173,7 +173,7 @@ export default function TargetPage() {
             {/* Left column: Khám phá 100+ trường + Summary stats */}
             <aside className="space-y-4 lg:col-span-4">
             <Link
-              href="/universities"
+              href="/student/universities"
               className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/50 hover:bg-primary/5"
             >
               <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-3xl text-primary">🌍</span>
