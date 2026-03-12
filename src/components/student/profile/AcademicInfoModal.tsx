@@ -863,13 +863,15 @@ export default function AcademicInfoModal({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0 rounded-2xl overflow-hidden">
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0 rounded-2xl overflow-hidden bg-card text-foreground border border-border">
         {/* Header */}
-        <DialogHeader className="flex-shrink-0 px-8 pt-7 pb-4 border-b border-slate-200/70">
-          <DialogTitle className="text-xl font-semibold text-slate-800 tracking-tight">
+        <DialogHeader className="flex-shrink-0 px-8 pt-7 pb-4 border-b border-border">
+          <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">
             Cập nhật hồ sơ học sinh
           </DialogTitle>
-          <p className="text-sm text-slate-500 mt-0.5">Chỉnh sửa thông tin và hồ sơ học viên</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Chỉnh sửa thông tin và hồ sơ học viên
+          </p>
         </DialogHeader>
 
         {loading ? (
@@ -882,7 +884,7 @@ export default function AcademicInfoModal({
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
               {/* Tabs - Segmented Control style */}
               <div className="flex-shrink-0 px-8 pt-4 pb-0">
-                <TabsList className="inline-flex bg-slate-100 p-1 rounded-xl gap-1 shadow-inner">
+                <TabsList className="inline-flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1 shadow-inner">
                   <TabsTrigger value="basic" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Thông tin liên lạc</TabsTrigger>
                   <TabsTrigger value="academic" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Học tập</TabsTrigger>
                   <TabsTrigger value="profile" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Hồ sơ</TabsTrigger>
@@ -899,7 +901,9 @@ export default function AcademicInfoModal({
                     {/* Section Header */}
                     <div className="px-5 py-4 border-b border-border flex items-center gap-3 bg-blue-500/5">
                       
-                      <h3 className="text-base font-semibold text-blue-900 mb-5">Thông tin liên lạc của học viên</h3>
+                      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50 mb-1">
+                        Thông tin liên lạc của học viên
+                      </h3>
                     </div>
                     {/* Grid of mini-cards like profile page */}
                     <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -939,7 +943,7 @@ export default function AcademicInfoModal({
                               updateBasicInfo({ current_grade: e.target.value })
                             }
                             placeholder="VD: 12"
-                            className="border-slate-200 bg-white text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
+                            className="border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
                           />
                           <Input
                             value={basicInfo.current_school}
@@ -947,7 +951,7 @@ export default function AcademicInfoModal({
                               updateBasicInfo({ current_school: e.target.value })
                             }
                             placeholder="Tên trường"
-                            className="border-slate-200 bg-white text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
+                            className="border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
                           />
                         </div>
                       </div>
@@ -959,7 +963,7 @@ export default function AcademicInfoModal({
                             updateBasicInfo({ current_address: e.target.value })
                           }
                           placeholder="Địa chỉ"
-                          className="border-slate-200 bg-white text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
+                          className="border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
                         />
                       </div>
                       <div className="p-3 sm:p-4 rounded-xl border border-border bg-muted/20">
@@ -974,7 +978,7 @@ export default function AcademicInfoModal({
                             }
                           }}
                           placeholder="0XXXXXXXXX"
-                          className="border-slate-200 bg-white text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
+                          className="border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
                           maxLength={10}
                         />
                         {basicInfo.phone_number &&
@@ -1002,7 +1006,7 @@ export default function AcademicInfoModal({
                             updateBasicInfo({ talents: e.target.value })
                           }
                           placeholder="VD: Toán học, Vẽ, ..."
-                          className="border-slate-200 bg-white text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
+                          className="border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-blue-400"
                         />
                       </div>
                       <div className="p-3 sm:p-4 rounded-xl border border-border bg-muted/20 sm:col-span-2">
@@ -1013,7 +1017,7 @@ export default function AcademicInfoModal({
                             updateBasicInfo({ hobbies: e.target.value })
                           }
                           placeholder="Mô tả sở thích của bạn..."
-                          className="border-slate-200 bg-white text-sm focus-visible:ring-1 focus-visible:ring-blue-400 resize-none"
+                          className="border-border bg-background text-sm focus-visible:ring-1 focus-visible:ring-blue-400 resize-none"
                           rows={3}
                         />
                       </div>
@@ -1102,7 +1106,7 @@ export default function AcademicInfoModal({
                                 }
                               }}
                               placeholder="0.00"
-                              className="bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-amber-400 font-medium"
+                              className="bg-background border-border focus-visible:ring-1 focus-visible:ring-amber-400 font-medium"
                             />
                           </div>
                         ),
@@ -1705,7 +1709,7 @@ export default function AcademicInfoModal({
                               }
                             }}
                             placeholder="0.00"
-                            className="mt-1 bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-amber-400 font-medium"
+                            className="mt-1 bg-background border-border focus-visible:ring-1 focus-visible:ring-amber-400 font-medium"
                           />
                         </div>
                         <div>
@@ -3125,11 +3129,20 @@ export default function AcademicInfoModal({
             </Tabs>
 
             {/* Sticky Footer */}
-            <div className="flex-shrink-0 sticky bottom-0 z-10 flex justify-end gap-3 border-t border-slate-200 bg-white/90 px-8 py-4 backdrop-blur-md rounded-b-2xl">
-              <Button variant="outline" onClick={onClose} disabled={saving} className="rounded-lg px-6 py-2.5 font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-all">
+            <div className="flex-shrink-0 sticky bottom-0 z-10 flex justify-end gap-3 border-t border-border bg-background/95 px-8 py-4 backdrop-blur-md rounded-b-2xl">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                disabled={saving}
+                className="rounded-lg px-6 py-2.5 font-medium border-border bg-card text-foreground hover:bg-muted transition-all"
+              >
                 Hủy
               </Button>
-              <Button onClick={handleSaveAll} disabled={saving} className="rounded-lg px-6 py-2.5 font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-200 transition-all active:scale-[0.98]">
+              <Button
+                onClick={handleSaveAll}
+                disabled={saving}
+                className="rounded-lg px-6 py-2.5 font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm shadow-primary/30 transition-all active:scale-[0.98]"
+              >
                 {saving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

@@ -71,23 +71,23 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     >
       {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 bg-[var(--overlay)] backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity"
         aria-hidden="true"
         onClick={onClose}
-      ></div>
+      />
 
       {/* Modal Panel */}
-      <div className="relative inline-block align-middle bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-2xl w-full mx-4">
-        <div className="bg-[var(--brand-blue)] px-4 py-3 sm:px-6 flex justify-between items-center">
+      <div className="relative inline-block align-middle rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-2xl w-full mx-4 bg-card text-foreground border border-border">
+        <div className="px-4 py-3 sm:px-6 flex justify-between items-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
           <h3
-            className="text-lg leading-6 font-medium text-white"
+            className="text-lg leading-6 font-medium"
             id="modal-title"
           >
             Cập nhật hồ sơ du học
           </h3>
           <button
             onClick={onClose}
-            className="text-blue-200 hover:text-white focus:outline-none"
+            className="text-primary-foreground/70 hover:text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-full"
           >
             <X size={24} />
           </button>
@@ -104,7 +104,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <div>
                   <label
                     htmlFor="dob"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="block text-sm font-medium text-muted-foreground"
                   >
                     Ngày sinh
                   </label>
@@ -116,7 +116,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       required
                       value={formData.dob}
                       onChange={handleChange}
-                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2 border"
+                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-border bg-background text-foreground rounded-md p-2 border"
                     />
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <div>
                   <label
                     htmlFor="gpa"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="block text-sm font-medium text-muted-foreground"
                   >
                     GPA (Thang 4.0)
                   </label>
@@ -148,7 +148,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       required
                       value={formData.gpa}
                       onChange={handleChange}
-                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2 border"
+                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-border bg-background text-foreground rounded-md p-2 border"
                     />
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <div>
                   <label
                     htmlFor="englishLevel"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="block text-sm font-medium text-muted-foreground"
                   >
                     Trình độ Ngoại ngữ
                   </label>
@@ -169,7 +169,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       required
                       value={formData.englishLevel}
                       onChange={handleChange}
-                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md p-2 border"
+                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-border bg-background text-foreground placeholder-muted-foreground rounded-md p-2 border"
                     />
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <div>
                   <label
                     htmlFor="satScore"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="block text-sm font-medium text-muted-foreground"
                   >
                     Điểm SAT (Nếu có)
                   </label>
@@ -188,7 +188,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       id="satScore"
                       value={formData.satScore || ""}
                       onChange={handleChange}
-                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2 border"
+                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-border bg-background text-foreground rounded-md p-2 border"
                     />
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <div>
                   <label
                     htmlFor="targetMajor"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="block text-sm font-medium text-muted-foreground"
                   >
                     Ngành học dự kiến
                   </label>
@@ -207,7 +207,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       id="targetMajor"
                       value={formData.targetMajor}
                       onChange={handleChange}
-                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2 border"
+                      className="shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-border bg-background text-foreground rounded-md p-2 border"
                     />
                   </div>
                 </div>
@@ -219,13 +219,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {/* Achievements Section */}
             <div>
               <div className="flex justify-between items-center mb-3">
-                <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
                   Thành tích nổi bật
                 </h4>
                 <button
                   type="button"
                   onClick={addAchievement}
-                  className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none"
+                  className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none"
                 >
                   <Plus size={14} className="mr-1" /> Thêm
                 </button>
@@ -241,7 +241,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         handleAchievementChange(index, e.target.value)
                       }
                       placeholder="VD: Giải Nhất học sinh giỏi..."
-                      className="flex-1 shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-md p-2 border"
+                      className="flex-1 shadow-sm focus:ring-[var(--brand-blue)] focus:border-[var(--brand-blue)] block w-full sm:text-sm border-border bg-background text-foreground placeholder-muted-foreground rounded-md p-2 border"
                     />
                     <button
                       type="button"
