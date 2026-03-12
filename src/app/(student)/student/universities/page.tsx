@@ -199,12 +199,12 @@ export default function StudentUniversitiesPage() {
                   <div className="mb-3">
                     <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                       <span>QS Score</span>
-                      <span>{u.qs_overall_score.toFixed(1)}</span>
+                      <span>{(u.qs_overall_score ?? 0).toFixed(1)}</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full rounded-full bg-primary transition-all"
-                        style={{ width: `${Math.min(100, u.qs_overall_score)}%` }}
+                        style={{ width: `${Math.min(100, u.qs_overall_score ?? 0)}%` }}
                       />
                     </div>
                   </div>

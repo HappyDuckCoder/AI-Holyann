@@ -17,29 +17,29 @@ export async function GET(request: NextRequest) {
     const maxRank = searchParams.get('maxRank');
 
     const where: {
-      current_ranking?: { gte?: number; lte?: number };
-      state?: string | null;
+      qs_rank?: { gte?: number; lte?: number };
+      region?: string | null;
       country?: string;
       OR?: Array<
         | { name: { contains: string; mode: 'insensitive' } }
         | { country: { contains: string; mode: 'insensitive' } }
-        | { state: { contains: string; mode: 'insensitive' } }
+        | { city: { contains: string; mode: 'insensitive' } }
       >;
     } = {};
 
-    if (region) where.state = region; // fallback region to state since no region exists
+    if (region) where.region = region;
     if (country) where.country = country;
 
     if (minRank !== null && minRank !== undefined && minRank !== '') {
       const n = parseInt(minRank, 10);
       if (!isNaN(n)) {
-        where.current_ranking = { ...where.current_ranking, gte: n };
+        where.qs_rank = { ...where.qs_rank, gte: n };
       }
     }
     if (maxRank !== null && maxRank !== undefined && maxRank !== '') {
       const n = parseInt(maxRank, 10);
       if (!isNaN(n)) {
-        where.current_ranking = { ...where.current_ranking, lte: n };
+        where.qs_rank = { ...where.qs_rank, lte: n };
       }
     }
 
@@ -47,22 +47,25 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { country: { contains: search, mode: 'insensitive' } },
-        { state: { contains: search, mode: 'insensitive' } },
+        { city: { contains: search, mode: 'insensitive' } },
       ];
     }
 
-    const list = await prisma.universities.findMany({
+    const list = await prisma.university_rankings.findMany({
       where,
-      orderBy: { current_ranking: 'asc' },
+      orderBy: { qs_rank: 'asc' },
       select: {
         id: true,
-        current_ranking: true,
+        qs_rank: true,
         name: true,
         country: true,
-        state: true,
-        website_url: true,
-        logo_url: true,
-        ai_matching_data: true,
+        country_code: true,
+        city: true,
+        region: true,
+        type: true,
+        website: true,
+        qs_overall_score: true,
+        strong_subjects: true,
       },
     });
 
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
     console.error('❌ [GET /api/universities] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Không thể tải danh sách trường' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
