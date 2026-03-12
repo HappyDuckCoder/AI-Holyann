@@ -39,7 +39,7 @@ export default function Header() {
         {/* CTA & Mobile Toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
           <a
-            href="/login"
+            href="/dashboard"
             className="hidden sm:flex items-center justify-center h-10 px-4 sm:px-5 rounded-full border-2 border-slate-300 text-slate-700 font-semibold text-xs sm:text-sm hover:bg-slate-50 hover:border-sky-400 hover:text-sky-700 transition-all whitespace-nowrap"
           >
             Khám phá ngay
@@ -79,7 +79,7 @@ export default function Header() {
               </a>
             ))}
             <a
-              href="/login"
+              href="/dashboard"
               className="mt-2 px-4 py-3 rounded-lg border-2 border-slate-300 text-slate-700 font-semibold text-sm text-center hover:bg-slate-50 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
