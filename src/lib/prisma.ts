@@ -4,7 +4,10 @@ import { Pool } from 'pg'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
+const globalForPrisma = global as unknown as {
+    prisma?: PrismaClient
+    pool?: Pool
+}
 
 function createPrismaClient() {
     try {
@@ -12,31 +15,47 @@ function createPrismaClient() {
         if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
             console.warn('⚠️ DATABASE_URL/DIRECT_URL not found, using placeholder (queries will fail)')
         }
-        const poolConfig = { connectionString: connectionUrl }
-        const pool = new Pool(poolConfig)
+
+        // Re‑use a single Pool across HMR to avoid "MaxClientsInSessionMode"
+        const pool =
+            globalForPrisma.pool ??
+            new Pool({
+                connectionString: connectionUrl,
+                // Giảm số client tối đa để không vượt giới hạn pool_size (Neon/Supabase free tier thường khá thấp)
+                max: Number(process.env.PG_POOL_MAX ?? '3'),
+                idleTimeoutMillis: 30_000,
+            })
+
+        if (!globalForPrisma.pool) {
+            globalForPrisma.pool = pool
+        }
+
         const adapter = new PrismaPg(pool)
+
         return new PrismaClient({
             adapter,
             log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
         })
     } catch (error) {
         console.error('❌ Error creating Prisma Client:', error)
-        const pool = new Pool({ connectionString: 'postgresql://localhost' })
-        return new PrismaClient({ adapter: new PrismaPg(pool), log: [] })
+        const fallbackPool =
+            globalForPrisma.pool ??
+            new Pool({
+                connectionString: 'postgresql://localhost',
+            })
+
+        if (!globalForPrisma.pool) {
+            globalForPrisma.pool = fallbackPool
+        }
+
+        return new PrismaClient({ adapter: new PrismaPg(fallbackPool), log: [] })
     }
 }
 
-export const prisma = globalForPrisma.prisma || createPrismaClient()
+export const prisma =
+    globalForPrisma.prisma ??
+    createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') {
     globalForPrisma.prisma = prisma
 }
-
-// Cleanup on app shutdown
-if (process.env.NODE_ENV !== 'production') {
-    process.on('beforeExit', async () => {
-        await prisma.$disconnect()
-    })
-}
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
