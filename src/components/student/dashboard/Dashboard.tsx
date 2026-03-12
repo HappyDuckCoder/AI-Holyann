@@ -122,13 +122,23 @@ export default function Dashboard({
           className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
         >
           <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
-            <div className="flex items-center gap-2">
-              <LayoutDashboard className="h-5 w-5 text-primary" />
-              <CardTitle className="font-heading text-base font-bold text-primary m-0">
-                Bắt đầu nhanh
-              </CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
+                    Quick Start
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center gap-2">
+                  <LayoutDashboard className="h-5 w-5 text-primary" />
+                  <CardTitle className="font-heading text-base font-bold text-primary m-0">
+                    Bắt đầu nhanh
+                  </CardTitle>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-2">
               Các mục chính trên thanh điều hướng — truy cập nhanh từ đây.
             </p>
           </CardHeader>
@@ -168,10 +178,18 @@ export default function Dashboard({
           id="tinh-nang-chinh"
         >
           <CardHeader className="border-b border-border px-6 py-4 bg-muted/30 dark:bg-muted/20">
-            <CardTitle className="font-heading text-sm font-bold text-primary m-0">
-              Tính năng chính
-            </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
+                  Core Features
+                </span>
+              </div>
+              <CardTitle className="font-heading text-sm font-bold text-primary m-0">
+                Tính năng chính
+              </CardTitle>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
               Phân tích hồ sơ, trắc nghiệm ngành, ngành & trường phù hợp, cải thiện hồ sơ, danh sách trường, báo cáo.
             </p>
           </CardHeader>
@@ -217,18 +235,28 @@ export default function Dashboard({
           id="tinh-nang-premium"
         >
           <CardHeader className="border-b border-amber-500/10 px-6 py-4 bg-amber-500/5 dark:bg-amber-500/10">
-            <div className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              <CardTitle className="font-heading text-base font-bold text-amber-700 dark:text-amber-300 m-0">
-                Tính năng Premium
-              </CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">
+                    Premium Layer
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <CardTitle className="font-heading text-base font-bold text-amber-700 dark:text-amber-300 m-0">
+                    Tính năng Premium
+                  </CardTitle>
+                </div>
+              </div>
               {!isPaid && (
-                <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                <span className="rounded-full bg-amber-500/20 px-2.5 py-1 text-[10px] font-bold uppercase text-amber-800 dark:text-amber-100">
                   Nâng cấp để mở khóa
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-2">
               Chat với cố vấn, checklist, deadline, đặt lịch mentor — gói Premium (AI + All Advisors).
             </p>
           </CardHeader>
