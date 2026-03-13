@@ -19,7 +19,7 @@ export default function RegisterPage() {
           aria-hidden
         />
         <div
-          className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-primary/12 dark:bg-primary/15 blur-[100px] pointer-events-none"
+          className="absolute top-1/4 left-1/4 w-96 h-96 md:w-[32rem] md:h-[32rem] rounded-full bg-primary/12 dark:bg-primary/25 blur-[100px] pointer-events-none"
           aria-hidden
         />
         <div
@@ -31,10 +31,10 @@ export default function RegisterPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.4 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold tracking-tight text-foreground dark:text-white drop-shadow-sm"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold tracking-tight leading-snug lg:leading-snug text-foreground dark:text-white drop-shadow-sm"
           >
             Con đường đến{" "}
-            <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent dark:from-primary dark:to-secondary">
+            <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent dark:from-sky-300 dark:to-blue-400">
               giáo dục toàn cầu
             </span>
           </motion.h1>
@@ -44,8 +44,7 @@ export default function RegisterPage() {
             transition={{ delay: 0.25, duration: 0.4 }}
             className="mt-4 md:mt-5 text-base sm:text-lg text-muted-foreground dark:text-slate-300 max-w-md leading-relaxed"
           >
-            Nền tảng học thuật AI. Lên kế hoạch, theo dõi và đạt được mục tiêu
-            du học của bạn.
+            Nền tảng tiên phong đổi mới sáng tạo trải nghiệm du học
           </motion.p>
         </div>
       </motion.div>

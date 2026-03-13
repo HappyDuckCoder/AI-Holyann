@@ -6,7 +6,7 @@ import {BRAND_COLORS, HIGHLIGHTS, TESTIMONIALS} from '../../lib/data';
 
 export default function TestimonialsSection() {
     return (
-        <section id="trai-nghiem" className="py-20 bg-slate-900 text-white">
+        <section id="trai-nghiem" className="py-20 scroll-mt-24 bg-slate-900 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px] text-white">
             <div className="container mx-auto px-4">
                 <SectionHeading subtitle="Câu Chuyện Thành Công">Trải Nghiệm Học Viên</SectionHeading>
 

@@ -42,20 +42,38 @@ export const CORE_VALUES = [
 
 export const HIGHLIGHTS = [
     {
-        title: "Sự Sát Sao - Đồng Hành",
-        desc: "Kết nối 3 chiều Học viên - Phụ huynh - Cố vấn. Không để học viên 'đi một mình' trong bất kỳ bước nào.",
+        title: "Sự sát sao - Đồng hành từng bước một",
+        bullets: [
+            "Luôn theo dõi tiến độ của từng học viên bằng kế hoạch cá nhân hóa và nhật ký học tập.",
+            "Không để học viên \"đi một mình\" trong bất kỳ bước nào.",
+            "Kết nối 3 chiều Học viên - Phụ huynh - Cố vấn để nhắc nhở, kiểm tra, hỗ trợ kịp thời khi có khó khăn."
+        ]
     },
     {
-        title: "Hỗ Trợ Toàn Diện 360",
-        desc: "Hỗ trợ từ học thuật, kỹ năng, tư duy, hồ sơ đến tâm lý. Giải đáp mọi vấn đề trước - trong - sau du học.",
+        title: "Hỗ trợ toàn diện 360",
+        bullets: [
+            "Hỗ trợ từ học thuật, kỹ năng, tư duy, hồ sơ đến tâm lý khi du học.",
+            "Giải đáp mọi vấn đề từ nhỏ nhất đến quan trọng nhất.",
+            "Hỗ trợ trước - trong - sau khi đi du học.",
+            "Hỗ trợ phụ huynh nắm bắt thông tin du học và tình hình học viên."
+        ]
     },
     {
-        title: "Mô Hình Nhiều Cố Vấn",
-        desc: "Mỗi học viên được hướng dẫn bởi nhiều Cố vấn chuyên môn để nhận được góc nhìn đa chiều và tối ưu hóa hành trình.",
+        title: "Mô hình nhiều Cố vấn cho 01 học viên",
+        bullets: [
+            "Mỗi học viên được hướng dẫn bởi nhiều Cố vấn chuyên môn khác nhau.",
+            "Nhận được nhiều góc nhìn và lời khuyên chất lượng.",
+            "Tối ưu hóa hành trình một cách toàn diện nhất."
+        ]
     },
     {
-        title: "Đội Ngũ Năng Động",
-        desc: "Giàu kinh nghiệm săn học bổng TOP đầu thế giới. Đề cao tư duy đổi mới và sẵn sàng 'cháy' hết mình vì học viên.",
+        title: "Đội ngũ tư vấn năng động, sáng tạo",
+        bullets: [
+            "Đội ngũ có kinh nghiệm hướng dẫn chuẩn bị hồ sơ nhận được học bổng lớn từ các trường TOP đầu thế giới.",
+            "Đề cao tư duy đổi mới, sáng tạo.",
+            "Linh hoạt đưa ra giải pháp phù hợp dựa trên thế mạnh của học viên.",
+            "Tinh thần nhiệt huyết, sẵn sàng hỗ trợ, \"cháy\" hết mình vì học viên."
+        ]
     },
 ];
 

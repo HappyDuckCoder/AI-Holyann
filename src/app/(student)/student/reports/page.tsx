@@ -352,6 +352,7 @@ export default function ReportsPage() {
                 {(profileData?.feature1_output?.summary?.total_pillar_scores) && (() => {
                   const scores = profileData.feature1_output.summary.total_pillar_scores;
                   const chartData = ACCENT_CARDS.map(({ key, label }) => ({ name: label, value: scores?.[key] ?? 0 }));
+                  const maxVal = Math.max(100, ...chartData.map(d => d.value));
                   return (
                     <Card className="border border-border print:shadow-none">
                       <CardHeader className="py-2 px-3 flex flex-row items-center gap-2">
@@ -366,8 +367,8 @@ export default function ReportsPage() {
                       <CardContent className="px-3 pb-3 pt-0">
                         <div className="h-24 w-full text-foreground [&_.recharts-text]:fill-foreground" data-pdf-chart-wrap>
                           <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
-                              <XAxis type="number" domain={[0, 100]} hide />
+                            <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
+                              <XAxis type="number" domain={[0, maxVal]} hide />
                               <YAxis type="category" dataKey="name" width={72} tick={{ fontSize: 10, fill: "var(--foreground)" }} />
                               <Bar dataKey="value" radius={[0, 2, 2, 0]} maxBarSize={14}>
                                 {chartData.map((_, i) => (

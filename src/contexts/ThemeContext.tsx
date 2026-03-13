@@ -89,20 +89,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => {
-      const next =
-        prev === "system"
-          ? getResolvedTheme() === "dark"
-            ? "light"
-            : "dark"
-          : prev === "dark"
-            ? "light"
-            : "dark";
-      try {
-        localStorage.setItem(STORAGE_KEY, next);
-      } catch {}
-      return next;
-    });
+    if (typeof window === "undefined") return;
+    const isCurrentlyDark = document.documentElement.classList.contains("dark");
+    const next = isCurrentlyDark ? "light" : "dark";
+    
+    setThemeState(next);
+    setResolvedTheme(next);
+    applyTheme(next);
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {}
   }, []);
 
   const value = useMemo<ThemeContextValue>(

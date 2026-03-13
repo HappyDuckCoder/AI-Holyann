@@ -40,7 +40,7 @@ export default function ServicesSection() {
   ];
 
   return (
-    <section id="dich-vu" className="py-20 bg-white">
+    <section id="dich-vu" className="py-20 scroll-mt-24 bg-white bg-[linear-gradient(to_right,rgba(148,163,184,0.14)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.10)_1px,transparent_1px)] bg-[size:32px_32px]">
       <div className="container mx-auto px-4">
         <SectionHeading subtitle="Giải Pháp Của Chúng Tôi" dark={true}>
           Dịch Vụ Cung Cấp
@@ -163,7 +163,7 @@ export default function ServicesSection() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden"
             >
-              <div className="p-8 bg-slate-900 text-white flex justify-between items-center flex-wrap gap-4">
+              <div className={`p-8 ${BRAND_COLORS.primaryGradient} text-white flex justify-between items-center flex-wrap gap-4`}>
                 <div>
                   <h3 className="text-2xl font-bold mb-2 text-white">
                     Gói Lẻ Sửa Luận Chính

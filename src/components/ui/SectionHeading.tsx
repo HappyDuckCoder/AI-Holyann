@@ -22,7 +22,7 @@ export default function SectionHeading({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className={`uppercase tracking-wider font-bold text-sm mb-3 block ${BRAND_COLORS.textGradient}`}
+          className={`uppercase tracking-wider font-bold text-sm mb-2 pb-1 block ${BRAND_COLORS.textGradient}`}
         >
           {subtitle}
         </motion.span>
@@ -32,7 +32,7 @@ export default function SectionHeading({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.1 }}
-        className={`text-3xl md:text-4xl lg:text-5xl font-extrabold ${textColor} mb-4 bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent`}
+        className={`text-3xl md:text-4xl lg:text-5xl font-extrabold ${textColor} mb-2 pb-2 leading-tight bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent`}
       >
         {children}
       </motion.h2>

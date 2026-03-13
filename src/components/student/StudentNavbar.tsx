@@ -106,8 +106,8 @@ export default function StudentNavbar() {
   return (
     <header
       className="font-university-sans sticky top-0 z-50 w-full px-4 sm:px-6 md:px-8
-        bg-gradient-to-r from-primary via-primary to-secondary
-        dark:from-background dark:via-[hsl(220,30%,12%)] dark:to-[hsl(220,35%,18%)]
+        bg-gradient-to-r from-[var(--primary)] via-[var(--brand-deep)] to-[var(--brand-cyan)]
+        dark:from-[var(--secondary)] dark:via-[var(--brand-deep-darker)] dark:to-[var(--primary)]
         border-b-2 border-white/20 dark:border-primary/30
         shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)]
         dark:shadow-[0_2px_10px_-2px_rgba(0,0,0,0.35)]"
