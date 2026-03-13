@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Lightbulb, GraduationCap, Plane } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading"; // Đảm bảo đường dẫn này đúng
 import { BRAND_COLORS } from "../../lib/data"; // Đảm bảo đường dẫn này đúng
+import { LeadGenerationButton } from "./LeadGenerationModal";
 
 export default function ServicesSection() {
   const [activeServiceTab, setActiveServiceTab] = useState<
@@ -149,11 +150,11 @@ export default function ServicesSection() {
                   * Chi phí linh hoạt dựa trên số lượng trường (3 - 20 trường)
                   và vùng địa lý.
                 </p>
-                <button
+                <LeadGenerationButton
                   className={`${BRAND_COLORS.primaryGradient} text-white px-10 py-4 rounded-full font-bold shadow-lg hover:shadow-blue-500/30 transition-all hover:-translate-y-1 w-full md:w-auto`}
                 >
                   Đăng Ký Nhận Báo Giá Chi Tiết
-                </button>
+                </LeadGenerationButton>
               </div>
             </motion.div>
           ) : (
@@ -238,11 +239,11 @@ export default function ServicesSection() {
                   </div>
                 </div>
                 <div className="mt-8 text-center pt-8 border-t border-slate-100">
-                  <button
+                  <LeadGenerationButton
                     className={`${BRAND_COLORS.primaryGradient} text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl`}
                   >
                     Đăng Ký Gói Sửa Luận
-                  </button>
+                  </LeadGenerationButton>
                 </div>
               </div>
             </motion.div>
