@@ -29,29 +29,29 @@ const PLANS: {
   badge?: string;
   contactSales?: boolean;
 }[] = [
-  {
-    key: 'FREE',
-    name: 'Free',
-    priceLabel: '0đ',
-    description: 'Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.',
-  },
-  {
-    key: 'PLUS',
-    name: 'Plus (AI)',
-    priceLabel: PLUS_PRICE['6months'].label,
-    pricePeriod: PLUS_PRICE['6months'].period,
-    description: 'Mở khóa đầy đủ chi tiết AI cho profile & ngành học.',
-    badge: 'Phổ biến',
-  },
-  {
-    key: 'PREMIUM',
-    name: 'Premium (AI + All Advisors)',
-    priceLabel: 'Liên hệ',
-    description: 'Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.',
-    badge: 'Tốt nhất',
-    contactSales: true,
-  },
-];
+    {
+      key: 'FREE',
+      name: 'Free',
+      priceLabel: '0đ',
+      description: 'Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.',
+    },
+    {
+      key: 'PLUS',
+      name: 'Plus (AI)',
+      priceLabel: PLUS_PRICE['6months'].label,
+      pricePeriod: PLUS_PRICE['6months'].period,
+      description: 'Mở khóa đầy đủ chi tiết AI cho profile & ngành học.',
+      badge: 'Phổ biến',
+    },
+    {
+      key: 'PREMIUM',
+      name: 'Premium (AI + All Advisors)',
+      priceLabel: 'Liên hệ',
+      description: 'Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.',
+      badge: 'Tốt nhất',
+      contactSales: true,
+    },
+  ];
 
 const CHECK = '✓';
 
@@ -96,10 +96,7 @@ export default function StudentPricingPage() {
         <div className="max-w-6xl mx-auto pb-10 space-y-8">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight">Gói đăng ký Holyann cho học sinh</h1>
-            <p className="text-sm text-muted-foreground">
-              Chỉ chia gói đối với AI. Các tính năng nền tảng (danh sách trường, checklist, chat với mentor được chỉ định)
-              vẫn miễn phí.
-            </p>
+
           </div>
 
           {/* 6‑month cycle callout */}

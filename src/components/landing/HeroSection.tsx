@@ -55,7 +55,7 @@ export default function HeroSection() {
               className="mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-[1.05]"
             >
               <span className="block">Vẽ đường tương lai.</span>
-              <span className={`block ${BRAND_COLORS.textGradient}`}>
+              <span className={`block pb-2 ${BRAND_COLORS.textGradient}`}>
                 Định hình ngày mai.
               </span>
             </motion.h1>
@@ -68,12 +68,12 @@ export default function HeroSection() {
               đồng hành luôn nỗ lực hết sức vì bạn. Với tư duy tiên phong và
               những phương pháp sáng tạo mới mẻ, nền tảng của chúng tôi kết hợp
               {` `}
-              <span className="font-semibold text-amber-400">
+              <span className="font-semibold text-amber-600">
                 sự thông minh của công nghệ
               </span>
               {` `}
               cùng{` `}
-              <span className="font-semibold text-amber-400">
+              <span className="font-semibold text-amber-600">
                 tâm huyết của người đi trước
               </span>
               . Chúng tôi sát sao dìu dắt, lấy nỗ lực của chính mình làm bệ

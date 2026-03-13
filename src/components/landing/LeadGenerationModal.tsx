@@ -52,9 +52,9 @@ const LeadModalSchema = z.object({
     .min(1, "Số điện thoại là bắt buộc")
     .regex(/^[0-9]{10,11}$/, "Số điện thoại phải có 10-11 chữ số"),
   email: z.string().min(1, "Email là bắt buộc").email("Email không hợp lệ"),
-  current_school: z.string().max(255).optional(),
-  current_grade: z.string().max(50).optional(),
-  current_location: z.string().max(255).optional(),
+  current_school: z.string().min(1, "Trường đang học là bắt buộc").max(255),
+  current_grade: z.string().min(1, "Lớp / Năm học là bắt buộc").max(50),
+  current_location: z.string().min(1, "Nơi ở hiện tại là bắt buộc").max(255),
 });
 
 type LeadModalFormValues = z.infer<typeof LeadModalSchema>;
@@ -382,7 +382,7 @@ export function LeadGenerationModal({
                   name="full_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="!text-current">
                         Họ và tên <span className="text-destructive">*</span>
                       </FormLabel>
                       <FormControl>
@@ -399,7 +399,7 @@ export function LeadGenerationModal({
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="!text-current">
                         Số điện thoại{" "}
                         <span className="text-destructive">*</span>
                       </FormLabel>
@@ -421,7 +421,7 @@ export function LeadGenerationModal({
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="!text-current">
                         Email <span className="text-destructive">*</span>
                       </FormLabel>
                       <FormControl>
@@ -442,7 +442,9 @@ export function LeadGenerationModal({
                   name="current_school"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Trường đang học</FormLabel>
+                      <FormLabel className="!text-current">
+                        Trường đang học <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="VD: THPT Chu Văn An" {...field} />
                       </FormControl>
@@ -457,7 +459,9 @@ export function LeadGenerationModal({
                   name="current_grade"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Lớp / Năm học</FormLabel>
+                      <FormLabel className="!text-current">
+                        Lớp / Năm học <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="VD: Lớp 11, Năm 2..." {...field} />
                       </FormControl>
@@ -472,7 +476,9 @@ export function LeadGenerationModal({
                   name="current_location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nơi ở hiện tại (Tỉnh/Thành phố)</FormLabel>
+                      <FormLabel className="!text-current">
+                        Nơi ở hiện tại (Tỉnh/Thành phố) <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="VD: Hà Nội, TP.HCM..." {...field} />
                       </FormControl>

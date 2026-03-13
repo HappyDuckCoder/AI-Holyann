@@ -79,9 +79,9 @@ export default function Login() {
         <Image
           src="/images/logos/Logo_Holyann_ngang-removebg-preview.png"
           alt="Holyann"
-          width={120}
-          height={32}
-          className="h-8 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity dark:invert dark:brightness-110"
+          width={180}
+          height={48}
+          className="h-12 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity dark:invert dark:brightness-110"
           priority
         />
       </Link>

@@ -76,13 +76,14 @@ const ACHIEVEMENTS = [
     },
   },
 ];
+
 export default function AchievementsSection() {
   return (
     <section
       id="thanh-tich"
-      className="py-24 bg-slate-900 text-white overflow-hidden"
+      className="py-24 scroll-mt-24 overflow-hidden relative bg-slate-900 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px] text-white"
     >
-      <div className="container mx-auto px-4 text-center">
+      <div className="container mx-auto px-4 text-center relative z-10">
         <div className="mb-4">
           <SectionHeading subtitle="Holie shinning stars" dark={true}>
             Dấu Ấn Thành Công năm 2024-2025
@@ -108,28 +109,28 @@ export default function AchievementsSection() {
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
               className="group"
             >
-              <div className="relative h-full rounded-2xl overflow-hidden border border-slate-700/60 bg-slate-800 flex flex-col shadow-xl">
-                <div className="h-0.5 w-full bg-cyan-400/70" />
+              <div className="relative h-full rounded-2xl overflow-hidden flex flex-col transition-colors border border-slate-700/60 shadow-xl bg-slate-800">
+                <div className="h-1 w-full bg-cyan-400/70" />
 
                 <div className="flex flex-col flex-1 p-5 gap-4">
                   <div className="flex flex-col items-center gap-1 pt-1">
-                    <span className="text-[10px] font-semibold tracking-[0.3em] text-slate-500 uppercase">
+                    <span className="text-[10px] font-semibold tracking-[0.3em] text-slate-400 uppercase">
                       Thành tích
                     </span>
-                    <span className="text-5xl font-black leading-none text-cyan-400">
+                    <span className="text-5xl font-black leading-none drop-shadow-sm text-cyan-400">
                       {item.number}
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wide whitespace-pre-line text-center leading-tight">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide whitespace-pre-line text-center leading-tight mt-1 text-slate-300">
                       {item.label}
                     </span>
                   </div>
 
-                  <div className="flex-1 flex items-center justify-center min-h-[110px] rounded-xl bg-slate-900/50 border border-slate-700/50 p-3">
+                  <div className="flex-1 flex items-center justify-center min-h-[110px] rounded-xl p-3 bg-slate-900/50 border border-slate-700/50">
                     <VisualContent item={item} />
                   </div>
 
-                  <p className="text-[9px] font-semibold tracking-[0.25em] text-slate-500 uppercase text-center">
-                    {item.caption}
+                  <p className="text-[9px] font-semibold tracking-[0.25em] text-slate-400 uppercase text-center mt-auto">
+                    {item.caption || "\u00A0"}
                   </p>
                 </div>
               </div>
@@ -150,10 +151,10 @@ function VisualContent({ item }: { item: any }) {
         <img
           src={getFlagUrl(visual.flags[0].code)}
           alt={visual.flags[0].name}
-          className="w-14 h-auto rounded shadow-lg border border-slate-700"
+          className="w-14 h-auto rounded border border-slate-700 shadow-lg"
         />
         {visual.label && (
-          <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400">
             {visual.label}
           </span>
         )}
@@ -170,7 +171,7 @@ function VisualContent({ item }: { item: any }) {
               key={i}
               src={getFlagUrl(f.code)}
               alt={f.name}
-              className="w-10 h-auto rounded shadow border border-slate-700"
+              className="w-10 h-auto rounded border border-slate-700 shadow-lg"
             />
           ))}
         </div>
@@ -179,7 +180,7 @@ function VisualContent({ item }: { item: any }) {
             {visual.schools.map((s: string) => (
               <span
                 key={s}
-                className="text-[9px] font-medium text-slate-400 bg-slate-800 border border-slate-700 rounded-full px-2 py-0.5 text-center"
+                className="text-[9px] font-medium border rounded-full px-2 py-0.5 text-center text-slate-400 bg-slate-800 border-slate-700"
               >
                 {s}
               </span>
@@ -201,7 +202,7 @@ function VisualContent({ item }: { item: any }) {
                 alt={f.name}
                 className="w-7 h-auto rounded-sm border border-slate-800"
               />
-              <span className="text-[8px] text-slate-500">{f.name}</span>
+              <span className="text-[8px] text-slate-400">{f.name}</span>
             </div>
           ))}
         </div>
@@ -215,14 +216,14 @@ function VisualContent({ item }: { item: any }) {
         {visual.flags?.map((f: any, i: number) => (
           <div
             key={i}
-            className="flex flex-col items-center gap-1 bg-slate-800 rounded-lg py-1.5 border border-slate-700 hover:border-cyan-400/30 transition-colors"
+            className="flex flex-col items-center gap-1 rounded-lg py-1.5 border transition-colors bg-slate-800 border-slate-700 hover:border-cyan-400/30"
           >
             <img
               src={getFlagUrl(f.code)}
               alt={f.name}
               className="w-5 h-auto rounded-xs shadow-sm"
             />
-            <span className="text-[7px] text-slate-500 leading-tight text-center">
+            <span className="text-[7px] leading-tight text-center text-slate-400">
               {f.name}
             </span>
           </div>
@@ -234,10 +235,10 @@ function VisualContent({ item }: { item: any }) {
   if (visual.type === "trophy") {
     return (
       <div className="flex flex-col items-center gap-2">
-        <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-cyan-400/10 border border-cyan-400/30">
+        <div className="relative flex items-center justify-center w-14 h-14 rounded-full border bg-cyan-400/10 border-cyan-400/30">
           <Trophy className="w-7 h-7 text-cyan-400" />
         </div>
-        <span className="text-[10px] font-semibold text-slate-400 tracking-wide">
+        <span className="text-[10px] font-semibold tracking-wide text-slate-400">
           All admitted
         </span>
       </div>

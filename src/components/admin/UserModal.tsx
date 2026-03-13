@@ -179,7 +179,6 @@ export default function UserModal({ isOpen, onClose, onSave, user, apiError }: U
                         >
                             <option value="STUDENT">Student</option>
                             <option value="MENTOR">Mentor</option>
-                            <option value="ADMIN">Admin</option>
                         </select>
                     </div>
                     {/* Mentor Type dropdown - only show when role is MENTOR */}

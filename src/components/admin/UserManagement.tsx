@@ -335,6 +335,7 @@ export default function UserManagement() {
                                 size="sm"
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
+                                className="hover:bg-slate-700 hover:text-white dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
                             >
                                 Trước
                             </Button>
@@ -344,7 +345,7 @@ export default function UserManagement() {
                                     variant={currentPage === page ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => setCurrentPage(page)}
-                                    className="min-w-[2rem]"
+                                    className={`min-w-[2rem] hover:bg-slate-700 hover:text-white dark:hover:bg-slate-700 dark:hover:text-white transition-colors`}
                                 >
                                     {page}
                                 </Button>
@@ -354,6 +355,7 @@ export default function UserManagement() {
                                 size="sm"
                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={currentPage === totalPages}
+                                className="hover:bg-slate-700 hover:text-white dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
                             >
                                 Sau
                             </Button>

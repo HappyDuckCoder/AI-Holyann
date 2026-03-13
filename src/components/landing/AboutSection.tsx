@@ -7,7 +7,7 @@ import { CORE_VALUES, BRAND_COLORS } from "../../lib/data"; // Đường dẫn t
 
 export default function AboutSection() {
   return (
-    <section id="gioi-thieu" className="py-20 bg-white">
+    <section id="gioi-thieu" className="py-20 scroll-mt-24 bg-white bg-[linear-gradient(to_right,rgba(148,163,184,0.14)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.10)_1px,transparent_1px)] bg-[size:32px_32px]">
       <div className="container mx-auto px-4">
         <SectionHeading subtitle="Về Chúng Tôi">
           Sứ Mệnh & Giá Trị
@@ -46,9 +46,9 @@ export default function AboutSection() {
                 <span className="font-bold text-[var(--brand-blue)]">
                   &quot;Holyann Explore&quot;
                 </span>{" "}
-                là kim chỉ nam cho chúng tôi để giúp học sinh, sinh viên không
-                chỉ phát triển bản thân mà còn có thể tự tin hội nhập, tiếp cận
-                với những cơ hội trên phạm vi quốc tế.
+                là kim chỉ nam cho chúng tôi trong quá trình nâng đỡ học sinh,
+                sinh viên không chỉ ở việc phát triển bản thân
+                mà còn là những bước đi tự tin hội nhập, tiếp cận với những cơ hội trên phạm vi quốc tế.
               </p>
             </div>
           </FadeInView>

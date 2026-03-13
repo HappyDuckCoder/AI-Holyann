@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Lightbulb, GraduationCap, Plane } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading"; // Đảm bảo đường dẫn này đúng
 import { BRAND_COLORS } from "../../lib/data"; // Đảm bảo đường dẫn này đúng
+import { LeadGenerationButton } from "./LeadGenerationModal";
 
 export default function ServicesSection() {
   const [activeServiceTab, setActiveServiceTab] = useState<
@@ -40,7 +41,7 @@ export default function ServicesSection() {
   ];
 
   return (
-    <section id="dich-vu" className="py-20 bg-white">
+    <section id="dich-vu" className="py-20 scroll-mt-24 bg-white bg-[linear-gradient(to_right,rgba(148,163,184,0.14)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.10)_1px,transparent_1px)] bg-[size:32px_32px]">
       <div className="container mx-auto px-4">
         <SectionHeading subtitle="Giải Pháp Của Chúng Tôi" dark={true}>
           Dịch Vụ Cung Cấp
@@ -149,11 +150,11 @@ export default function ServicesSection() {
                   * Chi phí linh hoạt dựa trên số lượng trường (3 - 20 trường)
                   và vùng địa lý.
                 </p>
-                <button
+                <LeadGenerationButton
                   className={`${BRAND_COLORS.primaryGradient} text-white px-10 py-4 rounded-full font-bold shadow-lg hover:shadow-blue-500/30 transition-all hover:-translate-y-1 w-full md:w-auto`}
                 >
                   Đăng Ký Nhận Báo Giá Chi Tiết
-                </button>
+                </LeadGenerationButton>
               </div>
             </motion.div>
           ) : (
@@ -163,7 +164,7 @@ export default function ServicesSection() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden"
             >
-              <div className="p-8 bg-slate-900 text-white flex justify-between items-center flex-wrap gap-4">
+              <div className={`p-8 ${BRAND_COLORS.primaryGradient} text-white flex justify-between items-center flex-wrap gap-4`}>
                 <div>
                   <h3 className="text-2xl font-bold mb-2 text-white">
                     Gói Lẻ Sửa Luận Chính
@@ -238,11 +239,11 @@ export default function ServicesSection() {
                   </div>
                 </div>
                 <div className="mt-8 text-center pt-8 border-t border-slate-100">
-                  <button
+                  <LeadGenerationButton
                     className={`${BRAND_COLORS.primaryGradient} text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl`}
                   >
                     Đăng Ký Gói Sửa Luận
-                  </button>
+                  </LeadGenerationButton>
                 </div>
               </div>
             </motion.div>

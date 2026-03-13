@@ -34,36 +34,7 @@ export default function Footer() {
             </p>
 
             {/* Social Icons - Thiết kế lại dạng Glassmorphism */}
-            <div className="flex gap-4 pt-2">
-              {[
-                {
-                  icon: <Facebook size={20} />,
-                  href: "https://www.facebook.com/holyannxplore",
-                  hover: "hover:bg-blue-600",
-                },
-                {
-                  icon: <Instagram size={20} />,
-                  href: "https://www.instagram.com/holyannexplore/",
-                  hover:
-                    "hover:bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-500",
-                },
-                {
-                  icon: <FontAwesomeIcon icon={faTiktok} size="lg" />,
-                  href: "https://www.tiktok.com/@holyannexplore",
-                  hover: "hover:bg-black",
-                },
-              ].map((social, idx) => (
-                <a
-                  key={idx}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-11 h-11 rounded-xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center text-white transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-cyan-500/20 ${social.hover}`}
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
+
           </div>
 
           {/* Cột 2: Liên hệ nhanh - Chiếm 4 cột */}
@@ -77,21 +48,25 @@ export default function Footer() {
                   icon: <Mail size={18} />,
                   text: "holyann.contact@gmail.com",
                   href: "mailto:holyann.contact@gmail.com",
+                  hoverClass: "group-hover:bg-red-500 group-hover:border-red-400 text-slate-500 group-hover:text-white",
                 },
                 {
                   icon: <Facebook size={18} />,
                   text: "Holyann Explore",
                   href: "https://www.facebook.com/holyannxplore",
+                  hoverClass: "group-hover:bg-blue-600 group-hover:border-blue-500 text-slate-500 group-hover:text-white",
                 },
                 {
                   icon: <Instagram size={18} />,
                   text: "@holyannexplore",
                   href: "https://www.instagram.com/holyannexplore/",
+                  hoverClass: "group-hover:bg-gradient-to-tr group-hover:from-yellow-500 group-hover:via-red-500 group-hover:to-purple-500 group-hover:border-transparent text-slate-500 group-hover:text-white",
                 },
                 {
                   icon: <FontAwesomeIcon icon={faTiktok} />,
                   text: "@holyannexplore",
                   href: "https://www.tiktok.com/@holyannexplore",
+                  hoverClass: "group-hover:bg-black group-hover:border-slate-800 text-slate-500 group-hover:text-white",
                 },
               ].map((item, idx) => (
                 <li key={idx}>
@@ -101,7 +76,7 @@ export default function Footer() {
                     rel="noopener noreferrer"
                     className="group flex items-center gap-4 text-slate-400 hover:text-cyan-400 transition-colors"
                   >
-                    <span className="w-8 h-8 rounded-lg bg-slate-800/80 flex items-center justify-center text-slate-500 group-hover:text-cyan-400 group-hover:bg-cyan-400/10 transition-all">
+                    <span className={`w-11 h-11 rounded-xl bg-slate-800/50 border border-slate-700/50 flex shrink-0 items-center justify-center transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-lg group-hover:shadow-cyan-500/20 ${item.hoverClass}`}>
                       {item.icon}
                     </span>
                     <span className="text-sm font-medium tracking-wide">
