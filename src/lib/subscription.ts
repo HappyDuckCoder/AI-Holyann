@@ -7,6 +7,7 @@ export type SubscriptionFeature =
   | 'profileAnalysisDetail'
   | 'profileAnalysisLimit'
   | 'profileEnhanceLimit'
+  | 'recommendFacultyLimit'
   | 'majorListCount'
   | 'majorFitShowCount'
   | 'classificationCount'
@@ -29,6 +30,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     profileAnalysisDetail: false,
     profileAnalysisLimit: 1,
     profileEnhanceLimit: 1,
+    recommendFacultyLimit: 1,
     majorListCount: 3,
     majorFitShowCount: 1,
     classificationCount: 5,
@@ -45,6 +47,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     profileAnalysisDetail: true,
     profileAnalysisLimit: 5,
     profileEnhanceLimit: 5,
+    recommendFacultyLimit: 5,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,
@@ -61,6 +64,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     profileAnalysisDetail: true,
     profileAnalysisLimit: -1,
     profileEnhanceLimit: -1,
+    recommendFacultyLimit: -1,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,

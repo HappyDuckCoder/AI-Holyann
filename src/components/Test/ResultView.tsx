@@ -1,32 +1,24 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { RotateCcw, Briefcase, Brain, Activity } from 'lucide-react';
-import { TestResult, MajorRecommendation, TestType } from '../types';
+import { TestResult, TestType } from '../types';
 import ResultChart from './ResultChart';
-import { TEST_DESCRIPTIONS } from '@/constants';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface ResultViewProps {
     result: TestResult | null;
-    recommendations: MajorRecommendation[];
-    loadingRecommendations: boolean;
     onBackToDashboard: () => void;
-    // New props for test progress
     remainingTests?: TestType[];
     onStartNextTest?: (type: TestType) => void;
     allTestsCompleted?: boolean;
-    onViewAllRecommendations?: () => void;
 }
 
 const ResultView: React.FC<ResultViewProps> = ({
                                                    result,
-                                                   recommendations,
-                                                   loadingRecommendations,
                                                    onBackToDashboard,
                                                    remainingTests = [],
                                                    onStartNextTest,
                                                    allTestsCompleted = false,
-                                                   onViewAllRecommendations
                                                }) => {
     if (!result) return null;
 

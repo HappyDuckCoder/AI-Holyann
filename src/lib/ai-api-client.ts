@@ -150,8 +150,6 @@ export async function callEnhanceProfile(payload: {
 }
 
 import type {
-  CareerAssessmentInput,
-  CareerAssessmentOutput,
   MBTIInput,
   MBTIOutput,
   GritInput,
@@ -159,18 +157,6 @@ import type {
   RIASECInput,
   RIASECOutput,
 } from "./schemas/career-assessment.schema";
-
-/**
- * Feature 2: Career Assessment (Combined)
- */
-export async function callCareerAssessment(
-  payload: CareerAssessmentInput,
-): Promise<CareerAssessmentOutput> {
-  return callAIAPI<CareerAssessmentOutput>("/hoexapp/api/career-assessment/", {
-    method: "POST",
-    body: payload,
-  });
-}
 
 /**
  * Feature 2: MBTI Assessment Only

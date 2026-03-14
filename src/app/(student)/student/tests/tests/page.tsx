@@ -7,7 +7,6 @@ import {
   TestSelection,
   TestView,
   ResultView,
-  CareerAssessmentResults,
 } from "@/components/student/assessments";
 import {
   Dialog,
@@ -23,7 +22,6 @@ import {
   TestType,
   Question,
   TestResult,
-  MajorRecommendation,
 } from "@/components/types";
 import { MBTI_QUESTIONS, GRIT_QUESTIONS, RIASEC_QUESTIONS } from "@/constants";
 import {
@@ -39,7 +37,6 @@ import {
   calculateGritResult as calculateGritScores,
   GRIT_COMPONENTS,
 } from "@/data/grit-questions";
-import { getMajorRecommendations } from "@/services/ai/geminiService";
 import { useTestProgress } from "@/hooks/useTestProgress";
 import { useSession } from "next-auth/react";
 
@@ -49,19 +46,12 @@ export default function TestsPage() {
   const [viewState, setViewState] = useState<ViewState>("selection");
   const [currentTestType, setCurrentTestType] = useState<TestType | null>(null);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
-  const [recommendations, setRecommendations] = useState<MajorRecommendation[]>(
-    [],
-  );
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const { data: session } = useSession();
 
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
-  const [careerRecs, setCareerRecs] = useState<MajorRecommendation[]>([]);
   const [resetConfirmType, setResetConfirmType] = useState<TestType | null>(null);
   const [resetLoading, setResetLoading] = useState(false);
-  const [showCareerAssessment, setShowCareerAssessment] = useState(false);
-  const [careerRefreshTrigger, setCareerRefreshTrigger] = useState(0);
 
   // State để lưu remainingTests tại thời điểm hoàn thành test (để tránh async state issue)
   const [currentRemainingTests, setCurrentRemainingTests] = useState<
@@ -98,11 +88,6 @@ export default function TestsPage() {
       allTests.filter((t) => !progress.completedTests.includes(t)),
     );
   }, [progress]);
-
-  // Luôn hiện UI đánh giá nghề khi đã hoàn thành đủ 3 test
-  useEffect(() => {
-    if (progress.allCompleted) setShowCareerAssessment(true);
-  }, [progress.allCompleted]);
 
   const handleStartTest = async (type: TestType) => {
     const studentId = getStudentId();
@@ -433,7 +418,6 @@ export default function TestsPage() {
 
       setViewState("result");
 
-      // Nếu đã đủ 3 bài, chỉ cập nhật DB, không tự động gọi API career-assessment
       if (newAllCompleted) {
         try {
           await fetch("/api/tests/complete", {
@@ -443,8 +427,7 @@ export default function TestsPage() {
           });
 
           toast.success("Hoàn thành tất cả bài test!", {
-            description:
-              'Bạn đã hoàn thành tất cả 3 bài test. Bấm nút "Đề xuất nghề nghiệp" để xem gợi ý.',
+            description: "Bạn đã hoàn thành tất cả 3 bài test.",
           });
         } catch (e) {
           console.error("Complete all tests error", e);
@@ -452,8 +435,6 @@ export default function TestsPage() {
             description: "Vui lòng thử lại sau hoặc liên hệ hỗ trợ",
           });
         }
-      } else {
-        setCareerRecs([]);
       }
     } catch (error: any) {
       console.error("❌ Test submission error:", error);
@@ -475,74 +456,17 @@ export default function TestsPage() {
     }
   };
 
-  const fetchCareerRecommendations = async (studentId: string) => {
-    try {
-      const res = await fetch(`/api/tests/career/${studentId}`);
-      const data = await res.json();
-      if (data.success) {
-        const recs: MajorRecommendation[] = (data.recommendations || []).map(
-          (r: any) => ({
-            name: r.job_title,
-            category: "",
-            matchReason: r.reasoning,
-            careerPaths: [],
-            requiredSkills: [],
-            matchPercentage: r.match_percentage,
-          }),
-        );
-        setCareerRecs(recs);
-        setRecommendations(recs);
-
-        if (recs.length > 0) {
-          toast.success("Đã tạo gợi ý nghề nghiệp", {
-            description: `Tìm thấy ${recs.length} nghề nghiệp phù hợp với bạn`,
-          });
-        }
-      } else {
-        toast.warning("Chưa có gợi ý nghề nghiệp", {
-          description: "Vui lòng hoàn thành tất cả các bài test để nhận gợi ý",
-        });
-      }
-    } catch (e) {
-      console.error("Fetch career recs error", e);
-      toast.error("Không thể tải gợi ý nghề nghiệp", {
-        description: "Vui lòng thử lại sau",
-      });
-    }
-  };
-
   const handleBackToSelection = () => {
     setViewState("selection");
     setCurrentTestType(null);
     setCurrentTestId(null);
     setTestResult(null);
-    setRecommendations([]);
   };
 
   const handleStartNextTest = (type: TestType) => {
     setCurrentTestType(null);
     setTestResult(null);
-    setRecommendations([]);
     handleStartTest(type);
-  };
-
-  const handleViewAllRecommendations = async () => {
-    const studentId = getStudentId();
-    if (!studentId) {
-      toast.error("Không tìm thấy thông tin người dùng", {
-        description: "Vui lòng đăng nhập lại để tiếp tục",
-      });
-      return;
-    }
-    setShowCareerAssessment(true);
-    setViewState("selection");
-    setCareerRefreshTrigger((t) => t + 1); // Gọi lại API đề xuất nghề mỗi lần bấm
-    setTimeout(() => {
-      const element = document.getElementById("career-assessment-results");
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 100);
   };
 
   const handleViewResult = (type: TestType) => {
@@ -631,10 +555,8 @@ export default function TestsPage() {
             <TestSelection
               onStartTest={handleStartTest}
               onViewResult={handleViewResult}
-              onResetTest={handleOpenResetConfirm}
               completedTests={progress.completedTests}
               testResults={progress.results}
-              onViewRecommendations={handleViewAllRecommendations}
             />
 
             <Dialog
@@ -667,16 +589,6 @@ export default function TestsPage() {
               </DialogContent>
             </Dialog>
 
-            {currentAllCompleted && studentId && showCareerAssessment && (
-              <div id="career-assessment-results" className="mt-8">
-                <CareerAssessmentResults
-                  studentId={studentId}
-                  onClose={() => setShowCareerAssessment(false)}
-                  autoLoad={true}
-                  refreshTrigger={careerRefreshTrigger}
-                />
-              </div>
-            )}
           </>
         )}
 
@@ -692,13 +604,10 @@ export default function TestsPage() {
         {viewState === "result" && (
           <ResultView
             result={testResult}
-            recommendations={careerRecs.length ? careerRecs : recommendations}
-            loadingRecommendations={loadingRecommendations}
             onBackToDashboard={handleBackToSelection}
             remainingTests={currentRemainingTests}
             onStartNextTest={handleStartNextTest}
             allTestsCompleted={currentAllCompleted}
-            onViewAllRecommendations={handleViewAllRecommendations}
           />
         )}
       </div>
