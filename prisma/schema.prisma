@@ -45,6 +45,7 @@ model academic_extracurriculars {
   updated_at          DateTime?           @default(now()) @db.Timestamp(6)
   region              String?             @db.VarChar(50)
   scale               Int?
+  impact_tier         Int?
   student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
 
   @@index([background_id])
@@ -457,6 +458,7 @@ model personal_projects {
   description         String?
   duration_months     Int?
   impact              String?
+  tier                Int?
   created_at          DateTime?           @default(now()) @db.Timestamp(6)
   updated_at          DateTime?           @default(now()) @db.Timestamp(6)
   student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
@@ -514,7 +516,7 @@ model profile_analysis_jobs {
 
 model profile_improve_results {
   id              String    @id @db.Uuid
-  student_id      String    @unique @db.Uuid
+  student_id      String    @db.Uuid
   analysis_result Json?
   enhance_result  Json?
   analysis_rating Int?
@@ -526,6 +528,7 @@ model profile_improve_results {
   students        students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
   @@index([student_id])
+  @@index([student_id, created_at])
 }
 
 model research_experiences {
@@ -613,6 +616,7 @@ model student_backgrounds {
   student_id                    String                          @id @db.Uuid
   created_at                    DateTime?                       @default(now()) @db.Timestamp(6)
   updated_at                    DateTime?                       @default(now()) @db.Timestamp(6)
+  experiments                   Json?                           @default("[]")
   academic_awards               academic_awards[]
   academic_extracurriculars     academic_extracurriculars[]
   non_academic_awards           non_academic_awards[]
@@ -733,7 +737,7 @@ model students {
   mentor_custom_deadlines            mentor_custom_deadlines[]
   profile_analyses                   profile_analyses[]
   profile_analysis_jobs              profile_analysis_jobs[]
-  profile_improve_results            profile_improve_results?
+  profile_improve_results            profile_improve_results[]
   riasec_tests                       riasec_tests?
   student_academic_profiles          student_academic_profiles?
   student_backgrounds                student_backgrounds?
@@ -753,6 +757,7 @@ model subject_scores {
   score               Float
   year                Int?
   semester            Int?
+  group               String?             @db.VarChar(50)
   created_at          DateTime?           @default(now()) @db.Timestamp(6)
   updated_at          DateTime?           @default(now()) @db.Timestamp(6)
   student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)

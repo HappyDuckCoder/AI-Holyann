@@ -5,6 +5,8 @@ export const DISPLAY_PLANS: SubscriptionPlan[] = ['FREE', 'PLUS', 'PREMIUM'];
 
 export type SubscriptionFeature =
   | 'profileAnalysisDetail'
+  | 'profileAnalysisLimit'
+  | 'profileEnhanceLimit'
   | 'majorListCount'
   | 'majorFitShowCount'
   | 'classificationCount'
@@ -25,9 +27,11 @@ export const PLUS_CLASSIFICATION_PERIOD_MONTHLY = true;
 export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
   FREE: {
     profileAnalysisDetail: false,
+    profileAnalysisLimit: 1,
+    profileEnhanceLimit: 1,
     majorListCount: 3,
     majorFitShowCount: 1,
-    classificationCount: 5, // 1 reach, 2 match, 2 safety
+    classificationCount: 5,
     classificationAttemptsLimit: 1,
     matchScoreDetail: false,
     roadmapDetail: false,
@@ -39,10 +43,12 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
   },
   PLUS: {
     profileAnalysisDetail: true,
+    profileAnalysisLimit: 5,
+    profileEnhanceLimit: 5,
     majorListCount: 15,
     majorFitShowCount: 15,
-    classificationCount: 30, // 10 reach, 10 match, 10 safety
-    classificationAttemptsLimit: 15, // per month
+    classificationCount: 30,
+    classificationAttemptsLimit: 15,
     matchScoreDetail: true,
     roadmapDetail: true,
     enhanceCount: 10,
@@ -51,9 +57,10 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     essayMentor: false,
     reportsCount: -1,
   },
-  /** Legacy: same limits as PREMIUM for existing subscribers. */
   ADVANCED: {
     profileAnalysisDetail: true,
+    profileAnalysisLimit: -1,
+    profileEnhanceLimit: -1,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,
@@ -68,6 +75,8 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
   },
   PREMIUM: {
     profileAnalysisDetail: true,
+    profileAnalysisLimit: -1,
+    profileEnhanceLimit: -1,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,

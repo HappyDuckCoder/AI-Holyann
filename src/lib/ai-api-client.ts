@@ -125,10 +125,24 @@ export async function callAIAPI<T = any>(
 }
 
 /**
- * Feature 1: Profile Analysis (NLP + xử lý có thể 2–5 phút)
+ * Feature 1: Profile Analysis (input theo input-analysis.json → output pillar_scores, spikes, areas, swot)
  */
 export async function callProfileAnalysis(payload: any) {
-  return callAIAPI("/hoexapp/api/profile-analysis/", {
+  return callAIAPI("/api/analysis-profile", {
+    method: "POST",
+    body: payload,
+    timeoutMs: PROFILE_ANALYSIS_TIMEOUT_MS,
+  });
+}
+
+/**
+ * Feature 1: Enhance Profile (analysis_information + willing_area → list_suggestion, roadmap, pillar_score_after_enhance)
+ */
+export async function callEnhanceProfile(payload: {
+  analysis_information: Record<string, unknown>;
+  willing_area: "A" | "B" | "C";
+}) {
+  return callAIAPI("/api/enhence-profile", {
     method: "POST",
     body: payload,
     timeoutMs: PROFILE_ANALYSIS_TIMEOUT_MS,

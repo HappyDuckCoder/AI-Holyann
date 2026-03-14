@@ -136,7 +136,7 @@ export default function AcademicInfoModal({
 
   const updateStudentGoals = (goals: Partial<typeof studentGoals>) => {
     setStudentGoals((prev) => ({ ...prev, ...goals }));
-    markTabModified("basic");
+    markTabModified("other");
   };
 
   const updateAcademicAwards = (awards: typeof academicAwards) => {
@@ -178,6 +178,11 @@ export default function AcademicInfoModal({
     markTabModified("profile");
   };
 
+  const updateExperiments = (list: string[]) => {
+    setExperiments(list);
+    markTabModified("profile");
+  };
+
   const updateSkills = (skillsList: typeof skills) => {
     setSkills(skillsList);
     markTabModified("profile");
@@ -185,7 +190,7 @@ export default function AcademicInfoModal({
 
   const updateParentsInfo = (parents: typeof parentsInfo) => {
     setParentsInfo(parents);
-    markTabModified("parents");
+    markTabModified("other");
   };
 
   // Basic Info State
@@ -255,6 +260,7 @@ export default function AcademicInfoModal({
       description: "",
       scale: "",
       region: "",
+      impact_tier: 1,
     },
   ]);
   const [nonAcademicActivities, setNonAcademicActivities] = useState<any[]>([
@@ -291,7 +297,7 @@ export default function AcademicInfoModal({
 
   // NEW: Additional State for Feature 1
   const [subjectScores, setSubjectScores] = useState<any[]>([
-    { subject: "", score: "", year: "", semester: "" },
+    { subject: "", score: "", year: "", semester: "", group: "natural" },
   ]);
   const [personalProjects, setPersonalProjects] = useState<any[]>([
     {
@@ -300,11 +306,13 @@ export default function AcademicInfoModal({
       description: "",
       duration_months: "",
       impact: "",
+      tier: 1,
     },
   ]);
   const [skills, setSkills] = useState<any[]>([
     { skill_name: "", proficiency: "", category: "" },
   ]);
+  const [experiments, setExperiments] = useState<string[]>([]);
 
   const [studentGoals, setStudentGoals] = useState({
     target_country: "",
@@ -459,6 +467,7 @@ export default function AcademicInfoModal({
               description: a.description || "",
               scale: a.scale || "",
               region: a.region || "",
+              impact_tier: a.impact_tier ?? 1,
             })),
           );
         }
@@ -538,6 +547,7 @@ export default function AcademicInfoModal({
               score: s.score || "",
               year: s.year || "",
               semester: s.semester || "",
+              group: s.group || "natural",
             })),
           );
         }
@@ -552,8 +562,14 @@ export default function AcademicInfoModal({
               description: p.description || "",
               duration_months: p.duration_months || "",
               impact: p.impact || "",
+              tier: p.tier ?? 1,
             })),
           );
+        }
+
+        // Populate experiments (feature1)
+        if (data.background?.experiments && Array.isArray(data.background.experiments)) {
+          setExperiments(data.background.experiments);
         }
 
         // Populate NEW: Skills
@@ -656,6 +672,7 @@ export default function AcademicInfoModal({
           score: score.score,
           year: score.year || null,
           semester: score.semester || null,
+          group: score.group || null,
         }),
       });
     }
@@ -762,6 +779,7 @@ export default function AcademicInfoModal({
             description: project.description || null,
             duration_months: project.duration_months || null,
             impact: project.impact || null,
+            tier: project.tier != null ? Number(project.tier) : null,
           }),
         }),
       );
@@ -782,6 +800,14 @@ export default function AcademicInfoModal({
     }
 
     await Promise.all(insertPromises);
+
+    await fetch(`/api/students/${studentId}/background/experiments`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        experiments: experiments.map((s) => s.trim()).filter(Boolean),
+      }),
+    });
   };
 
   const saveParentsInfo = async () => {
@@ -813,7 +839,7 @@ export default function AcademicInfoModal({
     const tabsToSave =
       modifiedTabs.size > 0
         ? Array.from(modifiedTabs)
-        : ["basic", "academic", "profile", "parents"];
+        : ["basic", "academic", "profile", "other"];
 
     toast.info("Đang lưu thông tin", {
       description: `Đang cập nhật ${tabsToSave.length} phần thông tin...`,
@@ -834,7 +860,8 @@ export default function AcademicInfoModal({
         savePromises.push(saveProfileInfo());
       }
 
-      if (tabsToSave.includes("parents")) {
+      if (tabsToSave.includes("other")) {
+        savePromises.push(saveBasicInfo());
         savePromises.push(saveParentsInfo());
       }
 
@@ -888,7 +915,7 @@ export default function AcademicInfoModal({
                   <TabsTrigger value="basic" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Thông tin liên lạc</TabsTrigger>
                   <TabsTrigger value="academic" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Học tập</TabsTrigger>
                   <TabsTrigger value="profile" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Hồ sơ</TabsTrigger>
-                  <TabsTrigger value="parents" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Phụ huynh</TabsTrigger>
+                  <TabsTrigger value="other" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Thông tin khác</TabsTrigger>
                 </TabsList>
               </div>
 
@@ -1661,7 +1688,7 @@ export default function AcademicInfoModal({
                           onClick={() =>
                             updateSubjectScores([
                               ...subjectScores,
-                              { subject: "", score: "", year: "", semester: "" },
+                              { subject: "", score: "", year: "", semester: "", group: "natural" },
                             ])
                           }
                         >
@@ -1673,7 +1700,7 @@ export default function AcademicInfoModal({
                     {subjectScores.map((score, index) => (
                       <div
                         key={index}
-                        className="grid grid-cols-5 gap-3 mb-3 items-end"
+                        className="grid grid-cols-6 gap-3 mb-3 items-end"
                       >
                         <div>
                           <Label className="text-sm">Môn học</Label>
@@ -1711,6 +1738,26 @@ export default function AcademicInfoModal({
                             placeholder="0.00"
                             className="mt-1 bg-background border-border focus-visible:ring-1 focus-visible:ring-amber-400 font-medium"
                           />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Nhóm</Label>
+                          <Select
+                            value={score.group || "natural"}
+                            onValueChange={(value) => {
+                              const newScores = [...subjectScores];
+                              newScores[index].group = value;
+                              updateSubjectScores(newScores);
+                            }}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Chọn" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="natural">Tự nhiên</SelectItem>
+                              <SelectItem value="language">Ngôn ngữ</SelectItem>
+                              <SelectItem value="social">Xã hội</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div>
                           <Label className="text-sm">Năm</Label>
@@ -2180,6 +2227,7 @@ export default function AcademicInfoModal({
                               description: "",
                               scale: "",
                               region: "",
+                              impact_tier: 1,
                             },
                           ])
                         }
@@ -2245,6 +2293,23 @@ export default function AcademicInfoModal({
                                 <SelectItem value="HELP">Hỗ trợ</SelectItem>
                               </SelectContent>
                             </Select>
+                          </div>
+                          <div>
+                            <Label className="text-sm">Mức độ ảnh hưởng (1-4)</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={4}
+                              value={activity.impact_tier ?? ""}
+                              onChange={(e) => {
+                                const newActivities = [...academicActivities];
+                                const v = e.target.value === "" ? "" : parseInt(e.target.value, 10);
+                                newActivities[index].impact_tier = v === "" ? 1 : (isNaN(v) ? 1 : Math.min(4, Math.max(1, v)));
+                                updateAcademicActivities(newActivities);
+                              }}
+                              placeholder="1"
+                              className="mt-1 w-20"
+                            />
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div>
@@ -2580,9 +2645,9 @@ export default function AcademicInfoModal({
                   </div>
 
                   {/* Kinh nghiệm nghiên cứu */}
-                  <div className="bg-blue-50 border-l-4 border-violet-600 p-6 rounded-lg">
+                  <div className="rounded-2xl border border-border overflow-hidden bg-card bg-gradient-to-br from-amber-500/5 to-transparent border-l-4 border-l-amber-400/60 p-4 sm:p-5">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-violet-900 text-lg">
+                      <h3 className="text-base font-semibold text-blue-900 dark:text-slate-50 mb-1">
                         Kinh nghiệm nghiên cứu
                       </h3>
                       <Button
@@ -2730,6 +2795,7 @@ export default function AcademicInfoModal({
                               description: "",
                               duration_months: "",
                               impact: "",
+                              tier: 1,
                             },
                           ])
                         }
@@ -2799,6 +2865,23 @@ export default function AcademicInfoModal({
                             />
                           </div>
                           <div>
+                            <Label className="text-sm">Tier (1-5)</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={5}
+                              value={project.tier ?? ""}
+                              onChange={(e) => {
+                                const newProjects = [...personalProjects];
+                                const v = e.target.value === "" ? "" : parseInt(e.target.value, 10);
+                                newProjects[index].tier = v === "" ? 1 : (isNaN(v) ? 1 : Math.min(5, Math.max(1, v)));
+                                updatePersonalProjects(newProjects);
+                              }}
+                              placeholder="1"
+                              className="mt-1 w-20"
+                            />
+                          </div>
+                          <div>
                             <Label className="text-sm">Tác động / Impact</Label>
                             <Input
                               value={project.impact}
@@ -2842,6 +2925,19 @@ export default function AcademicInfoModal({
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Experiments (feature1) */}
+                  <div className="rounded-2xl border border-border overflow-hidden bg-card bg-gradient-to-br from-amber-500/5 to-transparent border-l-4 border-l-amber-400/60 p-4 sm:p-5">
+                    <h3 className="text-base font-semibold text-blue-900 mb-2">Thí nghiệm / Experiments</h3>
+                    <p className="text-sm text-muted-foreground mb-2">Mỗi dòng một mục (VD: Thí nghiệm hóa học, Lab sinh học)</p>
+                    <Textarea
+                      value={experiments.join("\n")}
+                      onChange={(e) => updateExperiments(e.target.value.split("\n"))}
+                      placeholder="Thí nghiệm 1&#10;Thí nghiệm 2"
+                      className="min-h-[80px]"
+                      rows={3}
+                    />
                   </div>
 
                   {/* NEW: Kỹ năng */}
@@ -2940,10 +3036,12 @@ export default function AcademicInfoModal({
                       </div>
                     ))}
                   </div>
+                </TabsContent>
 
-                  {/* Mục tiêu */}
-                  <div className="bg-gray-50 border-l-4 border-gray-600 p-6 rounded-lg">
-                    <h3 className="font-bold text-foreground mb-4 text-lg">
+                {/* Tab: Thông tin khác */}
+                <TabsContent value="other" className="space-y-5 mt-0">
+                  <div className="rounded-2xl border border-border overflow-hidden bg-card bg-gradient-to-br from-amber-500/5 to-transparent border-l-4 border-l-amber-400/60 p-4 sm:p-5">
+                    <h3 className="text-base font-semibold text-blue-900 dark:text-slate-50 mb-4">
                       Thông tin khác
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -2994,13 +3092,11 @@ export default function AcademicInfoModal({
                       </div>
                     </div>
                   </div>
-                </TabsContent>
 
-                {/* Tab 4: Phụ huynh */}
-                <TabsContent value="parents" className="space-y-5 mt-0">
+                  {/* Phụ huynh / người giám hộ */}
                   <div className="rounded-2xl border border-border overflow-hidden bg-card bg-gradient-to-br from-amber-500/5 to-transparent border-l-4 border-l-amber-400/60 p-4 sm:p-5">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-base font-semibold text-blue-900 mb-5">Thông tin liên lạc của phụ huynh / người giám hộ</h3>
+                      <h3 className="text-base font-semibold text-blue-900 dark:text-slate-50 mb-1">Thông tin liên lạc của phụ huynh / người giám hộ</h3>
                       <Button
                         size="sm"
                         variant="outline"
@@ -3073,7 +3169,7 @@ export default function AcademicInfoModal({
                               type="tel"
                               value={parent.phone_number}
                               onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, ""); // Chỉ cho phép số
+                                const value = e.target.value.replace(/\D/g, "");
                                 if (value.length <= 10) {
                                   const newParents = [...parentsInfo];
                                   newParents[index].phone_number = value;

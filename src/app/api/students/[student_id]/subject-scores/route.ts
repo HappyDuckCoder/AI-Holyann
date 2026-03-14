@@ -33,6 +33,7 @@ export async function POST(
                 score: parseFloat(body.score),
                 year: body.year ? parseInt(body.year) : null,
                 semester: body.semester ? parseInt(body.semester) : null,
+                group: body.group ?? null,
                 created_at: new Date(),
                 updated_at: new Date()
             }
