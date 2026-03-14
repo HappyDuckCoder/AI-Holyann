@@ -9,6 +9,7 @@ export type SubscriptionFeature =
   | 'profileEnhanceLimit'
   | 'recommendFacultyLimit'
   | 'facultyWishlistLimit'
+  | 'schoolWishlistLimit'
   | 'majorListCount'
   | 'majorFitShowCount'
   | 'classificationCount'
@@ -33,6 +34,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     profileEnhanceLimit: 1,
     recommendFacultyLimit: 1,
     facultyWishlistLimit: 2,
+    schoolWishlistLimit: 2,
     majorListCount: 3,
     majorFitShowCount: 1,
     classificationCount: 5,
@@ -51,6 +53,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     profileEnhanceLimit: 5,
     recommendFacultyLimit: 5,
     facultyWishlistLimit: 5,
+    schoolWishlistLimit: 5,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,
@@ -69,6 +72,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     profileEnhanceLimit: -1,
     recommendFacultyLimit: -1,
     facultyWishlistLimit: 10,
+    schoolWishlistLimit: 10,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,

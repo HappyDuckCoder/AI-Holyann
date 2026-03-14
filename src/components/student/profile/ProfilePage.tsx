@@ -7,9 +7,12 @@ import { PersonalInfoCard } from "./components/PersonalInfoCard";
 import { AcademicInfoSection } from "./components/AcademicInfoSection";
 import { ActivitiesSection } from "./components/ActivitiesSection";
 import { DocumentsSection } from "./components/DocumentsSection";
+import { ProfileWishlistSection } from "./components/ProfileWishlistSection";
 
 export interface ProfilePageProps {
   profile: StudentProfile;
+  /** Resolved student UUID for API calls (e.g. faculty wishlist). */
+  resolvedStudentId?: string | null;
   onEditClick: () => void;
   onUploadDocument: (file: File, type: DocumentType) => void;
   onDeleteDocument: (id: string) => void;
@@ -44,6 +47,7 @@ export interface ProfilePageProps {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
   profile,
+  resolvedStudentId,
   onEditClick,
   onUploadDocument,
   onDeleteDocument,
@@ -119,6 +123,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             uploadDocumentLoading={uploadDocumentLoading}
           />
         </div>
+      </div>
+
+      <div className="mt-6 sm:mt-8">
+        <ProfileWishlistSection studentId={resolvedStudentId ?? null} />
       </div>
     </div>
   );

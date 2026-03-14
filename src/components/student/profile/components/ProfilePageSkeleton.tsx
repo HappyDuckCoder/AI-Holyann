@@ -125,6 +125,47 @@ export function ProfilePageSkeleton() {
           </div>
         </div>
       </div>
+
+      {/* Wishlist section skeleton */}
+      <div className="mt-6 sm:mt-8 flex flex-col gap-4 sm:gap-6">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 shrink-0 rounded-xl bg-muted animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-5 w-40 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-72 max-w-full rounded bg-muted/70 animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="rounded-2xl border border-border overflow-hidden bg-card">
+            <div className="px-4 py-3 border-b border-border/60 flex justify-between items-center">
+              <div className="h-5 w-28 rounded bg-muted animate-pulse" />
+              <div className="h-4 w-16 rounded bg-muted/70 animate-pulse" />
+            </div>
+            <div className="p-4 space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full bg-muted animate-pulse shrink-0" />
+                  <div className="h-4 flex-1 rounded bg-muted/70 animate-pulse" style={{ maxWidth: "80%" }} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border overflow-hidden bg-card">
+            <div className="px-4 py-3 border-b border-border/60 flex justify-between items-center">
+              <div className="h-5 w-28 rounded bg-muted animate-pulse" />
+              <div className="h-4 w-16 rounded bg-muted/70 animate-pulse" />
+            </div>
+            <div className="p-4 space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full bg-muted animate-pulse shrink-0" />
+                  <div className="h-4 flex-1 rounded bg-muted/70 animate-pulse" style={{ maxWidth: "85%" }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
