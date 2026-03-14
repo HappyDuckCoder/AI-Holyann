@@ -76,12 +76,20 @@ function hasRealAiInsights(data: DashboardData | null): boolean {
   return (data?.aiInsights?.length ?? 0) > 0;
 }
 
+const PREMIUM_ONLY_STAT_IDS = ["tasks", "meetings", "courses"] as const;
+
 export default function Dashboard({
   userName,
   data,
   isLoading,
 }: DashboardProps) {
-  const { isPaid } = useSubscription();
+  const { isPaid, isPremium } = useSubscription();
+
+  const quickStatsToShow = React.useMemo(() => {
+    const raw = data?.quickStats ?? [];
+    if (isPremium) return raw;
+    return raw.filter((item) => !PREMIUM_ONLY_STAT_IDS.includes(item.id as (typeof PREMIUM_ONLY_STAT_IDS)[number]));
+  }, [data?.quickStats, isPremium]);
 
   if (isLoading) {
     return (
@@ -91,7 +99,7 @@ export default function Dashboard({
     );
   }
 
-  const showStats = hasRealStats(data);
+  const showStats = quickStatsToShow.length > 0;
   const showTaskChart = hasRealTaskCompletion(data);
   const showCurrentGoal = hasCurrentGoal(data);
   const showActivity = hasRealActivity(data);
@@ -101,16 +109,16 @@ export default function Dashboard({
     <div>
       <DashboardHero
         userName={userName}
-        stats={data?.quickStats ?? []}
+        stats={quickStatsToShow}
       />
       <div className="min-h-[60vh] mx-auto px-4 sm:px-6 py-6 max-w-[1600px] space-y-8">
         {/* Tiến độ / thống kê thật (chỉ khi API trả về) */}
-        {showStats && data?.quickStats && (
+        {showStats && (
           <section id="progress-section" className="space-y-2">
             <h2 className="text-sm font-semibold text-muted-foreground px-1">
               Tiến độ của bạn
             </h2>
-            <QuickStatsGrid items={data.quickStats} />
+            <QuickStatsGrid items={quickStatsToShow} />
           </section>
         )}
 
@@ -313,10 +321,12 @@ export default function Dashboard({
           </CardContent>
         </motion.section>
 
-        {/* Lịch tư vấn sắp tới — luôn hiển thị (dữ liệu từ API thật) */}
-        <section>
-          <StudentUpcomingMeetings />
-        </section>
+        {/* Lịch tư vấn sắp tới — chỉ hiển thị cho Premium */}
+        {isPremium && (
+          <section>
+            <StudentUpcomingMeetings />
+          </section>
+        )}
 
         {/* Khối dữ liệu thật từ GET /api/student/dashboard — chỉ khi có dữ liệu, không mock */}
         {(showTaskChart || showCurrentGoal || showActivity || showAiInsights) && data && (
@@ -328,17 +338,43 @@ export default function Dashboard({
                 transition={{ duration: 0.3 }}
                 className="lg:row-span-2"
               >
-                <div className="card-holyann h-full">
-                  <div className="mb-4">
-                    <h2 className="font-heading text-base font-bold text-primary">
-                      Tiến độ checklist
-                    </h2>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Tỷ lệ hoàn thành các nhiệm vụ quan trọng
-                    </p>
+                {isPremium ? (
+                  <div className="card-holyann h-full">
+                    <div className="mb-4">
+                      <h2 className="font-heading text-base font-bold text-primary">
+                        Tiến độ checklist
+                      </h2>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Tỷ lệ hoàn thành các nhiệm vụ quan trọng
+                      </p>
+                    </div>
+                    <TaskCompletionChart data={data.taskCompletion} />
                   </div>
-                  <TaskCompletionChart data={data.taskCompletion} />
-                </div>
+                ) : (
+                  <div className="card-holyann h-full relative overflow-hidden border border-amber-500/40 bg-amber-500/5">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent pointer-events-none" />
+                    <div className="relative flex flex-col items-center justify-center text-center py-10 px-6 gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20 text-amber-700">
+                        <Lock className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h2 className="font-heading text-base font-bold text-amber-800">
+                          Tiến độ checklist là tính năng Premium
+                        </h2>
+                        <p className="mt-2 text-xs text-amber-900/80">
+                          Nâng cấp gói Premium để xem chi tiết tiến độ và nhiệm vụ cần làm tiếp theo.
+                        </p>
+                      </div>
+                      <Link
+                        href={`${STUDENT_BASE}/pricing`}
+                        className="mt-1 inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 transition-colors"
+                      >
+                        <Crown className="h-4 w-4" />
+                        Xem gói Premium
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -351,7 +387,33 @@ export default function Dashboard({
             {(showActivity || showAiInsights) && (
               <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
                 {showActivity && (
-                  <RecentActivityFeed items={data.activity} />
+                  isPremium ? (
+                    <RecentActivityFeed items={data.activity} />
+                  ) : (
+                    <div className="card-holyann h-full relative overflow-hidden border border-amber-500/40 bg-amber-500/5 flex flex-col items-center justify-center text-center px-6 py-8 gap-3">
+                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent pointer-events-none" />
+                      <div className="relative flex flex-col items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20 text-amber-700">
+                          <Lock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h2 className="font-heading text-sm font-bold text-amber-800">
+                            Hoạt động gần đây là tính năng Premium
+                          </h2>
+                          <p className="mt-1.5 text-xs text-amber-900/80">
+                            Nâng cấp Premium để xem lịch sử nhiệm vụ và mốc tiến độ gần nhất của bạn.
+                          </p>
+                        </div>
+                        <Link
+                          href={`${STUDENT_BASE}/pricing`}
+                          className="mt-1 inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 transition-colors"
+                        >
+                          <Crown className="h-4 w-4" />
+                          Nâng cấp Premium
+                        </Link>
+                      </div>
+                    </div>
+                  )
                 )}
                 {showAiInsights && (
                   <AIInsightsPanel items={data.aiInsights} />
