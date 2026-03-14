@@ -4,25 +4,25 @@ import { Pool } from 'pg'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
-const globalForPrisma = global as unknown as {
+const globalForPrisma = globalThis as unknown as {
     prisma?: PrismaClient
     pool?: Pool
 }
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
     try {
         const connectionUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? 'postgresql://localhost'
         if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
             console.warn('⚠️ DATABASE_URL/DIRECT_URL not found, using placeholder (queries will fail)')
         }
 
-        // Re‑use a single Pool across HMR to avoid "MaxClientsInSessionMode"
+        // Một Pool duy nhất cho cả process (tránh MaxClientsInSessionMode khi HMR / nhiều worker).
         const pool =
             globalForPrisma.pool ??
             new Pool({
                 connectionString: connectionUrl,
-                // Giảm số client tối đa để không vượt giới hạn pool_size (Neon/Supabase free tier thường khá thấp)
-                max: Number(process.env.PG_POOL_MAX ?? '3'),
+                // Session mode / free tier thường giới hạn 1 connection — mặc định 1, set PG_POOL_MAX=3 nếu plan cho phép.
+                max: Math.max(1, Number(process.env.PG_POOL_MAX ?? '1')),
                 idleTimeoutMillis: 30_000,
             })
 
@@ -42,6 +42,7 @@ function createPrismaClient() {
             globalForPrisma.pool ??
             new Pool({
                 connectionString: 'postgresql://localhost',
+                max: 1,
             })
 
         if (!globalForPrisma.pool) {
@@ -52,10 +53,10 @@ function createPrismaClient() {
     }
 }
 
-export const prisma =
-    globalForPrisma.prisma ??
-    createPrismaClient()
-
-if (process.env.NODE_ENV !== 'production') {
+// Singleton: luôn gán vào globalThis để mọi lần import dùng chung 1 client (dev + prod).
+const prisma = globalForPrisma.prisma ?? createPrismaClient()
+if (!globalForPrisma.prisma) {
     globalForPrisma.prisma = prisma
 }
+
+export { prisma }
