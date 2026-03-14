@@ -36,7 +36,6 @@ export async function GET(
         where: {
           student_id: studentId,
           enhance_at: { not: null },
-          enhance_result: { not: null },
         },
         orderBy: { updated_at: "desc" },
         select: { id: true, enhance_at: true, enhance_result: true },

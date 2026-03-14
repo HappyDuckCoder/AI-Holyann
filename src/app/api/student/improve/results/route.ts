@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { randomUUID } from 'crypto';
 import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/prisma';
 
@@ -15,8 +16,9 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   try {
-    const row = await prisma.profile_improve_results.findUnique({
+    const row = await prisma.profile_improve_results.findFirst({
       where: { student_id: studentId },
+      orderBy: { created_at: 'desc' },
     });
     if (!row) {
       return NextResponse.json({
@@ -78,13 +80,11 @@ export async function POST(request: NextRequest) {
   const clampRating = (v: number) => Math.min(ratingMax, Math.max(ratingMin, Math.round(v)));
   try {
     const now = new Date();
-    const createData = {
-      student_id: studentId,
-      ...(analysis != null && { analysis_result: analysis, analysis_at: now }),
-      ...(enhance != null && { enhance_result: enhance, enhance_at: now }),
-      ...(analysis_rating != null && !Number.isNaN(analysis_rating) && { analysis_rating: clampRating(analysis_rating) }),
-      ...(enhance_rating != null && !Number.isNaN(enhance_rating) && { enhance_rating: clampRating(enhance_rating) }),
-    };
+    const existing = await prisma.profile_improve_results.findFirst({
+      where: { student_id: studentId },
+      orderBy: { created_at: 'desc' },
+    });
+
     const updateData: Record<string, unknown> = { updated_at: now };
     if (analysis !== undefined) {
       updateData.analysis_result = analysis ?? null;
@@ -97,11 +97,21 @@ export async function POST(request: NextRequest) {
     if (analysis_rating !== undefined) updateData.analysis_rating = analysis_rating == null ? null : clampRating(analysis_rating);
     if (enhance_rating !== undefined) updateData.enhance_rating = enhance_rating == null ? null : clampRating(enhance_rating);
 
-    const updated = await prisma.profile_improve_results.upsert({
-      where: { student_id: studentId },
-      create: createData as Parameters<typeof prisma.profile_improve_results.upsert>[0]['create'],
-      update: updateData as Parameters<typeof prisma.profile_improve_results.upsert>[0]['update'],
-    });
+    const updated = existing
+      ? await prisma.profile_improve_results.update({
+          where: { id: existing.id },
+          data: updateData as Parameters<typeof prisma.profile_improve_results.update>[0]['data'],
+        })
+      : await prisma.profile_improve_results.create({
+          data: {
+            id: randomUUID(),
+            student_id: studentId,
+            ...(analysis != null && { analysis_result: analysis as object, analysis_at: now }),
+            ...(enhance != null && { enhance_result: enhance as object, enhance_at: now }),
+            ...(analysis_rating != null && !Number.isNaN(analysis_rating) && { analysis_rating: clampRating(analysis_rating) }),
+            ...(enhance_rating != null && !Number.isNaN(enhance_rating) && { enhance_rating: clampRating(enhance_rating) }),
+          },
+        });
     return NextResponse.json({
       ok: true,
       analysis_at: updated.analysis_at?.toISOString() ?? null,

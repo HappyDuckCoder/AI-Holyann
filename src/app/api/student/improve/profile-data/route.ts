@@ -24,9 +24,9 @@ function buildFeature1FromProfile(analysis: {
   const hdnk = to100(analysis.score_hdnk);
   const skill = to100(analysis.score_skill);
   const fr = analysis.full_result as Record<string, unknown> | undefined;
-  const spikeSection = fr?.["C. Nhận diện Spike (Yếu tố cốt lõi)"];
-  const mainSpike = spikeSection?.["Loại Spike hiện tại"] ?? spikeSection?.["Loại spike"] ?? 'Academic Excellence';
-  const sharpness = spikeSection?.["Độ sắc (Sharpness)"] ?? (aca + lan + hdnk + skill) / 4 >= 80 ? 'High' : (aca + lan + hdnk + skill) / 4 >= 60 ? 'Medium' : 'Low';
+  const spikeSection = fr?.["C. Nhận diện Spike (Yếu tố cốt lõi)"] as Record<string, unknown> | null | undefined;
+  const mainSpike = (spikeSection?.["Loại Spike hiện tại"] ?? spikeSection?.["Loại spike"]) as string | undefined ?? 'Academic Excellence';
+  const sharpness = (spikeSection?.["Độ sắc (Sharpness)"] as string | undefined) ?? ((aca + lan + hdnk + skill) / 4 >= 80 ? 'High' : (aca + lan + hdnk + skill) / 4 >= 60 ? 'Medium' : 'Low');
   return {
     summary: {
       success: true,
