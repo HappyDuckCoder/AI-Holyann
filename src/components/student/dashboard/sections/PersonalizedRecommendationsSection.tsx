@@ -9,11 +9,6 @@ const STUDENT_BASE = "/student";
 export default function PersonalizedRecommendationsSection() {
   const items = [
     {
-      text: "Gợi ý lộ trình du học ngành Marketing",
-      href: `${STUDENT_BASE}/target`,
-      icon: BookOpen,
-    },
-    {
       text: "Top 5 học bổng cho sinh viên nghệ thuật",
       href: `${STUDENT_BASE}/improve`,
       icon: Award,

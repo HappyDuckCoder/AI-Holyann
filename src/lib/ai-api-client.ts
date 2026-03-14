@@ -198,18 +198,19 @@ export async function callRIASECAssessment(
 }
 
 /**
- * Feature 3: University Recommendation
+ * Feature 3: Admission chance (Reach / Match / Safe)
+ * Input: wishlist_faculties, wishlist_universities, pillars, spikes, region_fit, personality_fit
  */
-export async function callUniversityRecommendation(payload: {
-  feature1_output: any;
-  feature2_output: any;
-  top_n?: number;
-  min_match_score?: number;
-  duration_months?: number;
-  start_date?: string;
+export async function callAdmissionChance(payload: {
+  wishlist_faculties: string[];
+  wishlist_universities: string[];
+  pillars: { academic: number; language: number; extracurricular: number; skills: number };
+  spikes?: Array<{ type: string; tier: string }>;
+  region_fit?: string;
+  personality_fit?: string;
 }) {
-  return callAIAPI("/hoexapp/api/university-recommendation/", {
-    method: "POST",
-    body: payload,
-  });
+  return callAIAPI<{ ok: boolean; summary?: unknown; faculties?: { reach?: unknown[]; match?: unknown[]; safe?: unknown[] }; error?: string }>(
+    "/api/admission-chance",
+    { method: "POST", body: payload, timeoutMs: 60_000 }
+  );
 }

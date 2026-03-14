@@ -102,17 +102,13 @@ export async function POST(
       data: {
         id: randomUUID(),
         student_id: studentId,
-        analysis_date: now,
         input_data: body as unknown as object,
         full_result: result as unknown as object,
+        swot_data: result.swot as unknown as object,
         score_aca: typeof ps.academic === "number" ? (ps.academic <= 1 ? ps.academic * 100 : ps.academic) : null,
         score_lan: typeof ps.language === "number" ? (ps.language <= 1 ? ps.language * 100 : ps.language) : null,
         score_hdnk: typeof ps.extracurricular === "number" ? (ps.extracurricular <= 1 ? ps.extracurricular * 100 : ps.extracurricular) : null,
         score_skill: typeof ps.skills === "number" ? (ps.skills <= 1 ? ps.skills * 100 : ps.skills) : null,
-        academic_data: {},
-        extracurricular_data: {},
-        skill_data: {},
-        swot_data: result.swot as unknown as object,
         updated_at: now,
       },
     });

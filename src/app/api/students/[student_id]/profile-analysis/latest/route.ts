@@ -10,8 +10,8 @@ export async function GET(
     const [analysis, enhance] = await Promise.all([
       prisma.profile_analyses.findFirst({
         where: { student_id: studentId },
-        orderBy: { analysis_date: "desc" },
-        select: { id: true, full_result: true, input_data: true, analysis_date: true },
+        orderBy: { created_at: "desc" },
+        select: { id: true, full_result: true, input_data: true, created_at: true },
       }),
       prisma.profile_improve_results.findFirst({
         where: { student_id: studentId },
@@ -26,7 +26,7 @@ export async function GET(
             id: analysis.id,
             full_result: analysis.full_result,
             input_data: analysis.input_data,
-            analysis_date: analysis.analysis_date,
+            analysis_date: analysis.created_at,
           }
         : null,
       enhance: enhance

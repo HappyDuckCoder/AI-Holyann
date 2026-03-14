@@ -47,63 +47,73 @@ export async function GET(
       // Parse full_result from swot_data or academic_data for legacy support
       const fullResult = (analysis as any).full_result || null;
 
+      const spikeSection = fullResult?.["C. Nhận diện Spike (Yếu tố cốt lõi)"];
+      const mainSpike = spikeSection?.["Loại Spike hiện tại"] ?? spikeSection?.["Loại spike"] ?? null;
+      const spikeSharpness = spikeSection?.["Độ sắc (Sharpness)"] ?? null;
+      const spikeScore = typeof spikeSection?.main_spike_score === "number" ? spikeSection.main_spike_score : typeof spikeSection?.["Điểm số"] === "number" ? spikeSection["Điểm số"] : 0;
+
       return NextResponse.json({
         success: true,
         data: {
           id: analysis.id,
-          analysisDate: analysis.analysis_date,
+          analysisDate: analysis.created_at,
           fullResult: fullResult,
           pillarScores: {
-            aca: (analysis as any).score_aca ?? analysis.academic_score,
+            aca: (analysis as any).score_aca ?? 0,
             lan: (analysis as any).score_lan ?? 0,
-            hdnk: (analysis as any).score_hdnk ?? analysis.extracurricular_score,
+            hdnk: (analysis as any).score_hdnk ?? 0,
             skill: (analysis as any).score_skill ?? 0,
           },
           regionalScores: {
-            usa: (analysis as any).score_usa ?? 0,
-            asia: (analysis as any).score_asia ?? 0,
-            europe: (analysis as any).score_europe ?? 0,
+            usa: 0,
+            asia: 0,
+            europe: 0,
           },
-          mainSpike: (analysis as any).main_spike ?? null,
-          spikeSharpness: (analysis as any).spike_sharpness ?? null,
-          spikeScore: (analysis as any).spike_score ?? 0,
+          mainSpike,
+          spikeSharpness,
+          spikeScore,
           swotData: analysis.swot_data,
         },
       });
     }
 
-    // Get latest analysis
     const latestAnalysis = await prisma.profile_analyses.findFirst({
       where: { student_id },
-      orderBy: { analysis_date: 'desc' },
+      orderBy: { created_at: 'desc' },
     });
 
-    // Get history
     const history = await prisma.profile_analyses.findMany({
       where: { student_id },
-      orderBy: { analysis_date: 'desc' },
+      orderBy: { created_at: 'desc' },
       take: limit,
     });
 
-    const mapAnalysis = (a: any) => ({
-      id: a.id,
-      analysisDate: a.analysis_date,
-      pillarScores: {
-        aca: a.score_aca ?? a.academic_score ?? 0,
-        lan: a.score_lan ?? 0,
-        hdnk: a.score_hdnk ?? a.extracurricular_score ?? 0,
-        skill: a.score_skill ?? 0,
-      },
-      regionalScores: {
-        usa: a.score_usa ?? 0,
-        asia: a.score_asia ?? 0,
-        europe: a.score_europe ?? 0,
-      },
-      mainSpike: a.main_spike ?? null,
-      spikeSharpness: a.spike_sharpness ?? null,
-      overallScore: a.overall_score,
-      createdAt: a.created_at,
-    });
+    const spikeFromRecord = (a: any) => {
+      const fr = a.full_result;
+      const section = fr?.["C. Nhận diện Spike (Yếu tố cốt lõi)"];
+      return {
+        mainSpike: section?.["Loại Spike hiện tại"] ?? section?.["Loại spike"] ?? null,
+        spikeSharpness: section?.["Độ sắc (Sharpness)"] ?? null,
+      };
+    };
+
+    const mapAnalysis = (a: any) => {
+      const spike = spikeFromRecord(a);
+      return {
+        id: a.id,
+        analysisDate: a.created_at,
+        pillarScores: {
+          aca: a.score_aca ?? 0,
+          lan: a.score_lan ?? 0,
+          hdnk: a.score_hdnk ?? 0,
+          skill: a.score_skill ?? 0,
+        },
+        regionalScores: { usa: 0, asia: 0, europe: 0 },
+        mainSpike: spike.mainSpike,
+        spikeSharpness: spike.spikeSharpness,
+        createdAt: a.created_at,
+      };
+    };
 
     return NextResponse.json({
       success: true,

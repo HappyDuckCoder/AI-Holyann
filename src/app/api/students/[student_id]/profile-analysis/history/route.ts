@@ -29,8 +29,8 @@ export async function GET(
     const [analyses, enhances] = await Promise.all([
       prisma.profile_analyses.findMany({
         where: { student_id: studentId },
-        orderBy: { analysis_date: "desc" },
-        select: { id: true, analysis_date: true, full_result: true },
+        orderBy: { created_at: "desc" },
+        select: { id: true, created_at: true, full_result: true },
       }),
       prisma.profile_improve_results.findMany({
         where: {
@@ -46,7 +46,7 @@ export async function GET(
     return NextResponse.json({
       analyses: analyses.map((a) => ({
         id: a.id,
-        date: a.analysis_date,
+        date: a.created_at,
         pillar_scores: pillarFromFullResult(a.full_result),
       })),
       enhances: enhances.map((e) => ({

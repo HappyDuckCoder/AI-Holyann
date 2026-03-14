@@ -61,7 +61,7 @@ export async function POST(
 
     const latest = await prisma.profile_analyses.findFirst({
       where: { student_id: studentId },
-      orderBy: { analysis_date: "desc" },
+      orderBy: { created_at: "desc" },
     });
     const fullResult = latest?.full_result as Record<string, unknown> | null;
     if (!fullResult?.pillar_scores || !fullResult?.areas || !fullResult?.swot) {

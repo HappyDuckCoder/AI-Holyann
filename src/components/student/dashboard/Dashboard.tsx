@@ -6,12 +6,12 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   User,
-  Target,
   ClipboardList,
   Sparkles,
   ArrowRight,
   Crown,
   Lock,
+  Target,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardHero } from "./DashboardHero";
@@ -28,12 +28,12 @@ import type { DashboardData } from "./types";
 
 const STUDENT_BASE = "/student";
 
-/** Liên kết nhanh theo navbar (Hồ sơ, Mục tiêu, Trắc nghiệm, Cải thiện) */
+/** Liên kết nhanh theo navbar (Hồ sơ, Trắc nghiệm, Cải thiện) */
 const QUICK_NAV = [
   { name: "Hồ sơ", href: `${STUDENT_BASE}/profile`, icon: User },
-  { name: "Mục tiêu", href: `${STUDENT_BASE}/view-target`, icon: Target },
   { name: "Trắc nghiệm ngành", href: `${STUDENT_BASE}/tests`, icon: ClipboardList },
   { name: "Cải thiện hồ sơ", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
+  { name: "Reach / Match / Safety", href: `${STUDENT_BASE}/target`, icon: Target },
 ] as const;
 
 const container = {

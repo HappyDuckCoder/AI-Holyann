@@ -10,6 +10,7 @@ export type SubscriptionFeature =
   | 'recommendFacultyLimit'
   | 'facultyWishlistLimit'
   | 'schoolWishlistLimit'
+  | 'admissionChanceLimit'
   | 'majorListCount'
   | 'majorFitShowCount'
   | 'classificationCount'
@@ -35,6 +36,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     recommendFacultyLimit: 1,
     facultyWishlistLimit: 2,
     schoolWishlistLimit: 2,
+    admissionChanceLimit: 2,
     majorListCount: 3,
     majorFitShowCount: 1,
     classificationCount: 5,
@@ -54,6 +56,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     recommendFacultyLimit: 5,
     facultyWishlistLimit: 5,
     schoolWishlistLimit: 5,
+    admissionChanceLimit: 5,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,
@@ -73,6 +76,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     recommendFacultyLimit: -1,
     facultyWishlistLimit: 10,
     schoolWishlistLimit: 10,
+    admissionChanceLimit: -1,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,

@@ -453,39 +453,23 @@ model personal_projects {
   @@index([background_id])
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// Kết quả phân tích hồ sơ (logic mới). Spike và chi tiết lấy từ full_result.
 model profile_analyses {
-  id                    String    @id @db.Uuid
-  student_id            String    @db.Uuid
-  analysis_date         DateTime  @default(now()) @db.Timestamp(6)
-  academic_data         Json      @default("{}")
-  extracurricular_data  Json      @default("{}")
-  skill_data            Json      @default("{}")
-  overall_score         Float?
-  academic_score        Float?
-  extracurricular_score Float?
-  summary               String?
-  swot_data             Json?     @default("{}")
-  created_at            DateTime? @default(now()) @db.Timestamp(6)
-  input_data            Json      @default("{}")
-  full_result           Json      @default("{}")
-  score_aca             Float?
-  score_lan             Float?
-  score_hdnk            Float?
-  score_skill           Float?
-  score_usa             Float?
-  score_asia            Float?
-  score_europe          Float?
-  main_spike            String?   @db.VarChar(100)
-  spike_sharpness       String?   @db.VarChar(50)
-  spike_score           Float?
-  all_spike_scores      Json?     @default("{}")
-  updated_at            DateTime? @default(now()) @db.Timestamp(6)
-  students              students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  id          String    @id @db.Uuid
+  student_id  String    @db.Uuid
+  full_result Json      @default("{}")
+  swot_data   Json?     @default("{}")
+  input_data  Json      @default("{}")
+  score_aca   Float?
+  score_lan   Float?
+  score_hdnk  Float?
+  score_skill Float?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  students    students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
-  @@index([analysis_date])
-  @@index([main_spike])
   @@index([student_id])
+  @@index([student_id, created_at])
 }
 
 model profile_analysis_jobs {
@@ -552,6 +536,18 @@ model school_wishlist {
 
   @@unique([student_id, university_id])
   @@index([student_id])
+}
+
+model admission_chance_results {
+  id         String   @id @db.Uuid
+  student_id String   @db.Uuid
+  summary    Json     @default("{}")
+  faculties  Json     @default("{}")
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@index([student_id, created_at])
 }
 
 model research_experiences {
@@ -723,18 +719,6 @@ model student_task_progress {
   @@unique([student_id, task_id])
 }
 
-model student_university_recommendations {
-  id           String   @id @db.Uuid
-  student_id   String   @db.Uuid
-  summary      Json     @default("{}")
-  roadmap      Json     @default("{}")
-  universities Json?    @default("{}")
-  created_at   DateTime @default(now()) @db.Timestamp(6)
-  students     students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-
-  @@index([student_id])
-}
-
 model students {
   user_id                            String                               @id @db.Uuid
   current_school                     String?                              @db.VarChar(255)
@@ -763,6 +747,7 @@ model students {
   faculty_recommendations            faculty_recommendations[]
   faculty_wishlist                   faculty_wishlist[]
   school_wishlist                    school_wishlist[]
+  admission_chance_results           admission_chance_results[]
   riasec_tests                       riasec_tests?
   student_academic_profiles          student_academic_profiles?
   student_backgrounds                student_backgrounds?
@@ -771,7 +756,6 @@ model students {
   student_parents                    student_parents[]
   student_skills                     student_skills[]
   student_task_progress              student_task_progress[]
-  student_university_recommendations student_university_recommendations[]
   users                              users                                @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
