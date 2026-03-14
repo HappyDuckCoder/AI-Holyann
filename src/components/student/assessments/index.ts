@@ -5,3 +5,4 @@ export { default as TestCard } from "./TestCard";
 export { default as ResultView } from "./ResultView";
 export { default as ResultChart } from "./ResultChart";
 export { default as RecommendFacultySection } from "./RecommendFacultySection";
+export { default as FacultyWishlistSection } from "./FacultyWishlistSection";

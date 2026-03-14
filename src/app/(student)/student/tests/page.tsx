@@ -10,6 +10,7 @@ import {
   TestView,
   ResultView,
   RecommendFacultySection,
+  FacultyWishlistSection,
 } from "@/components/student/assessments";
 import {
   Dialog,
@@ -556,7 +557,10 @@ export default function TestsPage() {
               testResults={progress.results}
             />
 
+            <FacultyWishlistSection studentId={studentId} />
+
             <RecommendFacultySection
+              id="recommend-faculty-section"
               studentId={studentId}
               allCompleted={currentAllCompleted}
             />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import {
   Target,
   Heart,
   Lightbulb,
-  Bookmark,
 } from "lucide-react";
 import {
   Dialog,
@@ -53,6 +52,7 @@ type Limits = {
 interface RecommendFacultySectionProps {
   studentId: string | null;
   allCompleted: boolean;
+  id?: string;
 }
 
 const ACCENT = "#0052FF";
@@ -293,6 +293,7 @@ function SkeletonBlock() {
 export default function RecommendFacultySection({
   studentId,
   allCompleted,
+  id,
 }: RecommendFacultySectionProps) {
   const [loading, setLoading] = useState(false);
   const [sectionLoading, setSectionLoading] = useState(true);
@@ -301,11 +302,6 @@ export default function RecommendFacultySection({
   const [error, setError] = useState<string | null>(null);
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [runConfirmOpen, setRunConfirmOpen] = useState(false);
-  const [wishlistLimit, setWishlistLimit] = useState(2);
-  const [wishlistSaved, setWishlistSaved] = useState<{ faculty_name: string; sort_order: number }[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
-  const [wishlistSaving, setWishlistSaving] = useState(false);
-  const [wishlistError, setWishlistError] = useState<string | null>(null);
 
   const fetchLimitsAndLatest = useCallback(async (sid: string) => {
     try {
@@ -348,53 +344,6 @@ export default function RecommendFacultySection({
     fetchLimitsAndLatest(studentId).finally(() => setSectionLoading(false));
   }, [studentId, fetchLimitsAndLatest]);
 
-  const facultiesList = latest?.faculties ?? [];
-  const fetchWishlistAndLimits = useCallback(async () => {
-    if (!studentId) return;
-    try {
-      const [limRes, listRes] = await Promise.all([
-        fetch(`/api/students/${studentId}/faculty-wishlist/limits`),
-        fetch(`/api/students/${studentId}/faculty-wishlist`),
-      ]);
-      if (limRes.ok) {
-        const d = await limRes.json();
-        setWishlistLimit(typeof d.limit === "number" ? d.limit : 2);
-      }
-      if (listRes.ok) {
-        const d = await listRes.json();
-        const items = (d.items ?? []) as { faculty_name: string; sort_order: number }[];
-        setWishlistSaved(items);
-      }
-    } catch {
-      setWishlistError("Không tải được wishlist");
-    }
-  }, [studentId]);
-
-  useEffect(() => {
-    if (!studentId) return;
-    let cancelled = false;
-    fetchWishlistAndLimits().finally(() => { if (!cancelled) setWishlistError(null); });
-    return () => { cancelled = true; };
-  }, [studentId, fetchWishlistAndLimits]);
-
-  useEffect(() => {
-    if (!studentId || facultiesList.length === 0) return;
-    fetchWishlistAndLimits();
-  }, [studentId, facultiesList.length, fetchWishlistAndLimits]);
-
-  const facultiesListKey = useMemo(
-    () => facultiesList.map((f) => f.faculty_name).sort().join(","),
-    [facultiesList]
-  );
-  useEffect(() => {
-    if (facultiesList.length === 0) return;
-    const names = wishlistSaved
-      .filter((w) => facultiesList.some((f) => f.faculty_name === w.faculty_name))
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((w) => w.faculty_name);
-    setSelectedOrder(names);
-  }, [wishlistSaved, facultiesListKey, facultiesList]);
-
   const handleRun = async () => {
     if (!studentId) return;
     if (limits != null && limits.remaining !== null && limits.remaining <= 0) {
@@ -430,47 +379,6 @@ export default function RecommendFacultySection({
       setLoading(false);
     }
   };
-
-  const toggleWishlistFaculty = useCallback(
-    (facultyName: string) => {
-      setSelectedOrder((prev) => {
-        const idx = prev.indexOf(facultyName);
-        if (idx >= 0) return prev.filter((n) => n !== facultyName);
-        if (prev.length >= wishlistLimit) return prev;
-        return [...prev, facultyName];
-      });
-      setWishlistError(null);
-    },
-    [wishlistLimit]
-  );
-
-  const handleSaveWishlist = useCallback(async () => {
-    if (!studentId) return;
-    setWishlistSaving(true);
-    setWishlistError(null);
-    try {
-      const res = await fetch(`/api/students/${studentId}/faculty-wishlist`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: selectedOrder.map((faculty_name, sort_order) => ({
-            faculty_name,
-            sort_order,
-          })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setWishlistError(data?.error || "Không lưu được wishlist");
-        return;
-      }
-      setWishlistSaved(data.items ?? []);
-    } catch (e) {
-      setWishlistError(e instanceof Error ? e.message : "Lỗi lưu wishlist");
-    } finally {
-      setWishlistSaving(false);
-    }
-  }, [studentId, selectedOrder]);
 
   const handleSelectHistoryItem = useCallback(
     (item: {
@@ -523,7 +431,8 @@ export default function RecommendFacultySection({
 
   return (
     <motion.section
-      className="mt-12 relative"
+      id={id}
+      className="mt-12 relative scroll-mt-4"
       initial="hidden"
       animate="visible"
       variants={fadeInUp}
@@ -674,85 +583,6 @@ export default function RecommendFacultySection({
               faculties={faculties}
               title="Gợi ý gần nhất"
             />
-
-            {faculties.length > 0 && studentId && (
-              <div className="mt-8 pt-6 border-t border-border">
-                <div className="flex items-center gap-2 mb-2">
-                  <Bookmark className="h-4 w-4 text-[#0052FF]" />
-                  <h4 className="text-sm font-semibold text-foreground">
-                    Wishlist ngành yêu thích
-                  </h4>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Chọn tối đa {wishlistLimit} ngành từ danh sách gợi ý (Free: 2, Plus: 5, Premium: 10). Thứ tự chọn = ưu tiên.
-                </p>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {faculties.map((f) => {
-                    const checked = selectedOrder.includes(f.faculty_name);
-                    const atLimit = selectedOrder.length >= wishlistLimit && !checked;
-                    return (
-                      <label
-                        key={f.faculty_name}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors ${
-                          checked
-                            ? "border-[#0052FF]/50 bg-[#0052FF]/10 text-foreground"
-                            : atLimit
-                              ? "border-border bg-muted/30 text-muted-foreground cursor-not-allowed"
-                              : "border-border bg-card hover:border-[#0052FF]/30"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={atLimit}
-                          onChange={() => toggleWishlistFaculty(f.faculty_name)}
-                          className="rounded border-[#0052FF] text-[#0052FF] focus:ring-[#0052FF]"
-                        />
-                        <span className="font-medium">{f.faculty_name}</span>
-                        {checked && (
-                          <span className="text-xs text-[#0052FF] tabular-nums">
-                            #{selectedOrder.indexOf(f.faculty_name) + 1}
-                          </span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Đã chọn {selectedOrder.length} / {wishlistLimit} ngành
-                </p>
-                {wishlistError && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mb-2">
-                    {wishlistError}
-                  </p>
-                )}
-                <Button
-                  onClick={handleSaveWishlist}
-                  disabled={
-                    wishlistSaving ||
-                    (() => {
-                      const savedNames = wishlistSaved
-                        .filter((w) =>
-                          faculties.some((f) => f.faculty_name === w.faculty_name)
-                        )
-                        .sort((a, b) => a.sort_order - b.sort_order)
-                        .map((w) => w.faculty_name);
-                      return (
-                        selectedOrder.length === savedNames.length &&
-                        selectedOrder.every((name, i) => savedNames[i] === name)
-                      );
-                    })()
-                  }
-                  className="bg-gradient-to-r from-[#0052FF] to-[#4D7CFF] text-white rounded-xl"
-                >
-                  {wishlistSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Lưu wishlist faculty"
-                  )}
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       )}

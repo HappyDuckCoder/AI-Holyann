@@ -20,6 +20,7 @@ import {
   ClipboardList,
   Crown,
   Lock,
+  Target,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { mainFeatures, premiumFeatures } from "@/data/student-nav-features";
@@ -40,6 +41,11 @@ const navItems = [
     icon: ClipboardList,
   },
   { name: "Cải thiện hồ sơ", href: `${STUDENT_BASE}/improve`, icon: Sparkles },
+  {
+    name: "Reach / Match / Safety",
+    href: `${STUDENT_BASE}/target`,
+    icon: Target,
+  },
 ];
 
 function isActive(pathname: string, href: string) {

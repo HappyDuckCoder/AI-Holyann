@@ -30,31 +30,10 @@ export const mainFeatures: NavFeature[] = [
     tier: "free",
   },
   {
-    name: "Trắc nghiệm ngành",
-    href: `${STUDENT_BASE}/tests`,
-    icon: ClipboardList,
-    description: "Khám phá ngành học phù hợp với bản thân",
-    tier: "free",
-  },
-  {
-    name: "Cải thiện hồ sơ",
-    href: `${STUDENT_BASE}/improve`,
-    icon: Sparkles,
-    description: "Enhance & phân tích hồ sơ, CV và bài luận",
-    tier: "free",
-  },
-  {
     name: "Danh sách trường",
     href: `${STUDENT_BASE}/universities`,
     icon: Building2,
     description: "Khám phá các trường đại học trong và ngoài nước",
-    tier: "free",
-  },
-  {
-    name: "Reach / Match / Safety",
-    href: `${STUDENT_BASE}/target`,
-    icon: Target,
-    description: "Xem danh sách ngành theo mức độ phù hợp",
     tier: "free",
   },
   {

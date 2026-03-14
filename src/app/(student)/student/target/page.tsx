@@ -158,6 +158,11 @@ export default function TargetPage() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<keyof FacultiesResult>("match");
+  const [expandedTabs, setExpandedTabs] = useState<Record<keyof FacultiesResult, boolean>>({
+    reach: false,
+    match: false,
+    safe: false,
+  });
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [targetGoal, setTargetGoal] = useState<TargetGoalData | null>(null);
   const [goalRefresh, setGoalRefresh] = useState(0);
@@ -468,9 +473,13 @@ export default function TargetPage() {
                   {(() => {
                     const activeCategory = CATEGORIES.find((c) => c.key === activeTab);
                     const accentColor = activeCategory?.color ?? ACCENT;
-                    const list: FacultyItem[] = Array.isArray(latest?.faculties?.[activeTab])
-                      ? latest.faculties[activeTab]
-                      : [];
+                    const rawList = latest?.faculties?.[activeTab];
+                    const list: FacultyItem[] = Array.isArray(rawList) ? rawList : [];
+                    const isExpanded = expandedTabs[activeTab];
+                    const INITIAL_COUNT = 2;
+                    const showExpand = list.length > INITIAL_COUNT;
+                    const visibleList = showExpand && !isExpanded ? list.slice(0, INITIAL_COUNT) : list;
+                    const hiddenCount = list.length - INITIAL_COUNT;
                     if (list.length === 0) {
                       return (
                         <p className="text-sm text-muted-foreground py-6">
@@ -486,7 +495,7 @@ export default function TargetPage() {
                         transition={{ duration: 0.2 }}
                       >
                         <ul className="space-y-5">
-                          {list.map((item, i) => (
+                          {visibleList.map((item, i) => (
                             <li
                               key={`${activeTab}-${i}-${String(item.faculty_name ?? "")}`}
                               className="rounded-2xl border border-border bg-card p-5 shadow-md hover:shadow-lg transition-shadow overflow-hidden"
@@ -522,6 +531,21 @@ export default function TargetPage() {
                             </li>
                           ))}
                         </ul>
+                        {showExpand && (
+                          <div className="mt-4 flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedTabs((prev) => ({ ...prev, [activeTab]: !prev[activeTab] }))
+                              }
+                              className="rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                            >
+                              {isExpanded
+                                ? "Thu gọn"
+                                : `Xem thêm ${hiddenCount} ngành`}
+                            </button>
+                          </div>
+                        )}
                       </motion.div>
                     );
                   })()}
