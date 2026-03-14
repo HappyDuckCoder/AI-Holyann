@@ -448,6 +448,11 @@ export async function createConsultationEvent(
     const duration = data.durationMinutes || 60;
     const endTime = addMinutes(startTime, duration);
 
+    // Daily.co exp phải là Unix timestamp (giây) trong tương lai
+    const nowSec = Math.floor(Date.now() / 1000);
+    const endTimeSec = Math.floor(endTime.getTime() / 1000);
+    const expSec = Math.max(endTimeSec, nowSec + 3600); // ít nhất 1 giờ từ bây giờ
+
     // 4. Tạo phòng Daily.co
     const DAILY_API_KEY = process.env.DAILY_API_KEY;
     if (!DAILY_API_KEY) {
@@ -468,7 +473,7 @@ export async function createConsultationEvent(
         },
         body: JSON.stringify({
           properties: {
-            exp: Math.floor(endTime.getTime() / 1000), // Giữ nguyên logic tính giờ hết hạn
+            exp: expSec,
             enable_prejoin_ui: true, // Bật màn hình chờ chuẩn bị trước khi vào
             enable_screenshare: true, // Cho phép chia sẻ màn hình
             enable_chat: true, // Bật chat cơ bản
@@ -688,6 +693,34 @@ export async function getAllMentorMeetings() {
 }
 
 /**
+ * Lấy meetings của mentor trong khoảng thời gian (để hiển thị lên calendar)
+ */
+export async function getMentorMeetingsInRange(start: Date, end: Date) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return { success: false, error: "Bạn chưa đăng nhập", data: [] };
+    }
+    const meetings = await prisma.consultation_meetings.findMany({
+      where: {
+        mentor_id: session.user.id,
+        start_time: { gte: start, lte: end },
+      },
+      orderBy: { start_time: "asc" },
+      include: {
+        student_user: {
+          select: { id: true, full_name: true, email: true, avatar_url: true },
+        },
+      },
+    });
+    return { success: true, data: meetings };
+  } catch (error) {
+    console.error("[Meeting] getMentorMeetingsInRange Error:", error);
+    return { success: false, error: "Không thể tải lịch", data: [] };
+  }
+}
+
+/**
  * Lấy danh sách các buổi tư vấn sắp tới của học viên
  */
 export async function getStudentMeetings() {
@@ -723,6 +756,41 @@ export async function getStudentMeetings() {
   } catch (error) {
     console.error("[Meeting] Error:", error);
     return { success: false, error: "Không thể tải danh sách", data: [] };
+  }
+}
+
+/**
+ * Lấy meetings của student trong khoảng thời gian (để hiển thị lên calendar)
+ */
+export async function getStudentMeetingsInRange(start: Date, end: Date) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return { success: false, error: "Bạn chưa đăng nhập", data: [] };
+    }
+    const currentUser = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { email: true },
+    });
+    const meetings = await prisma.consultation_meetings.findMany({
+      where: {
+        OR: [
+          { student_id: session.user.id },
+          ...(currentUser?.email ? [{ student_email: currentUser.email }] : []),
+        ],
+        start_time: { gte: start, lte: end },
+      },
+      orderBy: { start_time: "asc" },
+      include: {
+        mentor_user: {
+          select: { full_name: true, email: true, avatar_url: true },
+        },
+      },
+    });
+    return { success: true, data: meetings };
+  } catch (error) {
+    console.error("[Meeting] getStudentMeetingsInRange Error:", error);
+    return { success: false, error: "Không thể tải lịch", data: [] };
   }
 }
 

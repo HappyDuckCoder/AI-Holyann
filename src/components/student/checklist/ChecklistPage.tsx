@@ -104,9 +104,9 @@ const ChecklistPage: React.FC = () => {
             description: task.description || "",
             deadline: deadlineDisplay,
             deadlineRaw: taskProgress?.deadline || null, // Raw date for calculations
-            isCompleted: taskProgress?.status === "COMPLETED",
-            isLocked: taskProgress?.status === "COMPLETED", // Lock completed tasks from DB
-            status: taskProgress?.status || "PENDING", // Add status field
+            isCompleted: task.isCompleted ?? (taskProgress?.status === "COMPLETED"),
+            isLocked: task.isCompleted ?? (taskProgress?.status === "COMPLETED"), // Lock completed tasks from DB
+            status: task.status ?? taskProgress?.status ?? "PENDING",
             requiresFile:
               task.title.toLowerCase().includes("upload") ||
               task.title.toLowerCase().includes("tải lên") ||
@@ -114,9 +114,10 @@ const ChecklistPage: React.FC = () => {
               task.title.toLowerCase().includes("tài liệu"),
             category: task.stage?.name || "Chung",
             linkTo: task.link_to || undefined,
-            uploadedFile: taskProgress?.submission_url
+            linkToManageUpload: task.linkToManageUpload ?? false,
+            uploadedFile: task.uploadedFile ?? (taskProgress?.submission_url
               ? "File đã upload"
-              : undefined,
+              : undefined),
             feedback:
               taskProgress?.mentor_note || // Priority 1: Use mentor note from DB
               apiTasks.find((apiTask: any) => apiTask.id === task.id)
@@ -181,23 +182,19 @@ const ChecklistPage: React.FC = () => {
               let isCompleted = task.isCompleted;
               let isLocked = task.isLocked;
 
-              // Map test completion to tasks
-              if (
-                task.linkTo === "/dashboard/tests" &&
-                task.title.includes("MBTI")
-              ) {
+              // Map test completion to tasks (chấp nhận cả /dashboard/tests và /student/tests)
+              const isTestTask =
+                task.linkTo === "/dashboard/tests" ||
+                task.linkTo?.startsWith("/student/tests");
+              if (isTestTask && task.title.includes("MBTI")) {
                 isCompleted = testResult.data.mbti?.status === "COMPLETED";
                 isLocked = testResult.data.mbti?.status === "COMPLETED";
-              } else if (
-                task.linkTo === "/dashboard/tests" &&
-                task.title.includes("Grit")
-              ) {
+              } else if (isTestTask && task.title.includes("Grit")) {
                 isCompleted = testResult.data.grit?.status === "COMPLETED";
                 isLocked = testResult.data.grit?.status === "COMPLETED";
               } else if (
-                task.linkTo === "/dashboard/tests" &&
-                (task.title.includes("Holland") ||
-                  task.title.includes("RIASEC"))
+                isTestTask &&
+                (task.title.includes("Holland") || task.title.includes("RIASEC"))
               ) {
                 isCompleted = testResult.data.riasec?.status === "COMPLETED";
                 isLocked = testResult.data.riasec?.status === "COMPLETED";

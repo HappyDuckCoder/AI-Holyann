@@ -154,15 +154,26 @@ export default function StudentDeadlinesTable({
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Calendar className="mb-4 h-12 w-12 text-muted-foreground/50" />
-        <p className="text-muted-foreground">Chưa có deadline nào</p>
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div
+          className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl text-white shadow-md"
+          style={{
+            background: 'linear-gradient(135deg, #0052FF, #4D7CFF)',
+            boxShadow: '0 4px 14px rgba(0, 82, 255, 0.25)',
+          }}
+        >
+          <Calendar className="h-7 w-7" />
+        </div>
+        <p className="font-medium text-foreground">Chưa có deadline nào</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Mentor sẽ thiết lập deadline cho các nhiệm vụ của bạn
         </p>
         <Link
           href="/student/checklist"
-          className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg"
+          style={{
+            background: 'linear-gradient(to right, #0052FF, #4D7CFF)',
+          }}
         >
           <ClipboardList className="h-4 w-4" />
           Xem Checklist
@@ -176,23 +187,23 @@ export default function StudentDeadlinesTable({
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border bg-muted/30">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">
+            <tr className="border-b border-border bg-muted/20">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6">
                 Nhiệm vụ
               </th>
-              <th className="hidden px-4 py-3 text-left text-sm font-semibold text-muted-foreground md:table-cell sm:px-6">
+              <th className="hidden px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground md:table-cell sm:px-6">
                 Loại
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6">
                 Hạn chót
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6">
                 Trạng thái
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground sm:px-6">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6">
                 Ghi chú
               </th>
-              <th className="min-w-[200px] px-4 py-3 text-right text-sm font-semibold text-muted-foreground sm:px-6">
+              <th className="min-w-[200px] px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6">
                 Hành động
               </th>
             </tr>
@@ -201,7 +212,7 @@ export default function StudentDeadlinesTable({
             {rows.map((row) => (
               <tr
                 key={`${row.type}-${row.id}`}
-                className="border-b border-border transition-colors hover:bg-muted/30 last:border-0"
+                className="border-b border-border/80 transition-colors hover:bg-muted/20 last:border-0"
               >
                 <td className="py-3 px-4 sm:px-6">
                   <div>
@@ -227,8 +238,13 @@ export default function StudentDeadlinesTable({
                   <span
                     className={
                       row.type === 'checklist'
-                        ? 'rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary'
-                        : 'rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground dark:bg-muted/80'
+                        ? 'rounded-xl px-2.5 py-1 text-xs font-semibold'
+                        : 'rounded-xl bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground dark:bg-muted/80'
+                    }
+                    style={
+                      row.type === 'checklist'
+                        ? { backgroundColor: 'rgba(0, 82, 255, 0.1)', color: '#0052FF' }
+                        : undefined
                     }
                   >
                     {row.type === 'checklist' ? 'Checklist' : 'Tùy chỉnh'}
@@ -286,7 +302,7 @@ export default function StudentDeadlinesTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1.5"
+                      className="gap-1.5 rounded-xl border-border"
                       onClick={() => setViewRow(row)}
                     >
                       <Eye className="h-3.5 w-3.5" />
@@ -295,8 +311,10 @@ export default function StudentDeadlinesTable({
                     {canSubmitReview(row.status) ? (
                       <Button
                         size="sm"
-                        variant="secondary"
-                        className="gap-1.5"
+                        className="gap-1.5 rounded-xl font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                        style={{
+                          background: 'linear-gradient(to right, #0052FF, #4D7CFF)',
+                        }}
                         onClick={() => handleSubmitReview(row)}
                         disabled={submittingReviewId === row.id}
                         title="Nộp để mentor duyệt"
@@ -310,7 +328,7 @@ export default function StudentDeadlinesTable({
                       </Button>
                     ) : (
                       String(row.status).toUpperCase() === 'SUBMITTED' && (
-                        <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+                        <span className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted/50 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
                           <Send className="h-3.5 w-3.5" />
                           Đã nộp review
                         </span>
@@ -318,7 +336,13 @@ export default function StudentDeadlinesTable({
                     )}
                     {row.type === 'checklist' && (
                       <Link href="/student/checklist">
-                        <Button size="sm" className="gap-1.5">
+                        <Button
+                          size="sm"
+                          className="gap-1.5 rounded-xl font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                          style={{
+                            background: 'linear-gradient(to right, #0052FF, #4D7CFF)',
+                          }}
+                        >
                           Checklist
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Button>
@@ -333,9 +357,9 @@ export default function StudentDeadlinesTable({
       </div>
 
       <Dialog open={!!viewRow} onOpenChange={(open) => !open && setViewRow(null)}>
-        <DialogContent className="sm:max-w-md p-6">
+        <DialogContent className="sm:max-w-md rounded-2xl border-border p-6 shadow-xl">
           <DialogHeader className="pr-10">
-            <DialogTitle>Chi tiết deadline</DialogTitle>
+            <DialogTitle className="font-semibold">Chi tiết deadline</DialogTitle>
           </DialogHeader>
           {viewRow && (
             <div className="space-y-4 text-sm">
@@ -395,9 +419,9 @@ export default function StudentDeadlinesTable({
       </Dialog>
 
       <Dialog open={!!noteRow} onOpenChange={(open) => !open && setNoteRow(null)}>
-        <DialogContent className="sm:max-w-md p-6">
+        <DialogContent className="sm:max-w-md rounded-2xl border-border p-6 shadow-xl">
           <DialogHeader className="pr-10">
-            <DialogTitle>Sửa ghi chú</DialogTitle>
+            <DialogTitle className="font-semibold">Sửa ghi chú</DialogTitle>
           </DialogHeader>
           {noteRow && (
             <div className="space-y-4">
@@ -411,11 +435,22 @@ export default function StudentDeadlinesTable({
                   placeholder="Thêm ghi chú..."
                 />
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setNoteRow(null)}>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={() => setNoteRow(null)}
+                >
                   Hủy
                 </Button>
-                <Button onClick={handleSaveNote} disabled={savingNote}>
+                <Button
+                  className="rounded-xl font-semibold text-white shadow-md"
+                  style={{
+                    background: 'linear-gradient(to right, #0052FF, #4D7CFF)',
+                  }}
+                  onClick={handleSaveNote}
+                  disabled={savingNote}
+                >
                   {savingNote ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -75,15 +75,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If test exists but not completed, return existing test
+    // If test exists but not completed, return existing test (kèm answers để làm tiếp)
     if (existingTest) {
-      // Found existing test
       return NextResponse.json({
         success: true,
         test_id: existingTest.id,
         test_type: testType,
         status: existingTest.status,
         message: 'Continuing existing test',
+        answers: existingTest.answers ?? {},
+        current_step: existingTest.current_step ?? 0,
       });
     }
 

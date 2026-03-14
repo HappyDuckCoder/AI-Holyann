@@ -60,3 +60,43 @@ export async function autoCompleteChecklistTask(studentId: string, pathKeyword: 
     return { success: false, error };
   }
 }
+
+/**
+ * Đánh dấu hoàn thành task "Chuẩn bị CV" khi student đã có ít nhất 1 CV trên trang manage-upload.
+ * Tìm task có title chứa "CV" và upsert progress COMPLETED.
+ */
+export async function completeCvChecklistTask(studentId: string) {
+  try {
+    const task = await prisma.checklist_tasks.findFirst({
+      where: {
+        title: { contains: 'CV', mode: 'insensitive' },
+      },
+    });
+    if (!task) {
+      console.warn('⚠️ [ChecklistCV] No CV task found in checklist');
+      return { success: false, message: 'CV task not found' };
+    }
+    await prisma.student_task_progress.upsert({
+      where: {
+        student_id_task_id: { student_id: studentId, task_id: task.id },
+      },
+      create: {
+        id: randomUUID(),
+        student_id: studentId,
+        task_id: task.id,
+        status: TaskStatus.COMPLETED,
+        completed_at: new Date(),
+      },
+      update: {
+        status: TaskStatus.COMPLETED,
+        completed_at: new Date(),
+      },
+    });
+    revalidatePath('/student/checklist');
+    revalidatePath('/dashboard/checklist');
+    return { success: true, task: task.title };
+  } catch (error) {
+    console.error('❌ [ChecklistCV] Error completing CV task:', error);
+    return { success: false, error };
+  }
+}

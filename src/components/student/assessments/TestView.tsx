@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
 import {
   RotateCcw,
   ChevronLeft,
@@ -6,15 +8,37 @@ import {
   Check,
   List,
   X,
+  AlertTriangle,
+  Save,
+  Loader2,
 } from "lucide-react";
 import { Question, TestType } from "@/components/types";
 import { TEST_DESCRIPTIONS } from "@/constants";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface TestViewProps {
   testType: TestType;
   questions: Question[];
+  /** Đáp án đã lưu khi làm tiếp (tiến độ cũ) */
+  initialAnswers?: Record<number, string | number | boolean>;
   onBack: () => void;
-  onComplete: (answers: Record<number, string | number | boolean>) => void;
+  onComplete: (
+    answers: Record<number, string | number | boolean>,
+    currentStep?: number,
+  ) => void;
+  /** Lưu tiến độ sớm (không nộp bài, không gọi AI) */
+  onSaveProgress?: (
+    answers: Record<number, string | number | boolean>,
+    currentStep: number,
+  ) => void | Promise<void>;
 }
 
 const ProgressBar: React.FC<{ current: number; total: number }> = ({
@@ -35,14 +59,33 @@ const ProgressBar: React.FC<{ current: number; total: number }> = ({
 const TestView: React.FC<TestViewProps> = ({
   testType,
   questions,
+  initialAnswers,
   onBack,
   onComplete,
+  onSaveProgress,
 }) => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [savingProgress, setSavingProgress] = useState(false);
   const [answers, setAnswers] = useState<
     Record<number, string | number | boolean>
-  >({});
+  >(initialAnswers ?? {});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
+    const ans = initialAnswers ?? {};
+    const idx = questions.findIndex((q) => ans[q.id] === undefined);
+    return idx >= 0 ? idx : Math.max(0, questions.length - 1);
+  });
   const [showQuestionList, setShowQuestionList] = useState(false);
+  const [submitConfirmOpen, setSubmitConfirmOpen] = useState(false);
+  const hasHydratedRef = useRef(false);
+
+  // Khôi phục đáp án đã lưu khi làm tiếp (khi initialAnswers được cập nhật sau mount)
+  useEffect(() => {
+    if (hasHydratedRef.current) return;
+    if (!initialAnswers || Object.keys(initialAnswers).length === 0) return;
+    hasHydratedRef.current = true;
+    setAnswers({ ...initialAnswers });
+    const idx = questions.findIndex((q) => initialAnswers[q.id] === undefined);
+    setCurrentQuestionIndex(idx >= 0 ? idx : Math.max(0, questions.length - 1));
+  }, [initialAnswers, questions]);
 
   const handleAnswer = (value: string | number | boolean) => {
     const question = questions[currentQuestionIndex];
@@ -63,18 +106,27 @@ const TestView: React.FC<TestViewProps> = ({
   };
 
   const handleComplete = () => {
-    // Check if all questions are answered
-    const unansweredCount = questions.filter(
-      (q) => answers[q.id] === undefined,
-    ).length;
-    if (unansweredCount > 0) {
-      const confirm = window.confirm(
-        `Bạn còn ${unansweredCount} câu chưa trả lời. Bạn có chắc muốn nộp bài không?`,
-      );
-      if (!confirm) return;
-    }
-    onComplete(answers);
+    setSubmitConfirmOpen(true);
   };
+
+  const handleConfirmSubmit = () => {
+    setSubmitConfirmOpen(false);
+    onComplete(answers, currentQuestionIndex);
+  };
+
+  const handleSaveProgress = async () => {
+    if (!onSaveProgress) return;
+    setSavingProgress(true);
+    try {
+      await onSaveProgress(answers, currentQuestionIndex);
+    } finally {
+      setSavingProgress(false);
+    }
+  };
+
+  const unansweredCount = questions.filter(
+    (q) => answers[q.id] === undefined,
+  ).length;
 
   const handleJumpToQuestion = (index: number) => {
     setCurrentQuestionIndex(index);
@@ -189,13 +241,30 @@ const TestView: React.FC<TestViewProps> = ({
 
         {/* Main Content */}
         <div className="flex-1 max-w-3xl">
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={onBack}
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-2 text-sm font-medium"
-            >
-              <RotateCcw size={16} /> Quay lại
-            </button>
+          <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onBack}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-2 text-sm font-medium"
+              >
+                <RotateCcw size={16} /> Quay lại
+              </button>
+              {onSaveProgress && (
+                <button
+                  type="button"
+                  onClick={handleSaveProgress}
+                  disabled={savingProgress || Object.keys(answers).length === 0}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 hover:bg-muted text-sm font-medium text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {savingProgress ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Save size={16} />
+                  )}
+                  {savingProgress ? "Đang lưu..." : "Lưu tiến độ"}
+                </button>
+              )}
+            </div>
 
             {/* Toggle Question List Button (Mobile) */}
             <button
@@ -421,6 +490,69 @@ const TestView: React.FC<TestViewProps> = ({
           onClick={() => setShowQuestionList(false)}
         />
       )}
+
+      {/* Modal: nếu chưa trả lời hết → Lưu tiến độ; nếu đủ câu → Xác nhận nộp bài */}
+      <Dialog open={submitConfirmOpen} onOpenChange={setSubmitConfirmOpen}>
+        <DialogContent className="sm:max-w-md p-6 sm:p-6 gap-4">
+          <DialogHeader>
+            {unansweredCount > 0 ? (
+              <>
+                <DialogTitle className="flex items-center gap-2 text-primary">
+                  <Save className="h-5 w-5 shrink-0" />
+                  Lưu tiến độ
+                </DialogTitle>
+                <DialogDescription asChild>
+                  <div className="space-y-2 pt-1">
+                    <p className="font-medium text-foreground">
+                      Bạn còn <strong>{unansweredCount} câu</strong> chưa trả lời.
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Lưu tiến độ để đóng và làm tiếp sau. Đáp án hiện tại sẽ được giữ nguyên.
+                    </p>
+                  </div>
+                </DialogDescription>
+              </>
+            ) : (
+              <>
+                <DialogTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                  <AlertTriangle className="h-5 w-5 shrink-0" />
+                  Xác nhận nộp bài
+                </DialogTitle>
+                <DialogDescription asChild>
+                  <div className="space-y-2 pt-1">
+                    <p className="font-medium text-foreground">
+                      Bài test này <strong>chỉ được làm một lần</strong>. Sau khi nộp, bạn sẽ không thể làm lại hoặc sửa đáp án.
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Bạn có chắc chắn muốn nộp bài ngay bây giờ?
+                    </p>
+                  </div>
+                </DialogDescription>
+              </>
+            )}
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSubmitConfirmOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmSubmit}
+              className={
+                unansweredCount > 0
+                  ? "bg-primary hover:bg-primary/90"
+                  : "bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600"
+              }
+            >
+              {unansweredCount > 0 ? "Lưu tiến độ" : "Xác nhận nộp bài"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

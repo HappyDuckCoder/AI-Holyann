@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import {
   CheckSquare,
   Square,
@@ -69,7 +71,8 @@ export function TaskCard({
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!task.isLocked && !(task.id === "1-2" && !task.uploadedFile)) {
+    const cvTaskBlocked = task.linkToManageUpload && !task.uploadedFile;
+    if (!task.isLocked && !cvTaskBlocked) {
       onToggle(task.id);
     }
   };
@@ -119,12 +122,12 @@ export function TaskCard({
         <button
           type="button"
           onClick={handleCheckboxClick}
-          disabled={task.isLocked || (task.id === "1-2" && !task.uploadedFile)}
+          disabled={task.isLocked || (!!task.linkToManageUpload && !task.uploadedFile)}
           title={
             task.isLocked
               ? "Đã xác nhận từ hệ thống"
-              : task.id === "1-2" && !task.uploadedFile
-                ? "Vui lòng upload CV trước"
+              : task.linkToManageUpload && !task.uploadedFile
+                ? "Vui lòng tải CV lên trang Quản lý tài liệu"
                 : undefined
           }
           className="shrink-0 rounded-lg p-0.5 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-70"
@@ -263,17 +266,50 @@ export function TaskCard({
                   </div>
                 )}
 
-              {/* File upload (CV) */}
-              {needsFile && onCVUpload && onCVDelete && (
-                <div>
-                  {task.id === "1-2" && !task.uploadedFile && !scanningCV && (
-                    <div className="mb-4 p-3 bg-primary/5 dark:bg-primary/10 border-l-4 border-primary rounded-xl">
-                      <p className="text-sm text-foreground font-medium">
-                        Task này sẽ hoàn thành khi bạn upload CV.
-                      </p>
+              {/* CV task: chuyển sang trang Quản lý tài liệu, hoàn thành khi có ít nhất 1 CV */}
+              {task.linkToManageUpload && (
+                <div className="rounded-2xl border border-border/60 bg-muted/20 dark:bg-muted/30 p-4">
+                  {task.uploadedFile ? (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="shrink-0 p-2 bg-card rounded-xl border border-border/60 text-primary">
+                        <FileText size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-foreground">
+                          {task.uploadedFile}
+                        </span>
+                        <p className="text-xs text-muted-foreground">
+                          Task hoàn thành khi đã có ít nhất 1 CV trên trang Quản lý tài liệu.
+                        </p>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-foreground mb-3">
+                        Task này hoàn thành khi bạn đã tải ít nhất 1 CV lên trang Quản lý tài liệu.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        className="rounded-xl"
+                        onClick={(e) => e.stopPropagation()}
+                        asChild
+                      >
+                        <Link href={task.linkTo || "/student/manage-upload"}>
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                          Đến trang Quản lý tài liệu
+                        </Link>
+                      </Button>
+                    </>
                   )}
-                  {scanningCV && task.id === "1-2" ? (
+                </div>
+              )}
+
+              {/* File upload (các task khác cần file, không phải CV manage-upload) */}
+              {needsFile && !task.linkToManageUpload && onCVUpload && onCVDelete && (
+                <div>
+                  {scanningCV ? (
                     <div className="flex flex-col items-center justify-center p-8 bg-muted/30 dark:bg-muted/40 border border-border/60 rounded-2xl">
                       <Loader2 className="h-10 w-10 text-primary animate-spin" />
                       <p className="mt-3 text-sm font-medium text-foreground">

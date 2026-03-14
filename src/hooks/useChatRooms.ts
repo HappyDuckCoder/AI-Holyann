@@ -34,9 +34,9 @@ export function useChatRooms(userId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadRooms = useCallback(async () => {
+  const loadRooms = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
 
       const response = await fetch('/api/chat/rooms');
@@ -68,9 +68,9 @@ export function useChatRooms(userId: string) {
       }
     } catch (err) {
       console.error('Error loading rooms:', err);
-      setError(err instanceof Error ? err.message : 'Lỗi không xác định');
+      if (!silent) setError(err instanceof Error ? err.message : 'Lỗi không xác định');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -89,9 +89,8 @@ export function useChatRooms(userId: string) {
           table: 'chat_messages',
         },
         (payload) => {
-          // Message event, refreshing rooms
-          // Refresh rooms when any message is sent/updated
-          loadRooms();
+          // Message event: refresh room list in background (no loading spinner)
+          loadRooms(true);
         }
       )
       .subscribe();
@@ -106,9 +105,9 @@ export function useChatRooms(userId: string) {
     loadRooms();
   }, [loadRooms]);
 
-  // Periodic refresh every 30 seconds as fallback
+  // Periodic refresh every 30 seconds as fallback (silent, no loading spinner)
   useEffect(() => {
-    const interval = setInterval(loadRooms, 30000);
+    const interval = setInterval(() => loadRooms(true), 30000);
     return () => clearInterval(interval);
   }, [loadRooms]);
 

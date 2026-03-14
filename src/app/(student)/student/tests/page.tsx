@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -46,14 +47,25 @@ import { useSession } from "next-auth/react";
 
 type ViewState = "selection" | "test" | "result";
 
-export default function TestsPage() {
+const URL_TYPE_TO_TEST: Record<string, TestType> = {
+  mbti: "MBTI",
+  grit: "GRIT",
+  riasec: "RIASEC",
+};
+
+function TestsPageContent() {
+  const searchParams = useSearchParams();
   const [viewState, setViewState] = useState<ViewState>("selection");
   const [currentTestType, setCurrentTestType] = useState<TestType | null>(null);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const { data: session } = useSession();
+  const hasAutoStartedFromUrl = useRef(false);
 
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
+  const [initialAnswersForTest, setInitialAnswersForTest] = useState<
+    Record<number, string | number | boolean>
+  >({});
   const [resetConfirmType, setResetConfirmType] = useState<TestType | null>(null);
   const [resetLoading, setResetLoading] = useState(false);
 
@@ -92,6 +104,19 @@ export default function TestsPage() {
       allTests.filter((t) => !progress.completedTests.includes(t)),
     );
   }, [progress]);
+
+  // Mở đúng bài test khi vào từ URL ?type=mbti|grit|riasec (vd. redirect từ /dashboard/tests?type=mbti)
+  useEffect(() => {
+    if (hasAutoStartedFromUrl.current || !isLoaded || !studentId) return;
+    const typeParam = searchParams.get("type");
+    const testType = typeParam ? URL_TYPE_TO_TEST[typeParam.toLowerCase()] : null;
+    if (!testType) return;
+    hasAutoStartedFromUrl.current = true;
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", "/student/tests");
+    }
+    handleStartTest(testType);
+  }, [isLoaded, studentId, searchParams]);
 
   const handleStartTest = async (type: TestType) => {
     const studentId = getStudentId();
@@ -144,11 +169,22 @@ export default function TestsPage() {
       setCurrentTestId(data.test_id);
       setCurrentQuestions(data.questions || getQuestionsForTest(type));
       setCurrentTestType(type);
+      setInitialAnswersForTest(
+        data.answers ? normalizeAnswers(data.answers as Record<string, unknown>) : {},
+      );
       setViewState("test");
 
-      toast.success("Bắt đầu bài test thành công", {
-        description: `Bạn đã bắt đầu làm bài test ${type}. Chúc bạn làm bài tốt!`,
-      });
+      toast.success(
+        data.message === "Continuing existing test"
+          ? "Tiếp tục làm bài test"
+          : "Bắt đầu bài test thành công",
+        {
+          description:
+            data.message === "Continuing existing test"
+              ? "Đáp án đã lưu trước đó đã được khôi phục."
+              : `Bạn đã bắt đầu làm bài test ${type}. Chúc bạn làm bài tốt!`,
+        },
+      );
     } catch (e) {
       console.error("Start test failed", e);
       toast.error("Không thể bắt đầu bài test", {
@@ -172,6 +208,21 @@ export default function TestsPage() {
     }
   };
 
+  /** Chuẩn hóa answers từ API (key có thể là string) sang Record<number, ...> */
+  const normalizeAnswers = (
+    raw: Record<string, unknown> | unknown[] | Record<number, string | number | boolean>,
+  ): Record<number, string | number | boolean> => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+    const out: Record<number, string | number | boolean> = {};
+    Object.entries(raw).forEach(([k, v]) => {
+      const num = Number(k);
+      if (!Number.isNaN(num) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
+        out[num] = v;
+      }
+    });
+    return out;
+  };
+
   const submitAnswersToApi = async (
     answers: Record<number, string | number | boolean>,
     testType: TestType,
@@ -183,7 +234,6 @@ export default function TestsPage() {
       return;
     }
 
-    // Gửi TẤT CẢ đáp án trong 1 API call duy nhất
     const response = await fetch("/api/tests/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -191,7 +241,7 @@ export default function TestsPage() {
         test_id: currentTestId,
         student_id: studentId,
         test_type: testType.toLowerCase(),
-        answers: answers, // Gửi toàn bộ object
+        answers,
       }),
     });
 
@@ -210,6 +260,36 @@ export default function TestsPage() {
       description: "Đáp án của bạn đã được lưu. Đang xử lý kết quả...",
     });
     return data.result;
+  };
+
+  /** Chỉ lưu tiến độ (không gọi server AI). Dùng khi nộp khi còn thiếu câu. */
+  const saveProgressToApi = async (
+    answers: Record<number, string | number | boolean>,
+    testType: TestType,
+    currentStep: number,
+  ) => {
+    if (!currentTestId) return;
+    const studentId = getStudentId();
+    if (!studentId) return;
+
+    const response = await fetch("/api/tests/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        test_id: currentTestId,
+        student_id: studentId,
+        test_type: testType.toLowerCase(),
+        answers,
+        save_progress_only: true,
+        current_step: currentStep,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      toast.error("Lưu tiến độ thất bại", { description: data.error || "Vui lòng thử lại." });
+      throw new Error(data.error || "Failed to save progress");
+    }
   };
 
   const calculateMBTIResult = (
@@ -299,6 +379,7 @@ export default function TestsPage() {
 
   const handleTestComplete = async (
     answers: Record<number, string | number | boolean>,
+    currentStep?: number,
   ) => {
     if (!currentTestType) return;
     const studentId = getStudentId();
@@ -309,9 +390,30 @@ export default function TestsPage() {
       return;
     }
 
+    const totalQuestions = currentQuestions.length;
+    const answeredCount = Object.keys(answers).length;
+    const unansweredCount = totalQuestions - answeredCount;
+
+    // Nộp khi còn thiếu câu: chỉ lưu tiến độ, không gọi server AI. User làm tiếp sau.
+    if (unansweredCount > 0) {
+      try {
+        await saveProgressToApi(answers, currentTestType, currentStep ?? 0);
+        toast.success("Đã lưu tiến độ", {
+          description: "Bạn còn " + unansweredCount + " câu chưa trả lời. Có thể vào làm tiếp sau.",
+        });
+        setViewState("selection");
+        setCurrentTestType(null);
+        setCurrentTestId(null);
+        setCurrentQuestions([]);
+        setInitialAnswersForTest({});
+        refreshProgress();
+      } catch {
+        // toast đã trong saveProgressToApi
+      }
+      return;
+    }
+
     try {
-      // Gửi đáp án và nhận kết quả ngay từ API submit
-      // API submit sẽ gọi MBTI API từ server-ai và lưu scores vào DB
       toast.info("Đang phân tích kết quả bằng AI...", {
         description: "Vui lòng đợi trong giây lát...",
       });
@@ -465,6 +567,8 @@ export default function TestsPage() {
     setViewState("selection");
     setCurrentTestType(null);
     setCurrentTestId(null);
+    setCurrentQuestions([]);
+    setInitialAnswersForTest({});
     setTestResult(null);
   };
 
@@ -602,8 +706,16 @@ export default function TestsPage() {
           <TestView
             testType={currentTestType}
             questions={getQuestionsForTest(currentTestType)}
+            initialAnswers={initialAnswersForTest}
             onBack={handleBackToSelection}
             onComplete={handleTestComplete}
+            onSaveProgress={async (answers, currentStep) => {
+              if (!currentTestType) return;
+              await saveProgressToApi(answers, currentTestType, currentStep);
+              toast.success("Đã lưu tiến độ", {
+                description: "Bạn có thể đóng và làm tiếp sau.",
+              });
+            }}
           />
         )}
 
@@ -618,5 +730,19 @@ export default function TestsPage() {
         )}
       </div>
     </StudentPageContainer>
+  );
+}
+
+export default function TestsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <TestsPageContent />
+    </Suspense>
   );
 }

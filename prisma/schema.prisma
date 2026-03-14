@@ -221,6 +221,7 @@ model essay_improve_results {
 model essays {
   id                    String                 @id @db.Uuid
   student_id            String                 @db.Uuid
+  slot_index            Int                    @default(1)
   title                 String?                @db.VarChar(500)
   content               String
   created_at            DateTime               @default(now()) @db.Timestamp(6)
@@ -229,6 +230,7 @@ model essays {
   essay_improve_results essay_improve_results?
   students              students               @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
+  @@unique([student_id, slot_index], map: "essays_student_slot_key")
   @@index([student_id])
 }
 
@@ -650,11 +652,13 @@ model student_backgrounds {
 model student_cv_documents {
   id          String   @id @db.Uuid
   student_id  String   @db.Uuid
+  slot_index  Int      @default(1)
   file_url    String
   file_name   String   @db.VarChar(255)
   uploaded_at DateTime @default(now()) @db.Timestamp(6)
   students    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
+  @@unique([student_id, slot_index], map: "student_cv_documents_student_slot_key")
   @@index([student_id])
 }
 

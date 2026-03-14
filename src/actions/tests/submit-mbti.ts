@@ -46,7 +46,7 @@ export async function submitMbtiAction(
       data: { assessments_completed: true }
     })
 
-    revalidatePath('/dashboard/tests')
+    revalidatePath('/student/tests')
 
     return { success: true, data: updatedTest }
   } catch (error: unknown) {

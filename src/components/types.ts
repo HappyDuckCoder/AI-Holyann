@@ -95,6 +95,7 @@ export interface Task {
     uploadedFile?: string;     // Name of the uploaded file (if any)
     feedback?: string;         // Mentor feedback
     linkTo?: string;           // Link to navigate when task is clicked (for test tasks)
+    linkToManageUpload?: boolean; // CV task: complete by uploading on manage-upload page
     isLocked?: boolean;        // Task is locked (completed from database, cannot be manually changed)
     status?: string;           // PENDING, IN_PROGRESS, SUBMITTED, COMPLETED, NEEDS_REVISION
     mentorNote?: string;       // Mentor's note for revision

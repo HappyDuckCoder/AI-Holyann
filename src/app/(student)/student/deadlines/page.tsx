@@ -2,9 +2,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-config";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Calendar, ClipboardList } from "lucide-react";
 import StudentDeadlinesTable from "@/components/student/deadlines/StudentDeadlinesTable";
+import { StudentPageContainer } from "@/components/student";
+
+const ACCENT = "#0052FF";
+const ACCENT_SEC = "#4D7CFF";
 
 type RowType = "checklist" | "custom";
 
@@ -180,61 +182,107 @@ export default async function StudentDeadlinesPage() {
   const customCount = customRows.length;
 
   return (
-    <div className="min-h-[calc(100vh-theme(spacing.14))] bg-background">
-      <div className="container max-w-screen-2xl px-4 py-6 sm:px-6 md:px-8 md:py-8">
-        <div className="space-y-6">
-          {/* Header - giống admin users */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">
-                Deadline
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Theo dõi hạn chót từ checklist và deadline tùy chỉnh từ mentor
-              </p>
+    <StudentPageContainer className="min-h-[60vh]">
+      <div className="mx-auto max-w-6xl min-w-0 space-y-8">
+        {/* Hero: section label + gradient headline */}
+        <section className="relative overflow-hidden rounded-2xl border border-border bg-card px-6 py-8 shadow-md sm:px-10 sm:py-10">
+          <div
+            className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-[0.06]"
+            style={{
+              background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_SEC})`,
+            }}
+          />
+          <div className="relative">
+            <div
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2"
+              style={{
+                borderColor: "rgba(0, 82, 255, 0.3)",
+                backgroundColor: "rgba(0, 82, 255, 0.05)",
+              }}
+            >
+              <span
+                className="h-2 w-2 rounded-full animate-pulse"
+                style={{ backgroundColor: ACCENT }}
+              />
+              <span
+                className="font-mono text-xs uppercase tracking-[0.15em]"
+                style={{ color: ACCENT }}
+              >
+                Hạn chót
+              </span>
             </div>
+            <h1 className="mt-4 font-university-display text-2xl font-bold leading-tight text-foreground sm:text-3xl md:text-4xl">
+              <span className="relative inline-block">
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, ${ACCENT}, ${ACCENT_SEC})`,
+                  }}
+                >
+                  Deadline
+                </span>
+                <span
+                  className="pointer-events-none absolute -bottom-1 left-0 h-2 w-full rounded-full opacity-20"
+                  style={{
+                    background: `linear-gradient(to right, ${ACCENT}, ${ACCENT_SEC})`,
+                  }}
+                />
+              </span>
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Theo dõi hạn chót từ checklist và deadline tùy chỉnh từ mentor
+            </p>
           </div>
+        </section>
 
-          {/* Stats cards - giống admin users */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">Tổng</p>
-              <p className="text-2xl font-bold text-foreground">{totalCount}</p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">Quá hạn / Hôm nay</p>
-              <p className="text-2xl font-bold text-destructive">
-                {overdueCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">
-                Sắp hết hạn (≤3 ngày)
-              </p>
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                {urgentCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">Sắp tới</p>
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                {upcomingCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-sm text-muted-foreground">
-                Deadline tùy chỉnh
-              </p>
-              <p className="text-2xl font-bold text-primary">{customCount}</p>
-            </div>
+        {/* Stats cards */}
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-5">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-md transition-shadow hover:shadow-lg">
+            <p className="text-sm text-muted-foreground">Tổng</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight text-foreground">
+              {totalCount}
+            </p>
           </div>
-
-          {/* Table - cùng style admin users */}
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <StudentDeadlinesTable rows={serializableRows} />
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-md transition-shadow hover:shadow-lg">
+            <p className="text-sm text-muted-foreground">Quá hạn / Hôm nay</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight text-destructive">
+              {overdueCount}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-md transition-shadow hover:shadow-lg">
+            <p className="text-sm text-muted-foreground">Sắp hết hạn (≤3 ngày)</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+              {urgentCount}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-md transition-shadow hover:shadow-lg">
+            <p className="text-sm text-muted-foreground">Sắp tới</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+              {upcomingCount}
+            </p>
+          </div>
+          <div
+            className="rounded-2xl border p-5 shadow-md transition-shadow hover:shadow-lg"
+            style={{
+              borderColor: "rgba(0, 82, 255, 0.25)",
+              background: "linear-gradient(to bottom, rgba(0, 82, 255, 0.04), transparent)",
+            }}
+          >
+            <p className="text-sm text-muted-foreground">Deadline tùy chỉnh</p>
+            <p
+              className="mt-1 text-2xl font-bold tracking-tight"
+              style={{ color: ACCENT }}
+            >
+              {customCount}
+            </p>
           </div>
         </div>
+
+        {/* Table card */}
+        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-md transition-shadow hover:shadow-lg">
+          <StudentDeadlinesTable rows={serializableRows} />
+        </div>
       </div>
-    </div>
+    </StudentPageContainer>
   );
 }

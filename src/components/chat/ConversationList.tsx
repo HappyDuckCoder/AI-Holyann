@@ -30,7 +30,7 @@ const ConversationCard = memo(function ConversationCard({
           avatarUrl={conv.mentor.avatar}
           name={conv.mentor.name}
           size="md"
-          showOnlineIndicator
+          showOnlineIndicator={false}
           isOnline={conv.mentor.isOnline}
         />
         <div className="flex-1 min-w-0">
