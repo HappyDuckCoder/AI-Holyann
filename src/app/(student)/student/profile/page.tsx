@@ -394,7 +394,7 @@ export default function ProfilePageWrapper() {
       (c) => (c.type || "").trim() || (c.score || "").trim(),
     );
     try {
-      const [, academicRes] = await Promise.all([
+      const [profileRes, academicRes] = await Promise.all([
         fetch(`/api/students/${studentId}/profile`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
