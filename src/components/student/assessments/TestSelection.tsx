@@ -7,6 +7,7 @@ import { TEST_DESCRIPTIONS } from "@/constants";
 interface TestSelectionProps {
   onStartTest: (type: TestType) => void;
   onViewResult: (type: TestType) => void;
+  onResetTest?: (type: TestType) => void;
   completedTests?: TestType[];
   testResults?: Partial<Record<TestType, TestResult>>;
   onViewRecommendations?: () => void;
@@ -15,6 +16,7 @@ interface TestSelectionProps {
 const TestSelection: React.FC<TestSelectionProps> = ({
   onStartTest,
   onViewResult,
+  onResetTest,
   completedTests = [],
   testResults = {},
   onViewRecommendations,
@@ -57,6 +59,7 @@ const TestSelection: React.FC<TestSelectionProps> = ({
           iconType="MBTI"
           onClick={() => onStartTest("MBTI")}
           onViewResult={() => onViewResult("MBTI")}
+          onReset={onResetTest ? () => onResetTest("MBTI") : undefined}
           isCompleted={completedTests.includes("MBTI")}
           result={testResults["MBTI"]}
         />
@@ -67,6 +70,7 @@ const TestSelection: React.FC<TestSelectionProps> = ({
           iconType="GRIT"
           onClick={() => onStartTest("GRIT")}
           onViewResult={() => onViewResult("GRIT")}
+          onReset={onResetTest ? () => onResetTest("GRIT") : undefined}
           isCompleted={completedTests.includes("GRIT")}
           result={testResults["GRIT"]}
         />
@@ -77,6 +81,7 @@ const TestSelection: React.FC<TestSelectionProps> = ({
           iconType="RIASEC"
           onClick={() => onStartTest("RIASEC")}
           onViewResult={() => onViewResult("RIASEC")}
+          onReset={onResetTest ? () => onResetTest("RIASEC") : undefined}
           isCompleted={completedTests.includes("RIASEC")}
           result={testResults["RIASEC"]}
         />

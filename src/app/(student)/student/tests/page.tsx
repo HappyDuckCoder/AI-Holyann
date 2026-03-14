@@ -12,6 +12,16 @@ import {
   CareerAssessmentResults,
 } from "@/components/student/assessments";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import {
   TestType,
   Question,
   TestResult,
@@ -52,6 +62,8 @@ export default function TestsPage() {
   const [careerRecs, setCareerRecs] = useState<MajorRecommendation[]>([]);
   const [showCareerAssessment, setShowCareerAssessment] = useState(false);
   const [careerRefreshTrigger, setCareerRefreshTrigger] = useState(0);
+  const [resetConfirmType, setResetConfirmType] = useState<TestType | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
 
   // State để lưu remainingTests tại thời điểm hoàn thành test (để tránh async state issue)
   const [currentRemainingTests, setCurrentRemainingTests] = useState<
@@ -304,7 +316,9 @@ export default function TestsPage() {
     if (!currentTestType) return;
     const studentId = getStudentId();
     if (!studentId || !currentTestId) {
-      alert("Không tìm thấy student_id hoặc test_id. Vui lòng thử lại.");
+      toast.error("Không tìm thấy student_id hoặc test_id", {
+        description: "Vui lòng thử lại.",
+      });
       return;
     }
 
@@ -551,20 +565,22 @@ export default function TestsPage() {
     }
   };
 
-  // Nút "Làm lại" RIASEC đã comment lại theo yêu cầu
-  /*
-  const handleResetTest = async (type: TestType) => {
+  const handleOpenResetConfirm = (type: TestType) => {
+    setResetConfirmType(type);
+  };
+
+  const handleConfirmResetTest = async () => {
+    const type = resetConfirmType;
+    if (!type) return;
     const sid = getStudentId();
     if (!sid) {
       toast.error("Không tìm thấy thông tin người dùng", {
         description: "Vui lòng đăng nhập lại để tiếp tục",
       });
+      setResetConfirmType(null);
       return;
     }
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn làm lại bài test ${type}? Kết quả cũ sẽ bị xóa và bạn sẽ làm lại từ đầu.`
-    );
-    if (!confirmed) return;
+    setResetLoading(true);
     try {
       toast.info("Đang xóa kết quả test cũ...", {
         description: `Đang reset bài test ${type}...`,
@@ -578,17 +594,19 @@ export default function TestsPage() {
         throw new Error(data.error || "Không thể reset test");
       }
       await refreshProgress();
+      setResetConfirmType(null);
       toast.success("Đã reset test thành công", {
         description: `Bạn có thể làm lại bài test ${type} ngay bây giờ`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Reset test error:", error);
       toast.error("Không thể reset test", {
-        description: error?.message || "Đã xảy ra lỗi. Vui lòng thử lại sau.",
+        description: error instanceof Error ? error.message : "Đã xảy ra lỗi. Vui lòng thử lại sau.",
       });
+    } finally {
+      setResetLoading(false);
     }
   };
-  */
 
   // Loading state khi chưa load xong từ localStorage
   if (!isLoaded) {
@@ -609,10 +627,41 @@ export default function TestsPage() {
             <TestSelection
               onStartTest={handleStartTest}
               onViewResult={handleViewResult}
+              onResetTest={handleOpenResetConfirm}
               completedTests={progress.completedTests}
               testResults={progress.results}
               onViewRecommendations={handleViewAllRecommendations}
             />
+
+            <Dialog
+              open={resetConfirmType !== null}
+              onOpenChange={(open) => !open && setResetConfirmType(null)}
+            >
+              <DialogContent className="p-6 sm:p-6 gap-4">
+                <DialogHeader>
+                  <DialogTitle>Làm lại bài test</DialogTitle>
+                  <DialogDescription>
+                    Bạn có chắc chắn muốn làm lại bài test {resetConfirmType ?? ""}? Kết quả cũ sẽ bị xóa và bạn sẽ làm lại từ đầu.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setResetConfirmType(null)}
+                    disabled={resetLoading}
+                  >
+                    Hủy
+                  </Button>
+                  <Button onClick={handleConfirmResetTest} disabled={resetLoading}>
+                    {resetLoading ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      "Đã chắc chắn, làm lại"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Đánh giá nghề nghiệp: luôn hiện khi đủ 3 test */}
             {currentAllCompleted && studentId && showCareerAssessment && (
