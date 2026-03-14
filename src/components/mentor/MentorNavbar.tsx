@@ -6,7 +6,7 @@ import {useAuthSession} from "@/hooks/useAuthSession"
 import {signOut} from "next-auth/react"
 import { useState, useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
-import { Menu, X, ChevronDown, LayoutDashboard, Users, User, MessageCircle, LogOut, GraduationCap, CalendarClock } from "lucide-react"
+import { Menu, X, ChevronDown, LayoutDashboard, Users, User, MessageCircle, LogOut, GraduationCap, CalendarClock, Video } from "lucide-react"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
 
 export default function MentorNavbar() {
@@ -20,6 +20,7 @@ export default function MentorNavbar() {
         { name: 'Tổng quan', href: '/mentor/dashboard', icon: LayoutDashboard },
         { name: 'Học viên', href: '/mentor/students', icon: Users },
         { name: 'Hạn nộp', href: '/mentor/deadlines', icon: CalendarClock },
+        { name: 'Lịch hẹn', href: '/mentor/meeting', icon: Video },
         { name: 'Hồ sơ', href: '/mentor/profile', icon: User },
         { name: 'Trao đổi', href: '/mentor/chat', icon: MessageCircle },
     ]
