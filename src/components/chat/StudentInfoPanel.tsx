@@ -110,9 +110,6 @@ export const StudentInfoPanel: React.FC<StudentInfoPanelProps> = ({
                             e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"%3E%3Ccircle cx="48" cy="48" r="48" fill="%23e5e7eb"/%3E%3Ccircle cx="48" cy="38" r="14" fill="%239ca3af"/%3E%3Cellipse cx="48" cy="88" rx="24" ry="18" fill="%239ca3af"/%3E%3C/svg%3E';
                         }}
                     />
-                    {student.isOnline && (
-                        <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
-                    )}
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                     {studentDetails?.full_name || student.name}

@@ -13,6 +13,8 @@ interface MessagesListProps {
     messagesContainerRef: React.RefObject<HTMLDivElement | null>;
     conversationId?: string;
     loading?: boolean;
+    onDeleteMessage?: (messageId: string) => Promise<void>;
+    onDeleteAttachment?: (messageId: string, attachmentId: string) => Promise<void>;
 }
 
 export const MessagesList: React.FC<MessagesListProps> = ({
@@ -21,6 +23,8 @@ export const MessagesList: React.FC<MessagesListProps> = ({
                                                               messagesContainerRef,
                                                               conversationId,
                                                               loading = false,
+                                                              onDeleteMessage,
+                                                              onDeleteAttachment,
                                                           }) => {
     const [hasInitialScrolled, setHasInitialScrolled] = useState(false);
 
@@ -113,7 +117,12 @@ export const MessagesList: React.FC<MessagesListProps> = ({
                             </div>
                         </div>
                     ) : (
-                        <MessageBubble key={item.message.id} message={item.message} />
+                        <MessageBubble
+                            key={item.message.id}
+                            message={item.message}
+                            onDeleteMessage={onDeleteMessage}
+                            onDeleteAttachment={onDeleteAttachment}
+                        />
                     )
                 )
             )}

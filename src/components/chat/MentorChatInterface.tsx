@@ -96,6 +96,8 @@ export const MentorChatInterface: React.FC = () => {
     sendMessage,
     loading: messagesLoading,
     refreshMessages,
+    deleteMessage,
+    deleteAttachment,
   } = useChat({
     roomId: selectedRoomId || "",
     userId: user?.id || "",
@@ -104,19 +106,6 @@ export const MentorChatInterface: React.FC = () => {
     },
     playSound: true,
   });
-
-  // Auto-refresh messages when the conversation updates in the sidebar
-  useEffect(() => {
-    if (selectedConversation?.lastMessageTime) {
-      const diffInfo = Math.abs(
-        new Date().getTime() -
-          new Date(selectedConversation.lastMessageTime).getTime(),
-      );
-      if (diffInfo < 10000) {
-        refreshMessages();
-      }
-    }
-  }, [selectedConversation?.lastMessageTime, refreshMessages]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -240,6 +229,8 @@ export const MentorChatInterface: React.FC = () => {
                 messagesContainerRef={messagesContainerRef}
                 conversationId={selectedConversation.id}
                 loading={messagesLoading}
+                onDeleteMessage={deleteMessage}
+                onDeleteAttachment={deleteAttachment}
               />
 
               <MessageInput

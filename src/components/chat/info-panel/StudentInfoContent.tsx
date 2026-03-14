@@ -106,7 +106,7 @@ export const StudentInfoContent: React.FC<StudentInfoContentProps> = ({
             avatarUrl={details?.avatar_url ?? partner.avatar}
             name={details?.full_name || partner.name}
             size="lg"
-            showOnlineIndicator
+            showOnlineIndicator={false}
             isOnline={partner.isOnline}
             className="shadow-md"
           />

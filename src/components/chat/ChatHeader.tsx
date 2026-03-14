@@ -53,7 +53,7 @@ export default function ChatHeader({
             avatarUrl={displayAvatar}
             name={displayName}
             size="header"
-            showOnlineIndicator
+            showOnlineIndicator={false}
             isOnline={displayIsOnline}
           />
         </div>
@@ -61,10 +61,11 @@ export default function ChatHeader({
           <h3 className="font-semibold text-foreground text-sm">
             {displayName}
           </h3>
-          <p className="text-xs text-muted-foreground">
-            {displayIsOnline ? 'Đang hoạt động' : 'Offline'}
-            {mentor?.roleTitle && ` • ${mentor.roleTitle}`}
-          </p>
+          {mentor?.roleTitle && (
+            <p className="text-xs text-muted-foreground">
+              {mentor.roleTitle}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-1">

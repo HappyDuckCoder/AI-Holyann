@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, memo } from "react";
-import { CheckCheck, Clock, AlertCircle, FileText, File, Download } from "lucide-react";
+import { CheckCheck, Clock, AlertCircle, FileText, File, Download, MoreVertical, Trash2 } from "lucide-react";
 import { Message, Attachment } from "./types";
 import { formatMessageTime } from "./utils";
 import { getSignedUrlFromFullUrl } from "@/actions/storage";
@@ -11,6 +11,9 @@ import { UserAvatar } from "./UserAvatar";
 
 interface MessageBubbleProps {
     message: Message;
+    /** Chỉ hiện nút xóa khi là tin của mình và có callback */
+    onDeleteMessage?: (messageId: string) => Promise<void>;
+    onDeleteAttachment?: (messageId: string, attachmentId: string) => Promise<void>;
 }
 
 // URL regex pattern - matches http, https, www links
@@ -107,8 +110,42 @@ const isImageFile = (fileType: string): boolean => {
     return fileType.startsWith("image/");
 };
 
-export const MessageBubble = memo(function MessageBubble({ message }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message, onDeleteMessage, onDeleteAttachment }: MessageBubbleProps) {
     const hasContent = message.content && message.content.trim().length > 0;
+    const [showMenu, setShowMenu] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [deletingAttachmentId, setDeletingAttachmentId] = useState<string | null>(null);
+
+    const handleDeleteMessage = async () => {
+        if (!onDeleteMessage || deleting || message.isSending) return;
+        if (!confirm("Bạn có chắc muốn xóa tin nhắn này?")) return;
+        setDeleting(true);
+        try {
+            await onDeleteMessage(message.id);
+            toast.success("Đã xóa tin nhắn");
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Không thể xóa tin nhắn");
+        } finally {
+            setDeleting(false);
+            setShowMenu(false);
+        }
+    };
+
+    const handleDeleteAttachment = async (e: React.MouseEvent, attachmentId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!onDeleteAttachment || deletingAttachmentId) return;
+        if (!confirm("Bạn có chắc muốn xóa file này?")) return;
+        setDeletingAttachmentId(attachmentId);
+        try {
+            await onDeleteAttachment(message.id, attachmentId);
+            toast.success("Đã xóa file");
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Không thể xóa file");
+        } finally {
+            setDeletingAttachmentId(null);
+        }
+    };
 
     // State for file preview modal
     const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -316,70 +353,80 @@ export const MessageBubble = memo(function MessageBubble({ message }: MessageBub
                                     const FileIcon = getFileIcon(file.type || "");
 
                                     return (
-                                        <button
+                                        <div
                                             key={file.id}
-                                            onClick={(e) => handleFileClick(e, file)}
-                                            disabled={isLoadingPreview}
-                                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all hover:scale-[1.02] ${
+                                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
                                                 message.isMine
                                                     ? "bg-white/20 hover:bg-white/30"
                                                     : "bg-gray-100 dark:bg-slate-600 hover:bg-gray-200 dark:hover:bg-slate-500"
-                                            } ${isLoadingPreview ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
+                                            } group relative`}
                                         >
-                                            {/* File Icon */}
-                                            <div
-                                                className={`p-2 rounded-lg ${
-                                                    message.isMine
-                                                        ? "bg-white/30"
-                                                        : "bg-blue-100 dark:bg-blue-900/30"
-                                                }`}
+                                            <button
+                                                onClick={(e) => handleFileClick(e, file)}
+                                                disabled={isLoadingPreview}
+                                                className={`flex-1 flex items-center gap-3 min-w-0 ${isLoadingPreview ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
                                             >
-                                                <FileIcon
-                                                    size={20}
-                                                    className={
+                                                <div
+                                                    className={`p-2 rounded-lg shrink-0 ${
                                                         message.isMine
-                                                            ? "text-white"
-                                                            : "text-blue-600 dark:text-blue-400"
-                                                    }
-                                                />
-                                            </div>
-
-                                            {/* File Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <p
-                                                    className={`text-sm font-medium truncate ${
-                                                        message.isMine
-                                                            ? "text-white"
-                                                            : "text-gray-900 dark:text-slate-100"
+                                                            ? "bg-white/30"
+                                                            : "bg-blue-100 dark:bg-blue-900/30"
                                                     }`}
                                                 >
-                                                    {file.name}
-                                                </p>
-                                                <p
-                                                    className={`text-xs ${
-                                                        message.isMine
-                                                            ? "text-white/80"
-                                                            : "text-gray-500 dark:text-slate-400"
-                                                    }`}
+                                                    <FileIcon
+                                                        size={20}
+                                                        className={
+                                                            message.isMine
+                                                                ? "text-white"
+                                                                : "text-blue-600 dark:text-blue-400"
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p
+                                                        className={`text-sm font-medium truncate ${
+                                                            message.isMine
+                                                                ? "text-white"
+                                                                : "text-gray-900 dark:text-slate-100"
+                                                        }`}
+                                                    >
+                                                        {file.name}
+                                                    </p>
+                                                    <p
+                                                        className={`text-xs ${
+                                                            message.isMine
+                                                                ? "text-white/80"
+                                                                : "text-gray-500 dark:text-slate-400"
+                                                        }`}
+                                                    >
+                                                        {formatFileSize(file.size || 0)}
+                                                    </p>
+                                                </div>
+                                                {isLoadingPreview ? (
+                                                    <Clock size={18} className="animate-spin text-gray-400 shrink-0" />
+                                                ) : (
+                                                    <Download
+                                                        size={18}
+                                                        className={`shrink-0 ${message.isMine ? "text-white/80" : "text-gray-400 dark:text-slate-400"}`}
+                                                    />
+                                                )}
+                                            </button>
+                                            {message.isMine && onDeleteAttachment && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleDeleteAttachment(e, file.id)}
+                                                    disabled={deletingAttachmentId === file.id}
+                                                    className="absolute top-2 right-2 p-1.5 rounded-md bg-black/20 hover:bg-red-500/90 text-white shrink-0"
+                                                    title="Xóa file"
                                                 >
-                                                    {formatFileSize(file.size || 0)}
-                                                </p>
-                                            </div>
-
-                                            {/* Download Icon */}
-                                            {isLoadingPreview ? (
-                                                <Clock size={18} className="animate-spin text-gray-400" />
-                                            ) : (
-                                                <Download
-                                                    size={18}
-                                                    className={
-                                                        message.isMine
-                                                            ? "text-white/80"
-                                                            : "text-gray-400 dark:text-slate-400"
-                                                    }
-                                                />
+                                                    {deletingAttachmentId === file.id ? (
+                                                        <Clock size={14} className="animate-spin" />
+                                                    ) : (
+                                                        <Trash2 size={14} />
+                                                    )}
+                                                </button>
                                             )}
-                                        </button>
+                                        </div>
                                     );
                                 })}
                             </div>
@@ -395,34 +442,45 @@ export const MessageBubble = memo(function MessageBubble({ message }: MessageBub
                         }`}
                     >
                         {images.map((image: Attachment) => (
-                            <button
-                                key={image.id}
-                                onClick={(e) => handleFileClick(e, image)}
-                                disabled={isLoadingPreview}
-                                className={`block group relative rounded-lg overflow-hidden ${
-                                    isLoadingPreview ? 'opacity-50 cursor-wait' : 'cursor-pointer'
-                                }`}
-                            >
-                                <ImageDisplay
-                                    image={image}
-                                    className={`rounded-lg object-cover transition-all group-hover:scale-105 ${
-                                        images.length > 1
-                                            ? "w-full h-32 md:h-40"
-                                            : "max-w-[300px] max-h-[300px]"
+                            <div key={image.id} className="relative group/img">
+                                <button
+                                    onClick={(e) => handleFileClick(e, image)}
+                                    disabled={isLoadingPreview}
+                                    className={`block w-full rounded-lg overflow-hidden ${
+                                        isLoadingPreview ? 'opacity-50 cursor-wait' : 'cursor-pointer'
                                     }`}
-                                />
-                                {/* Hover Overlay */}
-                                <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-all rounded-lg flex items-center justify-center">
-                                    {isLoadingPreview && (
-                                        <Clock size={24} className="text-white animate-spin" />
-                                    )}
-                                </div>
-                            </button>
+                                >
+                                    <ImageDisplay
+                                        image={image}
+                                        className={`rounded-lg object-cover transition-all group-hover/img:scale-105 ${
+                                            images.length > 1
+                                                ? "w-full h-32 md:h-40"
+                                                : "max-w-[300px] max-h-[300px]"
+                                        }`}
+                                    />
+                                    <div className="absolute inset-0 bg-transparent group-hover/img:bg-black/5 dark:group-hover/img:bg-white/5 transition-all rounded-lg flex items-center justify-center" />
+                                </button>
+                                {message.isMine && onDeleteAttachment && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleDeleteAttachment(e, image.id)}
+                                        disabled={deletingAttachmentId === image.id}
+                                        className="absolute top-2 right-2 p-1.5 rounded-md bg-black/50 hover:bg-red-500/90 text-white"
+                                        title="Xóa ảnh"
+                                    >
+                                        {deletingAttachmentId === image.id ? (
+                                            <Clock size={14} className="animate-spin" />
+                                        ) : (
+                                            <Trash2 size={14} />
+                                        )}
+                                    </button>
+                                )}
+                            </div>
                         ))}
                     </div>
                 )}
 
-                {/* Timestamp and Status */}
+                {/* Timestamp, Status, Delete menu */}
                 <div
                     className={`flex items-center gap-1 ${
                         message.isMine ? "justify-end" : "justify-start"
@@ -446,6 +504,39 @@ export const MessageBubble = memo(function MessageBubble({ message }: MessageBub
                                             : "text-gray-400 dark:text-slate-500"
                                     }
                                 />
+                            )}
+                            {onDeleteMessage && !message.isSending && (
+                                <div className="relative inline-block">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMenu((v) => !v)}
+                                        disabled={deleting}
+                                        className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                                        aria-label="Tùy chọn"
+                                    >
+                                        <MoreVertical size={14} />
+                                    </button>
+                                    {showMenu && (
+                                        <>
+                                            <div
+                                                className="fixed inset-0 z-10"
+                                                aria-hidden
+                                                onClick={() => setShowMenu(false)}
+                                            />
+                                            <div className="absolute right-0 top-full mt-0.5 z-20 py-1 min-w-[140px] bg-popover border border-border rounded-md shadow-md">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDeleteMessage}
+                                                    disabled={deleting}
+                                                    className="w-full px-3 py-1.5 text-left text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2"
+                                                >
+                                                    <Trash2 size={14} />
+                                                    {deleting ? "Đang xóa..." : "Xóa tin nhắn"}
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             )}
                         </>
                     )}

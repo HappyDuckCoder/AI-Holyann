@@ -115,7 +115,7 @@ export const MentorInfo: React.FC<MentorInfoProps> = ({
                         avatarUrl={mentorDetails?.avatar_url ?? mentor.avatar}
                         name={mentorDetails?.full_name || mentor.name}
                         size="lg"
-                        showOnlineIndicator
+                        showOnlineIndicator={false}
                         isOnline={mentor.isOnline}
                         className="shadow-md"
                     />

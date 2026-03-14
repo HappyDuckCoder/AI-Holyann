@@ -97,6 +97,8 @@ export const ChatPage: React.FC = () => {
     sendMessage,
     loading: messagesLoading,
     refreshMessages,
+    deleteMessage,
+    deleteAttachment,
   } = useChat({
     roomId: selectedRoomId || "",
     userId: user?.id || "",
@@ -105,22 +107,6 @@ export const ChatPage: React.FC = () => {
     },
     playSound: true,
   });
-
-  // Auto-refresh messages when the conversation updates in the sidebar
-  // This serves as a backup to the internal realtime subscription of useChat
-  useEffect(() => {
-    if (selectedConversation?.lastMessageTime) {
-      // Only refresh if the last message time is very recent (to avoid unnecessary fetches on mount)
-      const diffInfo = Math.abs(
-        new Date().getTime() -
-          new Date(selectedConversation.lastMessageTime).getTime(),
-      );
-      if (diffInfo < 10000) {
-        // If update happened in last 10 seconds
-        refreshMessages();
-      }
-    }
-  }, [selectedConversation?.lastMessageTime, refreshMessages]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -243,6 +229,8 @@ export const ChatPage: React.FC = () => {
                 messagesContainerRef={messagesContainerRef}
                 conversationId={selectedConversation.id}
                 loading={messagesLoading}
+                onDeleteMessage={deleteMessage}
+                onDeleteAttachment={deleteAttachment}
               />
 
               <MessageInput

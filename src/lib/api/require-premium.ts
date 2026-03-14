@@ -34,12 +34,17 @@ export async function getSubscriptionPlanFromRequest(
 
   const user = await prisma.users.findUnique({
     where: { id: userId },
-    select: { role: true }, // fallback to role if subscriptionPlan is removed
+    select: { role: true, subscription_plan: true },
   });
   if (!user) return null;
 
-  // Temporarily grant premium to ADMIN or MENTOR, default FREE for STUDENT
-  const plan: SubscriptionPlan = (user.role === 'ADMIN' || user.role === 'MENTOR') ? 'PREMIUM' : 'FREE';
+  // ADMIN / MENTOR: treat as premium; STUDENT: use subscription_plan from DB
+  let plan: SubscriptionPlan = 'FREE';
+  if (user.role === 'ADMIN' || user.role === 'MENTOR') {
+    plan = 'PREMIUM';
+  } else if (user.subscription_plan && ['FREE', 'PLUS', 'PREMIUM'].includes(user.subscription_plan.toUpperCase())) {
+    plan = user.subscription_plan.toUpperCase() as SubscriptionPlan;
+  }
   return { plan, userId };
 }
 

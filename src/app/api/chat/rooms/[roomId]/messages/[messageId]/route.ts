@@ -112,3 +112,55 @@ export async function GET(
         )
     }
 }
+
+/**
+ * DELETE /api/chat/rooms/[roomId]/messages/[messageId]
+ * Xóa tin nhắn (chỉ người gửi). Soft delete: set deleted_at.
+ */
+export async function DELETE(
+    request: NextRequest,
+    context: { params: Promise<{ roomId: string; messageId: string }> }
+) {
+    try {
+        const user = await getAuthenticatedUser(request)
+        if (!user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const { roomId, messageId } = await context.params
+
+        const participant = await prisma.chat_participants.findFirst({
+            where: {
+                room_id: roomId,
+                user_id: user.id,
+                is_active: true
+            }
+        })
+        if (!participant) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+        }
+
+        const message = await prisma.chat_messages.findFirst({
+            where: { id: messageId, room_id: roomId, deleted_at: null }
+        })
+        if (!message) {
+            return NextResponse.json({ error: 'Message not found' }, { status: 404 })
+        }
+        if (message.sender_id !== user.id) {
+            return NextResponse.json({ error: 'Chỉ có thể xóa tin nhắn của bạn' }, { status: 403 })
+        }
+
+        await prisma.chat_messages.update({
+            where: { id: messageId },
+            data: { deleted_at: new Date() }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error('Error deleting message:', error)
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        )
+    }
+}

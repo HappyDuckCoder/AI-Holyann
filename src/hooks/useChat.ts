@@ -80,12 +80,12 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
     }
   }, [playSound]);
 
-  // Load messages
-  const loadMessages = useCallback(async () => {
+  // Load messages (silent = true: no loading spinner, for polling/realtime fallback)
+  const loadMessages = useCallback(async (silent = false) => {
     if (!roomId) return;
 
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setError(null);
 
       const response = await fetch(`/api/chat/rooms/${roomId}/messages`);
@@ -108,9 +108,9 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
       }
     } catch (err) {
       console.error('Error loading messages:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      if (!silent) setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [roomId]);
 
@@ -239,6 +239,58 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
     [messages, sendMessage]
   );
 
+  // Delete message (soft delete on server, remove from local state)
+  const deleteMessage = useCallback(
+    async (messageId: string) => {
+      if (!roomId) return;
+      try {
+        const res = await fetch(`/api/chat/rooms/${roomId}/messages/${messageId}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Failed to delete message');
+        }
+        setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      } catch (err) {
+        console.error('Delete message error:', err);
+        throw err;
+      }
+    },
+    [roomId]
+  );
+
+  // Delete single attachment (remove from message in DB and local state)
+  const deleteAttachment = useCallback(
+    async (messageId: string, attachmentId: string) => {
+      if (!roomId) return;
+      try {
+        const res = await fetch(
+          `/api/chat/rooms/${roomId}/attachments/${attachmentId}`,
+          { method: 'DELETE' }
+        );
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Failed to delete file');
+        }
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId
+              ? {
+                  ...m,
+                  attachments: m.attachments.filter((a) => a.id !== attachmentId),
+                }
+              : m
+          )
+        );
+      } catch (err) {
+        console.error('Delete attachment error:', err);
+        throw err;
+      }
+    },
+    [roomId]
+  );
+
   // Update read status
   const markAsRead = useCallback(async () => {
     if (!roomId || !userId) return;
@@ -355,18 +407,38 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             filter: `room_id=eq.${roomId}`,
           },
           (payload) => {
+            const newRow = payload.new as { id: string; deleted_at: string | null; content: string; is_edited: boolean; updated_at: string };
+            if (newRow.deleted_at) {
+              setMessages((prev) => prev.filter((m) => m.id !== newRow.id));
+              return;
+            }
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === payload.new.id
+                msg.id === newRow.id
                   ? {
                       ...msg,
-                      content: payload.new.content,
-                      isEdited: payload.new.is_edited,
-                      updatedAt: new Date(payload.new.updated_at),
+                      content: newRow.content,
+                      isEdited: newRow.is_edited,
+                      updatedAt: new Date(newRow.updated_at),
                     }
                   : msg
               )
             );
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'chat_messages',
+            filter: `room_id=eq.${roomId}`,
+          },
+          (payload) => {
+            const deletedId = (payload as { old: { id: string } }).old?.id;
+            if (deletedId) {
+              setMessages((prev) => prev.filter((m) => m.id !== deletedId));
+            }
           }
         )
         .subscribe((status) => {
@@ -434,6 +506,13 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
     loadMessages();
   }, [loadMessages]);
 
+  // Fallback: poll for new messages every 15s (when Supabase realtime is unavailable)
+  useEffect(() => {
+    if (!roomId) return;
+    const interval = setInterval(() => loadMessages(true), 15000);
+    return () => clearInterval(interval);
+  }, [roomId, loadMessages]);
+
   return {
     messages,
     loading,
@@ -441,6 +520,8 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
     error,
     sendMessage,
     retryMessage,
+    deleteMessage,
+    deleteAttachment,
     markAsRead,
     refreshMessages: loadMessages,
   };
