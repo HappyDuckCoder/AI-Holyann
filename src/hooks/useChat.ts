@@ -435,7 +435,7 @@ export function useChat({ roomId, userId, onNewMessage, playSound = false }: Use
             filter: `room_id=eq.${roomId}`,
           },
           (payload) => {
-            const deletedId = (payload as { old: { id: string } }).old?.id;
+            const deletedId = (payload as unknown as { old: { id: string } }).old?.id;
             if (deletedId) {
               setMessages((prev) => prev.filter((m) => m.id !== deletedId));
             }

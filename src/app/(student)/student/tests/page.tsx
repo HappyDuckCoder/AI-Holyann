@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -53,7 +53,7 @@ const URL_TYPE_TO_TEST: Record<string, TestType> = {
   riasec: "RIASEC",
 };
 
-export default function TestsPage() {
+function TestsPageContent() {
   const searchParams = useSearchParams();
   const [viewState, setViewState] = useState<ViewState>("selection");
   const [currentTestType, setCurrentTestType] = useState<TestType | null>(null);
@@ -730,5 +730,19 @@ export default function TestsPage() {
         )}
       </div>
     </StudentPageContainer>
+  );
+}
+
+export default function TestsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <TestsPageContent />
+    </Suspense>
   );
 }
