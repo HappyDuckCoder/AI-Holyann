@@ -17,21 +17,63 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const [totalUsers, students, mentors, admins, activeAssignments, newUsersLast7Days] =
-      await Promise.all([
-        prisma.users.count(),
-        prisma.users.count({ where: { role: 'STUDENT' } }),
-        prisma.users.count({ where: { role: 'MENTOR' } }),
-        prisma.users.count({ where: { role: 'ADMIN' } }),
-        prisma.mentor_assignments.count({ where: { status: 'ACTIVE' } }),
-        prisma.users.count({
-          where: {
-            created_at: {
-              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            },
-          },
-        }),
-      ]);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalUsers,
+      students,
+      mentors,
+      admins,
+      activeAssignments,
+      newUsersLast7Days,
+      subscriptionFree,
+      subscriptionPlus,
+      subscriptionPremium,
+      usersByDay,
+    ] = await Promise.all([
+      prisma.users.count(),
+      prisma.users.count({ where: { role: 'STUDENT' } }),
+      prisma.users.count({ where: { role: 'MENTOR' } }),
+      prisma.users.count({ where: { role: 'ADMIN' } }),
+      prisma.mentor_assignments.count({ where: { status: 'ACTIVE' } }),
+      prisma.users.count({
+        where: { created_at: { gte: sevenDaysAgo } },
+      }),
+      prisma.users.count({
+        where: {
+          role: 'STUDENT',
+          OR: [
+            { subscription_plan: 'FREE' },
+            { subscription_plan: null },
+          ],
+        },
+      }),
+      prisma.users.count({
+        where: { role: 'STUDENT', subscription_plan: 'PLUS' },
+      }),
+      prisma.users.count({
+        where: { role: 'STUDENT', subscription_plan: 'PREMIUM' },
+      }),
+      prisma.users.findMany({
+        where: { created_at: { gte: sevenDaysAgo } },
+        select: { created_at: true },
+      }),
+    ]);
+
+    // Build new users per day for last 7 days
+    const dayMap: Record<string, number> = {};
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(sevenDaysAgo);
+      d.setDate(d.getDate() + i);
+      dayMap[d.toISOString().slice(0, 10)] = 0;
+    }
+    ;(usersByDay as { created_at: Date }[]).forEach((row) => {
+      const key = row.created_at.toISOString().slice(0, 10);
+      if (key in dayMap) dayMap[key]++;
+    });
+    const newUsersPerDay = Object.entries(dayMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, count]) => ({ date, count }));
 
     return NextResponse.json({
       totalUsers,
@@ -40,6 +82,10 @@ export async function GET() {
       admins,
       activeAssignments,
       newUsersLast7Days,
+      subscriptionFree,
+      subscriptionPlus,
+      subscriptionPremium,
+      newUsersPerDay,
     });
   } catch (error) {
     console.error('[admin/dashboard-stats]', error);

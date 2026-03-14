@@ -1,27 +1,16 @@
 import { User } from '@/types/admin'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-
-const PLAN_OPTIONS = [
-    { value: 'FREE', label: 'Free' },
-    { value: 'PLUS', label: 'Plus' },
-    { value: 'PREMIUM', label: 'Premium' },
-] as const
+import { Button } from '@/components/ui/button'
+import { Pencil } from 'lucide-react'
 
 interface UserTableProps {
     users: User[]
     loading: boolean
     onEdit: (user: User) => void
     onDelete: (user: User) => void
-    onSubscriptionChange: (user: User, plan: string) => void
+    onEditSubscription: (user: User) => void
 }
 
-export default function UserTable({ users, loading, onEdit, onDelete, onSubscriptionChange }: UserTableProps) {
+export default function UserTable({ users, loading, onEdit, onDelete, onEditSubscription }: UserTableProps) {
     const getRoleBadge = (role: string) => {
         const badges = {
             STUDENT: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -38,6 +27,15 @@ export default function UserTable({ users, loading, onEdit, onDelete, onSubscrip
             ADMIN: 'Admin',
         }
         return labels[role as keyof typeof labels] || role
+    }
+
+    const getPlanLabel = (plan: string | null | undefined) => {
+        const labels: Record<string, string> = {
+            FREE: 'Free',
+            PLUS: 'Plus',
+            PREMIUM: 'Premium',
+        }
+        return labels[(plan ?? 'FREE').toUpperCase()] ?? 'Free'
     }
 
     if (loading) {
@@ -98,33 +96,27 @@ export default function UserTable({ users, loading, onEdit, onDelete, onSubscrip
                                     {getRoleLabel(user.role)}
                                 </span>
                             </td>
-                            <td className="py-3 px-4">
-                                {user.role === 'STUDENT' ? (
-                                    <Select
-                                        value={user.subscriptionPlan || 'FREE'}
-                                        onValueChange={(value) => onSubscriptionChange(user, value)}
-                                    >
-                                        <SelectTrigger className="h-8 w-[120px] text-xs font-semibold border-border">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {PLAN_OPTIONS.map((opt) => (
-                                                <SelectItem key={opt.value} value={opt.value} className="text-sm">
-                                                    {opt.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    <span className="text-muted-foreground text-xs">—</span>
-                                )}
+                            <td className="py-3 px-4 text-sm text-foreground">
+                                {user.role === 'STUDENT' ? getPlanLabel(user.subscriptionPlan) : <span className="text-muted-foreground">—</span>}
                             </td>
                             <td className="py-3 px-4">
                                 <div className="flex items-center justify-end gap-2">
-                                    <button onClick={() => onEdit(user)} className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                                    {user.role === 'STUDENT' && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 gap-1.5 text-xs font-medium"
+                                            onClick={() => onEditSubscription(user)}
+                                        >
+                                            <Pencil className="h-3.5 w-3.5" />
+                                            Chỉnh sửa gói
+                                        </Button>
+                                    )}
+                                    <button onClick={() => onEdit(user)} className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Sửa">
                                         <i className="fas fa-edit"></i>
                                     </button>
-                                    <button onClick={() => onDelete(user)} className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                    <button onClick={() => onDelete(user)} className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Xóa">
                                         <i className="fas fa-trash"></i>
                                     </button>
                                 </div>

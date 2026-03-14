@@ -4,6 +4,7 @@ import { User, UserFormData } from '@/types/admin'
 import UserTable from './UserTable'
 import UserModal from './UserModal'
 import DeleteConfirmModal from './DeleteConfirmModal'
+import EditSubscriptionModal from './EditSubscriptionModal'
 // import AssignMentorForm from './AssignMentorForm'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,12 +28,14 @@ export default function UserManagement() {
     const [searchTerm, setSearchTerm] = useState('')
     const [roleFilter, setRoleFilter] = useState<string>('all')
     const [statusFilter, setStatusFilter] = useState<string>('all')
+    const [planFilter, setPlanFilter] = useState<string>('all')
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(10)
 
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [subscriptionModalUser, setSubscriptionModalUser] = useState<User | null>(null)
     const [editingUser, setEditingUser] = useState<User | null>(null)
     const [deletingUser, setDeletingUser] = useState<User | null>(null)
     // const [showAssignMentorForm, setShowAssignMentorForm] = useState(false)
@@ -117,8 +120,11 @@ export default function UserManagement() {
         const matchesRole = roleFilter === 'all' || user.role === roleFilter.toUpperCase()
         const matchesStatus = statusFilter === 'all' ||
             (statusFilter === 'active' ? user.is_active : !user.is_active)
+        const userPlan = (user.subscriptionPlan ?? 'FREE').toUpperCase()
+        const matchesPlan = planFilter === 'all' ||
+            (user.role === 'STUDENT' && userPlan === planFilter.toUpperCase())
 
-        return matchesSearch && matchesRole && matchesStatus
+        return matchesSearch && matchesRole && matchesStatus && matchesPlan
     })
 
     // Pagination
@@ -204,12 +210,20 @@ export default function UserManagement() {
         }
     }
 
-    const handleSubscriptionChange = async (user: User, plan: string) => {
+    const handleSubscriptionSave = async (
+        user: User,
+        plan: string,
+        startDate: Date | null,
+        endDate: Date | null
+    ) => {
         try {
+            const body: { plan: string; subscriptionStart?: string; subscriptionEnd?: string } = { plan }
+            if (plan !== 'FREE' && startDate) body.subscriptionStart = startDate.toISOString()
+            if (plan !== 'FREE' && endDate) body.subscriptionEnd = endDate.toISOString()
             const response = await fetch(`/api/admin/users/${user.id}/subscription`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan })
+                body: JSON.stringify(body)
             })
 
             if (response.ok) {
@@ -270,21 +284,16 @@ export default function UserManagement() {
 
             {/* Filters */}
             <div className="rounded-xl border border-border p-4 bg-card">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="sm:col-span-2 lg:col-span-1">
                         <input
                             type="text"
-                            placeholder="Search by name or email..."
+                            placeholder="Tìm theo tên hoặc email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                     </div>
-                    {/* <div>
-                        <Button variant="outline" size="sm" onClick={() => setShowAssignMentorForm(true)}>
-                            Assign mentor
-                        </Button>
-                    </div> */}
                     <div>
                         <Select value={roleFilter} onValueChange={setRoleFilter}>
                             <SelectTrigger className="h-9">
@@ -310,6 +319,19 @@ export default function UserManagement() {
                             </SelectContent>
                         </Select>
                     </div>
+                    <div>
+                        <Select value={planFilter} onValueChange={setPlanFilter}>
+                            <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Tất cả gói" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tất cả gói</SelectItem>
+                                <SelectItem value="FREE">Free</SelectItem>
+                                <SelectItem value="PLUS">Plus</SelectItem>
+                                <SelectItem value="PREMIUM">Premium</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
@@ -320,7 +342,7 @@ export default function UserManagement() {
                     loading={loading}
                     onEdit={handleEditUser}
                     onDelete={handleDeleteClick}
-                    onSubscriptionChange={handleSubscriptionChange}
+                    onEditSubscription={(user) => setSubscriptionModalUser(user)}
                 />
 
                 {/* Pagination */}
@@ -383,6 +405,17 @@ export default function UserManagement() {
                 }}
                 onConfirm={handleConfirmDelete}
                 userName={deletingUser?.full_name || ''}
+            />
+
+            <EditSubscriptionModal
+                isOpen={!!subscriptionModalUser}
+                onClose={() => setSubscriptionModalUser(null)}
+                user={subscriptionModalUser}
+                onSave={async (plan, startDate, endDate) => {
+                    if (subscriptionModalUser) {
+                        await handleSubscriptionSave(subscriptionModalUser, plan, startDate, endDate)
+                    }
+                }}
             />
 
             {/* Assign mentor - commented out

@@ -20,6 +20,8 @@ export async function PATCH(
         const { id } = await params
         const body = await request.json().catch(() => ({}))
         const plan = (body?.plan ?? body?.subscriptionPlan) as Plan | undefined
+        const rawStart = body?.subscriptionStart ?? body?.subscription_start
+        const rawEnd = body?.subscriptionEnd ?? body?.subscription_end
 
         if (!plan || !ALLOWED_PLANS.includes(plan)) {
             return NextResponse.json(
@@ -45,13 +47,24 @@ export async function PATCH(
         const now = new Date()
         let subscriptionStart: Date = now
         let subscriptionEnd: Date = new Date(now)
+        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 6)
 
         if (plan === 'FREE') {
             subscriptionStart = now
             subscriptionEnd = now
         } else {
-            // PLUS / PREMIUM: mặc định 6 tháng
-            subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 6)
+            if (rawStart != null) {
+                const d = new Date(rawStart)
+                if (!isNaN(d.getTime())) subscriptionStart = d
+            }
+            if (rawEnd != null) {
+                const d = new Date(rawEnd)
+                if (!isNaN(d.getTime())) subscriptionEnd = d
+            }
+            if (subscriptionEnd < subscriptionStart) {
+                subscriptionEnd = new Date(subscriptionStart)
+                subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 6)
+            }
         }
 
         const updated = await prisma.users.update({

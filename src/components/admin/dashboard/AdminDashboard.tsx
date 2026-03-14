@@ -7,6 +7,20 @@ import UserModal from "@/components/admin/UserModal"
 import RecentUsersTable from "@/components/admin/RecentUsersTable"
 import { UserFormData } from '@/types/admin'
 import { Users, GraduationCap, Briefcase, UserPlus, Link2, FileText, UserCheck } from 'lucide-react'
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    ResponsiveContainer,
+    Tooltip,
+    PieChart,
+    Pie,
+    Cell,
+    AreaChart,
+    Area,
+    CartesianGrid,
+} from 'recharts'
 
 type DashboardStats = {
     totalUsers: number
@@ -15,7 +29,14 @@ type DashboardStats = {
     admins: number
     activeAssignments: number
     newUsersLast7Days: number
+    subscriptionFree?: number
+    subscriptionPlus?: number
+    subscriptionPremium?: number
+    newUsersPerDay?: { date: string; count: number }[]
 }
+
+const ROLE_COLORS = ['#3b82f6', '#8b5cf6', '#ef4444'] // blue, purple, red
+const PLAN_COLORS = ['#64748b', '#22c55e', '#eab308'] // Free: slate, Plus: green, Premium: amber
 
 export default function AdminDashboard() {
     const [mounted, setMounted] = useState(false)
@@ -151,6 +172,99 @@ export default function AdminDashboard() {
                         </>
                     ) : null}
                 </div>
+
+                {/* Charts - User statistics */}
+                {stats && !statsLoading && (
+                    <div className="space-y-4">
+                        <h2 className="text-sm font-semibold text-foreground">Thống kê người dùng</h2>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {/* Phân bố theo vai trò */}
+                            <div className="rounded-xl border border-border p-4 bg-card">
+                                <h3 className="text-xs font-medium text-muted-foreground mb-3">Phân bố theo vai trò</h3>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <PieChart>
+                                        <Pie
+                                            data={[
+                                                { name: 'Học viên', value: stats.students },
+                                                { name: 'Mentor', value: stats.mentors },
+                                                { name: 'Admin', value: stats.admins },
+                                            ]}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={50}
+                                            outerRadius={80}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                            label={({ name, value }) => `${name}: ${value}`}
+                                        >
+                                            {[0, 1, 2].map((i) => (
+                                                <Cell key={i} fill={ROLE_COLORS[i]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip formatter={(value: number) => [value, '']} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            {/* Phân bố gói (học viên) */}
+                            <div className="rounded-xl border border-border p-4 bg-card">
+                                <h3 className="text-xs font-medium text-muted-foreground mb-3">Gói đăng ký (học viên)</h3>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <BarChart
+                                        data={[
+                                            { name: 'Free', count: stats.subscriptionFree ?? 0 },
+                                            { name: 'Plus', count: stats.subscriptionPlus ?? 0 },
+                                            { name: 'Premium', count: stats.subscriptionPremium ?? 0 },
+                                        ]}
+                                        margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                                        <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                                        <Tooltip />
+                                        <Bar dataKey="count" radius={[4, 4, 0, 0]} name="Số học viên">
+                                            {[0, 1, 2].map((i) => (
+                                                <Cell key={i} fill={PLAN_COLORS[i]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                        {/* New users last 7 days */}
+                        {stats.newUsersPerDay && stats.newUsersPerDay.length > 0 && (
+                            <div className="rounded-xl border border-border p-4 bg-card">
+                                <h3 className="text-xs font-medium text-muted-foreground mb-3">Người dùng mới (7 ngày qua)</h3>
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <AreaChart
+                                        data={stats.newUsersPerDay.map(({ date, count }) => ({
+                                            date: new Date(date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+                                            count,
+                                        }))}
+                                        margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
+                                    >
+                                        <defs>
+                                            <linearGradient id="newUsersGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
+                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                                        <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                                        <Tooltip />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="count"
+                                            stroke="hsl(var(--primary))"
+                                            fill="url(#newUsersGradient)"
+                                            name="Người dùng mới"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Quick access */}
                 <div className="rounded-xl border border-border p-4 bg-card">
