@@ -34,6 +34,7 @@ export async function POST(
                 description: body.description,
                 duration_months: body.duration_months,
                 impact: body.impact,
+                tier: body.tier != null ? Number(body.tier) : null,
                 created_at: new Date(),
                 updated_at: new Date()
             }

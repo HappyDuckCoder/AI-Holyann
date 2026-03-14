@@ -46,14 +46,25 @@ export interface ProfileAnalysisData {
   swotData: any;
 }
 
+function spikeFromFullResult(fullResult: any): { mainSpike: string | null; spikeSharpness: string | null; spikeScore: number | null } {
+  const section = fullResult?.["C. Nhận diện Spike (Yếu tố cốt lõi)"];
+  if (!section || typeof section !== "object") return { mainSpike: null, spikeSharpness: null, spikeScore: null };
+  return {
+    mainSpike: section["Loại Spike hiện tại"] ?? section["Loại spike"] ?? null,
+    spikeSharpness: section["Độ sắc (Sharpness)"] ?? null,
+    spikeScore: typeof section.main_spike_score === "number" ? section.main_spike_score : typeof section["Điểm số"] === "number" ? section["Điểm số"] : null,
+  };
+}
+
 /**
  * Chuyển đổi DB record sang format chuẩn
  */
 function mapDbRecordToData(record: any): ProfileAnalysisData {
+  const spike = spikeFromFullResult(record.full_result);
   return {
     id: record.id,
     student_id: record.student_id,
-    analysis_date: record.analysis_date,
+    analysis_date: record.created_at ?? record.updated_at,
     full_result: record.full_result,
     pillarScores: {
       aca: record.score_aca,
@@ -62,13 +73,13 @@ function mapDbRecordToData(record: any): ProfileAnalysisData {
       skill: record.score_skill,
     },
     regionalScores: {
-      usa: record.score_usa,
-      asia: record.score_asia,
-      europe: record.score_europe,
+      usa: null,
+      asia: null,
+      europe: null,
     },
-    mainSpike: record.main_spike,
-    spikeSharpness: record.spike_sharpness,
-    spikeScore: record.spike_score,
+    mainSpike: spike.mainSpike,
+    spikeSharpness: spike.spikeSharpness,
+    spikeScore: spike.spikeScore,
     swotData: record.swot_data,
   };
 }
@@ -81,7 +92,7 @@ async function getLatestAnalysisFromDb(
 ): Promise<ProfileAnalysisData | null> {
   const record = await prisma.profile_analyses.findFirst({
     where: { student_id: studentId },
-    orderBy: { analysis_date: "desc" },
+    orderBy: { created_at: "desc" },
   });
 
   if (!record) return null;
@@ -252,60 +263,24 @@ async function callAIAndSave(
     throw new Error("AI server trả về kết quả không hợp lệ");
   }
 
-  // Extract data từ AI response
   const pillarScores = aiResult["D. Điểm số gốc (Pillar Scores)"] || {};
-  const regions =
-    aiResult["A. Đánh giá điểm số (Weighted Score Evaluation)"]?.["Khu vực"] ||
-    [];
-  const spike = aiResult["C. Nhận diện Spike (Yếu tố cốt lõi)"] || {};
   const swot = aiResult["B. Phân tích SWOT"] || {};
 
-  // Find regional scores
-  const usaScore =
-    regions.find((r: any) => r["Vùng"] === "Mỹ")?.["Điểm số (Score)"] || 0;
-  const asiaScore =
-    regions.find((r: any) => r["Vùng"] === "Châu Á")?.["Điểm số (Score)"] || 0;
-  const europeScore =
-    regions.find((r: any) => r["Vùng"]?.includes("Âu"))?.["Điểm số (Score)"] ||
-    0;
-
-  // Upsert: Update nếu đã có, Create nếu chưa có
-  // Vì student_id không unique trong schema, ta dùng deleteMany + create
-  // hoặc tìm record cũ nhất và update
   const existingRecord = await prisma.profile_analyses.findFirst({
     where: { student_id: studentId },
-    orderBy: { analysis_date: "desc" },
+    orderBy: { created_at: "desc" },
   });
 
   let savedRecord;
 
   const updateData = {
-    analysis_date: new Date(),
     input_data: payload,
     full_result: aiResult,
-    score_aca: pillarScores["Học thuật (Aca)"] || 0,
-    score_lan: pillarScores["Ngôn ngữ (Lan)"] || 0,
-    score_hdnk: pillarScores["Hoạt động ngoại khóa (HDNK)"] || 0,
-    score_skill: pillarScores["Kỹ năng (Skill)"] || 0,
-    score_usa: usaScore,
-    score_asia: asiaScore,
-    score_europe: europeScore,
-    main_spike: spike["Loại Spike hiện tại"] || null,
-    spike_sharpness: spike["Độ sắc (Sharpness)"] || null,
-    spike_score: spike["Điểm số"] || 0,
     swot_data: swot,
-    all_spike_scores: spike["Tất cả Spike Scores"] || {},
-    academic_data: payload.academic || {},
-    extracurricular_data: { actions: payload.action?.actions || [] },
-    skill_data: { skills: payload.skill?.skills || [] },
-    overall_score:
-      (aiResult.summary?.total_pillar_scores?.aca || 0) +
-      (aiResult.summary?.total_pillar_scores?.lan || 0) +
-      (aiResult.summary?.total_pillar_scores?.hdnk || 0) +
-      (aiResult.summary?.total_pillar_scores?.skill || 0),
-    academic_score: aiResult.summary?.total_pillar_scores?.aca || 0,
-    extracurricular_score: aiResult.summary?.total_pillar_scores?.hdnk || 0,
-    summary: `Spike: ${aiResult.summary?.main_spike || "N/A"}, Sharpness: ${aiResult.summary?.sharpness || "N/A"}`,
+    score_aca: pillarScores["Học thuật (Aca)"] ?? null,
+    score_lan: pillarScores["Ngôn ngữ (Lan)"] ?? null,
+    score_hdnk: pillarScores["Hoạt động ngoại khóa (HDNK)"] ?? null,
+    score_skill: pillarScores["Kỹ năng (Skill)"] ?? null,
     updated_at: new Date(),
   };
 

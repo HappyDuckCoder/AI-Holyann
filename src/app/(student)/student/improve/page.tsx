@@ -16,7 +16,6 @@ import {
   ExternalLink,
   BarChart3,
   Wand2,
-  UserCircle,
   MessageSquare,
   Save,
   Star,
@@ -49,7 +48,6 @@ import {
   ImproveSubjectCard,
   ImproveChartsSection,
   ImproveSkeleton,
-  ProfileTab,
 } from "./components";
 import type { SubjectStatus } from "./components";
 
@@ -65,67 +63,6 @@ export default function ImprovePage() {
   const [cvLoading, setCvLoading] = useState(true);
   const [cvUploading, setCvUploading] = useState(false);
   const [cvTaskId, setCvTaskId] = useState<string | null>(null);
-
-  // Profile tab (Feature 4)
-  const [profileData, setProfileData] = useState<{
-    feature1_output?: {
-      summary?: {
-        total_pillar_scores?: Record<string, number>;
-        main_spike?: string;
-        sharpness?: string;
-      };
-    };
-    feature2_output?: {
-      assessment?: {
-        mbti?: { personality_type?: string };
-        grit?: { score?: number; level?: string };
-        riasec?: { code?: string };
-      };
-    };
-    feature3_output?: {
-      summary?: Record<string, unknown>;
-      universities?: {
-        REACH?: {
-          universities?: {
-            id?: string;
-            name: string;
-            country?: string;
-            ranking?: number;
-          }[];
-        };
-        MATCH?: {
-          universities?: {
-            id?: string;
-            name: string;
-            country?: string;
-            ranking?: number;
-          }[];
-        };
-        SAFETY?: {
-          universities?: {
-            id?: string;
-            name: string;
-            country?: string;
-            ranking?: number;
-          }[];
-        };
-      };
-    };
-  } | null>(null);
-  const [profileDataLoading, setProfileDataLoading] = useState(false);
-  const [profileAnalysis, setProfileAnalysis] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
-  const [profileEnhance, setProfileEnhance] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
-  const [profileAnalysisLoading, setProfileAnalysisLoading] = useState(false);
-  const [profileEnhanceLoading, setProfileEnhanceLoading] = useState(false);
-  const [analysisRating, setAnalysisRating] = useState<number | null>(null);
-  const [enhanceRating, setEnhanceRating] = useState<number | null>(null);
-  const [resultsLoading, setResultsLoading] = useState(false);
 
   // Essay tab: DB + improve results
   const [essayList, setEssayList] = useState<
@@ -181,16 +118,7 @@ export default function ImprovePage() {
   const [inProgressJobs, setInProgressJobs] = useState<ImproveJob[]>([]);
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
-    {
-      id: "overview",
-      label: "Tổng quan",
-      icon: <LayoutDashboard className="h-4 w-4" />,
-    },
-    {
-      id: "profile",
-      label: "Hồ sơ",
-      icon: <UserCircle className="h-4 w-4" />,
-    },
+    { id: "overview", label: "Tổng quan", icon: <LayoutDashboard className="h-4 w-4" /> },
     { id: "cv", label: "CV", icon: <FileText className="h-4 w-4" /> },
     { id: "essay", label: "Luận", icon: <PenLine className="h-4 w-4" /> },
   ];
@@ -262,10 +190,6 @@ export default function ImprovePage() {
           )
           .filter((j: ImproveJob) => j.external_job_id);
         setInProgressJobs(jobs);
-        if (jobs.some((j) => j.job_type === "profile_analysis"))
-          setProfileAnalysisLoading(true);
-        if (jobs.some((j) => j.job_type === "profile_enhance"))
-          setProfileEnhanceLoading(true);
         if (jobs.some((j) => j.job_type === "essay_analysis"))
           setEssayAnalysisLoading(true);
         if (jobs.some((j) => j.job_type === "essay_enhance"))
@@ -280,53 +204,6 @@ export default function ImprovePage() {
     };
     load();
   }, [studentId]);
-
-  // Load profile data + saved improve results when opening Profile or Overview tab
-  useEffect(() => {
-    if (!studentId || (activeTab !== "profile" && activeTab !== "overview")) return;
-    const load = async () => {
-      setProfileDataLoading(true);
-      setResultsLoading(true);
-      try {
-        const [dataRes, resultsRes] = await Promise.all([
-          fetch("/api/student/improve/profile-data"),
-          fetch("/api/student/improve/results"),
-        ]);
-        if (dataRes.ok) {
-          const json = await dataRes.json();
-          setProfileData({
-            feature1_output: json.feature1_output,
-            feature2_output: json.feature2_output,
-            feature3_output: json.feature3_output,
-          });
-        } else {
-          setProfileData(null);
-        }
-        if (resultsRes.ok) {
-          const results = await resultsRes.json();
-          setProfileAnalysis(
-            results.analysis && typeof results.analysis === "object"
-              ? results.analysis
-              : null,
-          );
-          setProfileEnhance(
-            results.enhance && typeof results.enhance === "object"
-              ? results.enhance
-              : null,
-          );
-          setAnalysisRating(results.analysis_rating ?? null);
-          setEnhanceRating(results.enhance_rating ?? null);
-        }
-      } catch (e) {
-        console.error(e);
-        setProfileData(null);
-      } finally {
-        setProfileDataLoading(false);
-        setResultsLoading(false);
-      }
-    };
-    load();
-  }, [studentId, activeTab]);
 
   // Load essay list when opening Essay tab
   useEffect(() => {
@@ -563,28 +440,6 @@ export default function ImprovePage() {
     return true;
   };
 
-  const getProfilePayload = async () => {
-    if (
-      profileData?.feature1_output &&
-      profileData?.feature2_output &&
-      profileData?.feature3_output
-    ) {
-      return {
-        feature1_output: profileData.feature1_output,
-        feature2_output: profileData.feature2_output,
-        feature3_output: profileData.feature3_output,
-      };
-    }
-    const dataRes = await fetch("/api/student/improve/profile-data");
-    if (!dataRes.ok) throw new Error("Không lấy được dữ liệu profile");
-    const json = await dataRes.json();
-    return {
-      feature1_output: json.feature1_output,
-      feature2_output: json.feature2_output,
-      feature3_output: json.feature3_output,
-    };
-  };
-
   const POLL_INTERVAL_MS = 4000;
   const POLL_MAX_WAIT_MS = 300000; // 5 phút tối đa poll
 
@@ -645,29 +500,7 @@ export default function ImprovePage() {
           setInProgressJobs((prev) => prev.filter((j) => j.id !== job.id));
           if (data.status === "done" && data.result) {
             const result = data.result;
-            if (job.job_type === "profile_analysis") {
-              setProfileAnalysis(result);
-              setProfileAnalysisLoading(false);
-              try {
-                await fetch("/api/student/improve/results", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ analysis: result }),
-                });
-              } catch (_) {}
-              toast.success("Phân tích profile thành công");
-            } else if (job.job_type === "profile_enhance") {
-              setProfileEnhance(result);
-              setProfileEnhanceLoading(false);
-              try {
-                await fetch("/api/student/improve/results", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ enhance: result }),
-                });
-              } catch (_) {}
-              toast.success("Đề xuất cải thiện đã sẵn sàng");
-            } else if (job.job_type === "essay_analysis") {
+            if (job.job_type === "essay_analysis") {
               const analysisData = result as {
                 analysis?: Record<string, unknown>;
                 weak_points?: unknown[];
@@ -727,11 +560,7 @@ export default function ImprovePage() {
               toast.success("Đề xuất cải thiện CV đã sẵn sàng");
             }
           } else {
-            if (job.job_type === "profile_analysis")
-              setProfileAnalysisLoading(false);
-            else if (job.job_type === "profile_enhance")
-              setProfileEnhanceLoading(false);
-            else if (job.job_type === "essay_analysis")
+            if (job.job_type === "essay_analysis")
               setEssayAnalysisLoading(false);
             else if (job.job_type === "essay_enhance")
               setEssayEnhanceLoading(false);
@@ -753,204 +582,6 @@ export default function ImprovePage() {
     run();
     return () => clearInterval(interval);
   }, [inProgressJobs]);
-
-  const handleProfileAnalysis = async () => {
-    if (profileAnalysisLoading) {
-      toast.info("Đang phân tích profile, vui lòng đợi kết quả.");
-      return;
-    }
-    let delegatedToBackground = false;
-    setProfileAnalysisLoading(true);
-    toast.info(
-      "Đang bắt đầu phân tích... Kết quả sẽ hiển thị trong 1–2 phút.",
-      { duration: 5000 },
-    );
-    try {
-      const payload = await getProfilePayload();
-      const analysisRes = await fetch(
-        "/api/module4/profile-improver/analysis",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, use_nlp: true, async: true }),
-        },
-      );
-      if (!analysisRes.ok) {
-        const errBody = await analysisRes.json().catch(() => ({}));
-        throw new Error(
-          (errBody as { error?: string }).error || "Phân tích thất bại",
-        );
-      }
-      const data = (await analysisRes.json()) as { job_id?: string } & Record<
-        string,
-        unknown
-      >;
-      if (analysisRes.status === 202 && data.job_id) {
-        try {
-          const reg = await fetch("/api/student/improve/register-job", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              job_type: "profile_analysis",
-              external_job_id: data.job_id,
-            }),
-          });
-          const regData = await reg.json();
-          if (regData.success && regData.id) {
-            setInProgressJobs((prev) => [
-              ...prev,
-              {
-                id: regData.id,
-                job_type: "profile_analysis",
-                external_job_id: String(data.job_id),
-              },
-            ]);
-            delegatedToBackground = true;
-            return;
-          }
-        } catch (_) {}
-        const result = await pollJobResult(data.job_id as string, "analysis");
-        setProfileAnalysis(result);
-        try {
-          await fetch("/api/student/improve/results", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ analysis: result }),
-          });
-        } catch (_) {
-          toast.warning("Đã phân tích nhưng chưa lưu được. Thử tải lại trang.");
-        }
-        toast.success("Phân tích profile thành công");
-        return;
-      }
-      setProfileAnalysis(data as Record<string, unknown>);
-      try {
-        await fetch("/api/student/improve/results", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ analysis: data }),
-        });
-      } catch (_) {
-        toast.warning("Đã phân tích nhưng chưa lưu được. Thử tải lại trang.");
-      }
-      toast.success("Phân tích profile thành công");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Lỗi phân tích profile");
-    } finally {
-      if (!delegatedToBackground) {
-        setProfileAnalysisLoading(false);
-      }
-    }
-  };
-
-  const saveRating = async (kind: "analysis" | "enhance", value: number) => {
-    try {
-      const res = await fetch("/api/student/improve/results", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          kind === "analysis"
-            ? { analysis_rating: value }
-            : { enhance_rating: value },
-        ),
-      });
-      if (res.ok) {
-        if (kind === "analysis") setAnalysisRating(value);
-        else setEnhanceRating(value);
-        toast.success("Đã lưu đánh giá");
-      }
-    } catch {
-      toast.error("Không lưu được đánh giá");
-    }
-  };
-
-  const handleProfileEnhance = async () => {
-    if (profileEnhanceLoading) {
-      toast.info("Đang tạo đề xuất, vui lòng đợi kết quả.");
-      return;
-    }
-    let delegatedToBackground = false;
-    setProfileEnhanceLoading(true);
-    toast.info(
-      "Đang bắt đầu tạo đề xuất... Kết quả sẽ hiển thị trong 1–2 phút.",
-      { duration: 5000 },
-    );
-    try {
-      const payload = await getProfilePayload();
-      const enhanceRes = await fetch("/api/module4/profile-improver/enhance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, use_nlp: true, async: true }),
-      });
-      if (!enhanceRes.ok) {
-        const errBody = await enhanceRes.json().catch(() => ({}));
-        throw new Error(
-          (errBody as { error?: string }).error || "Enhance thất bại",
-        );
-      }
-      const data = (await enhanceRes.json()) as { job_id?: string } & Record<
-        string,
-        unknown
-      >;
-      if (enhanceRes.status === 202 && data.job_id) {
-        try {
-          const reg = await fetch("/api/student/improve/register-job", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              job_type: "profile_enhance",
-              external_job_id: data.job_id,
-            }),
-          });
-          const regData = await reg.json();
-          if (regData.success && regData.id) {
-            setInProgressJobs((prev) => [
-              ...prev,
-              {
-                id: regData.id,
-                job_type: "profile_enhance",
-                external_job_id: String(data.job_id),
-              },
-            ]);
-            delegatedToBackground = true;
-            return;
-          }
-        } catch (_) {}
-        const result = await pollJobResult(data.job_id as string, "enhance");
-        setProfileEnhance(result);
-        try {
-          await fetch("/api/student/improve/results", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ enhance: result }),
-          });
-        } catch (_) {
-          toast.warning(
-            "Đã tạo đề xuất nhưng chưa lưu được. Thử tải lại trang.",
-          );
-        }
-        toast.success("Đề xuất cải thiện đã sẵn sàng");
-        return;
-      }
-      setProfileEnhance(data as Record<string, unknown>);
-      try {
-        await fetch("/api/student/improve/results", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enhance: data }),
-        });
-      } catch (_) {
-        toast.warning("Đã tạo đề xuất nhưng chưa lưu được. Thử tải lại trang.");
-      }
-      toast.success("Đề xuất cải thiện đã sẵn sàng");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Lỗi đề xuất cải thiện");
-    } finally {
-      if (!delegatedToBackground) {
-        setProfileEnhanceLoading(false);
-      }
-    }
-  };
 
   const handleEssayAnalysis = async () => {
     if (essayAnalysisLoading) {
@@ -1449,34 +1080,7 @@ export default function ImprovePage() {
     }
   };
 
-  // Overview: derive scores and insights for hero, cards, charts
-  const profileScore =
-    profileAnalysis && typeof profileAnalysis === "object" && profileAnalysis.overall && typeof profileAnalysis.overall === "object"
-      ? (profileAnalysis.overall as { overall_score?: number }).overall_score
-      : null;
-  const profilePillarScores =
-    profileAnalysis?.pillar_scores && typeof profileAnalysis.pillar_scores === "object"
-      ? (profileAnalysis.pillar_scores as Record<string, number>)
-      : (profileAnalysis?.feature1_output as Record<string, unknown>)?.summary &&
-          typeof (profileAnalysis?.feature1_output as Record<string, unknown>)?.summary === "object"
-        ? ((profileAnalysis?.feature1_output as Record<string, unknown>)?.summary as Record<string, unknown>)
-            ?.total_pillar_scores as Record<string, number> | null
-        : null;
-  const profileScoreAvg =
-    profilePillarScores && Object.keys(profilePillarScores).length > 0
-      ? Math.round(
-          Object.values(profilePillarScores).reduce((a, b) => a + Number(b), 0) /
-            Object.keys(profilePillarScores).length
-        )
-      : profileScore;
-  const overallScore =
-    profileScore != null ? Number(profileScore) : profileScoreAvg != null ? profileScoreAvg : null;
-  const overallInsight =
-    profileAnalysis?.overall && typeof profileAnalysis.overall === "object"
-      ? safeText((profileAnalysis.overall as { feedback?: unknown }).feedback) ||
-        safeText((profileAnalysis.overall as { summary?: unknown }).summary) ||
-        ""
-      : "";
+  // Overview: derive scores and insights for hero, cards, charts (CV + Essay only; Profile đã chuyển sang trang Đánh giá hồ sơ)
   const cvScore =
     cvAnalysis && typeof cvAnalysis === "object"
       ? (cvAnalysis.overall as { score?: number })?.score ??
@@ -1503,22 +1107,24 @@ export default function ImprovePage() {
     return text.trim().split(/\s+/).slice(0, n).join(" ");
   }
 
+  const overallScore = [cvScore, essayScore].filter((s): s is number => s != null).length > 0
+    ? Math.round(
+        ([cvScore, essayScore].filter((s): s is number => s != null).reduce((a, b) => a + b, 0) /
+          [cvScore, essayScore].filter((s): s is number => s != null).length)
+      )
+    : null;
+  const overallInsight =
+    (cvAnalysis && typeof cvAnalysis === "object" && safeText((cvAnalysis as { summary?: unknown }).summary)) ||
+    (essayAnalysis && typeof essayAnalysis === "object" && (safeText((essayAnalysis as { summary?: unknown }).summary) || safeText((essayAnalysis as { feedback?: unknown }).feedback))) ||
+    "";
+
   const comparisonData = [
-    { name: "Profile", score: overallScore ?? 0 },
     { name: "CV", score: cvScore ?? 0 },
     { name: "Essay", score: essayScore ?? 0 },
   ].filter((d) => d.score > 0);
 
   const aiInsights: string[] = [];
   if (overallInsight) aiInsights.push(firstWords(overallInsight, 15));
-  if (profileEnhance && Array.isArray(profileEnhance.recommendations)) {
-    (profileEnhance.recommendations as Record<string, unknown>[])
-      .slice(0, 2)
-      .forEach((r) => {
-        const name = safeText(r.specific_rec_name) || safeText(r.reason);
-        if (name) aiInsights.push(firstWords(name, 12));
-      });
-  }
   const trendData = overallScore != null ? [{ label: "Now", value: overallScore }] : [];
 
   return (
@@ -1536,7 +1142,7 @@ export default function ImprovePage() {
           overallScore={overallScore}
           trendValue={null}
           insight={overallInsight || undefined}
-          loading={profileDataLoading || resultsLoading}
+          loading={false}
         />
 
         {/* Tab bar - no card */}
@@ -1562,45 +1168,9 @@ export default function ImprovePage() {
 
         {/* Content area - full width, unified padding and min-height for all tabs */}
         <main className="flex-1 w-full min-h-[520px] px-4 py-6 sm:px-6 md:px-8 md:py-8">
-            {activeTab === "overview" &&
-              ((profileDataLoading || resultsLoading) ? (
-                <ImproveSkeleton />
-              ) : (
+            {activeTab === "overview" && (
                 <div className="space-y-10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <ImproveSubjectCard
-                      title="Hồ sơ"
-                      score={overallScore}
-                      trend={null}
-                      status={scoreToStatus(overallScore)}
-                      insight={overallInsight ? firstWords(overallInsight, 12) : undefined}
-                      progressPercent={overallScore}
-                      metricLabel="Trụ cột"
-                      metricValue={
-                        profilePillarScores
-                          ? Object.keys(profilePillarScores).length
-                          : null
-                      }
-                      details={
-                        profileAnalysis?.overall &&
-                        typeof profileAnalysis.overall === "object" ? (
-                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                            {(profileAnalysis.overall as { priority_suggestions?: unknown[] })
-                              .priority_suggestions?.slice(0, 3)
-                              .map((p, i) => (
-                                <li key={i}>{safeText(p)}</li>
-                              )) ?? (
-                              <li>{firstWords(safeText((profileAnalysis.overall as { feedback?: unknown }).feedback), 20)}</li>
-                            )}
-                          </ul>
-                        ) : undefined
-                      }
-                      onAnalyze={handleProfileAnalysis}
-                      onEnhance={handleProfileEnhance}
-                      analyzeLoading={profileAnalysisLoading}
-                      enhanceLoading={profileEnhanceLoading}
-                      icon={<UserCircle className="h-5 w-5" />}
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <ImproveSubjectCard
                       title="CV"
                       score={cvScore}
@@ -1653,25 +1223,7 @@ export default function ImprovePage() {
                     loading={false}
                   />
                 </div>
-              ))}
-
-            {activeTab === "profile" && (
-              <ProfileTab
-                profileData={profileData}
-                profileDataLoading={profileDataLoading}
-                resultsLoading={resultsLoading}
-                profileAnalysis={profileAnalysis}
-                profileEnhance={profileEnhance}
-                profileAnalysisLoading={profileAnalysisLoading}
-                profileEnhanceLoading={profileEnhanceLoading}
-                analysisRating={analysisRating}
-                enhanceRating={enhanceRating}
-                onAnalysis={handleProfileAnalysis}
-                onEnhance={handleProfileEnhance}
-                setDetailModal={setDetailModal}
-                saveRating={saveRating}
-              />
-            )}
+              )}
 
             {activeTab === "cv" && (
               <div className="space-y-8">

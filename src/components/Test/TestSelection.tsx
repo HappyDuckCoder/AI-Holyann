@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Trophy, ArrowRight, ClipboardList } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import TestCard from "./TestCard";
 import { TestType, TestResult } from "../types";
 import { TEST_DESCRIPTIONS } from "@/constants";
@@ -11,7 +11,6 @@ interface TestSelectionProps {
   onViewResult: (type: TestType) => void;
   completedTests?: TestType[];
   testResults?: Partial<Record<TestType, TestResult>>;
-  onViewRecommendations?: () => void;
 }
 
 const container = {
@@ -31,9 +30,7 @@ const TestSelection: React.FC<TestSelectionProps> = ({
   onViewResult,
   completedTests = [],
   testResults = {},
-  onViewRecommendations,
 }) => {
-  const allCompleted = completedTests.length >= 3;
   const completedCount = completedTests.length;
 
   return (
@@ -120,40 +117,6 @@ const TestSelection: React.FC<TestSelectionProps> = ({
           </motion.div>
         </CardContent>
       </Card>
-
-      {allCompleted && onViewRecommendations && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="rounded-2xl border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500/60 bg-gradient-to-br from-amber-500/5 to-transparent"
-        >
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 p-6 md:p-8">
-            <div className="flex items-start gap-4 flex-1">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400">
-                <Trophy className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-foreground mb-1.5">
-                  Đề xuất nghề nghiệp
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
-                  Dựa trên kết quả MBTI, GRIT và Holland, chúng tôi phân tích và
-                  đề xuất những nghề nghiệp phù hợp nhất với bạn.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={onViewRecommendations}
-              className="shrink-0 inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground font-semibold py-3 px-6 hover:bg-primary/90 active:scale-[0.98] transition-all shadow-sm hover:shadow"
-            >
-              Xem đề xuất nghề nghiệp
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 };

@@ -1,6 +1,8 @@
 /**
  * Gọi API đánh giá MBTI, GRIT, RIASEC từ server-ai (Django).
- * Base URL: AI_API_URL hoặc http://127.0.0.1:8000, path: /hoexapp/api/...
+ * Base URL: AI_API_URL hoặc http://127.0.0.1:8000.
+ * Path: /api/mbti/, /api/grit-scale/, /api/riasec/ (api_urls) hoặc /hoexapp/api/... (hoexapp.urls).
+ * Server-AI trả về trực tiếp: MBTI { personality_type, dimension_scores, confidence }, GRIT { score, level, description, ... }, RIASEC { code, scores, top3 } — không bọc success/mbti/grit/riasec.
  */
 
 const getBaseUrl = () => {
@@ -19,7 +21,7 @@ function getAnswer(answers: AnswersRecord, id: number): number | undefined {
 /** MBTI: server-ai cần mảng 60 giá trị -3..3 theo thứ tự câu hỏi (sorted by id). */
 export async function callMBTI(
   answers: AnswersRecord,
-  questionIdsInOrder: number[]
+  questionIdsInOrder: number[],
 ): Promise<{
   personality_type: string;
   dimension_scores: Record<string, number>;
@@ -29,7 +31,7 @@ export async function callMBTI(
   if (arr.length !== 60 || arr.some((v) => v === undefined || v === null)) {
     throw new Error("MBTI cần đủ 60 câu trả lời (-3 đến 3).");
   }
-  const url = `${getBaseUrl()}/hoexapp/api/mbti/`;
+  const url = `${getBaseUrl()}/api/mbti/`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -37,12 +39,16 @@ export async function callMBTI(
   });
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data?.error || `MBTI API: ${res.status}`);
+    throw new Error(data?.error || data?.details || `MBTI API: ${res.status}`);
   }
-  if (!data.success || !data.mbti) {
+  if (data?.error || typeof data?.personality_type !== "string") {
     throw new Error(data?.error || "Kết quả MBTI không hợp lệ.");
   }
-  return data.mbti;
+  return {
+    personality_type: data.personality_type,
+    dimension_scores: data.dimension_scores ?? {},
+    confidence: typeof data.confidence === "number" ? data.confidence : 0,
+  };
 }
 
 /** GRIT: server-ai cần object keys 1-12, values 1-5. Trả về score, level, description, passion_score, perseverance_score. */
@@ -61,7 +67,7 @@ export async function callGRIT(answers: AnswersRecord): Promise<{
     }
     obj[i] = v;
   }
-  const url = `${getBaseUrl()}/hoexapp/api/grit-scale/`;
+  const url = `${getBaseUrl()}/api/grit-scale/`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -71,10 +77,16 @@ export async function callGRIT(answers: AnswersRecord): Promise<{
   if (!res.ok) {
     throw new Error(data?.error || `GRIT API: ${res.status}`);
   }
-  if (!data.success || !data.grit) {
+  if (data?.error || typeof data?.score !== "number") {
     throw new Error(data?.error || "Kết quả GRIT không hợp lệ.");
   }
-  return data.grit;
+  return {
+    score: data.score,
+    level: data.level ?? "",
+    description: data.description ?? "",
+    passion_score: data.passion_score,
+    perseverance_score: data.perseverance_score,
+  };
 }
 
 const RIASEC_LETTER_MAP: Record<string, string> = {
@@ -92,11 +104,14 @@ const RIASEC_LETTER_MAP: Record<string, string> = {
   Conventional: "C",
 };
 
-function normalizeRIASECScores(raw: Record<string, number> | null | undefined): Record<string, number> {
+function normalizeRIASECScores(
+  raw: Record<string, number> | null | undefined,
+): Record<string, number> {
   const out: Record<string, number> = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
   if (!raw || typeof raw !== "object") return out;
   for (const [key, val] of Object.entries(raw)) {
-    const letter = RIASEC_LETTER_MAP[key] ?? (key.length === 1 ? key : undefined);
+    const letter =
+      RIASEC_LETTER_MAP[key] ?? (key.length === 1 ? key : undefined);
     if (letter && typeof val === "number" && !Number.isNaN(val)) {
       out[letter] = val;
     }
@@ -107,8 +122,20 @@ function normalizeRIASECScores(raw: Record<string, number> | null | undefined): 
 function normalizeRIASECTop3(raw: unknown): [string, number][] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .filter((x): x is [string, number] => Array.isArray(x) && x.length >= 2 && typeof x[0] === "string" && typeof x[1] === "number")
-    .map(([domain, score]) => [RIASEC_LETTER_MAP[domain] ?? String(domain).charAt(0).toUpperCase(), score] as [string, number])
+    .filter(
+      (x): x is [string, number] =>
+        Array.isArray(x) &&
+        x.length >= 2 &&
+        typeof x[0] === "string" &&
+        typeof x[1] === "number",
+    )
+    .map(
+      ([domain, score]) =>
+        [
+          RIASEC_LETTER_MAP[domain] ?? String(domain).charAt(0).toUpperCase(),
+          score,
+        ] as [string, number],
+    )
     .slice(0, 3);
 }
 
@@ -126,7 +153,7 @@ export async function callRIASEC(answers: AnswersRecord): Promise<{
     }
     obj[i] = v;
   }
-  const url = `${getBaseUrl()}/hoexapp/api/riasec/`;
+  const url = `${getBaseUrl()}/api/riasec/`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -136,12 +163,13 @@ export async function callRIASEC(answers: AnswersRecord): Promise<{
   if (!res.ok) {
     throw new Error(data?.error || data?.detail || `RIASEC API: ${res.status}`);
   }
-  if (!data.success || !data.riasec) {
+  if (data?.error || (data?.code == null && !Array.isArray(data?.top3))) {
     throw new Error(data?.error || data?.detail || "Kết quả RIASEC không hợp lệ.");
   }
-  const raw = data.riasec;
-  const scores = normalizeRIASECScores(raw.scores);
-  const top3 = normalizeRIASECTop3(raw.top3);
-  const code = (raw.code && String(raw.code).replace(/\s/g, "").slice(0, 6)) || top3.map(([c]) => c).join("");
+  const scores = normalizeRIASECScores(data.scores);
+  const top3 = normalizeRIASECTop3(data.top3);
+  const code =
+    (data.code && String(data.code).replace(/\s/g, "").slice(0, 6)) ||
+    top3.map(([c]) => c).join("");
   return { code, scores, top3 };
 }

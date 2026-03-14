@@ -18,7 +18,6 @@ export function useSubscription() {
 
   const isFree = plan === 'FREE';
   const isPlus = plan === 'PLUS';
-  const isAdvanced = plan === 'ADVANCED';
   const isPremium = plan === 'PREMIUM';
   const isPaid = !isFree;
 
@@ -38,7 +37,6 @@ export function useSubscription() {
     plan,
     isFree,
     isPlus,
-    isAdvanced,
     isPremium,
     isPaid,
     rawPlanConfig: PLAN_LIMITS[plan],

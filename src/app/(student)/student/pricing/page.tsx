@@ -256,16 +256,16 @@ export default function StudentPricingPage() {
                     <TableCell>Đầy đủ</TableCell>
                   </TableRow>
 
-                  {/* Feature 4 — Profile/CV/Essay Enhancement */}
+                  {/* Feature 1 — Profile; Feature 4 — CV/Essay */}
                   <TableRow>
                     <TableCell colSpan={4} className="font-medium bg-muted">
-                      Feature 4 — Enhance &amp; Re-analysis
+                      Profile (Feature 1) &amp; CV/Essay (Feature 4)
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Profile: enhance + analysis</TableCell>
-                    <TableCell>1 enhance + 1 analysis (mờ)</TableCell>
-                    <TableCell>10 enhance + 10 analysis</TableCell>
+                    <TableCell>Profile: đánh giá + cải thiện (Feature 1)</TableCell>
+                    <TableCell>1 lần / gói Free (mờ)</TableCell>
+                    <TableCell>5 đánh giá + 5 cải thiện</TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>

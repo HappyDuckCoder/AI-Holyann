@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 // GET - Lấy danh sách người dùng
 export async function GET() {
     try {
-        const users = await prisma.users.findMany({
+        const rows = await prisma.users.findMany({
             select: {
                 id: true,
                 full_name: true,
@@ -16,14 +16,21 @@ export async function GET() {
                 avatar_url: true,
                 created_at: true,
                 auth_provider: true,
-                // subscriptionPlan: true,
-                // subscriptionStart: true,
-                // subscriptionEnd: true
+                subscription_plan: true,
+                subscription_start: true,
+                subscription_end: true,
             },
             orderBy: {
                 created_at: 'desc'
             }
         })
+
+        const users = rows.map((u) => ({
+            ...u,
+            subscriptionPlan: u.subscription_plan ?? undefined,
+            subscriptionStart: u.subscription_start ?? undefined,
+            subscriptionEnd: u.subscription_end ?? undefined,
+        }))
 
         return NextResponse.json({ users })
     } catch (error) {

@@ -1,10 +1,16 @@
-export type SubscriptionPlan = 'FREE' | 'PLUS' | 'ADVANCED' | 'PREMIUM';
+export type SubscriptionPlan = 'FREE' | 'PLUS' | 'PREMIUM';
 
-/** Plans shown on pricing page (ADVANCED kept for backward compatibility only). */
+/** Plans shown on pricing page. */
 export const DISPLAY_PLANS: SubscriptionPlan[] = ['FREE', 'PLUS', 'PREMIUM'];
 
 export type SubscriptionFeature =
   | 'profileAnalysisDetail'
+  | 'profileAnalysisLimit'
+  | 'profileEnhanceLimit'
+  | 'recommendFacultyLimit'
+  | 'facultyWishlistLimit'
+  | 'schoolWishlistLimit'
+  | 'admissionChanceLimit'
   | 'majorListCount'
   | 'majorFitShowCount'
   | 'classificationCount'
@@ -25,9 +31,15 @@ export const PLUS_CLASSIFICATION_PERIOD_MONTHLY = true;
 export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
   FREE: {
     profileAnalysisDetail: false,
+    profileAnalysisLimit: 1,
+    profileEnhanceLimit: 1,
+    recommendFacultyLimit: 1,
+    facultyWishlistLimit: 2,
+    schoolWishlistLimit: 2,
+    admissionChanceLimit: 2,
     majorListCount: 3,
     majorFitShowCount: 1,
-    classificationCount: 5, // 1 reach, 2 match, 2 safety
+    classificationCount: 5,
     classificationAttemptsLimit: 1,
     matchScoreDetail: false,
     roadmapDetail: false,
@@ -39,10 +51,16 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
   },
   PLUS: {
     profileAnalysisDetail: true,
+    profileAnalysisLimit: 5,
+    profileEnhanceLimit: 5,
+    recommendFacultyLimit: 5,
+    facultyWishlistLimit: 5,
+    schoolWishlistLimit: 5,
+    admissionChanceLimit: 5,
     majorListCount: 15,
     majorFitShowCount: 15,
-    classificationCount: 30, // 10 reach, 10 match, 10 safety
-    classificationAttemptsLimit: 15, // per month
+    classificationCount: 30,
+    classificationAttemptsLimit: 15,
     matchScoreDetail: true,
     roadmapDetail: true,
     enhanceCount: 10,
@@ -51,23 +69,14 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     essayMentor: false,
     reportsCount: -1,
   },
-  /** Legacy: same limits as PREMIUM for existing subscribers. */
-  ADVANCED: {
-    profileAnalysisDetail: true,
-    majorListCount: 15,
-    majorFitShowCount: 15,
-    classificationCount: 30,
-    classificationAttemptsLimit: -1,
-    matchScoreDetail: true,
-    roadmapDetail: true,
-    enhanceCount: -1,
-    cvAnalysisCount: -1,
-    essayAnalysisCount: -1,
-    essayMentor: true,
-    reportsCount: -1,
-  },
   PREMIUM: {
     profileAnalysisDetail: true,
+    profileAnalysisLimit: -1,
+    profileEnhanceLimit: -1,
+    recommendFacultyLimit: -1,
+    facultyWishlistLimit: 10,
+    schoolWishlistLimit: 10,
+    admissionChanceLimit: -1,
     majorListCount: 15,
     majorFitShowCount: 15,
     classificationCount: 30,

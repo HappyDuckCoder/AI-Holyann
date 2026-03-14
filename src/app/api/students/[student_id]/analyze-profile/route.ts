@@ -538,7 +538,7 @@ export async function POST(
       );
     }
 
-    // 6. Save analysis result to database (full_result để load lại khi chuyển trang)
+    // 6. Save analysis result to database (chỉ các cột logic mới; spike lấy từ full_result)
     try {
       const dbInput = mapAnalysisToDatabase(
         studentIdStr,
@@ -546,41 +546,18 @@ export async function POST(
         outputData,
       );
       const pillar = outputData["D. Điểm số gốc (Pillar Scores)"];
-      const regional = outputData["A. Đánh giá điểm số (Weighted Score Evaluation)"]?.["Khu vực"] ?? [];
-      const summary = outputData.summary ?? ({} as { total_pillar_scores?: Record<string, number>; main_spike?: string; sharpness?: string });
-      const spikeSection = outputData["C. Nhận diện Spike (Yếu tố cốt lõi)"];
-      const getRegionalScore = (vung: string) =>
-        (regional as Array<{ Vùng: string; "Điểm số (Score)": number }>).find(
-          (r) => r.Vùng?.toLowerCase().includes(vung)
-        )?.["Điểm số (Score)"] ?? null;
 
       await prisma.profile_analyses.create({
         data: {
           id: randomUUID(),
           student_id: studentIdStr,
-          analysis_date: dbInput.analysis_date,
           full_result: JSON.parse(JSON.stringify(outputData)),
-          score_aca: typeof pillar?.["Học thuật (Aca)"] === "number" ? pillar["Học thuật (Aca)"] : dbInput.academic_score ?? null,
-          score_lan: typeof pillar?.["Ngôn ngữ (Lan)"] === "number" ? pillar["Ngôn ngữ (Lan)"] : null,
-          score_hdnk: typeof pillar?.["Hoạt động ngoại khóa (HDNK)"] === "number" ? pillar["Hoạt động ngoại khóa (HDNK)"] : dbInput.extracurricular_score ?? null,
-          score_skill: typeof pillar?.["Kỹ năng (Skill)"] === "number" ? pillar["Kỹ năng (Skill)"] : null,
-          score_usa: getRegionalScore("usa") ?? getRegionalScore("mỹ") ?? null,
-          score_asia: getRegionalScore("asia") ?? getRegionalScore("châu á") ?? null,
-          score_europe: getRegionalScore("europe") ?? getRegionalScore("âu") ?? getRegionalScore("úc") ?? getRegionalScore("canada") ?? null,
-          main_spike: summary.main_spike ?? null,
-          spike_sharpness: summary.sharpness ?? null,
-          spike_score: typeof (spikeSection as any)?.main_spike_score === "number" ? (spikeSection as any).main_spike_score : null,
-          all_spike_scores: spikeSection ? JSON.parse(JSON.stringify(spikeSection)) : undefined,
-          academic_data: JSON.parse(JSON.stringify(dbInput.academic_data)),
-          extracurricular_data: JSON.parse(
-            JSON.stringify(dbInput.extracurricular_data),
-          ),
-          skill_data: JSON.parse(JSON.stringify(dbInput.skill_data)),
-          overall_score: dbInput.overall_score,
-          academic_score: dbInput.academic_score,
-          extracurricular_score: dbInput.extracurricular_score,
-          summary: dbInput.summary,
           swot_data: JSON.parse(JSON.stringify(dbInput.swot_data)),
+          input_data: JSON.parse(JSON.stringify(feature1Payload ?? {})),
+          score_aca: typeof pillar?.["Học thuật (Aca)"] === "number" ? pillar["Học thuật (Aca)"] : (dbInput as any).academic_score ?? null,
+          score_lan: typeof pillar?.["Ngôn ngữ (Lan)"] === "number" ? pillar["Ngôn ngữ (Lan)"] : null,
+          score_hdnk: typeof pillar?.["Hoạt động ngoại khóa (HDNK)"] === "number" ? pillar["Hoạt động ngoại khóa (HDNK)"] : (dbInput as any).extracurricular_score ?? null,
+          score_skill: typeof pillar?.["Kỹ năng (Skill)"] === "number" ? pillar["Kỹ năng (Skill)"] : null,
         },
       });
     } catch (dbError) {

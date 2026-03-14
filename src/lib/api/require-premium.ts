@@ -4,9 +4,9 @@ import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 
-export type SubscriptionPlan = 'FREE' | 'PLUS' | 'ADVANCED' | 'PREMIUM';
+export type SubscriptionPlan = 'FREE' | 'PLUS' | 'PREMIUM';
 
-const PREMIUM_PLANS: SubscriptionPlan[] = ['PLUS', 'ADVANCED', 'PREMIUM'];
+const PREMIUM_PLANS: SubscriptionPlan[] = ['PLUS', 'PREMIUM'];
 
 /**
  * Lấy subscription plan của user từ session hoặc Bearer token.

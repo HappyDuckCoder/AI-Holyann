@@ -124,12 +124,17 @@ export const authOptions: NextAuthOptions = {
         (session as any).accessToken = token.accessToken as string;
 
         // Attach subscription plan for student actor (used by subscription system)
+        // Prisma returns snake_case: subscription_plan, not subscriptionPlan
         try {
           const user = await prisma.users.findUnique({
             where: { id: token.sub as string },
+            select: { subscription_plan: true },
           });
-          (session.user as any).subscriptionPlan = (user as any)?.subscriptionPlan ?? 'FREE';
-          (session.user as any).reportsUsed = (user as any)?.reportsUsed ?? 0;
+          const raw = (user?.subscription_plan ?? 'FREE').toString().trim().toUpperCase();
+          const plan =
+            raw === 'ADVANCED' ? 'PREMIUM' : ['FREE', 'PLUS', 'PREMIUM'].includes(raw) ? raw : 'FREE';
+          (session.user as any).subscriptionPlan = plan;
+          (session.user as any).reportsUsed = 0;
         } catch (error) {
           console.error('[NextAuth] Failed to load subscription fields:', error);
           (session.user as any).subscriptionPlan = 'FREE';

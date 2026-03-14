@@ -11,31 +11,23 @@ import {
   Activity,
   Trophy,
 } from "lucide-react";
-import { TestResult, MajorRecommendation, TestType } from "@/components/types";
+import { TestResult, TestType } from "@/components/types";
 import ResultChart from "./ResultChart";
-import { TEST_DESCRIPTIONS } from "@/constants";
 
 interface ResultViewProps {
   result: TestResult | null;
-  recommendations: MajorRecommendation[];
-  loadingRecommendations: boolean;
   onBackToDashboard: () => void;
-  // New props for test progress
   remainingTests?: TestType[];
   onStartNextTest?: (type: TestType) => void;
   allTestsCompleted?: boolean;
-  onViewAllRecommendations?: () => void;
 }
 
 const ResultView: React.FC<ResultViewProps> = ({
   result,
-  recommendations,
-  loadingRecommendations,
   onBackToDashboard,
   remainingTests = [],
   onStartNextTest,
   allTestsCompleted = false,
-  onViewAllRecommendations,
 }) => {
   if (!result) return null;
 

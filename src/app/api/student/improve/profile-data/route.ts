@@ -10,28 +10,30 @@ import { prisma } from '@/lib/prisma';
 import { TestStatus } from '@prisma/client';
 
 function buildFeature1FromProfile(analysis: {
-  summary: string | null;
+  full_result?: unknown;
   swot_data: unknown;
-  overall_score: number | null;
-  academic_score: number | null;
-  extracurricular_score: number | null;
+  score_aca?: number | null;
+  score_lan?: number | null;
+  score_hdnk?: number | null;
+  score_skill?: number | null;
 }) {
-  const aca = analysis.academic_score != null ? Math.round(analysis.academic_score * 10) : 70;
-  const hdnk = analysis.extracurricular_score != null ? Math.round(analysis.extracurricular_score * 10) : 70;
-  const overall = analysis.overall_score ?? 75;
+  const to100 = (v: number | null | undefined) =>
+    v == null ? 70 : v <= 1 ? Math.round(v * 100) : Math.round(Math.min(100, Math.max(0, v)));
+  const aca = to100(analysis.score_aca);
+  const lan = to100(analysis.score_lan);
+  const hdnk = to100(analysis.score_hdnk);
+  const skill = to100(analysis.score_skill);
+  const fr = analysis.full_result as Record<string, unknown> | undefined;
+  const spikeSection = fr?.["C. Nhận diện Spike (Yếu tố cốt lõi)"] as Record<string, unknown> | null | undefined;
+  const mainSpike = (spikeSection?.["Loại Spike hiện tại"] ?? spikeSection?.["Loại spike"]) as string | undefined ?? 'Academic Excellence';
+  const sharpness = (spikeSection?.["Độ sắc (Sharpness)"] as string | undefined) ?? ((aca + lan + hdnk + skill) / 4 >= 80 ? 'High' : (aca + lan + hdnk + skill) / 4 >= 60 ? 'Medium' : 'Low');
   return {
     summary: {
       success: true,
-      total_pillar_scores: {
-        aca,
-        lan: 70,
-        hdnk,
-        skill: 70,
-      },
-      main_spike: 'Academic Excellence',
-      sharpness: overall >= 80 ? 'High' : overall >= 60 ? 'Medium' : 'Low',
+      total_pillar_scores: { aca, lan, hdnk, skill },
+      main_spike: mainSpike,
+      sharpness: sharpness,
     },
-    ...(analysis.summary ? { summaryText: analysis.summary } : {}),
     ...(analysis.swot_data && typeof analysis.swot_data === 'object'
       ? { 'B. Phân tích SWOT': analysis.swot_data }
       : {}),
@@ -110,26 +112,22 @@ export async function GET() {
     }
     const studentId = session.user.id;
 
-    const [latestAnalysis, mbti, grit, riasec, latestF3] = await Promise.all([
+    const [latestAnalysis, mbti, grit, riasec] = await Promise.all([
       prisma.profile_analyses.findFirst({
         where: { student_id: studentId },
-        orderBy: { analysis_date: 'desc' },
+        orderBy: { created_at: 'desc' },
         select: {
-          summary: true,
+          full_result: true,
           swot_data: true,
-          overall_score: true,
-          academic_score: true,
-          extracurricular_score: true,
+          score_aca: true,
+          score_lan: true,
+          score_hdnk: true,
+          score_skill: true,
         },
       }),
       prisma.mbti_tests.findUnique({ where: { student_id: studentId } }),
       prisma.grit_tests.findUnique({ where: { student_id: studentId } }),
       prisma.riasec_tests.findUnique({ where: { student_id: studentId } }),
-      prisma.student_university_recommendations.findFirst({
-        where: { student_id: studentId },
-        orderBy: { created_at: 'desc' },
-        select: { summary: true, roadmap: true, universities: true },
-      }),
     ]);
 
     const mbtiOk = mbti?.status === TestStatus.COMPLETED ? mbti : null;
@@ -139,28 +137,22 @@ export async function GET() {
     const feature1_output = latestAnalysis
       ? buildFeature1FromProfile(latestAnalysis)
       : buildFeature1FromProfile({
-          summary: null,
+          full_result: null,
           swot_data: null,
-          overall_score: 75,
-          academic_score: 7.5,
-          extracurricular_score: 7,
+          score_aca: null,
+          score_lan: null,
+          score_hdnk: null,
+          score_skill: null,
         });
 
     const feature2_output = buildFeature2FromTests(mbtiOk, gritOk, riasecOk);
 
-    const feature3_output = latestF3
-      ? {
-          success: true,
-          universities: latestF3.universities ?? {},
-          roadmap: latestF3.roadmap ?? {},
-          summary: latestF3.summary ?? {},
-        }
-      : {
-          success: true,
-          universities: {},
-          roadmap: {},
-          summary: {},
-        };
+    const feature3_output = {
+      success: true,
+      universities: {} as Record<string, unknown>,
+      roadmap: {} as Record<string, unknown>,
+      summary: {} as Record<string, unknown>,
+    };
 
     return NextResponse.json({
       success: true,

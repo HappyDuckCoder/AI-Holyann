@@ -60,6 +60,7 @@ export async function POST(
                 description: body.description,
                 achievements: body.achievements,
                 related_to_major: body.related_to_major ?? true,
+                impact_tier: body.impact_tier != null ? Number(body.impact_tier) : null,
             }
         });
 

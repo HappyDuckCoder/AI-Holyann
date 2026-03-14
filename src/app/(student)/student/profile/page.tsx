@@ -17,6 +17,7 @@ export default function ProfilePageWrapper() {
   } = useAuthSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [resolvedStudentId, setResolvedStudentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
@@ -241,6 +242,7 @@ export default function ProfilePageWrapper() {
         };
 
         setProfile(mappedProfile);
+        setResolvedStudentId(actualStudentId);
         setError(null);
         setLoading(false);
 
@@ -938,6 +940,7 @@ export default function ProfilePageWrapper() {
       <div className="min-h-[60vh]">
         <ProfilePage
           profile={profile}
+          resolvedStudentId={resolvedStudentId}
           onEditClick={handleEditClick}
           onUploadDocument={handleUploadDocument}
           onDeleteDocument={handleDeleteDocument}

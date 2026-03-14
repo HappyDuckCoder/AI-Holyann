@@ -85,32 +85,31 @@ export class ProfileAnalyzerDBService {
   }
 
   /**
-   * Lưu kết quả phân tích AI vào Database
+   * Lưu kết quả phân tích AI vào Database (chỉ các cột logic mới).
    */
   static async saveAnalysisResult(
     studentId: string,
     result: {
-      overall_score: number;
-      academic_score: number;
-      extracurricular_score: number;
-      summary: string;
-      swot: any;
-      academic_analysis: any;
-      extracurricular_analysis: any;
+      full_result: object;
+      swot_data?: object;
+      input_data?: object;
+      score_aca?: number | null;
+      score_lan?: number | null;
+      score_hdnk?: number | null;
+      score_skill?: number | null;
     }
   ) {
     return await prisma.profile_analyses.create({
       data: {
         id: crypto.randomUUID(),
         student_id: studentId,
-        overall_score: result.overall_score,
-        academic_score: result.academic_score,
-        extracurricular_score: result.extracurricular_score,
-        summary: result.summary,
-        swot_data: result.swot ?? {},
-        academic_data: result.academic_analysis ?? {},
-        extracurricular_data: result.extracurricular_analysis ?? {},
-        analysis_date: new Date(),
+        full_result: result.full_result ?? {},
+        swot_data: result.swot_data ?? {},
+        input_data: result.input_data ?? {},
+        score_aca: result.score_aca ?? null,
+        score_lan: result.score_lan ?? null,
+        score_hdnk: result.score_hdnk ?? null,
+        score_skill: result.score_skill ?? null,
       },
     });
   }

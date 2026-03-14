@@ -125,10 +125,24 @@ export async function callAIAPI<T = any>(
 }
 
 /**
- * Feature 1: Profile Analysis (NLP + xử lý có thể 2–5 phút)
+ * Feature 1: Profile Analysis (input theo input-analysis.json → output pillar_scores, spikes, areas, swot)
  */
 export async function callProfileAnalysis(payload: any) {
-  return callAIAPI("/hoexapp/api/profile-analysis/", {
+  return callAIAPI("/api/analysis-profile", {
+    method: "POST",
+    body: payload,
+    timeoutMs: PROFILE_ANALYSIS_TIMEOUT_MS,
+  });
+}
+
+/**
+ * Feature 1: Enhance Profile (analysis_information + willing_area → list_suggestion, roadmap, pillar_score_after_enhance)
+ */
+export async function callEnhanceProfile(payload: {
+  analysis_information: Record<string, unknown>;
+  willing_area: "A" | "B" | "C";
+}) {
+  return callAIAPI("/api/enhence-profile", {
     method: "POST",
     body: payload,
     timeoutMs: PROFILE_ANALYSIS_TIMEOUT_MS,
@@ -136,8 +150,6 @@ export async function callProfileAnalysis(payload: any) {
 }
 
 import type {
-  CareerAssessmentInput,
-  CareerAssessmentOutput,
   MBTIInput,
   MBTIOutput,
   GritInput,
@@ -145,18 +157,6 @@ import type {
   RIASECInput,
   RIASECOutput,
 } from "./schemas/career-assessment.schema";
-
-/**
- * Feature 2: Career Assessment (Combined)
- */
-export async function callCareerAssessment(
-  payload: CareerAssessmentInput,
-): Promise<CareerAssessmentOutput> {
-  return callAIAPI<CareerAssessmentOutput>("/hoexapp/api/career-assessment/", {
-    method: "POST",
-    body: payload,
-  });
-}
 
 /**
  * Feature 2: MBTI Assessment Only
@@ -198,18 +198,19 @@ export async function callRIASECAssessment(
 }
 
 /**
- * Feature 3: University Recommendation
+ * Feature 3: Admission chance (Reach / Match / Safe)
+ * Input: wishlist_faculties, wishlist_universities, pillars, spikes, region_fit, personality_fit
  */
-export async function callUniversityRecommendation(payload: {
-  feature1_output: any;
-  feature2_output: any;
-  top_n?: number;
-  min_match_score?: number;
-  duration_months?: number;
-  start_date?: string;
+export async function callAdmissionChance(payload: {
+  wishlist_faculties: string[];
+  wishlist_universities: string[];
+  pillars: { academic: number; language: number; extracurricular: number; skills: number };
+  spikes?: Array<{ type: string; tier: string }>;
+  region_fit?: string;
+  personality_fit?: string;
 }) {
-  return callAIAPI("/hoexapp/api/university-recommendation/", {
-    method: "POST",
-    body: payload,
-  });
+  return callAIAPI<{ ok: boolean; summary?: unknown; faculties?: { reach?: unknown[]; match?: unknown[]; safe?: unknown[] }; error?: string }>(
+    "/api/admission-chance",
+    { method: "POST", body: payload, timeoutMs: 60_000 }
+  );
 }

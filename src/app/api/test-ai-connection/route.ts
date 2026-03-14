@@ -20,10 +20,6 @@ export async function GET(request: NextRequest) {
       name: "Profile analysis endpoint",
       url: `${AI_SERVER_URL}/hoexapp/api/profile-analysis/`,
     },
-    {
-      name: "Career assessment endpoint",
-      url: `${AI_SERVER_URL}/hoexapp/api/career-assessment/`,
-    },
   ];
 
   const results = [];

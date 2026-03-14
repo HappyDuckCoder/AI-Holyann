@@ -5,6 +5,7 @@ import {
   Briefcase,
   Activity,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import { TestResult } from "@/components/types";
 
@@ -15,6 +16,7 @@ interface TestCardProps {
   iconType: "MBTI" | "RIASEC" | "GRIT";
   onClick: () => void;
   onViewResult?: () => void;
+  onReset?: () => void;
   isCompleted?: boolean;
   result?: TestResult;
 }
@@ -26,6 +28,7 @@ const TestCard: React.FC<TestCardProps> = ({
   iconType,
   onClick,
   onViewResult,
+  onReset,
   isCompleted,
   result,
 }) => {
@@ -98,19 +101,19 @@ const TestCard: React.FC<TestCardProps> = ({
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
 
-        {/* Không cho phép làm lại test sau khi hoàn thành */}
-        {/* {isCompleted && onReset && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onReset();
-                        }}
-                        className="w-full py-2 px-4 text-sm font-medium rounded-lg border border-orange-200 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-orange-700 dark:text-orange-300 transition-colors flex items-center justify-center gap-2 group"
-                    >
-                        <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300"/>
-                        Làm lại
-                    </button>
-                )} */}
+        {isCompleted && onReset && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReset();
+            }}
+            className="w-full mt-2 py-2 px-4 text-sm font-medium rounded-lg border border-orange-200 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-orange-700 dark:text-orange-300 transition-colors flex items-center justify-center gap-2 group"
+          >
+            <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" />
+            Làm lại
+          </button>
+        )}
       </div>
     </div>
   );

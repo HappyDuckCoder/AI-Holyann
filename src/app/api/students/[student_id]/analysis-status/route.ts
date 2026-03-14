@@ -35,7 +35,7 @@ export async function GET(
     if (!inProgress) {
       const analysis = await prisma.profile_analyses.findFirst({
         where: { student_id: studentId },
-        orderBy: { analysis_date: 'desc' },
+        orderBy: { created_at: 'desc' },
       });
       const raw = analysis as { full_result?: unknown } | null;
       if (raw?.full_result != null) {
