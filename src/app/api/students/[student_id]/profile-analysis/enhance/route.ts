@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/auth-config";
 import { prisma } from "@/lib/prisma";
 import { getLimit, type SubscriptionPlan } from "@/lib/subscription";
 import { callEnhanceProfile } from "@/lib/ai-api-client";
 import type { Feature1EnhanceOutput } from "@/lib/schemas/profile-analysis-v2.schema";
 
 export const maxDuration = 300;
+
+function normalizePlan(raw: string | null | undefined): SubscriptionPlan {
+  const upper = (raw ?? "FREE")?.toString?.().trim?.().toUpperCase?.() ?? "FREE";
+  if (upper === "ADVANCED") return "PREMIUM";
+  if (["FREE", "PLUS", "PREMIUM"].includes(upper)) return upper as SubscriptionPlan;
+  return "FREE";
+}
 
 export async function POST(
   request: NextRequest,
@@ -21,7 +30,18 @@ export async function POST(
       return NextResponse.json({ error: "Không tìm thấy học sinh" }, { status: 404 });
     }
 
-    const plan = (user.subscription_plan as SubscriptionPlan) ?? "FREE";
+    // Cùng logic với phân tích: plan từ DB, fallback session khi FREE
+    let plan = normalizePlan(user.subscription_plan as string);
+    if (plan === "FREE") {
+      const session = await getServerSession(authOptions);
+      const sessionUserId = (session?.user as { id?: string })?.id;
+      const sessionPlan = (session?.user as { subscriptionPlan?: string })?.subscriptionPlan?.toString?.().trim?.().toUpperCase?.();
+      if (String(sessionUserId) === String(studentId) && sessionPlan && ["PLUS", "PREMIUM"].includes(sessionPlan)) {
+        plan = sessionPlan as SubscriptionPlan;
+      }
+    }
+
+    // Plus: 5 lần cải thiện; Premium: không giới hạn (-1) — xử lý giống phân tích
     const limitRaw = getLimit(plan, "profileEnhanceLimit");
     const limit = typeof limitRaw === "number" ? limitRaw : limitRaw === true ? 1 : 0;
     const used = await prisma.profile_improve_results.count({ where: { student_id: studentId } });
@@ -64,15 +84,30 @@ export async function POST(
     }
 
     const now = new Date();
-    await prisma.profile_improve_results.create({
-      data: {
-        id: randomUUID(),
-        student_id: studentId,
-        enhance_result: result as unknown as object,
-        enhance_at: now,
-        updated_at: now,
-      },
+    const existing = await prisma.profile_improve_results.findFirst({
+      where: { student_id: studentId },
+      select: { id: true },
     });
+    if (existing) {
+      await prisma.profile_improve_results.update({
+        where: { id: existing.id },
+        data: {
+          enhance_result: result as unknown as object,
+          enhance_at: now,
+          updated_at: now,
+        },
+      });
+    } else {
+      await prisma.profile_improve_results.create({
+        data: {
+          id: randomUUID(),
+          student_id: studentId,
+          enhance_result: result as unknown as object,
+          enhance_at: now,
+          updated_at: now,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true, data: result });
   } catch (e) {

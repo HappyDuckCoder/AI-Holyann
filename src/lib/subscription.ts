@@ -1,6 +1,6 @@
-export type SubscriptionPlan = 'FREE' | 'PLUS' | 'ADVANCED' | 'PREMIUM';
+export type SubscriptionPlan = 'FREE' | 'PLUS' | 'PREMIUM';
 
-/** Plans shown on pricing page (ADVANCED kept for backward compatibility only). */
+/** Plans shown on pricing page. */
 export const DISPLAY_PLANS: SubscriptionPlan[] = ['FREE', 'PLUS', 'PREMIUM'];
 
 export type SubscriptionFeature =
@@ -55,22 +55,6 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     cvAnalysisCount: 10,
     essayAnalysisCount: 10,
     essayMentor: false,
-    reportsCount: -1,
-  },
-  ADVANCED: {
-    profileAnalysisDetail: true,
-    profileAnalysisLimit: -1,
-    profileEnhanceLimit: -1,
-    majorListCount: 15,
-    majorFitShowCount: 15,
-    classificationCount: 30,
-    classificationAttemptsLimit: -1,
-    matchScoreDetail: true,
-    roadmapDetail: true,
-    enhanceCount: -1,
-    cvAnalysisCount: -1,
-    essayAnalysisCount: -1,
-    essayMentor: true,
     reportsCount: -1,
   },
   PREMIUM: {

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/auth-config";
 import { prisma } from "@/lib/prisma";
 import { getLimit, type SubscriptionPlan } from "@/lib/subscription";
 import { callProfileAnalysis } from "@/lib/ai-api-client";
@@ -7,6 +9,13 @@ import { buildProfilePayloadFromDb } from "@/lib/build-profile-payload";
 import type { Feature1AnalysisOutput } from "@/lib/schemas/profile-analysis-v2.schema";
 
 export const maxDuration = 300;
+
+function normalizePlan(raw: string | null | undefined): SubscriptionPlan {
+  const upper = (raw ?? "FREE")?.toString?.().trim?.().toUpperCase?.() ?? "FREE";
+  if (upper === "ADVANCED") return "PREMIUM";
+  if (["FREE", "PLUS", "PREMIUM"].includes(upper)) return upper as SubscriptionPlan;
+  return "FREE";
+}
 
 export async function POST(
   _request: Request,
@@ -22,19 +31,50 @@ export async function POST(
       return NextResponse.json({ error: "Không tìm thấy học sinh" }, { status: 404 });
     }
 
-    const plan = (user.subscription_plan as SubscriptionPlan) ?? "FREE";
+    const session = await getServerSession(authOptions);
+    const sessionUserId = (session?.user as { id?: string })?.id;
+    const sessionPlanRaw = (session?.user as { subscriptionPlan?: string })?.subscriptionPlan;
+    const sessionPlan = typeof sessionPlanRaw === "string" ? sessionPlanRaw.trim().toUpperCase() : "";
+    const isCurrentUser = String(sessionUserId) === String(studentId);
+
+    // Khi là user đang đăng nhập: đọc lại subscription_plan từ DB (tránh cache) rồi ưu tiên session nếu DB vẫn FREE
+    let plan = normalizePlan(user.subscription_plan as string);
+    if (isCurrentUser) {
+      const fresh = await prisma.users.findUnique({
+        where: { id: studentId },
+        select: { subscription_plan: true },
+      });
+      plan = normalizePlan(fresh?.subscription_plan as string);
+      if (plan === "FREE" && sessionPlan && ["PLUS", "PREMIUM"].includes(sessionPlan)) {
+        plan = sessionPlan as SubscriptionPlan;
+      }
+    }
+
     const limitRaw = getLimit(plan, "profileAnalysisLimit");
     const limit = typeof limitRaw === "number" ? limitRaw : limitRaw === true ? 1 : 0;
     const used = await prisma.profile_analyses.count({ where: { student_id: studentId } });
+
     if (limit !== -1 && used >= limit) {
-      return NextResponse.json(
-        {
-          error: "Bạn đã dùng hết số lần đánh giá theo gói. Vui lòng nâng cấp.",
-          limit,
-          used,
-        },
-        { status: 403 }
-      );
+      if (isCurrentUser) {
+        const recheck = await prisma.users.findUnique({
+          where: { id: studentId },
+          select: { subscription_plan: true },
+        });
+        const recheckPlan = normalizePlan(recheck?.subscription_plan as string);
+        if (recheckPlan === "PLUS" || recheckPlan === "PREMIUM" || (sessionPlan && ["PLUS", "PREMIUM"].includes(sessionPlan))) {
+          plan = (recheckPlan !== "FREE" ? recheckPlan : sessionPlan) as SubscriptionPlan;
+        } else {
+          return NextResponse.json(
+            { error: "Bạn đã dùng hết số lần đánh giá theo gói. Vui lòng nâng cấp.", limit, used },
+            { status: 403 }
+          );
+        }
+      } else {
+        return NextResponse.json(
+          { error: "Bạn đã dùng hết số lần đánh giá theo gói. Vui lòng nâng cấp.", limit, used },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await buildProfilePayloadFromDb(studentId);

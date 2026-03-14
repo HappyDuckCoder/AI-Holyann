@@ -54,31 +54,29 @@ export async function PATCH(
             subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 6)
         }
 
-        const user = await prisma.users.update({
+        const updated = await prisma.users.update({
             where: { id },
             data: {
-                // subscriptionPlan: plan,
-                // subscriptionStart: plan === 'FREE' ? null : subscriptionStart,
-                // subscriptionEnd: plan === 'FREE' ? null : subscriptionEnd
+                subscription_plan: plan,
+                subscription_start: plan === 'FREE' ? null : subscriptionStart,
+                subscription_end: plan === 'FREE' ? null : subscriptionEnd,
             },
             select: {
                 id: true,
+                subscription_plan: true,
+                subscription_start: true,
+                subscription_end: true,
             }
         })
 
         return NextResponse.json({
             message: `Đã đổi gói thành ${plan}`,
             user: {
-                ...user,
-                subscriptionPlan: plan,
-                subscriptionStart: plan === 'FREE' ? null : subscriptionStart,
-                subscriptionEnd: plan === 'FREE' ? null : subscriptionEnd
+                id: updated.id,
+                subscriptionPlan: updated.subscription_plan,
+                subscriptionStart: updated.subscription_start,
+                subscriptionEnd: updated.subscription_end,
             }
-        })
-
-        return NextResponse.json({
-            message: `Đã đổi gói thành ${plan}`,
-            user
         })
     } catch (error: unknown) {
         console.error('Error updating user subscription:', error)

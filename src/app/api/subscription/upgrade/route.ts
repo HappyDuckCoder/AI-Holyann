@@ -40,12 +40,15 @@ export async function POST(request: NextRequest) {
     const updatedUser = await prisma.users.update({
       where: { id: session.user.id as string },
       data: {
-        // subscriptionPlan: plan as any, // removed because missing from schema
-        // subscriptionStart: now,
-        // subscriptionEnd,
+        subscription_plan: plan,
+        subscription_start: now,
+        subscription_end: subscriptionEnd,
       },
       select: {
         id: true,
+        subscription_plan: true,
+        subscription_start: true,
+        subscription_end: true,
       },
     });
 

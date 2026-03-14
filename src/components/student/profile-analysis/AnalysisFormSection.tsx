@@ -25,7 +25,12 @@ const PILLAR_LABELS: Record<keyof NonNullable<Feature1AnalysisOutput["pillar_sco
 interface AnalysisFormSectionProps {
   studentId: string;
   latestAnalysis: { full_result: Feature1AnalysisOutput } | null;
-  limits: { analysisLimit: number | null; analysisUsed: number };
+  limits: {
+    analysisLimit: number | null;
+    analysisUsed: number;
+    analysisRemaining: number | null;
+    enhanceRemaining: number | null;
+  };
   onSuccess: () => void;
 }
 
@@ -87,6 +92,8 @@ export function AnalysisFormSection({
 
   const payload = profilePayload;
   const hasPayload = payload && (payload.gpa?.value_10 != null || (payload.subjects?.length ?? 0) > 0);
+
+  const computingMessage = "Vui lòng đợi chút, hệ thống đang tính toán cho bạn.";
 
   return (
     <section className="space-y-5">
@@ -244,8 +251,24 @@ export function AnalysisFormSection({
         )}
       </div>
 
+      {/* Skeleton khi đang phân tích lại */}
+      {loading && (
+        <div className="rounded-2xl border-2 border-sky-500/20 bg-gradient-to-b from-sky-500/5 to-transparent p-6 sm:p-8 shadow-lg space-y-4">
+          <div className="space-y-3">
+            <div className="h-4 w-3/4 rounded bg-muted/60 animate-pulse" />
+            <div className="h-4 w-full rounded bg-muted/40 animate-pulse" />
+            <div className="h-4 w-4/5 rounded bg-muted/40 animate-pulse" />
+            <div className="h-32 rounded-xl bg-muted/30 animate-pulse" />
+          </div>
+          <p className="text-sm font-medium text-sky-700 dark:text-sky-300 flex items-center gap-2">
+            <Loader2 className="size-4 animate-spin shrink-0" />
+            {computingMessage}
+          </p>
+        </div>
+      )}
+
       {/* Kết quả chi tiết */}
-      {latestAnalysis?.full_result && (
+      {!loading && latestAnalysis?.full_result && (
         <div className="rounded-2xl border-2 border-sky-500/20 bg-gradient-to-b from-sky-500/5 to-transparent p-4 sm:p-6 shadow-lg space-y-6">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             <span className="h-1 w-8 rounded-full bg-gradient-to-r from-sky-500 to-blue-500" />
@@ -387,9 +410,13 @@ export function AnalysisFormSection({
             <DialogTitle>{latestAnalysis ? "Phân tích lại" : "Xác nhận trước khi phân tích"}</DialogTitle>
             <DialogDescription>
               Kết quả phân tích dựa trên hồ sơ hiện tại của bạn. Bạn đã chắc chắn với thông tin hồ sơ chưa? Nếu chưa, hãy cập nhật hồ sơ trước khi chạy phân tích.
-              {limits.analysisLimit != null && (
-                <span className="block mt-2">Bạn còn {remaining} lần đánh giá.</span>
-              )}
+              <div className="mt-3 rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
+                <p className="font-medium text-foreground mb-1">Số lần còn lại trong gói:</p>
+                <ul className="space-y-0.5 text-muted-foreground">
+                  <li>Phân tích lại: {limits.analysisRemaining != null ? `${limits.analysisRemaining} lần` : "không giới hạn"}</li>
+                  <li>Cải thiện lại: {limits.enhanceRemaining != null ? `${limits.enhanceRemaining} lần` : "không giới hạn"}</li>
+                </ul>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

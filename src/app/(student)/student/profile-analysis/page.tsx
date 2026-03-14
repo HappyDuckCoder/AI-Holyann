@@ -5,11 +5,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { StudentPageContainer } from "@/components/student";
-import { PageLoading } from "@/components/ui/PageLoading";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { ProfileAnalysisHero } from "@/components/student/profile/ProfileAnalysisHero";
 import { AnalysisFormSection } from "@/components/student/profile-analysis/AnalysisFormSection";
 import { EnhanceSection } from "@/components/student/profile-analysis/EnhanceSection";
+import { ProfileAnalysisHistorySection } from "@/components/student/profile-analysis/ProfileAnalysisHistorySection";
 import type { Feature1AnalysisOutput } from "@/lib/schemas/profile-analysis-v2.schema";
 import type { Feature1EnhanceOutput } from "@/lib/schemas/profile-analysis-v2.schema";
 
@@ -25,8 +25,10 @@ export default function ProfileAnalysisPage() {
   const [limits, setLimits] = useState<{
     analysisLimit: number | null;
     analysisUsed: number;
+    analysisRemaining: number | null;
     enhanceLimit: number | null;
     enhanceUsed: number;
+    enhanceRemaining: number | null;
   } | null>(null);
   const [latestAnalysis, setLatestAnalysis] = useState<{
     full_result: Feature1AnalysisOutput;
@@ -77,8 +79,10 @@ export default function ProfileAnalysisPage() {
         setLimits({
           analysisLimit: lim.analysisLimit,
           analysisUsed: lim.analysisUsed ?? 0,
+          analysisRemaining: lim.analysisRemaining ?? null,
           enhanceLimit: lim.enhanceLimit,
           enhanceUsed: lim.enhanceUsed ?? 0,
+          enhanceRemaining: lim.enhanceRemaining ?? null,
         });
       }
       if (latestRes.ok) {
@@ -148,8 +152,10 @@ export default function ProfileAnalysisPage() {
           setLimits({
             analysisLimit: lim.analysisLimit,
             analysisUsed: lim.analysisUsed ?? 0,
+            analysisRemaining: lim.analysisRemaining ?? null,
             enhanceLimit: lim.enhanceLimit,
             enhanceUsed: lim.enhanceUsed ?? 0,
+            enhanceRemaining: lim.enhanceRemaining ?? null,
           });
         });
     }
@@ -157,11 +163,33 @@ export default function ProfileAnalysisPage() {
 
   if (loading || sessionLoading) {
     return (
-      <StudentPageContainer>
-        <PageLoading
-          fullPage={false}
-          message={sessionLoading ? "Đang xác thực..." : "Đang tải..."}
-        />
+      <StudentPageContainer noPadding className="min-w-[320px]">
+        <ProfileAnalysisHero />
+        <div className="min-w-[320px] w-full mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10 pt-6 sm:pt-8">
+          <div className="space-y-8 sm:space-y-12 animate-in fade-in duration-300">
+            <div className="rounded-2xl border-2 border-sky-500/20 bg-gradient-to-b from-sky-500/5 to-transparent p-6 sm:p-8 shadow-lg space-y-4">
+              <div className="h-6 w-32 rounded-full bg-muted/60 animate-pulse" />
+              <div className="h-7 w-48 rounded bg-muted/50 animate-pulse" />
+              <div className="space-y-3 pt-2">
+                <div className="h-4 w-full rounded bg-muted/40 animate-pulse" />
+                <div className="h-4 w-4/5 rounded bg-muted/40 animate-pulse" />
+                <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
+              </div>
+              <p className="text-sm text-muted-foreground pt-2">{sessionLoading ? "Đang xác thực..." : "Đang tải..."}</p>
+            </div>
+            <div className="h-1 rounded-full bg-gradient-to-r from-sky-500/30 via-primary/20 to-emerald-500/30" aria-hidden />
+            <div className="rounded-2xl border-2 border-emerald-500/20 bg-gradient-to-b from-emerald-500/5 to-transparent p-6 sm:p-8 shadow-lg space-y-4">
+              <div className="h-6 w-36 rounded-full bg-muted/60 animate-pulse" />
+              <div className="h-7 w-52 rounded bg-muted/50 animate-pulse" />
+              <div className="space-y-3 pt-2">
+                <div className="h-4 w-full rounded bg-muted/40 animate-pulse" />
+                <div className="h-4 w-3/4 rounded bg-muted/40 animate-pulse" />
+                <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
+              </div>
+              <p className="text-sm text-muted-foreground pt-2">{sessionLoading ? "Đang xác thực..." : "Đang tải..."}</p>
+            </div>
+          </div>
+        </div>
       </StudentPageContainer>
     );
   }
@@ -203,6 +231,8 @@ export default function ProfileAnalysisPage() {
               limits={{
                 analysisLimit: limits?.analysisLimit ?? null,
                 analysisUsed: limits?.analysisUsed ?? 0,
+                analysisRemaining: limits?.analysisRemaining ?? null,
+                enhanceRemaining: limits?.enhanceRemaining ?? null,
               }}
               onSuccess={refreshLatest}
             />
@@ -222,11 +252,25 @@ export default function ProfileAnalysisPage() {
               latestAnalysis={latestAnalysis}
               latestEnhance={latestEnhance}
               limits={{
-                enhanceLimit: limits?.enhanceLimit ?? 0,
+                enhanceLimit: limits?.enhanceLimit ?? null,
                 enhanceUsed: limits?.enhanceUsed ?? 0,
+                enhanceRemaining: limits?.enhanceRemaining ?? null,
+                analysisRemaining: limits?.analysisRemaining ?? null,
               }}
               onSuccess={refreshLatest}
             />
+          </motion.div>
+          <div
+            className="h-1 rounded-full bg-gradient-to-r from-sky-500/30 via-primary/20 to-emerald-500/30"
+            role="separator"
+            aria-hidden
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+          >
+            <ProfileAnalysisHistorySection studentId={studentId} onRefresh={refreshLatest} />
           </motion.div>
         </div>
       </div>
