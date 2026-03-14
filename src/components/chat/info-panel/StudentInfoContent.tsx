@@ -21,7 +21,8 @@ interface StudentDetails {
   current_school: string | null;
   current_grade: string | null;
   current_address: string | null;
-  target_country: string | null;
+  target_university_name: string | null;
+  target_faculty_name: string | null;
 }
 
 interface StudentInfoContentProps {

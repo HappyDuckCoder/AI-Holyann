@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BookOpen, Globe, Pencil, Check, X, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, Globe, Pencil, Check, X, Plus, Trash2, Target } from "lucide-react";
 import { StudentProfile, EnglishCertificate } from "../../../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -237,30 +238,28 @@ export const AcademicInfoSection: React.FC<AcademicInfoSectionProps> = ({
             </div>
           )}
         </div>
-        <div className="p-3 sm:p-4 rounded-xl border border-border bg-muted/20 sm:col-span-2 md:col-span-3 transition-colors duration-300">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Mục tiêu</p>
-          {editing ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <input
-                value={form.targetMajor}
-                onChange={(e) => setForm((f) => ({ ...f, targetMajor: e.target.value }))}
-                className="bg-card border border-border rounded px-2 py-1 text-foreground text-sm"
-                placeholder="Ngành học"
-              />
-              <input
-                value={form.targetCountry}
-                onChange={(e) => setForm((f) => ({ ...f, targetCountry: e.target.value }))}
-                className="bg-card border border-border rounded px-2 py-1 text-foreground text-sm"
-                placeholder="Quốc gia"
-              />
+        {profile.targetGoal && (
+          <div className="p-3 sm:p-4 rounded-xl border border-border bg-primary/5 border-l-4 border-l-primary sm:col-span-2 md:col-span-3 transition-colors duration-300">
+            <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+              <Target className="size-3.5" />
+              Mục tiêu
+            </p>
+            <div className="flex flex-wrap items-baseline gap-1">
+              <span className="font-semibold text-foreground">{profile.targetGoal.facultyName}</span>
+              <span className="text-muted-foreground">tại</span>
+              {profile.targetGoal.universityId != null ? (
+                <Link
+                  href={`/student/universities/${profile.targetGoal.universityId}`}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {profile.targetGoal.universityName}
+                </Link>
+              ) : (
+                <span className="font-medium text-foreground">{profile.targetGoal.universityName}</span>
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground">{profile.targetMajor}</span>
-              <span className="text-xs text-muted-foreground">{profile.targetCountry}</span>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );

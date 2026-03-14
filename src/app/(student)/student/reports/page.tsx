@@ -159,8 +159,10 @@ export default function ReportsPage() {
                   return `${c.type || ""}${level} ${c.score ?? ""}`.trim();
                 }).filter(Boolean).join(", ") || "Chưa cập nhật"
               : "Chưa cập nhật",
-            targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
-            targetCountry: data.studentInfo?.target_country || "Chưa xác định",
+            targetMajor: data.studentInfo?.target_faculty_name && data.studentInfo?.target_university_name
+              ? `${data.studentInfo.target_faculty_name} @ ${data.studentInfo.target_university_name}`
+              : "Chưa xác định",
+            targetCountry: "—",
             extracurriculars: [
               ...(data.background?.academic_extracurriculars?.map((act: { id: string; activity_name?: string; role?: string; start_date?: string; description?: string }) => ({
                 id: act.id,

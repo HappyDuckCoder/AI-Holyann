@@ -38,8 +38,8 @@ interface StudentDetailData {
     date_of_birth: string | Date | null
     talents: string | null
     hobbies: string | null
-    target_country: string | null
-    intended_major: string | null
+    target_faculty_name: string | null
+    target_university_name: string | null
     yearly_budget: number | null
     personal_desire: string | null
     assessments_completed: boolean | null
@@ -410,11 +410,11 @@ export default function StudentManagement() {
                       <dl className="space-y-2 text-sm">
                         <div>
                           <dt className="text-muted-foreground">Major</dt>
-                          <dd className="text-foreground">{viewDetail.students?.intended_major ?? '–'}</dd>
+                          <dd className="text-foreground">{viewDetail.students?.target_faculty_name && viewDetail.students?.target_university_name ? `${viewDetail.students.target_faculty_name} @ ${viewDetail.students.target_university_name}` : '–'}</dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground">Target country</dt>
-                          <dd className="text-foreground">{viewDetail.students?.target_country ?? '–'}</dd>
+                          <dd className="text-foreground">{viewDetail.students?.target_university_name ?? '–'}</dd>
                         </div>
                         <div>
                           <dt className="text-muted-foreground">Budget (yearly)</dt>

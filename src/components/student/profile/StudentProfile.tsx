@@ -222,10 +222,9 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                                         <div className="p-4 bg-orange-50 rounded-lg">
                                             <p className="text-sm text-orange-600 font-medium mb-1">Mục tiêu du học</p>
                                             <p className="text-lg font-bold text-orange-900">
-                                                {profile.studentInfo?.intended_major || 'Computer Science'}
-                                            </p>
-                                            <p className="text-xs text-orange-600">
-                                                tại {profile.studentInfo?.target_country || 'Canada'}
+                                                {profile.targetGoal
+                                                  ? `${profile.targetGoal.facultyName} tại ${profile.targetGoal.universityName}`
+                                                  : "Chưa thiết lập"}
                                             </p>
                                         </div>
                                     </div>

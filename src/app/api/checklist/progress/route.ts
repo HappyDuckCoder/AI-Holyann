@@ -108,8 +108,8 @@ export async function GET(request: NextRequest) {
                 id: student.user_id,
                 currentSchool: student.current_school,
                 currentGrade: student.current_grade,
-                targetCountry: student.target_country,
-                intendedMajor: student.intended_major,
+                targetCountry: student.target_university_name ?? null,
+                intendedMajor: student.target_faculty_name ?? null,
             }
         })
 

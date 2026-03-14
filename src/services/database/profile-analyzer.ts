@@ -5,8 +5,8 @@ export type StudentProfileData = {
   student: {
     current_school: string | null;
     current_grade: string | null;
-    target_country: string | null;
-    intended_major: string | null;
+    target_faculty_name: string | null;
+    target_university_name: string | null;
     yearly_budget: any;
     personal_desire: string | null;
   };
@@ -55,8 +55,8 @@ export class ProfileAnalyzerDBService {
       student: {
         current_school: student.current_school,
         current_grade: student.current_grade,
-        target_country: student.target_country,
-        intended_major: student.intended_major,
+        target_faculty_name: student.target_faculty_name,
+        target_university_name: student.target_university_name,
         yearly_budget: student.yearly_budget,
         personal_desire: student.personal_desire,
       },

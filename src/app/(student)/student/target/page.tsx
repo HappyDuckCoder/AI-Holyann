@@ -16,7 +16,9 @@ import {
 import { Loader2, Target, Star, Shield, MapPin, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { TargetHistorySection } from "@/components/student/target/TargetHistorySection";
+import { TargetGoalSection, type TargetGoalOption, type TargetGoalData } from "@/components/student/target/TargetGoalSection";
 import { TargetPageSkeleton } from "@/components/student/target/TargetPageSkeleton";
+import { Separator } from "@/components/ui/separator";
 
 const ACCENT = "#0052FF";
 const ACCENT_SEC = "#4D7CFF";
@@ -157,12 +159,15 @@ export default function TargetPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<keyof FacultiesResult>("match");
   const [historyRefresh, setHistoryRefresh] = useState(0);
+  const [targetGoal, setTargetGoal] = useState<TargetGoalData | null>(null);
+  const [goalRefresh, setGoalRefresh] = useState(0);
 
   const fetchLimitsAndLatest = useCallback(async (sid: string) => {
     try {
-      const [limRes, latRes] = await Promise.all([
+      const [limRes, latRes, goalRes] = await Promise.all([
         fetch(`/api/students/${sid}/admission-chance/limits`),
         fetch(`/api/students/${sid}/admission-chance/latest`),
+        fetch(`/api/students/${sid}/target-goal`),
       ]);
       if (limRes.ok) {
         const d = await limRes.json();
@@ -186,9 +191,22 @@ export default function TargetPage() {
           setLatest(null);
         }
       }
+      if (goalRes.ok) {
+        const d = await goalRes.json();
+        setTargetGoal({
+          target_faculty_name: d.target_faculty_name ?? null,
+          target_university_id: d.target_university_id ?? null,
+          target_university_name: d.target_university_name ?? null,
+          target_set_at: d.target_set_at ?? null,
+          already_set: d.already_set ?? false,
+        });
+      } else {
+        setTargetGoal(null);
+      }
     } catch {
       setLimits(null);
       setLatest(null);
+      setTargetGoal(null);
     }
   }, []);
 
@@ -199,7 +217,7 @@ export default function TargetPage() {
     }
     setSectionLoading(true);
     fetchLimitsAndLatest(studentId).finally(() => setSectionLoading(false));
-  }, [studentId, fetchLimitsAndLatest, historyRefresh]);
+  }, [studentId, fetchLimitsAndLatest, historyRefresh, goalRefresh]);
 
   const runAdmissionChance = useCallback(async () => {
     if (!studentId) return;
@@ -510,6 +528,41 @@ export default function TargetPage() {
                 </div>
               </motion.div>
             )}
+
+            <Separator className="my-8" />
+
+            {/* Thiết lập mục tiêu (1 lần) */}
+            <TargetGoalSection
+              studentId={studentId}
+              options={(() => {
+                const opts: TargetGoalOption[] = [];
+                const seen = new Set<string>();
+                for (const key of ["reach", "match", "safe"] as const) {
+                  const list = latest?.faculties?.[key] ?? [];
+                  for (const item of list) {
+                    const name = item.faculty_name ?? "—";
+                    for (const u of item.strong_universities ?? []) {
+                      const uid = u.university_id ?? null;
+                      const uname = u.name ?? "—";
+                      const value = `${name}::${uid ?? uname}`;
+                      if (seen.has(value)) continue;
+                      seen.add(value);
+                      opts.push({
+                        faculty_name: name,
+                        university_id: uid,
+                        university_name: uname,
+                        value,
+                      });
+                    }
+                  }
+                }
+                return opts;
+              })()}
+              currentGoal={targetGoal}
+              onSaved={() => setGoalRefresh((r) => r + 1)}
+            />
+
+            <Separator className="my-8" />
 
             {/* Lịch sử */}
             <TargetHistorySection

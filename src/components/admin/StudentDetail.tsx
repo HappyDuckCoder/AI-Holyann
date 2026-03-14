@@ -20,8 +20,8 @@ interface StudentDetail {
     date_of_birth: string | Date | null
     talents: string | null
     hobbies: string | null
-    target_country: string | null
-    intended_major: string | null
+    target_faculty_name: string | null
+    target_university_name: string | null
     yearly_budget: number | null
     personal_desire: string | null
     assessments_completed: boolean | null
@@ -348,11 +348,11 @@ export default function StudentDetail({ studentId }: StudentDetailProps) {
               <div className="space-y-3 text-sm">
                 <div>
                   <span className="font-medium text-muted-foreground">Ngành học dự định:</span>
-                  <p className="text-foreground">{student.students?.intended_major || 'N/A'}</p>
+                  <p className="text-foreground">{student.students?.target_faculty_name && student.students?.target_university_name ? `${student.students.target_faculty_name} @ ${student.students.target_university_name}` : 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-muted-foreground">Quốc gia mục tiêu:</span>
-                  <p className="text-foreground">{student.students?.target_country || 'N/A'}</p>
+                  <span className="font-medium text-muted-foreground">Trường mục tiêu:</span>
+                  <p className="text-foreground">{student.students?.target_university_name || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="font-medium text-muted-foreground">Ngân sách hàng năm:</span>

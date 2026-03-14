@@ -41,8 +41,8 @@ export interface AuthResponse {
         user_id: string
         current_school?: string | null
         current_grade?: string | null
-        intended_major?: string | null
-        target_country?: string | null
+        target_faculty_name?: string | null
+        target_university_name?: string | null
         date_of_birth?: Date | null
         current_address?: string | null
     }

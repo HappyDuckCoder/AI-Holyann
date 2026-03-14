@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Target, MapPin, BookOpen, ArrowRight } from "lucide-react";
+import { Target, BookOpen, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { DashboardCurrentGoal } from "./types";
@@ -15,15 +15,11 @@ interface CurrentGoalCardProps {
 }
 
 export function CurrentGoalCard({ currentGoal }: CurrentGoalCardProps) {
-  const { intendedMajor, targetCountry, personalDesire } = currentGoal;
-  const hasAny =
-    (intendedMajor?.trim()?.length ?? 0) > 0 ||
-    (targetCountry?.trim()?.length ?? 0) > 0 ||
-    (personalDesire?.trim()?.length ?? 0) > 0;
-
-  const itemCount = [intendedMajor?.trim(), targetCountry?.trim(), personalDesire?.trim()].filter(
-    Boolean
-  ).length;
+  const { targetFacultyName, targetUniversityName, targetUniversityId, personalDesire } = currentGoal;
+  const hasTarget =
+    (targetFacultyName?.trim()?.length ?? 0) > 0 && (targetUniversityName?.trim()?.length ?? 0) > 0;
+  const hasAny = hasTarget || (personalDesire?.trim()?.length ?? 0) > 0;
+  const itemCount = [hasTarget ? 1 : 0, personalDesire?.trim() ? 1 : 0].filter(Boolean).reduce((a, b) => a + b, 0);
 
   return (
     <motion.div
@@ -46,10 +42,10 @@ export function CurrentGoalCard({ currentGoal }: CurrentGoalCardProps) {
               </span>
             ) : (
               <Link
-                href={`${STUDENT_BASE}/profile`}
+                href={`${STUDENT_BASE}/target`}
                 className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
               >
-                Chỉnh sửa hồ sơ
+                Thiết lập mục tiêu
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             )}
@@ -60,21 +56,21 @@ export function CurrentGoalCard({ currentGoal }: CurrentGoalCardProps) {
             <div className="py-10 text-center">
               <Target className="mx-auto h-12 w-12 text-muted-foreground/40" />
               <p className="mt-3 text-sm text-muted-foreground">
-                Chưa cập nhật mục tiêu
+                Chưa thiết lập mục tiêu
               </p>
               <p className="mt-1 text-xs text-muted-foreground/70">
-                Cập nhật ngành, quốc gia và nguyện vọng trong hồ sơ để hiển thị tại đây
+                Chọn ngành và trường mục tiêu ở trang Target (chỉ thiết lập một lần)
               </p>
               <Button asChild size="sm" className="mt-4">
-                <Link href={`${STUDENT_BASE}/profile`}>
-                  Cập nhật hồ sơ
+                <Link href={`${STUDENT_BASE}/target`}>
+                  Đến trang Target
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Link>
               </Button>
             </div>
           ) : (
             <div className="space-y-3">
-              {intendedMajor?.trim() && (
+              {hasTarget && (
                 <div className="rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:border-primary/30 hover:bg-muted/30">
                   <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -82,27 +78,26 @@ export function CurrentGoalCard({ currentGoal }: CurrentGoalCardProps) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Ngành dự kiến
+                        Mục tiêu
                       </p>
                       <p className="mt-0.5 text-sm font-medium text-foreground">
-                        {intendedMajor}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {targetCountry?.trim() && (
-                <div className="rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:border-primary/30 hover:bg-muted/30">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <MapPin className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Quốc gia mục tiêu
-                      </p>
-                      <p className="mt-0.5 text-sm font-medium text-foreground">
-                        {targetCountry}
+                        {targetFacultyName}
+                        {targetUniversityName && (
+                          <>
+                            {" "}
+                            <span className="text-muted-foreground">tại</span>{" "}
+                            {targetUniversityId != null ? (
+                              <Link
+                                href={`${STUDENT_BASE}/universities/${targetUniversityId}`}
+                                className="text-primary hover:underline"
+                              >
+                                {targetUniversityName}
+                              </Link>
+                            ) : (
+                              targetUniversityName
+                            )}
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -125,7 +120,16 @@ export function CurrentGoalCard({ currentGoal }: CurrentGoalCardProps) {
                   </div>
                 </div>
               )}
-              <div className="pt-1">
+              <div className="pt-1 flex flex-wrap gap-3">
+                {!hasTarget && (
+                  <Link
+                    href={`${STUDENT_BASE}/target`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                  >
+                    Thiết lập mục tiêu
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                )}
                 <Link
                   href={`${STUDENT_BASE}/profile`}
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"

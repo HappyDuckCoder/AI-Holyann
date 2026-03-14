@@ -52,7 +52,8 @@ export async function GET(request: NextRequest) {
                             students: {
                                 select: {
                                     current_grade: true,
-                                    target_country: true
+                                    target_faculty_name: true,
+                                    target_university_name: true
                                 }
                             }
                         }
@@ -117,7 +118,8 @@ export async function GET(request: NextRequest) {
                             students: {
                                 select: {
                                     current_grade: true,
-                                    target_country: true
+                                    target_faculty_name: true,
+                                    target_university_name: true
                                 }
                             }
                         }
@@ -184,7 +186,7 @@ export async function GET(request: NextRequest) {
                     role: participant.role || (user.role === 'MENTOR' ? 'STUDENT' : 'MENTOR'),
                     ...(user.role === 'MENTOR' && conv.users && 'students' in conv.users ? {
                         grade: conv.users.students?.current_grade,
-                        targetCountry: conv.users.students?.target_country
+                        targetCountry: conv.users.students?.target_university_name ?? null
                     } : {})
                 } : null,
                 lastMessage: conv.chat_messages[0]?.content || '',

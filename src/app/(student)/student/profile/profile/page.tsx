@@ -185,8 +185,8 @@ export default function ProfilePageWrapper() {
                 return `${c.type}${level} ${c.score}`;
               })()
             : "Chưa cập nhật",
-          targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
-          targetCountry: data.studentInfo?.target_country || "Chưa xác định",
+          targetMajor: "—",
+          targetCountry: "—",
 
           // Map extracurriculars
           extracurriculars: [
@@ -267,8 +267,6 @@ export default function ProfilePageWrapper() {
           studentInfo: {
             date_of_birth: updatedProfile.dob,
             current_address: updatedProfile.address,
-            intended_major: updatedProfile.targetMajor,
-            target_country: updatedProfile.targetCountry,
           },
         }),
       });

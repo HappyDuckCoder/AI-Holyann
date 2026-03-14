@@ -195,8 +195,16 @@ export default function ProfilePageWrapper() {
                 .join(", ") || "Chưa cập nhật"
             );
           })(),
-          targetMajor: data.studentInfo?.intended_major || "Chưa xác định",
-          targetCountry: data.studentInfo?.target_country || "Chưa xác định",
+          targetMajor: "—",
+          targetCountry: "—",
+          targetGoal:
+            data.studentInfo?.target_set_at && data.studentInfo?.target_faculty_name && data.studentInfo?.target_university_name
+              ? {
+                  facultyName: data.studentInfo.target_faculty_name,
+                  universityName: data.studentInfo.target_university_name,
+                  universityId: data.studentInfo.target_university_id ?? null,
+                }
+              : null,
 
           // Map extracurriculars (giữ category để hiển thị tag)
           extracurriculars: [
@@ -299,8 +307,6 @@ export default function ProfilePageWrapper() {
           studentInfo: {
             date_of_birth: updatedProfile.dob,
             current_address: updatedProfile.address,
-            intended_major: updatedProfile.targetMajor,
-            target_country: updatedProfile.targetCountry,
           },
         }),
       });
@@ -388,16 +394,11 @@ export default function ProfilePageWrapper() {
       (c) => (c.type || "").trim() || (c.score || "").trim(),
     );
     try {
-      const [profileRes, academicRes] = await Promise.all([
+      const [, academicRes] = await Promise.all([
         fetch(`/api/students/${studentId}/profile`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            studentInfo: {
-              intended_major: data.targetMajor,
-              target_country: data.targetCountry,
-            },
-          }),
+          body: JSON.stringify({ studentInfo: {} }),
         }),
         fetch(`/api/students/${studentId}/academic`, {
           method: "POST",

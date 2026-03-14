@@ -34,10 +34,11 @@ export interface AIInsight {
   tone: "positive" | "warning" | "neutral";
 }
 
-/** Mục tiêu hiện tại từ student profile */
+/** Mục tiêu hiện tại (thiết lập 1 lần ở trang Target) */
 export interface DashboardCurrentGoal {
-  intendedMajor: string | null;
-  targetCountry: string | null;
+  targetFacultyName: string | null;
+  targetUniversityName: string | null;
+  targetUniversityId: number | null;
   personalDesire: string | null;
 }
 

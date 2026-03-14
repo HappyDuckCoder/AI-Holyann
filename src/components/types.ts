@@ -43,6 +43,12 @@ export interface StudentProfile {
     satScore?: number;
     targetMajor: string;
     targetCountry: string;
+    /** Mục tiêu (ngành @ trường) — thiết lập 1 lần ở trang Target */
+    targetGoal?: {
+        facultyName: string;
+        universityName: string;
+        universityId?: number | null;
+    } | null;
     extracurriculars: Extracurricular[];
     /** Thành tích: text hoặc object có id để sửa/xóa */
     achievements: (string | { id: string; text: string; category?: 'academic' | 'non_academic' })[];

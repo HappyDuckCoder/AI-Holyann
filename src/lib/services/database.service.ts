@@ -496,8 +496,6 @@ export class DatabaseService {
                         update: {
                             current_school: student.current_school,
                             current_grade: student.current_grade,
-                            intended_major: student.intended_major,
-                            target_country: student.target_country,
                             date_of_birth: student.date_of_birth,
                             current_address: student.current_address
                         },
@@ -505,8 +503,6 @@ export class DatabaseService {
                             user_id: student.user_id,
                             current_school: student.current_school,
                             current_grade: student.current_grade,
-                            intended_major: student.intended_major,
-                            target_country: student.target_country,
                             date_of_birth: student.date_of_birth,
                             current_address: student.current_address
                         }

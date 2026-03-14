@@ -55,8 +55,6 @@ export class AuthService {
                     user_id: studentData.user_id,
                     current_school: studentData.current_school,
                     current_grade: studentData.current_grade,
-                    intended_major: studentData.intended_major,
-                    target_country: studentData.target_country,
                     date_of_birth: studentData.date_of_birth,
                     current_address: studentData.current_address
                 } : undefined,
@@ -140,8 +138,6 @@ export class AuthService {
                     user_id: studentData.user_id,
                     current_school: studentData.current_school,
                     current_grade: studentData.current_grade,
-                    intended_major: studentData.intended_major,
-                    target_country: studentData.target_country,
                     date_of_birth: studentData.date_of_birth,
                     current_address: studentData.current_address
                 } : undefined,
@@ -230,8 +226,6 @@ export class AuthService {
                     user_id: studentData.user_id,
                     current_school: studentData.current_school,
                     current_grade: studentData.current_grade,
-                    intended_major: studentData.intended_major,
-                    target_country: studentData.target_country,
                     date_of_birth: studentData.date_of_birth,
                     current_address: studentData.current_address
                 } : undefined,

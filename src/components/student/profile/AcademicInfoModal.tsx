@@ -129,11 +129,6 @@ export default function AcademicInfoModal({
     markTabModified("academic");
   };
 
-  const updateIntendedMajor = (major: string) => {
-    setIntendedMajor(major);
-    markTabModified("basic");
-  };
-
   const updateStudentGoals = (goals: Partial<typeof studentGoals>) => {
     setStudentGoals((prev) => ({ ...prev, ...goals }));
     markTabModified("other");
@@ -221,8 +216,6 @@ export default function AcademicInfoModal({
   const [standardizedTests, setStandardizedTests] = useState<any[]>([
     { type: "", score: "", date: "" },
   ]);
-  const [intendedMajor, setIntendedMajor] = useState("");
-
   // Profile Info State
   const [academicAwards, setAcademicAwards] = useState<any[]>([
     {
@@ -315,7 +308,6 @@ export default function AcademicInfoModal({
   const [experiments, setExperiments] = useState<string[]>([]);
 
   const [studentGoals, setStudentGoals] = useState({
-    target_country: "",
     yearly_budget: "",
     personal_desire: "",
   });
@@ -416,7 +408,6 @@ export default function AcademicInfoModal({
         proofImagesLoadedRef.current = true;
 
         // Populate Intended Major
-        updateIntendedMajor(data.studentInfo?.intended_major || "");
 
         // Populate Academic Awards
         if (data.background?.academic_awards?.length > 0) {
@@ -520,7 +511,6 @@ export default function AcademicInfoModal({
 
         // Populate Student Goals
         updateStudentGoals({
-          target_country: data.studentInfo?.target_country || "",
           yearly_budget: data.studentInfo?.yearly_budget || "",
           personal_desire: data.studentInfo?.personal_desire || "",
         });
@@ -611,7 +601,6 @@ export default function AcademicInfoModal({
         basicInfo,
         studentInfo: {
           ...studentGoals,
-          intended_major: intendedMajor,
         },
       }),
     });
@@ -3045,20 +3034,6 @@ export default function AcademicInfoModal({
                       Thông tin khác
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-sm">Quốc gia dự định du học</Label>
-                        <Input
-                          value={studentGoals.target_country}
-                          onChange={(e) =>
-                            updateStudentGoals({
-                              ...studentGoals,
-                              target_country: e.target.value,
-                            })
-                          }
-                          placeholder="VD: Hoa Kỳ, Anh, Úc..."
-                          className="mt-1"
-                        />
-                      </div>
                       <div>
                         <Label className="text-sm">
                           Ngân sách gia đình trong vòng 1 năm

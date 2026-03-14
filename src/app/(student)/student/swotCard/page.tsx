@@ -170,8 +170,10 @@ export default function SwotCardPage() {
           })(),
           gpaScale: 10,
           englishLevel: data.academicProfile?.english_level || "Chưa cập nhật",
-          targetMajor: data.basicInfo.intended_major || "Chưa cập nhật",
-          targetCountry: data.basicInfo.target_country || "Chưa cập nhật",
+          targetMajor: data.studentInfo?.target_faculty_name && data.studentInfo?.target_university_name
+            ? `${data.studentInfo.target_faculty_name} @ ${data.studentInfo.target_university_name}`
+            : "Chưa cập nhật",
+          targetCountry: "—",
           extracurriculars: [],
           achievements: [],
           documents: [],

@@ -175,7 +175,10 @@ export async function GET() {
       {
         id: "goal",
         label: "Mục tiêu hiện tại",
-        value: student?.intended_major?.trim() || "—",
+        value:
+          student?.target_faculty_name && student?.target_university_name
+            ? `${student.target_faculty_name} @ ${student.target_university_name}`
+            : "—",
         trend: undefined,
         icon: "Target",
         accent: "rose" as const,
@@ -206,8 +209,9 @@ export async function GET() {
     return NextResponse.json({
       quickStats,
       currentGoal: {
-        intendedMajor: student?.intended_major ?? null,
-        targetCountry: student?.target_country ?? null,
+        targetFacultyName: student?.target_faculty_name ?? null,
+        targetUniversityName: student?.target_university_name ?? null,
+        targetUniversityId: student?.target_university_id ?? null,
         personalDesire: student?.personal_desire ?? null,
       },
       deadlines: upcomingDeadlines.map((d) => ({

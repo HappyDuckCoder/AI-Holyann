@@ -59,7 +59,8 @@ export async function GET(
       current_school: student.current_school,
       grade: student.current_grade,
       current_address: student.current_address,
-      target_country: student.target_country
+      target_faculty_name: student.target_faculty_name,
+      target_university_name: student.target_university_name
     };
 
     return NextResponse.json({
