@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
                 email: true,
                 is_active: true,
                 avatar_url: true,
-                created_at: true
+                created_at: true,
+                subscription_plan: true
             },
             orderBy: {
                 created_at: 'desc'
@@ -31,7 +32,8 @@ export async function GET(request: NextRequest) {
             email: student.email,
             isActive: student.is_active,
             avatarUrl: student.avatar_url,
-            createdAt: student.created_at
+            createdAt: student.created_at,
+            subscriptionPlan: student.subscription_plan ?? null
         }))
 
         return NextResponse.json({ 

@@ -47,7 +47,7 @@ type MentorWithUser = {
     mentor_assignments: any[]
 }
 
-type StudentOption = { id: string; name: string | null; email: string | null }
+type StudentOption = { id: string; name: string | null; email: string | null; subscriptionPlan?: string | null }
 
 export default function MentorManagement() {
     const [mentors, setMentors] = useState<MentorWithUser[]>([])
@@ -811,6 +811,11 @@ export default function MentorManagement() {
                             </div>
                         )}
                         {assignMentor && (() => {
+                            const premiumStudentIds = new Set(
+                                assignStudents
+                                    .filter((s) => (s.subscriptionPlan ?? '').toUpperCase() === 'PREMIUM')
+                                    .map((s) => s.id)
+                            )
                             const assignedList = (assignMentor.mentor_assignments ?? []).filter(
                                 (a: { status?: string }) => (a.status ?? 'ACTIVE') === 'ACTIVE'
                             ).map((a: { student_id: string; students?: { users?: { full_name?: string } } }) => ({
@@ -818,15 +823,18 @@ export default function MentorManagement() {
                                 name: a.students?.users?.full_name ?? 'N/A'
                             }))
                             const assignedIds = new Set(assignedList.map((a) => a.student_id))
-                            const studentsToAssign = assignStudents.filter((s) => !assignedIds.has(s.id))
+                            const assignedPremiumOnly = assignedList.filter((a) => premiumStudentIds.has(a.student_id))
+                            const studentsToAssign = assignStudents.filter(
+                                (s) => premiumStudentIds.has(s.id) && !assignedIds.has(s.id)
+                            )
                             return (
                         <div className="flex flex-col gap-4 pt-4 pb-6 px-6 overflow-y-auto min-h-0 flex-1">
                             {/* Section: Currently assigned â€” Unassign */}
-                            {assignedList.length > 0 && (
+                            {assignedPremiumOnly.length > 0 && (
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <h4 className="text-sm font-semibold text-foreground">
-                                            Currently assigned ({assignedList.length})
+                                            Đã gán — Premium ({assignedPremiumOnly.length})
                                         </h4>
                                         {unassignStudentIds.size > 0 && (
                                             <Button
@@ -846,7 +854,7 @@ export default function MentorManagement() {
                                     </div>
                                     <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
                                         <ul className="max-h-32 overflow-y-auto divide-y divide-border">
-                                            {assignedList.map((a) => (
+                                            {assignedPremiumOnly.map((a) => (
                                                 <li key={a.student_id}>
                                                     <label className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 cursor-pointer">
                                                         <input
@@ -868,7 +876,7 @@ export default function MentorManagement() {
                             <form onSubmit={handleAssignSubmit} className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <h4 className="text-sm font-semibold text-foreground">
-                                        Assign new students
+                                        Gán thêm học viên (chỉ gói Premium)
                                     </h4>
                                     <div className="flex gap-1">
                                         <Button
@@ -878,7 +886,7 @@ export default function MentorManagement() {
                                             className="h-7 text-xs"
                                             onClick={() => setAssignStudentIds(new Set(studentsToAssign.map((s) => s.id)))}
                                         >
-                                            All
+                                            Chọn tất cả
                                         </Button>
                                         <Button
                                             type="button"
@@ -887,15 +895,15 @@ export default function MentorManagement() {
                                             className="h-7 text-xs"
                                             onClick={clearAllAssignStudents}
                                         >
-                                            Clear
+                                            Bỏ chọn
                                         </Button>
                                     </div>
                                 </div>
                                 <div className="rounded-lg border border-border bg-muted/20 overflow-hidden">
                                     {assignStudents.length === 0 ? (
-                                        <div className="p-4 text-center text-sm text-muted-foreground">Loadingâ€¦</div>
+                                        <div className="p-4 text-center text-sm text-muted-foreground">Đang tải…</div>
                                     ) : studentsToAssign.length === 0 ? (
-                                        <div className="p-4 text-center text-sm text-muted-foreground">All students are already assigned.</div>
+                                        <div className="p-4 text-center text-sm text-muted-foreground">Không còn học viên Premium nào để gán hoặc đã gán hết.</div>
                                     ) : (
                                         <ul className="max-h-40 overflow-y-auto divide-y divide-border">
                                             {studentsToAssign.map((s) => (

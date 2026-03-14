@@ -71,7 +71,7 @@ export async function assignMentorToStudent(
                 )
             }
 
-            // Kiểm tra student tồn tại
+            // Kiểm tra student tồn tại và phải là gói Premium
             const student = await tx.students.findUnique({
                 where: { user_id: studentId },
                 include: {
@@ -79,7 +79,8 @@ export async function assignMentorToStudent(
                         select: {
                             id: true,
                             full_name: true,
-                            email: true
+                            email: true,
+                            subscription_plan: true
                         }
                     }
                 }
@@ -87,6 +88,11 @@ export async function assignMentorToStudent(
 
             if (!student) {
                 throw new Error('Học viên không tồn tại trong hệ thống')
+            }
+
+            const plan = (student.users as { subscription_plan?: string | null }).subscription_plan ?? ''
+            if (plan.toUpperCase() !== 'PREMIUM') {
+                throw new Error('Chỉ học viên gói Premium mới được gán mentor.')
             }
 
             // ============================================
@@ -444,6 +450,21 @@ export async function unassignMentor(
     mentorType: 'AS' | 'ACS' | 'ARD'
 ) {
     try {
+        const user = await prisma.users.findUnique({
+            where: { id: studentId },
+            select: { subscription_plan: true, full_name: true }
+        })
+        if (!user) {
+            return { success: false, message: 'Học viên không tồn tại.' }
+        }
+        const plan = (user.subscription_plan ?? '').toUpperCase()
+        if (plan !== 'PREMIUM') {
+            return {
+                success: false,
+                message: 'Chỉ được hủy gán mentor cho học viên gói Premium.'
+            }
+        }
+
         await prisma.$transaction(async (tx) => {
             // Update status thành CANCELLED
             await tx.mentor_assignments.updateMany({

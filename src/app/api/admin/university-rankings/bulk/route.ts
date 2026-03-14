@@ -118,26 +118,40 @@ export async function POST(request: NextRequest) {
         : [];
 
       const data = {
-        current_ranking: qsRank,
+        qs_rank: qsRank,
         name,
         country,
-        state: (r.city ?? '').trim() || null,
-        website_url: (r.website ?? '').trim() || null,
+        country_code: countryCode,
+        city: (r.city ?? '').trim() || null,
+        region: (r.region ?? '').trim() || null,
+        type: (r.type ?? '').trim() || null,
+        founded_year: num(r.founded_year ?? r['founded_year'] ?? ''),
+        total_students: num(r.total_students ?? r['total_students'] ?? ''),
+        website: (r.website ?? '').trim() || null,
+        qs_overall_score: toFloat(r.qs_overall_score ?? r['qs_overall_score'] ?? ''),
+        academic_reputation: toFloat(r.academic_reputation ?? r['academic_reputation'] ?? ''),
+        employer_reputation: toFloat(r.employer_reputation ?? r['employer_reputation'] ?? ''),
+        faculty_student_ratio: toFloat(r.faculty_student_ratio ?? r['faculty_student_ratio'] ?? ''),
+        citations_per_faculty: toFloat(r.citations_per_faculty ?? r['citations_per_faculty'] ?? ''),
+        international_faculty: toFloat(r.international_faculty ?? r['international_faculty'] ?? ''),
+        international_students: toFloat(r.international_students ?? r['international_students'] ?? ''),
+        strong_subjects: strongSubjects,
+        description: (r.description ?? '').trim() || null,
       };
 
       try {
-        const existing = await prisma.universities.findFirst({
-          where: { name },
+        const existing = await prisma.university_rankings.findFirst({
+          where: { qs_rank: qsRank },
         });
-        
+
         if (existing) {
-          await prisma.universities.update({
+          await prisma.university_rankings.update({
             where: { id: existing.id },
             data,
           });
           updated++;
         } else {
-          await prisma.universities.create({
+          await prisma.university_rankings.create({
             data,
           });
           created++;

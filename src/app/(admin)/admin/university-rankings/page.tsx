@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import RoleGuard from '@/components/auth/RoleGuard';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Upload, Download, RefreshCw, Plus } from 'lucide-react';
+import { Upload, Download, RefreshCw, Plus, Trash2 } from 'lucide-react';
 
 type Row = {
   id: number;
@@ -56,6 +56,9 @@ export default function AdminUniversityRankingsPage() {
     strong_subjects: '',
     description: '',
   });
+  const [search, setSearch] = useState('');
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [schoolToDelete, setSchoolToDelete] = useState<Row | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -68,6 +71,20 @@ export default function AdminUniversityRankingsPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const filteredList = useMemo(
+    () =>
+      list.filter((u) => {
+        const q = search.trim().toLowerCase();
+        if (!q) return true;
+        return (
+          u.name.toLowerCase().includes(q) ||
+          u.country.toLowerCase().includes(q) ||
+          String(u.qs_rank).includes(q)
+        );
+      }),
+    [list, search],
+  );
 
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,6 +185,28 @@ export default function AdminUniversityRankingsPage() {
     }
   };
 
+  const handleDeleteClick = (u: Row) => {
+    setSchoolToDelete(u);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!schoolToDelete) return;
+    const id = schoolToDelete.id;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/university-rankings/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setSchoolToDelete(null);
+        load();
+      } else {
+        alert(data.error || 'Không thể xóa trường');
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const downloadTemplate = () => {
     const line = CSV_HEADER + '\n1,MIT,United States,US,Cambridge MA,North America,Private,1861,11574,https://web.mit.edu,100,100,100,99.7,99.9,92.4,90.8,"Engineering, Computer Science",Description optional';
     const blob = new Blob([line], { type: 'text/csv;charset=utf-8;' });
@@ -236,47 +275,131 @@ export default function AdminUniversityRankingsPage() {
           </div>
         )}
 
-        {/* Table */}
+        {/* Search + Table */}
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : (
-          <div className="rounded-xl border border-border overflow-hidden bg-card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="text-left p-3 font-semibold">#</th>
-                    <th className="text-left p-3 font-semibold">QS</th>
-                    <th className="text-left p-3 font-semibold">Tên trường</th>
-                    <th className="text-left p-3 font-semibold">Quốc gia</th>
-                    <th className="text-left p-3 font-semibold">Điểm</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {list.map((u) => (
-                    <tr key={u.id} className="border-b border-border hover:bg-muted/30">
-                      <td className="p-3 text-muted-foreground">{u.id}</td>
-                      <td className="p-3 font-medium">{u.qs_rank}</td>
-                      <td className="p-3">{u.name}</td>
-                      <td className="p-3">{u.country}</td>
-                      <td className="p-3">{u.qs_overall_score.toFixed(1)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="sm:w-80">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Tìm theo tên trường, quốc gia, QS rank..."
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Đang hiển thị {filteredList.length} / {list.length} trường
+              </p>
             </div>
-            {list.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">Chưa có bản ghi. Tải lên CSV để bulk upsert.</p>
-            )}
-          </div>
+            <div className="rounded-xl border border-border overflow-hidden bg-card">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50">
+                      <th className="text-left p-3 font-semibold">#</th>
+                      <th className="text-left p-3 font-semibold">QS</th>
+                      <th className="text-left p-3 font-semibold">Tên trường</th>
+                      <th className="text-left p-3 font-semibold">Quốc gia</th>
+                      <th className="text-left p-3 font-semibold">Điểm</th>
+                      <th className="text-right p-3 font-semibold w-20">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredList.map((u) => (
+                      <tr key={u.id} className="border-b border-border hover:bg-muted/30">
+                        <td className="p-3 text-muted-foreground">{u.id}</td>
+                        <td className="p-3 font-medium">{u.qs_rank}</td>
+                        <td className="p-3">{u.name}</td>
+                        <td className="p-3">{u.country}</td>
+                        <td className="p-3">{u.qs_overall_score.toFixed(1)}</td>
+                        <td className="p-3 text-right">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => handleDeleteClick(u)}
+                            disabled={deletingId === u.id}
+                            title="Xóa trường"
+                          >
+                            {deletingId === u.id ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {filteredList.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  Không tìm thấy trường phù hợp với từ khóa.
+                </p>
+              )}
+            </div>
+          </>
         )}
 
-        <p className="mt-4 text-xs text-muted-foreground">
-          CSV cần header: {CSV_HEADER}. strong_subjects là chuỗi ngành cách nhau dấu phẩy (hoặc chấm phẩy).
-          Cột tùy chọn: city, region, type, founded_year, total_students, website, description.
-        </p>
+        {/* Modal cảnh báo xóa trường */}
+        <Dialog open={!!schoolToDelete} onOpenChange={(open) => !open && setSchoolToDelete(null)}>
+          <DialogContent className="sm:max-w-md p-6 gap-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-destructive/10 mb-2">
+                <Trash2 className="h-7 w-7 text-destructive" />
+              </div>
+              <DialogHeader className="pb-0">
+                <DialogTitle className="text-lg">Xác nhận xóa trường</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground mt-2 mb-4">
+                Bạn có chắc chắn muốn xóa trường{' '}
+                <span className="font-semibold text-foreground">{schoolToDelete?.name}</span>?
+                <br />
+                Hành động này không thể hoàn tác.
+              </p>
+              <div className="flex gap-3 w-full pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setSchoolToDelete(null)}
+                  disabled={!!deletingId}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={handleConfirmDelete}
+                  disabled={!!deletingId}
+                >
+                  {deletingId ? 'Đang xóa...' : 'Xóa'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <div className="mt-4 max-w-full rounded-lg border border-border bg-muted/20 p-3">
+          <p className="text-xs font-medium text-foreground mb-1.5">Định dạng CSV</p>
+          <p className="text-xs text-muted-foreground mb-1.5 break-words">
+            Header (theo thứ tự):{' '}
+            <code className="break-all rounded bg-muted/50 px-1 py-0.5 text-[11px]">
+              qs_rank,name,country,country_code,city,region,type,founded_year,total_students,website,qs_overall_score,academic_reputation,employer_reputation,faculty_student_ratio,citations_per_faculty,international_faculty,international_students,strong_subjects,description
+            </code>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <strong>strong_subjects</strong>: chuỗi ngành cách nhau dấu phẩy (hoặc chấm phẩy). Cột tùy chọn: city, region, type, founded_year, total_students, website, description.
+          </p>
+        </div>
 
         {/* Add school modal */}
         <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
