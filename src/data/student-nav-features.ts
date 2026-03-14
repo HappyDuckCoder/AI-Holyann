@@ -9,6 +9,7 @@ import {
   CalendarClock,
   Video,
   Target,
+  FileUp,
 } from "lucide-react";
 
 const STUDENT_BASE = "/student";
@@ -41,6 +42,13 @@ export const mainFeatures: NavFeature[] = [
     href: `${STUDENT_BASE}/reports`,
     icon: FileBarChart,
     description: "Báo cáo tiến độ và kết quả học tập",
+    tier: "free",
+  },
+  {
+    name: "Quản lý tài liệu",
+    href: `${STUDENT_BASE}/manage-upload`,
+    icon: FileUp,
+    description: "Quản lý tài liệu của bạn",
     tier: "free",
   },
 ];

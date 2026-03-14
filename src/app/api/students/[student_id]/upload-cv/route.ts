@@ -1,9 +1,30 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import {
   uploadFileServerAction,
   listStudentDocuments,
   deleteFileServerAction,
 } from '@/actions/upload';
+import { authOptions } from '@/lib/auth/auth-config';
+import { prisma } from '@/lib/prisma';
+import type { SubscriptionPlan } from '@/lib/api/require-premium';
+import { completeCvChecklistTask } from '@/lib/checklist-helper';
+
+function normalizePlan(raw: string | null | undefined): SubscriptionPlan {
+  const upper = (raw ?? 'FREE').toString().trim().toUpperCase();
+  if (['FREE', 'PLUS', 'PREMIUM'].includes(upper)) return upper as SubscriptionPlan;
+  return 'FREE';
+}
+
+function getMaxCvSlots(plan: SubscriptionPlan): number {
+  switch (plan) {
+    case 'FREE': return 2;
+    case 'PLUS':
+    case 'PREMIUM': return 5;
+    default: return 2;
+  }
+}
 
 export async function POST(
   request: NextRequest,
@@ -11,9 +32,16 @@ export async function POST(
 ) {
   try {
     const { student_id } = await params;
+    const session = await getServerSession(authOptions);
+    const sessionUserId = (session?.user as { id?: string })?.id ?? (session?.user as { user_id?: string })?.user_id;
+    if (!sessionUserId || String(sessionUserId) !== String(student_id)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const documentType = (formData.get('documentType') as string) || 'cv';
+    const slotIndexRaw = formData.get('slot_index');
 
     if (!file) {
       return NextResponse.json(
@@ -21,8 +49,6 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    // Giới hạn "chỉ một CV" được kiểm tra ở frontend (trang Improve). Checklist có thể upload nhiều tài liệu (transcript, CV, ...) nên API không chặn tại đây.
 
     const allowedTypes = [
       'application/pdf',
@@ -38,6 +64,22 @@ export async function POST(
         { error: 'Chỉ chấp nhận file PDF, DOC, DOCX hoặc ảnh JPG, PNG, WebP' },
         { status: 400 }
       );
+    }
+
+    if (slotIndexRaw != null && slotIndexRaw !== '') {
+      const slotIndex = typeof slotIndexRaw === 'string' ? parseInt(slotIndexRaw, 10) : Number(slotIndexRaw);
+      const user = await prisma.users.findUnique({
+        where: { id: student_id },
+        select: { subscription_plan: true },
+      });
+      const plan = normalizePlan(user?.subscription_plan as string);
+      const maxSlots = getMaxCvSlots(plan);
+      if (!Number.isInteger(slotIndex) || slotIndex < 1 || slotIndex > maxSlots) {
+        return NextResponse.json(
+          { error: `slot_index phải từ 1 đến ${maxSlots} theo gói của bạn` },
+          { status: 400 }
+        );
+      }
     }
 
     const category = documentType === 'certificate' ? 'certificates' : 'cvs';
@@ -56,6 +98,30 @@ export async function POST(
     }
 
     const fileUrl = result.url!;
+
+    if (slotIndexRaw != null && slotIndexRaw !== '' && documentType === 'cv') {
+      const slotIndex = typeof slotIndexRaw === 'string' ? parseInt(slotIndexRaw, 10) : Number(slotIndexRaw);
+      const fileName = (file.name || 'document.pdf').slice(0, 255);
+      await prisma.student_cv_documents.upsert({
+        where: {
+          student_id_slot_index: { student_id, slot_index: slotIndex },
+        },
+        create: {
+          id: randomUUID(),
+          student_id,
+          slot_index: slotIndex,
+          file_url: fileUrl,
+          file_name: fileName,
+        },
+        update: {
+          file_url: fileUrl,
+          file_name: fileName,
+          uploaded_at: new Date(),
+        },
+      });
+      const cvCount = await prisma.student_cv_documents.count({ where: { student_id } });
+      if (cvCount >= 1) await completeCvChecklistTask(student_id);
+    }
 
     return NextResponse.json({
       success: true,

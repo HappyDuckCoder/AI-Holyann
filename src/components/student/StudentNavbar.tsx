@@ -21,6 +21,7 @@ import {
   Crown,
   Lock,
   Target,
+  FileUp,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { mainFeatures, premiumFeatures } from "@/data/student-nav-features";
@@ -123,7 +124,7 @@ export default function StudentNavbar() {
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between gap-4">
         {/* ── Logo ── */}
         <div className="flex items-center gap-3">
-            <Link
+          <Link
             href={`${STUDENT_BASE}/dashboard`}
             className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-lg transition-all duration-200 active:scale-[0.97]"
           >
@@ -161,7 +162,9 @@ export default function StudentNavbar() {
                       : "text-white/80 hover:bg-white/10 hover:text-white"
                   }`}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "opacity-70"}`} />
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${active ? "text-white" : "opacity-70"}`}
+                />
                 {item.name}
                 {active && (
                   <span className="absolute inset-x-3 -bottom-0.5 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent rounded-full" />
@@ -188,7 +191,9 @@ export default function StudentNavbar() {
                 <span className="hidden max-w-[100px] truncate text-sm font-medium text-white xl:block">
                   {user?.name}
                 </span>
-                <ChevronDown className={`h-4 w-4 text-white/80 transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`h-4 w-4 text-white/80 transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`}
+                />
               </button>
 
               {userMenuOpen && (
@@ -268,9 +273,15 @@ export default function StudentNavbar() {
                             >
                               <Icon className="h-4 w-4 shrink-0 mt-0.5 text-amber-500/60" />
                               <div className="min-w-0 flex-1">
-                                <span className="font-semibold block text-foreground/80">{item.name}</span>
-                                <span className="text-xs text-muted-foreground block mt-0.5">{item.description}</span>
-                                <span className="mt-1 inline-block text-[10px] font-medium text-amber-600 dark:text-amber-400">Nâng cấp để mở khóa</span>
+                                <span className="font-semibold block text-foreground/80">
+                                  {item.name}
+                                </span>
+                                <span className="text-xs text-muted-foreground block mt-0.5">
+                                  {item.description}
+                                </span>
+                                <span className="mt-1 inline-block text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                                  Nâng cấp để mở khóa
+                                </span>
                               </div>
                               <Lock className="h-3 w-3 shrink-0 mt-1 text-amber-500/70" />
                             </Link>
@@ -288,8 +299,12 @@ export default function StudentNavbar() {
                           >
                             <Icon className="h-4 w-4 shrink-0 mt-0.5 text-accent/80" />
                             <div className="min-w-0 flex-1">
-                              <span className="font-semibold block">{item.name}</span>
-                              <span className="text-xs text-muted-foreground block mt-0.5">{item.description}</span>
+                              <span className="font-semibold block">
+                                {item.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground block mt-0.5">
+                                {item.description}
+                              </span>
                             </div>
                           </Link>
                         );
@@ -333,6 +348,15 @@ export default function StudentNavbar() {
                     </div>
 
                     <Link
+                      href={`${STUDENT_BASE}/terms-of-service`}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      <FileUp className="h-4 w-4 text-muted-foreground" />
+                      Nội quy & điều khoản
+                    </Link>
+
+                    <Link
                       href={`${STUDENT_BASE}/settings`}
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-foreground hover:bg-muted transition-colors"
@@ -341,7 +365,11 @@ export default function StudentNavbar() {
                       Cài đặt
                     </Link>
 
-                    <ThemeToggle variant="full" onToggle={() => setUserMenuOpen(false)} className="text-foreground hover:bg-muted rounded-lg" />
+                    <ThemeToggle
+                      variant="full"
+                      onToggle={() => setUserMenuOpen(false)}
+                      className="text-foreground hover:bg-muted rounded-lg"
+                    />
 
                     <div className="mt-1 pt-1 border-t border-border">
                       <button
@@ -384,7 +412,11 @@ export default function StudentNavbar() {
             className="md:hidden flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-white/10 hover:bg-white/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 active:scale-[0.97]"
             aria-label="Menu"
           >
-            {mobileMenuOpen ? <X className="h-5 w-5 text-white" /> : <Menu className="h-5 w-5 text-white/90" />}
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5 text-white" />
+            ) : (
+              <Menu className="h-5 w-5 text-white/90" />
+            )}
           </button>
         </div>
       </div>
@@ -402,10 +434,14 @@ export default function StudentNavbar() {
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                    active ? "bg-white/20 text-white ring-1 ring-white/20" : "text-white/85 hover:bg-white/10 hover:text-white"
+                    active
+                      ? "bg-white/20 text-white ring-1 ring-white/20"
+                      : "text-white/85 hover:bg-white/10 hover:text-white"
                   }`}
                 >
-                  <Icon className={`h-4 w-4 shrink-0 ${active ? "opacity-100" : "opacity-70"}`} />
+                  <Icon
+                    className={`h-4 w-4 shrink-0 ${active ? "opacity-100" : "opacity-70"}`}
+                  />
                   {item.name}
                 </Link>
               );
@@ -422,7 +458,9 @@ export default function StudentNavbar() {
                     <GraduationCap className="h-4 w-4 opacity-70" />
                     Tính năng
                   </span>
-                  <ChevronDown className={`h-4 w-4 opacity-70 transition-transform duration-200 ${mobileFeaturesOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 opacity-70 transition-transform duration-200 ${mobileFeaturesOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
 
                 {mobileFeaturesOpen && (
@@ -459,7 +497,9 @@ export default function StudentNavbar() {
                     <Crown className="h-4 w-4 text-accent" />
                     Premium
                   </span>
-                  <ChevronDown className={`h-4 w-4 text-accent/70 transition-transform duration-200 ${mobilePremiumOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 text-accent/70 transition-transform duration-200 ${mobilePremiumOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
 
                 {mobilePremiumOpen && (
@@ -473,16 +513,26 @@ export default function StudentNavbar() {
                       return (
                         <Link
                           key={item.name}
-                          href={isLocked ? `${STUDENT_BASE}/pricing` : item.href}
+                          href={
+                            isLocked ? `${STUDENT_BASE}/pricing` : item.href
+                          }
                           onClick={() => {
                             setMobileMenuOpen(false);
                             setMobilePremiumOpen(false);
                           }}
                           className={`flex gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${isLocked ? "text-white/60 hover:bg-amber-500/10" : "text-white/85 hover:bg-accent/10"}`}
                         >
-                          <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${isLocked ? "text-amber-400/70" : "text-accent/90"}`} />
-                          <span className="font-semibold flex-1">{item.name}</span>
-                          {isLocked && <span className="text-[10px] text-amber-300/90">Nâng cấp</span>}
+                          <Icon
+                            className={`h-4 w-4 shrink-0 mt-0.5 ${isLocked ? "text-amber-400/70" : "text-accent/90"}`}
+                          />
+                          <span className="font-semibold flex-1">
+                            {item.name}
+                          </span>
+                          {isLocked && (
+                            <span className="text-[10px] text-amber-300/90">
+                              Nâng cấp
+                            </span>
+                          )}
                           <Lock className="h-3 w-3 shrink-0 mt-0.5 text-accent/60" />
                         </Link>
                       );
@@ -499,7 +549,11 @@ export default function StudentNavbar() {
                   Cài đặt
                 </Link>
 
-                <ThemeToggle variant="full" onToggle={() => setMobileMenuOpen(false)} className="w-full justify-start rounded-full px-4 py-3 text-white/85 hover:bg-white/10" />
+                <ThemeToggle
+                  variant="full"
+                  onToggle={() => setMobileMenuOpen(false)}
+                  className="w-full justify-start rounded-full px-4 py-3 text-white/85 hover:bg-white/10"
+                />
 
                 <button
                   type="button"

@@ -7,7 +7,7 @@ import {
   School,
   GraduationCap,
   Calendar,
-  Loader2,
+  Target,
 } from "lucide-react";
 import { UserAvatar } from "../UserAvatar";
 import type { Mentor } from "../types";
@@ -181,6 +181,28 @@ export const StudentInfoContent: React.FC<StudentInfoContentProps> = ({
           </div>
         </div>
       </div>
+
+      {(details?.target_faculty_name || details?.target_university_name) && (
+        <div className="p-3 border-b border-border">
+          <h4 className="text-xs font-bold text-foreground mb-2 flex items-center gap-1.5">
+            <Target size={14} className="text-primary" />
+            Mục tiêu
+          </h4>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-start gap-2">
+              <Target size={12} className="text-muted-foreground mt-0.5 shrink-0" />
+              <div>
+                <p className="text-muted-foreground">Ngành / Trường đích</p>
+                <p className="text-foreground">
+                  {[details.target_faculty_name, details.target_university_name]
+                    .filter(Boolean)
+                    .join(" @ ") || "Chưa thiết lập"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

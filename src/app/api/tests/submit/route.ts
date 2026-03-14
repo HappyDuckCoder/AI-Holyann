@@ -8,7 +8,7 @@ import { MBTI_QUESTIONS_SORTED, MBTI_TYPE_DESCRIPTIONS } from '@/data/mbti-quest
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { test_id, student_id, test_type, answers } = body;
+    const { test_id, student_id, test_type, answers, save_progress_only, current_step } = body;
 
     if (!test_id || !student_id || !test_type || !answers) {
       return NextResponse.json(
@@ -33,6 +33,28 @@ export async function POST(request: NextRequest) {
     }
     if (existingTest.student_id !== student_id) {
       return NextResponse.json({ success: false, error: 'Unauthorized: Test does not belong to user' }, { status: 403 });
+    }
+
+    // Chỉ lưu tiến độ: cập nhật answers (và current_step nếu có), không gọi server AI, giữ IN_PROGRESS
+    if (save_progress_only === true) {
+      const progressData: any = {
+        answers,
+        updated_at: new Date(),
+      };
+      if (typeof current_step === 'number' && current_step >= 0) {
+        progressData.current_step = current_step;
+      }
+      if (testType === 'mbti') {
+        await prisma.mbti_tests.update({ where: { id: test_id }, data: progressData });
+      } else if (testType === 'grit') {
+        await prisma.grit_tests.update({ where: { id: test_id }, data: progressData });
+      } else if (testType === 'riasec') {
+        await prisma.riasec_tests.update({ where: { id: test_id }, data: progressData });
+      }
+      return NextResponse.json({
+        success: true,
+        message: 'Progress saved. You can continue later.',
+      });
     }
 
     const updateData: any = {

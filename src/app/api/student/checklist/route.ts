@@ -71,22 +71,33 @@ export async function GET(request: NextRequest) {
             ]
         })
 
+        // CV task: complete when student has >= 1 CV on manage-upload page
+        const cvTask = tasks.find(t => /CV/i.test(t.title))
+        let cvCount = 0
+        if (cvTask) {
+            cvCount = await prisma.student_cv_documents.count({ where: { student_id: studentId } })
+        }
+
         // Transform tasks to include status
         const transformedTasks = tasks.map(task => {
             const progress = task.student_task_progress[0] // First match due to unique constraint
+            const isCvTask = cvTask && task.id === cvTask.id
+            const completedByCvUpload = isCvTask && cvCount >= 1
 
             return {
                 id: task.id,
                 stage_id: task.stage_id,
+                stage: task.checklist_stages ? { id: task.checklist_stages.id, name: task.checklist_stages.name } : undefined,
                 title: task.title,
                 description: task.description,
-                link_to: task.link_to,
+                link_to: isCvTask ? '/student/manage-upload' : task.link_to,
                 is_required: task.is_required,
                 order_index: task.order_index,
-                isCompleted: progress?.status === TaskStatus.COMPLETED,
-                status: progress?.status,
-                uploadedFile: progress?.submission_url,
-                feedback: progress?.mentor_note
+                isCompleted: completedByCvUpload || progress?.status === TaskStatus.COMPLETED,
+                status: completedByCvUpload ? TaskStatus.COMPLETED : progress?.status,
+                uploadedFile: isCvTask && completedByCvUpload ? 'Đã có CV' : progress?.submission_url,
+                feedback: progress?.mentor_note,
+                linkToManageUpload: !!isCvTask
             }
         })
 
