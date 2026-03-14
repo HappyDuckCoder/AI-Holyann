@@ -12,7 +12,8 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   const session = await getServerSession(authOptions);
   const studentId = session?.user?.id;
-  if (!studentId || session?.user?.role !== 'STUDENT') {
+  const role = (session?.user as { role?: string })?.role;
+  if (!studentId || (role !== 'STUDENT' && role !== 'student')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   try {
@@ -65,7 +66,8 @@ type Body = {
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   const studentId = session?.user?.id;
-  if (!studentId || session?.user?.role !== 'STUDENT') {
+  const role = (session?.user as { role?: string })?.role;
+  if (!studentId || (role !== 'STUDENT' && role !== 'student')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   let body: Body = {};
