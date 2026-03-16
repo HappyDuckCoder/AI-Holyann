@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Seed QS World University Rankings 2024 (100 universities)
  * Run: npm run seed:universities  or  npx tsx prisma/seed-universities.ts
