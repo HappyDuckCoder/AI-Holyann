@@ -17,7 +17,7 @@ export default function NotFound() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <Link
-            href="/"
+            href="/student/dashboard"
             className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
           >
             <Home className="h-4 w-4" />

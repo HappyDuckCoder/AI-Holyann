@@ -39,6 +39,7 @@ export default function ProfileAnalysisPage() {
     enhance_result: Feature1EnhanceOutput;
     enhance_at?: Date;
   } | null>(null);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   const resolvedStudentId = useMemo(() => {
     const uid =
@@ -158,6 +159,7 @@ export default function ProfileAnalysisPage() {
             enhanceRemaining: lim.enhanceRemaining ?? null,
           });
         });
+      setHistoryRefreshKey((k) => k + 1);
     }
   }, [studentId]);
 
@@ -270,7 +272,10 @@ export default function ProfileAnalysisPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
-            <ProfileAnalysisHistorySection studentId={studentId} onRefresh={refreshLatest} />
+            <ProfileAnalysisHistorySection
+              studentId={studentId}
+              refreshKey={historyRefreshKey}
+            />
           </motion.div>
         </div>
       </div>

@@ -26,7 +26,8 @@ type HistoryItem = {
 
 interface ProfileAnalysisHistorySectionProps {
   studentId: string;
-  onRefresh?: () => void;
+  /** Tăng số này mỗi khi muốn reload lịch sử (vd. sau khi analyze/enhance thành công) */
+  refreshKey?: number;
 }
 
 function formatDate(d: string | null): string {
@@ -68,7 +69,7 @@ function PillarChips({ scores }: { scores: PillarScores | null }) {
 
 export function ProfileAnalysisHistorySection({
   studentId,
-  onRefresh,
+  refreshKey,
 }: ProfileAnalysisHistorySectionProps) {
   const [loading, setLoading] = useState(true);
   const [analyses, setAnalyses] = useState<HistoryItem[]>([]);
@@ -89,7 +90,7 @@ export function ProfileAnalysisHistorySection({
 
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]);
+  }, [fetchHistory, refreshKey]);
 
   if (loading) {
     return (

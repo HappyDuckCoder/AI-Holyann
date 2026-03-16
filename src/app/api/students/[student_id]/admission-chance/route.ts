@@ -165,7 +165,14 @@ export async function POST(
 
     console.log("[admission-chance] Payload to server-ai:", JSON.stringify(payload));
 
-    const result = await callAdmissionChance(payload);
+    const rawResult = await callAdmissionChance(payload);
+
+    // Server-ai (FastAPI) đang trả dạng { success, data: { ok, summary, faculties }, error }
+    // hoặc có thể trả trực tiếp { ok, summary, faculties }.
+    const result =
+      rawResult && typeof rawResult === "object" && "data" in rawResult
+        ? ((rawResult as { data: { ok: boolean; summary?: unknown; faculties?: unknown } }).data)
+        : (rawResult as { ok?: boolean; summary?: unknown; faculties?: unknown } | null);
 
     if (result?.ok && result.summary != null && result.faculties != null) {
       const faculties = result.faculties as {

@@ -28,10 +28,12 @@ import { ChecklistFilters } from "./ChecklistFilters";
 import { ChecklistSkeleton } from "./ChecklistSkeleton";
 import { TaskGroupSection } from "./TaskGroupSection";
 import { groupTasksByDate, sortTasks } from "./checklist-utils";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const ChecklistPage: React.FC = () => {
   // Fixed: Removed setTaskProgress usage - v2.0
   const { data: session } = useSession();
+  const { isPremium } = useSubscription();
   const [stages, setStages] = useState<Stage[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeStageId, setActiveStageId] = useState<number>(1);
@@ -111,7 +113,8 @@ const ChecklistPage: React.FC = () => {
               task.title.toLowerCase().includes("upload") ||
               task.title.toLowerCase().includes("tải lên") ||
               task.title.toLowerCase().includes("cv") ||
-              task.title.toLowerCase().includes("tài liệu"),
+              task.title.toLowerCase().includes("tài liệu") ||
+              (isPremium && task.stage_id === 2),
             category: task.stage?.name || "Chung",
             linkTo: task.link_to || undefined,
             linkToManageUpload: task.linkToManageUpload ?? false,
@@ -156,7 +159,7 @@ const ChecklistPage: React.FC = () => {
       if (!silent) setLoadingProgress(false);
       lastFetchTime.current = Date.now();
     }
-  }, []);
+  }, [isPremium]);
 
   // Sync with test completion status
   const fetchProgress = useCallback(async () => {

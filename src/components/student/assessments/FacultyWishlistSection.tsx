@@ -3,7 +3,9 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Loader2, Bookmark, ArrowDown } from "lucide-react";
+import { Loader2, Bookmark, ArrowDown, Lock } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useRouter } from "next/navigation";
 
 type FacultyItem = {
   faculty_name: string;
@@ -22,6 +24,9 @@ const fadeInUp = {
 };
 
 export default function FacultyWishlistSection({ studentId }: FacultyWishlistSectionProps) {
+  const { isFree, isPlus } = useSubscription();
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [faculties, setFaculties] = useState<FacultyItem[]>([]);
   const [wishlistLimit, setWishlistLimit] = useState(2);
@@ -199,21 +204,21 @@ export default function FacultyWishlistSection({ studentId }: FacultyWishlistSec
       ) : (
         <>
           <p className="text-sm text-muted-foreground mb-4">
-            Chọn tối đa {wishlistLimit} ngành từ danh sách gợi ý (Free: 2, Plus: 5, Premium: 10). Thứ tự chọn = ưu tiên.
+            Chọn tối đa {wishlistLimit} ngành từ danh sách gợi ý (Free: 3, Plus: 5, Premium: 10). Thứ tự chọn = ưu tiên.
           </p>
           <div className="flex flex-wrap gap-2 mb-3">
-            {faculties.map((f) => {
+            {faculties.slice(0, isFree ? 5 : 10).map((f) => {
               const checked = selectedOrder.includes(f.faculty_name);
               const atLimit = selectedOrder.length >= wishlistLimit && !checked;
               return (
                 <label
                   key={f.faculty_name}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors ${
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                     checked
-                      ? "border-[#0052FF]/50 bg-[#0052FF]/10 text-foreground"
+                      ? "border-[#0052FF]/50 bg-[#0052FF]/10 text-foreground cursor-pointer"
                       : atLimit
                         ? "border-border bg-muted/30 text-muted-foreground cursor-not-allowed"
-                        : "border-border bg-background hover:border-[#0052FF]/30"
+                        : "border-border bg-background hover:border-[#0052FF]/30 cursor-pointer"
                   }`}
                 >
                   <input
@@ -232,6 +237,22 @@ export default function FacultyWishlistSection({ studentId }: FacultyWishlistSec
                 </label>
               );
             })}
+            {isFree && faculties.length > 5 && (
+              <div
+                onClick={() => router.push("/student/pricing")}
+                className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/30 dark:bg-amber-950/30 px-3 py-2 text-sm text-amber-700 dark:text-amber-500 cursor-pointer hover:bg-amber-100/80 dark:hover:bg-amber-900/50 transition-colors shadow-sm"
+              >
+                <div className="bg-amber-200/50 dark:bg-amber-800/50 p-1 rounded-full">
+                  <Lock className="h-3 w-3" />
+                </div>
+                <span className="font-medium">
+                  + {Math.min(5, faculties.length - 5)} ngành bị ẩn
+                </span>
+                <span className="text-[10px] font-medium bg-amber-200/50 dark:bg-amber-800/50 rounded-sm px-1.5 py-0.5 select-none opacity-80 decoration-dashed">
+                  Nâng cấp Plus/Premium để mở khóa
+                </span>
+              </div>
+            )}
           </div>
           <p className="text-xs text-muted-foreground mb-3">
             Đã chọn {selectedOrder.length} / {wishlistLimit} ngành

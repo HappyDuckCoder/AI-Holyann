@@ -10,6 +10,45 @@ export function getCVDisplayName(uploadedFile: string | undefined): string {
   return uploadedFile;
 }
 
+/** 
+ * Loại bỏ các động từ đầu câu để hiển thị tên file sạch hơn
+ * Ví dụ: "Tải lên chứng chỉ ngoại ngữ" -> "Chứng chỉ ngoại ngữ"
+ */
+export function getCleanFilename(title: string): string {
+  if (!title) return "";
+  
+  // Rule đặc biệt theo yêu cầu user
+  if (title.toLowerCase().includes("hồ sơ tài chính")) {
+    return "Chứng minh tài chính";
+  }
+
+  let clean = title.trim();
+  
+  // Danh sách các tiền tố động từ thường gặp cần loại bỏ
+  const prefixes = [
+    /^Tải lên\s+/i,
+    /^Chuẩn bị\s+/i,
+    /^Nộp\s+/i,
+    /^Hoàn thành\s+/i,
+    /^Thực hiện\s+/i,
+    /^Làm\s+/i,
+    /^Gửi\s+/i,
+    /^Cung cấp\s+/i,
+    /^Bổ sung\s+/i,
+    /^Tải lại\s+/i
+  ];
+
+  for (const regex of prefixes) {
+    if (regex.test(clean)) {
+      clean = clean.replace(regex, "");
+      break;
+    }
+  }
+
+  // Viết hoa chữ cái đầu tiên
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
+}
+
 export type TaskGroupKey = "overdue" | "today" | "upcoming" | "completed";
 
 export function getTaskGroup(task: Task): TaskGroupKey {

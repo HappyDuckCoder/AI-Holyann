@@ -12,6 +12,7 @@ import {
   Target,
   Heart,
   Lightbulb,
+  Lock,
 } from "lucide-react";
 import {
   Dialog,
@@ -22,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RecommendFacultyHistorySection } from "./RecommendFacultyHistorySection";
+import { useRouter } from "next/navigation";
 
 type AssessmentSummary = {
   mbti_type?: string;
@@ -70,11 +72,15 @@ function ResultBlock({
   summary,
   faculties,
   title,
+  isFree,
 }: {
   summary: AssessmentSummary | null | undefined;
   faculties: FacultyItem[];
   title?: string;
+  isFree?: boolean;
 }) {
+  const router = useRouter();
+  
   return (
     <motion.div
       className="mt-10 space-y-8"
@@ -178,7 +184,7 @@ function ResultBlock({
             Top ngành gợi ý
           </h4>
           <ul className="space-y-3">
-            {faculties.map((f, i) => (
+            {faculties.slice(0, isFree ? 3 : faculties.length).map((f, i) => (
               <motion.li
                 key={i}
                 variants={fadeInUp}
@@ -242,6 +248,40 @@ function ResultBlock({
                 </div>
               </motion.li>
             ))}
+
+            {isFree && faculties.length > 3 && (
+              <motion.div
+                variants={fadeInUp}
+                onClick={() => router.push("/student/pricing")}
+                className="group relative rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900/30 dark:bg-amber-950/30 shadow-sm hover:shadow-md cursor-pointer overflow-hidden p-6 transition-colors"
+              >
+                {/* Simulated blurred content in background */}
+                <div className="absolute inset-0 z-0 opacity-30 blur-[8px] pointer-events-none p-4">
+                   <div className="flex justify-between items-start mb-4">
+                     <div>
+                       <div className="h-5 w-48 bg-amber-900/20 rounded mb-3"></div>
+                       <div className="h-4 w-16 bg-amber-900/20 rounded mb-2"></div>
+                       <div className="flex gap-2"><div className="h-6 w-20 bg-amber-900/15 rounded"></div><div className="h-6 w-24 bg-amber-900/15 rounded"></div></div>
+                     </div>
+                     <div className="h-8 w-16 bg-amber-900/20 rounded"></div>
+                   </div>
+                   <div className="h-2 w-full bg-amber-900/10 rounded-full"></div>
+                </div>
+
+                {/* Lock Overlay Content */}
+                <div className="relative z-10 flex flex-col justify-center items-center h-full min-h-[140px] text-center">
+                  <div className="bg-white/80 dark:bg-background/80 border border-amber-300 dark:border-amber-700 p-4 rounded-full mb-4 shadow-sm text-amber-600 dark:text-amber-500 group-hover:text-amber-700 group-hover:border-amber-400 group-hover:scale-105 transition-all duration-300">
+                    <Lock className="h-7 w-7" />
+                  </div>
+                  <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-1.5">
+                    Đã ẩn {faculties.length - 3} ngành học phù hợp
+                  </h4>
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200 bg-amber-100/60 dark:bg-amber-900/40 px-4 py-1.5 rounded-full border border-amber-200/60 dark:border-amber-800/60">
+                    Nâng cấp Plus/Premium để mở khóa toàn bộ danh sách
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </ul>
         </motion.div>
       )}
@@ -290,11 +330,14 @@ function SkeletonBlock() {
   );
 }
 
+import { useSubscription } from "@/hooks/useSubscription";
+
 export default function RecommendFacultySection({
   studentId,
   allCompleted,
   id,
 }: RecommendFacultySectionProps) {
+  const { isFree } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [sectionLoading, setSectionLoading] = useState(true);
   const [limits, setLimits] = useState<Limits | null>(null);
@@ -302,6 +345,20 @@ export default function RecommendFacultySection({
   const [error, setError] = useState<string | null>(null);
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [runConfirmOpen, setRunConfirmOpen] = useState(false);
+
+  const normalizeErrorMessage = (err: unknown): string => {
+    if (!err) return "Không thể tải gợi ý ngành.";
+    if (typeof err === "string") return err;
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "message" in err &&
+      typeof (err as { message?: unknown }).message === "string"
+    ) {
+      return (err as { message: string }).message;
+    }
+    return "Không thể tải gợi ý ngành.";
+  };
 
   const fetchLimitsAndLatest = useCallback(async (sid: string) => {
     try {
@@ -361,7 +418,7 @@ export default function RecommendFacultySection({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error || "Không thể tải gợi ý ngành.");
+        setError(normalizeErrorMessage((data as { error?: unknown }).error));
         return;
       }
       setLatest({
@@ -582,6 +639,7 @@ export default function RecommendFacultySection({
               summary={summary ?? null}
               faculties={faculties}
               title="Gợi ý gần nhất"
+              isFree={isFree}
             />
           </div>
         </div>

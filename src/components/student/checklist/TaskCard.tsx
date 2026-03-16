@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import type { Task } from "@/components/types";
 import type { StudentProfile } from "@/components/types";
-import { getTaskPriority, getCVDisplayName } from "./checklist-utils";
+import { getTaskPriority, getCVDisplayName, getCleanFilename } from "./checklist-utils";
 
 const priorityStyles: Record<"low" | "medium" | "high", string> = {
   low: "bg-muted text-muted-foreground ring-muted dark:bg-muted/60 dark:text-foreground/80",
@@ -327,7 +327,7 @@ export function TaskCard({
                         </div>
                         <div className="flex-1 min-w-0">
                           <span className="text-sm font-semibold text-foreground block truncate">
-                            {getCVDisplayName(task.uploadedFile)}
+                            {getCleanFilename(task.title)}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             Đã tải lên

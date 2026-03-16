@@ -1,7 +1,7 @@
 /**
  * AI API Client Utility
  *
- * Centralized client for calling Django AI server endpoints
+ * Centralized client for calling FastAPI AI server endpoints
  * Uses AI_SERVER_URL from environment variables
  */
 
@@ -126,9 +126,10 @@ export async function callAIAPI<T = any>(
 
 /**
  * Feature 1: Profile Analysis (input theo input-analysis.json → output pillar_scores, spikes, areas, swot)
+ * FastAPI endpoint: POST /api/v1/feature1/analysis-profile
  */
 export async function callProfileAnalysis(payload: any) {
-  return callAIAPI("/api/analysis-profile", {
+  return callAIAPI("/api/v1/feature1/analysis-profile", {
     method: "POST",
     body: payload,
     timeoutMs: PROFILE_ANALYSIS_TIMEOUT_MS,
@@ -137,12 +138,13 @@ export async function callProfileAnalysis(payload: any) {
 
 /**
  * Feature 1: Enhance Profile (analysis_information + willing_area → list_suggestion, roadmap, pillar_score_after_enhance)
+ * FastAPI endpoint: POST /api/v1/feature1/enhence-profile
  */
 export async function callEnhanceProfile(payload: {
   analysis_information: Record<string, unknown>;
   willing_area: "A" | "B" | "C";
 }) {
-  return callAIAPI("/api/enhence-profile", {
+  return callAIAPI("/api/v1/feature1/enhence-profile", {
     method: "POST",
     body: payload,
     timeoutMs: PROFILE_ANALYSIS_TIMEOUT_MS,
@@ -160,12 +162,13 @@ import type {
 
 /**
  * Feature 2: MBTI Assessment Only
+ * FastAPI endpoint: POST /api/v1/feature2/mbti
  */
 export async function callMBTIAssessment(
   answers: number[],
 ): Promise<MBTIOutput> {
   const payload: MBTIInput = { answers };
-  return callAIAPI<MBTIOutput>("/hoexapp/api/mbti/", {
+  return callAIAPI<MBTIOutput>("/api/v1/feature2/mbti", {
     method: "POST",
     body: payload,
   });
@@ -173,12 +176,13 @@ export async function callMBTIAssessment(
 
 /**
  * Feature 2: GRIT Scale Assessment Only
+ * FastAPI endpoint: POST /api/v1/feature2/grit-scale
  */
 export async function callGritAssessment(
   answers: Record<string, number>,
 ): Promise<GritOutput> {
   const payload: GritInput = { answers };
-  return callAIAPI<GritOutput>("/hoexapp/api/grit-scale/", {
+  return callAIAPI<GritOutput>("/api/v1/feature2/grit-scale", {
     method: "POST",
     body: payload,
   });
@@ -186,12 +190,13 @@ export async function callGritAssessment(
 
 /**
  * Feature 2: RIASEC Assessment Only
+ * FastAPI endpoint: POST /api/v1/feature2/riasec
  */
 export async function callRIASECAssessment(
   answers: Record<string, number>,
 ): Promise<RIASECOutput> {
   const payload: RIASECInput = { answers };
-  return callAIAPI<RIASECOutput>("/hoexapp/api/riasec/", {
+  return callAIAPI<RIASECOutput>("/api/v1/feature2/riasec", {
     method: "POST",
     body: payload,
   });
@@ -208,9 +213,20 @@ export async function callAdmissionChance(payload: {
   spikes?: Array<{ type: string; tier: string }>;
   region_fit?: string;
   personality_fit?: string;
-}) {
-  return callAIAPI<{ ok: boolean; summary?: unknown; faculties?: { reach?: unknown[]; match?: unknown[]; safe?: unknown[] }; error?: string }>(
-    "/api/admission-chance",
-    { method: "POST", body: payload, timeoutMs: 60_000 }
-  );
+}): Promise<{
+  ok: boolean;
+  summary?: unknown;
+  faculties?: { reach?: unknown[]; match?: unknown[]; safe?: unknown[] };
+  error?: string;
+}> {
+  return callAIAPI<{
+    ok: boolean;
+    summary?: unknown;
+    faculties?: { reach?: unknown[]; match?: unknown[]; safe?: unknown[] };
+    error?: string;
+  }>("/api/v1/feature3/admission-chance", {
+    method: "POST",
+    body: payload,
+    timeoutMs: 60_000,
+  });
 }

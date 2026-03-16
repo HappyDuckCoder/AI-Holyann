@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSubscription } from "@/hooks/useSubscription";
 import { StudentPageContainer } from "@/components/student";
 import { Button } from "@/components/ui/button";
 import {
@@ -140,6 +141,7 @@ function UniversitySubCard({
 
 export default function TargetPage() {
   const { session } = useAuthSession();
+  const { isFree } = useSubscription();
   const studentId =
     session?.user && ((session.user as { id?: string }).id ?? (session.user as { user_id?: string }).user_id)
       ? String((session.user as { id?: string }).id ?? (session.user as { user_id?: string }).user_id)
@@ -264,6 +266,20 @@ export default function TargetPage() {
     latest?.ok &&
     latest?.faculties &&
     (latest.faculties.reach?.length || latest.faculties.match?.length || latest.faculties.safe?.length);
+
+  // Apply FREE plan limits: exactly 1 Reach, 2 Match, 2 Safety
+  let displayFaculties = latest?.faculties;
+  if (displayFaculties && isFree) {
+    const reach = displayFaculties.reach || [];
+    const match = displayFaculties.match || [];
+    const safe = displayFaculties.safe || [];
+
+    displayFaculties = {
+      reach: reach.slice(0, 1),
+      match: match.slice(0, 2),
+      safe: safe.slice(0, 2),
+    };
+  }
 
   const canRun =
     limits?.has_faculty_wishlist &&
@@ -439,7 +455,7 @@ export default function TargetPage() {
                 <div className="p-6">
                   <div className="flex gap-2 rounded-xl bg-muted/50 p-1.5 mb-4">
                     {CATEGORIES.map(({ key, title, icon: Icon, color, light }) => {
-                      const list = latest?.faculties?.[key] ?? [];
+                      const list = displayFaculties?.[key] ?? [];
                       const isActive = activeTab === key;
                       return (
                         <button
@@ -473,7 +489,7 @@ export default function TargetPage() {
                   {(() => {
                     const activeCategory = CATEGORIES.find((c) => c.key === activeTab);
                     const accentColor = activeCategory?.color ?? ACCENT;
-                    const rawList = latest?.faculties?.[activeTab];
+                    const rawList = displayFaculties?.[activeTab];
                     const list: FacultyItem[] = Array.isArray(rawList) ? rawList : [];
                     const isExpanded = expandedTabs[activeTab];
                     const INITIAL_COUNT = 2;
@@ -562,7 +578,7 @@ export default function TargetPage() {
                 const opts: TargetGoalOption[] = [];
                 const seen = new Set<string>();
                 for (const key of ["reach", "match", "safe"] as const) {
-                  const list = latest?.faculties?.[key] ?? [];
+                  const list = displayFaculties?.[key] ?? [];
                   for (const item of list) {
                     const name = item.faculty_name ?? "—";
                     for (const u of item.strong_universities ?? []) {

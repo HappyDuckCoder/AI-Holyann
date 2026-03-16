@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSubscription } from "@/hooks/useSubscription";
 import { StudentPageContainer } from "@/components/student";
 import { PageLoading } from "@/components/ui/PageLoading";
 import RoleGuard from "@/components/auth/RoleGuard";
@@ -20,6 +22,7 @@ import {
   Heart,
   Brain,
   Zap,
+  Lock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,19 +39,19 @@ import {
   Cell,
 } from "recharts";
 
-const ACCENT = "#0052FF";
-const ACCENT_SEC = "#4D7CFF";
+const ACCENT = "#10b981";
+const ACCENT_SEC = "#34d399";
 const REACH_COLOR = "#7C3AED";
-const MATCH_COLOR = "#0052FF";
+const MATCH_COLOR = "#10b981";
 const SAFE_COLOR = "#059669";
 
 const PILLAR_CONFIG = [
   {
     key: "aca",
     label: "Học thuật",
-    color: "#0ea5e9",
-    light: "bg-sky-500/15",
-    border: "border-l-sky-500",
+    color: "#0d9488",
+    light: "bg-teal-500/15",
+    border: "border-l-teal-500",
   },
   {
     key: "lan",
@@ -198,9 +201,9 @@ const fadeInUp = {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="inline-flex items-center gap-3 rounded-full border border-[#0052FF]/30 bg-[#0052FF]/5 px-4 py-2 mb-4 print:mb-2">
-      <span className="h-2 w-2 rounded-full bg-[#0052FF]" />
-      <span className="font-mono text-xs uppercase tracking-[0.15em] text-[#0052FF]">
+    <div className="inline-flex items-center gap-3 rounded-full border border-emerald-500/30 bg-emerald-500/5 px-4 py-2 mb-4 print:mb-2">
+      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+      <span className="font-mono text-xs uppercase tracking-[0.15em] text-emerald-600">
         {children}
       </span>
     </div>
@@ -281,6 +284,8 @@ export default function ReportsPage() {
     isLoading: sessionLoading,
     isAuthenticated,
   } = useAuthSession();
+  const { isFree } = useSubscription();
+  const router = useRouter();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [improveResults, setImproveResults] = useState<ImproveResults | null>(
@@ -1140,7 +1145,7 @@ export default function ReportsPage() {
                               title: "Match",
                               list: match,
                               color: MATCH_COLOR,
-                              light: "bg-[#0052FF]/10",
+                              light: "bg-emerald-500/10",
                               icon: Target,
                             },
                             {
@@ -1195,9 +1200,8 @@ export default function ReportsPage() {
                                       >
                                         {u.name}
                                         {u.country && (
-                                          <span className="text-muted-foreground font-normal">
-                                            {" "}
-                                            · {u.country}
+                                          <span className="text-muted-foreground font-normal text-xs ml-1">
+                                            ({u.country})
                                           </span>
                                         )}
                                       </li>
@@ -1236,17 +1240,19 @@ export default function ReportsPage() {
                                     Ưu tiên: {plan.priority}
                                   </p>
                                 )}
-                                {plan.focus_areas?.length ? (
+                                {!isFree && plan.focus_areas?.length ? (
                                   <p className="text-sm text-foreground mt-2">
                                     Trọng tâm: {plan.focus_areas.join(", ")}
                                   </p>
                                 ) : null}
-                                {plan.goals?.length ? (
-                                  <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                                    {plan.goals.slice(0, 3).map((g, i) => (
-                                      <li key={i}>· {safeStr(g)}</li>
-                                    ))}
-                                  </ul>
+                                {!isFree && plan.goals?.length ? (
+                                  <div className="relative">
+                                    <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                                      {plan.goals.slice(0, 3).map((g, i) => (
+                                        <li key={i}>· {safeStr(g)}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
                                 ) : null}
                               </div>
                             ))}
@@ -1302,7 +1308,7 @@ export default function ReportsPage() {
                           <div className="space-y-4">
                             <div className="flex flex-wrap gap-2">
                               {overall?.overall_score != null && (
-                                <Badge className="bg-[#0052FF]/20 text-[#0052FF] border-[#0052FF]/30">
+                                <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">
                                   Tổng: {Number(overall.overall_score)}/100
                                 </Badge>
                               )}
@@ -1322,48 +1328,50 @@ export default function ReportsPage() {
                             {feedbackText !== "—" && (
                               <p className="text-foreground">{feedbackText}</p>
                             )}
-                            {prio.length > 0 && (
+                            {!isFree && prio.length > 0 && (
                               <div>
                                 <p className="text-sm font-semibold text-foreground mb-2">
                                   Gợi ý ưu tiên
                                 </p>
-                                <ul className="space-y-2">
-                                  {prio.slice(0, 8).map((p, i) => {
-                                    const raw = safeStr(p);
-                                    const match = raw.match(
-                                      /^\s*\*{0,2}(\d+)\.\s*(.+?)\*{0,2}:\s*([\s\S]*)/,
-                                    );
-                                    const title = match
-                                      ? match[2].replace(/\*+/g, "").trim()
-                                      : null;
-                                    const body = match ? match[3].trim() : raw;
-                                    return (
-                                      <li
-                                        key={i}
-                                        className="flex gap-3 rounded-xl border border-border bg-amber-500/5 border-l-4 border-l-amber-500/60 px-4 py-3"
-                                      >
-                                        <span className="shrink-0 font-bold text-amber-600 dark:text-amber-400">
-                                          {i + 1}.
-                                        </span>
-                                        <span className="text-sm text-foreground">
-                                          {title && (
-                                            <span className="font-medium">
-                                              {title}:{" "}
+                                  <div className="relative">
+                                    <ul className="space-y-2">
+                                      {prio.slice(0, 8).map((p, i) => {
+                                        const raw = safeStr(p);
+                                        const match = raw.match(
+                                          /^\s*\*{0,2}(\d+)\.\s*(.+?)\*{0,2}:\s*([\s\S]*)/,
+                                        );
+                                        const title = match
+                                          ? match[2].replace(/\*+/g, "").trim()
+                                          : null;
+                                        const body = match ? match[3].trim() : raw;
+                                        return (
+                                          <li
+                                            key={i}
+                                            className="flex gap-3 rounded-xl border border-border bg-amber-500/5 border-l-4 border-l-amber-500/60 px-4 py-3"
+                                          >
+                                            <span className="shrink-0 font-bold text-amber-600 dark:text-amber-400">
+                                              {i + 1}.
                                             </span>
-                                          )}
-                                          <span className="text-muted-foreground">
-                                            {body}
-                                          </span>
-                                        </span>
-                                      </li>
-                                    );
-                                  })}
-                                  {prio.length > 8 && (
-                                    <li className="text-xs text-muted-foreground pl-7">
-                                      +{prio.length - 8} gợi ý
-                                    </li>
-                                  )}
-                                </ul>
+                                            <span className="text-sm text-foreground">
+                                              {title && (
+                                                <span className="font-medium">
+                                                  {title}:{" "}
+                                                </span>
+                                              )}
+                                              <span className="text-muted-foreground">
+                                                {body}
+                                              </span>
+                                            </span>
+                                          </li>
+                                        );
+                                      })}
+                                      {prio.length > 8 && (
+                                        <li className="text-xs text-muted-foreground pl-7">
+                                          +{prio.length - 8} gợi ý
+                                        </li>
+                                      )}
+                                    </ul>
+                                  </div>
                               </div>
                             )}
                           </div>
@@ -1444,28 +1452,32 @@ export default function ReportsPage() {
                                 <p className="text-sm font-semibold text-foreground mb-2">
                                   Gợi ý ưu tiên
                                 </p>
-                                <ul className="space-y-2">
-                                  {listSuggestion.slice(0, 8).map((s, i) => (
-                                    <li
-                                      key={i}
-                                      className="flex gap-3 rounded-xl border border-border bg-amber-500/5 border-l-4 border-l-amber-500/60 px-4 py-3"
-                                    >
-                                      {s.prior && (
-                                        <span className="shrink-0 font-bold text-amber-600 dark:text-amber-400">
-                                          {s.prior}
-                                        </span>
-                                      )}
-                                      <span className="text-sm text-foreground">
-                                        {safeStr(s.what_to_do)}
-                                      </span>
-                                    </li>
-                                  ))}
-                                  {listSuggestion.length > 8 && (
-                                    <li className="text-xs text-muted-foreground pl-4">
-                                      +{listSuggestion.length - 8} gợi ý
-                                    </li>
+                                  {!isFree && (
+                                    <div className="relative">
+                                      <ul className="space-y-2">
+                                        {listSuggestion.slice(0, 8).map((s, i) => (
+                                          <li
+                                            key={i}
+                                            className="flex gap-3 rounded-xl border border-border bg-amber-500/5 border-l-4 border-l-amber-500/60 px-4 py-3"
+                                          >
+                                            {s.prior && (
+                                              <span className="shrink-0 font-bold text-amber-600 dark:text-amber-400">
+                                                {s.prior}
+                                              </span>
+                                            )}
+                                            <span className="text-sm text-foreground">
+                                              {safeStr(s.what_to_do)}
+                                            </span>
+                                          </li>
+                                        ))}
+                                        {listSuggestion.length > 8 && (
+                                          <li className="text-xs text-muted-foreground pl-4">
+                                            +{listSuggestion.length - 8} gợi ý
+                                          </li>
+                                        )}
+                                      </ul>
+                                    </div>
                                   )}
-                                </ul>
                               </div>
                             )}
                             {pillarAfter &&
@@ -1488,7 +1500,7 @@ export default function ReportsPage() {
                                     ))}
                                 </div>
                               )}
-                            {roadmapEnhance?.months?.length ? (
+                            {!isFree && roadmapEnhance?.months?.length ? (
                               <div>
                                 <p className="text-sm font-semibold text-foreground mb-2">
                                   Lộ trình{" "}
@@ -1513,11 +1525,13 @@ export default function ReportsPage() {
                                           </p>
                                         )}
                                         {m.tasks?.length ? (
-                                          <ul className="mt-1 space-y-0.5 text-muted-foreground">
-                                            {m.tasks.slice(0, 3).map((t, j) => (
-                                              <li key={j}>· {safeStr(t)}</li>
-                                            ))}
-                                          </ul>
+                                          <div className="relative mt-1">
+                                            <ul className="space-y-0.5 text-muted-foreground">
+                                              {m.tasks.slice(0, 3).map((t, j) => (
+                                                <li key={j}>· {safeStr(t)}</li>
+                                              ))}
+                                            </ul>
+                                          </div>
                                         ) : null}
                                       </div>
                                     ))}
