@@ -249,7 +249,8 @@ export default function StudentPricingPage() {
                   <TableRow>
                     <TableCell>Phân tích profile gốc</TableCell>
                     <TableCell>
-                      1 lần (điểm + nhận xét ngắn, chi tiết mờ)
+                      1 lần (điểm + phân tích SWOT, vùng/trường phù hợp, chi tiết mờ) <br />
+                      Đề xuất hướng cải thiện, lộ trình chung của từng tháng
                     </TableCell>
                     <TableCell>1 lần đầy đủ</TableCell>
                     <TableCell>1 lần đầy đủ</TableCell>
@@ -284,9 +285,9 @@ export default function StudentPricingPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Ngành/trường phù hợp hiển thị</TableCell>
-                    <TableCell>5 ngành (1R, 2M, 2S); dưới mờ</TableCell>
-                    <TableCell>30 (10R, 10M, 10S), đầy đủ</TableCell>
-                    <TableCell>30 (10R, 10M, 10S), đầy đủ</TableCell>
+                    <TableCell>5 ngành (1R, 2M, 2S)</TableCell>
+                    <TableCell>30 (10R, 10M, 10S)</TableCell>
+                    <TableCell>30 (10R, 10M, 10S)</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Major fit % (từ Feature 2)</TableCell>
