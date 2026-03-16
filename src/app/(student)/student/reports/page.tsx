@@ -1192,10 +1192,7 @@ export default function ReportsPage() {
                                 </CardHeader>
                                 <CardContent className="pt-0 px-4 pb-4">
                                   <ul className="space-y-2">
-                                    {(isFree
-                                      ? list.slice(0, key === "reach" ? 1 : 2)
-                                      : list.slice(0, 8)
-                                    ).map((u, i) => (
+                                    {list.slice(0, 8).map((u, i) => (
                                       <li
                                         key={i}
                                         className="text-sm font-medium text-foreground truncate"
@@ -1209,20 +1206,7 @@ export default function ReportsPage() {
                                         )}
                                       </li>
                                     ))}
-                                    {isFree &&
-                                      list.length > (key === "reach" ? 1 : 2) && (
-                                        <li
-                                          className="flex items-center gap-1.5 py-1.5 px-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-600 dark:text-amber-400 cursor-pointer hover:bg-amber-500/20 transition-all uppercase"
-                                          onClick={() =>
-                                            router.push("/student/pricing")
-                                          }
-                                        >
-                                          <Lock className="size-3" />
-                                          {list.length - (key === "reach" ? 1 : 2)}{" "}
-                                          ngành bị ẩn
-                                        </li>
-                                      )}
-                                    {!isFree && list.length > 8 && (
+                                    {list.length > 8 && (
                                       <li className="text-xs text-muted-foreground">
                                         +{list.length - 8} trường
                                       </li>
@@ -1256,35 +1240,18 @@ export default function ReportsPage() {
                                     Ưu tiên: {plan.priority}
                                   </p>
                                 )}
-                                {plan.focus_areas?.length ? (
+                                {!isFree && plan.focus_areas?.length ? (
                                   <p className="text-sm text-foreground mt-2">
                                     Trọng tâm: {plan.focus_areas.join(", ")}
                                   </p>
                                 ) : null}
-                                {plan.goals?.length ? (
+                                {!isFree && plan.goals?.length ? (
                                   <div className="relative">
-                                    <ul
-                                      className={`mt-2 space-y-1 text-sm text-muted-foreground ${isFree ? "blur-[4px] select-none opacity-50 pointer-events-none" : ""}`}
-                                    >
+                                    <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                                       {plan.goals.slice(0, 3).map((g, i) => (
                                         <li key={i}>· {safeStr(g)}</li>
                                       ))}
                                     </ul>
-                                    {isFree && (
-                                      <div
-                                        className="absolute inset-x-0 bottom-0 top-0 z-10 flex items-center justify-center cursor-pointer"
-                                        onClick={() =>
-                                          router.push("/student/pricing")
-                                        }
-                                      >
-                                        <div className="bg-white/80 dark:bg-black/50 px-2 py-0.5 rounded-full border border-border shadow-sm flex items-center gap-1 hover:bg-white dark:hover:bg-black transition-colors">
-                                          <Lock className="h-3 w-3 text-primary" />
-                                          <span className="text-[10px] font-medium text-primary">
-                                            Nâng cấp để xem
-                                          </span>
-                                        </div>
-                                      </div>
-                                    )}
                                   </div>
                                 ) : null}
                               </div>
@@ -1361,15 +1328,13 @@ export default function ReportsPage() {
                             {feedbackText !== "—" && (
                               <p className="text-foreground">{feedbackText}</p>
                             )}
-                            {prio.length > 0 && (
+                            {!isFree && prio.length > 0 && (
                               <div>
                                 <p className="text-sm font-semibold text-foreground mb-2">
                                   Gợi ý ưu tiên
                                 </p>
                                   <div className="relative">
-                                    <ul
-                                      className={`space-y-2 ${isFree ? "blur-[6px] select-none opacity-50 pointer-events-none" : ""}`}
-                                    >
+                                    <ul className="space-y-2">
                                       {prio.slice(0, 8).map((p, i) => {
                                         const raw = safeStr(p);
                                         const match = raw.match(
@@ -1406,21 +1371,6 @@ export default function ReportsPage() {
                                         </li>
                                       )}
                                     </ul>
-                                    {isFree && (
-                                      <div
-                                        className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer"
-                                        onClick={() =>
-                                          router.push("/student/pricing")
-                                        }
-                                      >
-                                        <div className="bg-amber-100 dark:bg-amber-900/80 px-4 py-2 rounded-full border border-amber-300 dark:border-amber-700 shadow-sm flex items-center gap-2 hover:bg-amber-200 transition-colors">
-                                          <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                          <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                                            Nâng cấp để mở khóa gợi ý
-                                          </span>
-                                        </div>
-                                      </div>
-                                    )}
                                   </div>
                               </div>
                             )}
@@ -1502,47 +1452,32 @@ export default function ReportsPage() {
                                 <p className="text-sm font-semibold text-foreground mb-2">
                                   Gợi ý ưu tiên
                                 </p>
-                                  <div className="relative">
-                                    <ul
-                                      className={`space-y-2 ${isFree ? "blur-[6px] select-none opacity-50 pointer-events-none" : ""}`}
-                                    >
-                                      {listSuggestion.slice(0, 8).map((s, i) => (
-                                        <li
-                                          key={i}
-                                          className="flex gap-3 rounded-xl border border-border bg-amber-500/5 border-l-4 border-l-amber-500/60 px-4 py-3"
-                                        >
-                                          {s.prior && (
-                                            <span className="shrink-0 font-bold text-amber-600 dark:text-amber-400">
-                                              {s.prior}
+                                  {!isFree && (
+                                    <div className="relative">
+                                      <ul className="space-y-2">
+                                        {listSuggestion.slice(0, 8).map((s, i) => (
+                                          <li
+                                            key={i}
+                                            className="flex gap-3 rounded-xl border border-border bg-amber-500/5 border-l-4 border-l-amber-500/60 px-4 py-3"
+                                          >
+                                            {s.prior && (
+                                              <span className="shrink-0 font-bold text-amber-600 dark:text-amber-400">
+                                                {s.prior}
+                                              </span>
+                                            )}
+                                            <span className="text-sm text-foreground">
+                                              {safeStr(s.what_to_do)}
                                             </span>
-                                          )}
-                                          <span className="text-sm text-foreground">
-                                            {safeStr(s.what_to_do)}
-                                          </span>
-                                        </li>
-                                      ))}
-                                      {listSuggestion.length > 8 && (
-                                        <li className="text-xs text-muted-foreground pl-4">
-                                          +{listSuggestion.length - 8} gợi ý
-                                        </li>
-                                      )}
-                                    </ul>
-                                    {isFree && (
-                                      <div
-                                        className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer"
-                                        onClick={() =>
-                                          router.push("/student/pricing")
-                                        }
-                                      >
-                                        <div className="bg-amber-100 dark:bg-amber-900/80 px-4 py-2 rounded-full border border-amber-300 dark:border-amber-700 shadow-sm flex items-center gap-2 hover:bg-amber-200 transition-colors">
-                                          <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                          <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                                            Nâng cấp để xem gợi ý
-                                          </span>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
+                                          </li>
+                                        ))}
+                                        {listSuggestion.length > 8 && (
+                                          <li className="text-xs text-muted-foreground pl-4">
+                                            +{listSuggestion.length - 8} gợi ý
+                                          </li>
+                                        )}
+                                      </ul>
+                                    </div>
+                                  )}
                               </div>
                             )}
                             {pillarAfter &&
@@ -1565,7 +1500,7 @@ export default function ReportsPage() {
                                     ))}
                                 </div>
                               )}
-                            {roadmapEnhance?.months?.length ? (
+                            {!isFree && roadmapEnhance?.months?.length ? (
                               <div>
                                 <p className="text-sm font-semibold text-foreground mb-2">
                                   Lộ trình{" "}
@@ -1591,28 +1526,11 @@ export default function ReportsPage() {
                                         )}
                                         {m.tasks?.length ? (
                                           <div className="relative mt-1">
-                                            <ul
-                                              className={`space-y-0.5 text-muted-foreground ${isFree ? "blur-[4px] select-none opacity-50 pointer-events-none" : ""}`}
-                                            >
+                                            <ul className="space-y-0.5 text-muted-foreground">
                                               {m.tasks.slice(0, 3).map((t, j) => (
                                                 <li key={j}>· {safeStr(t)}</li>
                                               ))}
                                             </ul>
-                                            {isFree && (
-                                              <div
-                                                className="absolute inset-0 z-10 flex items-center justify-center cursor-pointer"
-                                                onClick={() =>
-                                                  router.push("/student/pricing")
-                                                }
-                                              >
-                                                <div className="bg-white/80 dark:bg-black/50 px-2 py-0.5 rounded-full border border-border shadow-sm flex items-center gap-1 hover:bg-white dark:hover:bg-black transition-colors">
-                                                  <Lock className="h-3 w-3 text-primary" />
-                                                  <span className="text-[10px] font-medium text-primary">
-                                                    Mở khóa task
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            )}
                                           </div>
                                         ) : null}
                                       </div>

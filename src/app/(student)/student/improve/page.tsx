@@ -24,8 +24,8 @@ export default function ImprovePage() {
         </h1>
 
         <p className="mt-4 text-base text-muted-foreground leading-relaxed">
-          Tính năng cải thiện profile (CV & Essay) đang được bảo trì để nâng cấp chất lượng tốt hơn. <br />
-          Vui lòng chờ khoảng <span className="font-semibold text-foreground">1 tiếng</span> rồi quay lại.
+          Tính năng cải thiện hồ sơ (CV và bài luận) đang được bảo trì để nâng cấp chất lượng tốt hơn. <br />
+          Vui lòng chờ khoảng <span className="font-semibold text-foreground">1 tuần</span> rồi quay lại.
         </p>
 
         <Button

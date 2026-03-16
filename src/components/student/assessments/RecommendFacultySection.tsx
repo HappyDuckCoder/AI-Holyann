@@ -346,6 +346,20 @@ export default function RecommendFacultySection({
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [runConfirmOpen, setRunConfirmOpen] = useState(false);
 
+  const normalizeErrorMessage = (err: unknown): string => {
+    if (!err) return "Không thể tải gợi ý ngành.";
+    if (typeof err === "string") return err;
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "message" in err &&
+      typeof (err as { message?: unknown }).message === "string"
+    ) {
+      return (err as { message: string }).message;
+    }
+    return "Không thể tải gợi ý ngành.";
+  };
+
   const fetchLimitsAndLatest = useCallback(async (sid: string) => {
     try {
       const [limitsRes, latestRes] = await Promise.all([
@@ -404,7 +418,7 @@ export default function RecommendFacultySection({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error || "Không thể tải gợi ý ngành.");
+        setError(normalizeErrorMessage((data as { error?: unknown }).error));
         return;
       }
       setLatest({

@@ -49,30 +49,32 @@ const PLANS: {
   badge?: string;
   contactSales?: boolean;
 }[] = [
-    {
-      key: "FREE",
-      name: "Free",
-      priceLabel: "0đ",
-      description:
-        "Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.",
-    },
-    {
-      key: "PLUS",
-      name: "Plus (AI)",
-      priceLabel: PLUS_PRICE["6months"].label,
-      pricePeriod: PLUS_PRICE["6months"].period,
-      description: "Mở khóa đầy đủ chi tiết AI cho profile & ngành học.",
-      badge: "Phổ biến",
-    },
-    {
-      key: "PREMIUM",
-      name: "Premium (AI + All Advisors)",
-      priceLabel: "Liên hệ",
-      description: "Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.",
-      badge: "Tốt nhất",
-      contactSales: true,
-    },
-  ];
+  {
+    key: "FREE",
+    name: "Gói miễn phí",
+    priceLabel: "0 đồng",
+    description:
+      "Dùng thử cơ bản với một lần cho mỗi tính năng phân tích bằng trí tuệ nhân tạo, kết quả hiển thị ở dạng rút gọn.",
+  },
+  {
+    key: "PLUS",
+    name: "Gói Plus (trí tuệ nhân tạo)",
+    priceLabel: PLUS_PRICE["6months"].label,
+    pricePeriod: PLUS_PRICE["6months"].period,
+    description:
+      "Mở khóa đầy đủ chi tiết phân tích bằng trí tuệ nhân tạo cho hồ sơ và gợi ý ngành học.",
+    badge: "Phổ biến",
+  },
+  {
+    key: "PREMIUM",
+    name: "Gói Premium (trí tuệ nhân tạo và cố vấn)",
+    priceLabel: "Liên hệ",
+    description:
+      "Truy cập tất cả cố vấn chuyên môn và sử dụng các tính năng trí tuệ nhân tạo không giới hạn.",
+    badge: "Tốt nhất",
+    contactSales: true,
+  },
+];
 
 const CHECK = "✓";
 
@@ -249,11 +251,10 @@ export default function StudentPricingPage() {
                   <TableRow>
                     <TableCell>Phân tích profile gốc</TableCell>
                     <TableCell>
-                      1 lần (điểm + phân tích SWOT, vùng/trường phù hợp, chi tiết mờ) <br />
-                      Đề xuất hướng cải thiện, lộ trình chung của từng tháng
+                      1 lần (điểm + SWOT, vùng/trường phù hợp, chi tiết bị làm mờ)
                     </TableCell>
-                    <TableCell>10 lần đầy đủ</TableCell>
-                    <TableCell>10 lần đầy đủ</TableCell>
+                    <TableCell>5 lần đầy đủ</TableCell>
+                    <TableCell>Không giới hạn</TableCell>
                   </TableRow>
 
                   {/* Feature 2 — Career Quiz → Major Matching */}
@@ -263,12 +264,22 @@ export default function StudentPricingPage() {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Làm trắc nghiệm</TableCell>
+                    <TableCell>Làm trắc nghiệm MBTI / GRIT / RIASEC</TableCell>
+                    <TableCell>3 bài test, mỗi bài 1 lần (kết quả xem được)</TableCell>
+                    <TableCell>3 bài test, mỗi bài 1 lần (kết quả chi tiết)</TableCell>
+                    <TableCell>3 bài test, mỗi bài 1 lần (kết quả chi tiết)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Gợi ý ngành từ kết quả bài trắc nghiệm</TableCell>
                     <TableCell>
-                      1 lần (chỉ 3 ngành, % mờ; làm lại sau 6 tháng)
+                      1 lần — tối đa 3 ngành, tỷ lệ phù hợp được làm mờ
                     </TableCell>
-                    <TableCell>1 lần — 10 ngành, đầy đủ</TableCell>
-                    <TableCell>1 lần — 10 ngành, đầy đủ</TableCell>
+                    <TableCell>
+                      5 lần — tối đa 10 ngành, hiển thị đầy đủ tỷ lệ phù hợp
+                    </TableCell>
+                    <TableCell>
+                      Không giới hạn — tối đa 10 ngành, hiển thị đầy đủ tỷ lệ phù hợp
+                    </TableCell>
                   </TableRow>
 
                   {/* Feature 3 — Reach / Match / Safe */}
@@ -279,9 +290,9 @@ export default function StudentPricingPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Số lần sử dụng</TableCell>
-                    <TableCell>1 lần tổng</TableCell>
-                    <TableCell>15 lần / 6 tháng</TableCell>
-                    <TableCell>15 lần / 6 tháng</TableCell>
+                    <TableCell>2 lần tổng</TableCell>
+                    <TableCell>5 lần</TableCell>
+                    <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Ngành/trường phù hợp hiển thị</TableCell>
@@ -307,11 +318,15 @@ export default function StudentPricingPage() {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>
-                      Profile: đánh giá + cải thiện (Feature 1)
-                    </TableCell>
-                    <TableCell>1 lần / gói Free (mờ)</TableCell>
-                    <TableCell>5 đánh giá + 5 cải thiện</TableCell>
+                    <TableCell>Profile: đánh giá (Feature 1)</TableCell>
+                    <TableCell>1 đánh giá (mờ)</TableCell>
+                    <TableCell>5 đánh giá chi tiết</TableCell>
+                    <TableCell>Không giới hạn</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Profile: cải thiện (Feature 1)</TableCell>
+                    <TableCell>1 lần cải thiện</TableCell>
+                    <TableCell>5 lần cải thiện</TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>
