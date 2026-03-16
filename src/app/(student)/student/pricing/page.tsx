@@ -49,30 +49,30 @@ const PLANS: {
   badge?: string;
   contactSales?: boolean;
 }[] = [
-  {
-    key: "FREE",
-    name: "Free",
-    priceLabel: "0đ",
-    description:
-      "Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.",
-  },
-  {
-    key: "PLUS",
-    name: "Plus (AI)",
-    priceLabel: PLUS_PRICE["6months"].label,
-    pricePeriod: PLUS_PRICE["6months"].period,
-    description: "Mở khóa đầy đủ chi tiết AI cho profile & ngành học.",
-    badge: "Phổ biến",
-  },
-  {
-    key: "PREMIUM",
-    name: "Premium (AI + All Advisors)",
-    priceLabel: "Liên hệ",
-    description: "Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.",
-    badge: "Tốt nhất",
-    contactSales: true,
-  },
-];
+    {
+      key: "FREE",
+      name: "Free",
+      priceLabel: "0đ",
+      description:
+        "Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.",
+    },
+    {
+      key: "PLUS",
+      name: "Plus (AI)",
+      priceLabel: PLUS_PRICE["6months"].label,
+      pricePeriod: PLUS_PRICE["6months"].period,
+      description: "Mở khóa đầy đủ chi tiết AI cho profile & ngành học.",
+      badge: "Phổ biến",
+    },
+    {
+      key: "PREMIUM",
+      name: "Premium (AI + All Advisors)",
+      priceLabel: "Liên hệ",
+      description: "Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.",
+      badge: "Tốt nhất",
+      contactSales: true,
+    },
+  ];
 
 const CHECK = "✓";
 
@@ -252,8 +252,8 @@ export default function StudentPricingPage() {
                       1 lần (điểm + phân tích SWOT, vùng/trường phù hợp, chi tiết mờ) <br />
                       Đề xuất hướng cải thiện, lộ trình chung của từng tháng
                     </TableCell>
-                    <TableCell>1 lần đầy đủ</TableCell>
-                    <TableCell>1 lần đầy đủ</TableCell>
+                    <TableCell>10 lần đầy đủ</TableCell>
+                    <TableCell>10 lần đầy đủ</TableCell>
                   </TableRow>
 
                   {/* Feature 2 — Career Quiz → Major Matching */}
@@ -267,8 +267,8 @@ export default function StudentPricingPage() {
                     <TableCell>
                       1 lần (chỉ 3 ngành, % mờ; làm lại sau 6 tháng)
                     </TableCell>
-                    <TableCell>1 lần — 15 ngành, đầy đủ</TableCell>
-                    <TableCell>1 lần — 15 ngành, đầy đủ</TableCell>
+                    <TableCell>1 lần — 10 ngành, đầy đủ</TableCell>
+                    <TableCell>1 lần — 10 ngành, đầy đủ</TableCell>
                   </TableRow>
 
                   {/* Feature 3 — Reach / Match / Safe */}
@@ -280,24 +280,14 @@ export default function StudentPricingPage() {
                   <TableRow>
                     <TableCell>Số lần sử dụng</TableCell>
                     <TableCell>1 lần tổng</TableCell>
-                    <TableCell>15 lần/tháng</TableCell>
-                    <TableCell>Không giới hạn</TableCell>
+                    <TableCell>15 lần / 6 tháng</TableCell>
+                    <TableCell>15 lần / 6 tháng</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Ngành/trường phù hợp hiển thị</TableCell>
                     <TableCell>5 ngành (1R, 2M, 2S)</TableCell>
                     <TableCell>30 (10R, 10M, 10S)</TableCell>
                     <TableCell>30 (10R, 10M, 10S)</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Major fit % (từ Feature 2)</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1">
-                        <Lock className="h-3 w-3" /> Chỉ 1 ngành cao nhất
-                      </span>
-                    </TableCell>
-                    <TableCell>Top 15 ngành {CHECK}</TableCell>
-                    <TableCell>Top 15 ngành {CHECK}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Match score chi tiết</TableCell>
@@ -308,16 +298,6 @@ export default function StudentPricingPage() {
                     </TableCell>
                     <TableCell>{CHECK}</TableCell>
                     <TableCell>{CHECK}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Roadmap cải thiện</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1">
-                        <Lock className="h-3 w-3" /> Chung chung, chi tiết mờ
-                      </span>
-                    </TableCell>
-                    <TableCell>Đầy đủ</TableCell>
-                    <TableCell>Đầy đủ</TableCell>
                   </TableRow>
 
                   {/* Feature 1 — Profile; Feature 4 — CV/Essay */}

@@ -45,10 +45,22 @@ model academic_extracurriculars {
   updated_at          DateTime?           @default(now()) @db.Timestamp(6)
   region              String?             @db.VarChar(50)
   scale               Int?
-  impact_tier         Int?
   student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
 
   @@index([background_id])
+}
+
+model career_matches {
+  id               String   @id @db.Uuid
+  student_id       String   @db.Uuid
+  job_title        String   @db.VarChar(255)
+  match_percentage Float
+  reasoning        String?
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  job_field        String?  @map("job-field") @db.VarChar(255)
+  students         students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  @@index([student_id])
 }
 
 model chat_attachments {
@@ -221,7 +233,6 @@ model essay_improve_results {
 model essays {
   id                    String                 @id @db.Uuid
   student_id            String                 @db.Uuid
-  slot_index            Int                    @default(1)
   title                 String?                @db.VarChar(500)
   content               String
   created_at            DateTime               @default(now()) @db.Timestamp(6)
@@ -230,7 +241,6 @@ model essays {
   essay_improve_results essay_improve_results?
   students              students               @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
-  @@unique([student_id, slot_index], map: "essays_student_slot_key")
   @@index([student_id])
 }
 
@@ -447,7 +457,6 @@ model personal_projects {
   description         String?
   duration_months     Int?
   impact              String?
-  tier                Int?
   created_at          DateTime?           @default(now()) @db.Timestamp(6)
   updated_at          DateTime?           @default(now()) @db.Timestamp(6)
   student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
@@ -455,23 +464,39 @@ model personal_projects {
   @@index([background_id])
 }
 
-/// Kết quả phân tích hồ sơ (logic mới). Spike và chi tiết lấy từ full_result.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model profile_analyses {
-  id          String    @id @db.Uuid
-  student_id  String    @db.Uuid
-  full_result Json      @default("{}")
-  swot_data   Json?     @default("{}")
-  input_data  Json      @default("{}")
-  score_aca   Float?
-  score_lan   Float?
-  score_hdnk  Float?
-  score_skill Float?
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-  students    students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+  id                    String    @id @db.Uuid
+  student_id            String    @db.Uuid
+  analysis_date         DateTime  @default(now()) @db.Timestamp(6)
+  academic_data         Json      @default("{}")
+  extracurricular_data  Json      @default("{}")
+  skill_data            Json      @default("{}")
+  overall_score         Float?
+  academic_score        Float?
+  extracurricular_score Float?
+  summary               String?
+  swot_data             Json?     @default("{}")
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  input_data            Json      @default("{}")
+  full_result           Json      @default("{}")
+  score_aca             Float?
+  score_lan             Float?
+  score_hdnk            Float?
+  score_skill           Float?
+  score_usa             Float?
+  score_asia            Float?
+  score_europe          Float?
+  main_spike            String?   @db.VarChar(100)
+  spike_sharpness       String?   @db.VarChar(50)
+  spike_score           Float?
+  all_spike_scores      Json?     @default("{}")
+  updated_at            DateTime? @default(now()) @db.Timestamp(6)
+  students              students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
+  @@index([analysis_date])
+  @@index([main_spike])
   @@index([student_id])
-  @@index([student_id, created_at])
 }
 
 model profile_analysis_jobs {
@@ -489,7 +514,7 @@ model profile_analysis_jobs {
 
 model profile_improve_results {
   id              String    @id @db.Uuid
-  student_id      String    @db.Uuid
+  student_id      String    @unique @db.Uuid
   analysis_result Json?
   enhance_result  Json?
   analysis_rating Int?
@@ -501,55 +526,6 @@ model profile_improve_results {
   students        students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
   @@index([student_id])
-  @@index([student_id, created_at])
-}
-
-model faculty_recommendations {
-  id                  String    @id @db.Uuid
-  student_id          String    @db.Uuid
-  assessment_summary  Json?
-  faculties           Json?
-  created_at          DateTime  @default(now()) @db.Timestamp(6)
-  students            students  @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-
-  @@index([student_id])
-  @@index([student_id, created_at])
-}
-
-model faculty_wishlist {
-  id          String   @id @db.Uuid
-  student_id  String   @db.Uuid
-  faculty_name String @db.VarChar(500)
-  sort_order  Int      @default(0)
-  created_at  DateTime @default(now()) @db.Timestamp(6)
-  students    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-
-  @@index([student_id])
-}
-
-model school_wishlist {
-  id            String              @id @db.Uuid
-  student_id    String              @db.Uuid
-  university_id Int
-  sort_order    Int                 @default(0)
-  created_at    DateTime            @default(now()) @db.Timestamp(6)
-  students      students            @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-  university_rankings university_rankings @relation(fields: [university_id], references: [id], onDelete: Cascade)
-
-  @@unique([student_id, university_id])
-  @@index([student_id])
-}
-
-model admission_chance_results {
-  id         String   @id @db.Uuid
-  student_id String   @db.Uuid
-  summary    Json     @default("{}")
-  faculties  Json     @default("{}")
-  created_at DateTime @default(now()) @db.Timestamp(6)
-  students   students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
-
-  @@index([student_id])
-  @@index([student_id, created_at])
 }
 
 model research_experiences {
@@ -637,7 +613,6 @@ model student_backgrounds {
   student_id                    String                          @id @db.Uuid
   created_at                    DateTime?                       @default(now()) @db.Timestamp(6)
   updated_at                    DateTime?                       @default(now()) @db.Timestamp(6)
-  experiments                   Json?                           @default("[]")
   academic_awards               academic_awards[]
   academic_extracurriculars     academic_extracurriculars[]
   non_academic_awards           non_academic_awards[]
@@ -652,13 +627,11 @@ model student_backgrounds {
 model student_cv_documents {
   id          String   @id @db.Uuid
   student_id  String   @db.Uuid
-  slot_index  Int      @default(1)
   file_url    String
   file_name   String   @db.VarChar(255)
   uploaded_at DateTime @default(now()) @db.Timestamp(6)
   students    students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
 
-  @@unique([student_id, slot_index], map: "student_cv_documents_student_slot_key")
   @@index([student_id])
 }
 
@@ -723,6 +696,18 @@ model student_task_progress {
   @@unique([student_id, task_id])
 }
 
+model student_university_recommendations {
+  id           String   @id @db.Uuid
+  student_id   String   @db.Uuid
+  summary      Json     @default("{}")
+  roadmap      Json     @default("{}")
+  universities Json?    @default("{}")
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  students     students @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
+
+  @@index([student_id])
+}
+
 model students {
   user_id                            String                               @id @db.Uuid
   current_school                     String?                              @db.VarChar(255)
@@ -730,17 +715,15 @@ model students {
   current_address                    String?
   talents                            String?
   hobbies                            String?
+  target_country                     String?                              @db.VarChar(100)
+  intended_major                     String?                              @db.VarChar(255)
   yearly_budget                      Decimal?                             @db.Decimal(15, 2)
   personal_desire                    String?
-  /// Mục tiêu (1 lần): ngành + trường đã chọn. Chỉ được thiết lập một lần.
-  target_faculty_name                String?                              @db.VarChar(255)
-  target_university_id               Int?
-  target_university_name             String?                              @db.VarChar(500)
-  target_set_at                      DateTime?                            @db.Timestamp(6)
   created_at                         DateTime?                            @default(now()) @db.Timestamp(6)
   updated_at                         DateTime?                            @default(now()) @db.Timestamp(6)
   assessments_completed              Boolean?                             @default(false)
   date_of_birth                      DateTime?                            @db.Date
+  career_matches                     career_matches[]
   cv_improve_results                 cv_improve_results?
   essays                             essays[]
   grit_tests                         grit_tests?
@@ -750,11 +733,7 @@ model students {
   mentor_custom_deadlines            mentor_custom_deadlines[]
   profile_analyses                   profile_analyses[]
   profile_analysis_jobs              profile_analysis_jobs[]
-  profile_improve_results            profile_improve_results[]
-  faculty_recommendations            faculty_recommendations[]
-  faculty_wishlist                   faculty_wishlist[]
-  school_wishlist                    school_wishlist[]
-  admission_chance_results           admission_chance_results[]
+  profile_improve_results            profile_improve_results?
   riasec_tests                       riasec_tests?
   student_academic_profiles          student_academic_profiles?
   student_backgrounds                student_backgrounds?
@@ -763,6 +742,7 @@ model students {
   student_parents                    student_parents[]
   student_skills                     student_skills[]
   student_task_progress              student_task_progress[]
+  student_university_recommendations student_university_recommendations[]
   users                              users                                @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
@@ -773,7 +753,6 @@ model subject_scores {
   score               Float
   year                Int?
   semester            Int?
-  group               String?             @db.VarChar(50)
   created_at          DateTime?           @default(now()) @db.Timestamp(6)
   updated_at          DateTime?           @default(now()) @db.Timestamp(6)
   student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
@@ -824,9 +803,6 @@ model users {
   avatar_url            String?
   is_active             Boolean?                @default(true)
   created_at            DateTime?               @default(now()) @db.Timestamp(6)
-  subscription_plan     String?                 @db.VarChar(20)
-  subscription_start    DateTime?               @db.Timestamp(6)
-  subscription_end      DateTime?               @db.Timestamp(6)
   chat_messages         chat_messages[]
   chat_participants     chat_participants[]
   chat_rooms            chat_rooms[]
@@ -869,30 +845,6 @@ model work_experiences {
   student_backgrounds student_backgrounds @relation(fields: [background_id], references: [student_id], onDelete: Cascade)
 
   @@index([background_id])
-}
-
-model university_rankings {
-  id                     Int      @id @default(autoincrement())
-  qs_rank                Int      @unique
-  name                   String   @db.VarChar(500)
-  country                String   @db.VarChar(100)
-  country_code           String   @db.VarChar(10)
-  city                   String?  @db.VarChar(255)
-  region                 String?  @db.VarChar(100)
-  type                   String?  @db.VarChar(50)
-  founded_year           Int?
-  total_students         Int?
-  website                String?  @db.VarChar(500)
-  qs_overall_score       Float
-  academic_reputation    Float
-  employer_reputation    Float
-  faculty_student_ratio  Float
-  citations_per_faculty  Float
-  international_faculty  Float
-  international_students Float
-  strong_subjects        String[]
-  description            String?
-  school_wishlist        school_wishlist[]
 }
 
 enum ApplicationStatus {
