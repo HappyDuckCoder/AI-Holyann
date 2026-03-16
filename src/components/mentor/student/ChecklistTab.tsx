@@ -25,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { getCleanFilename } from '@/components/student/checklist/checklist-utils';
 
 interface ChecklistTabProps {
   studentId: string;
@@ -471,8 +472,8 @@ export default function ChecklistTab({ studentId }: ChecklistTabProps) {
                                       <p className="text-xs text-primary/80 mt-1">
                                         Nhấp để xem trước hoặc tải xuống file
                                       </p>
-                                      <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
-                                        {task.submissionUrl}
+                                      <p className="text-xs font-medium text-muted-foreground mt-1 line-clamp-2">
+                                        {getCleanFilename(task.title)}
                                       </p>
                                     </div>
                                   </div>

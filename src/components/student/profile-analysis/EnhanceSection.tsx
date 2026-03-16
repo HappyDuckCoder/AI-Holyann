@@ -12,9 +12,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import { Sparkles, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, Loader2, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import type { Feature1AnalysisOutput } from "@/lib/schemas/profile-analysis-v2.schema";
 import type { Feature1EnhanceOutput } from "@/lib/schemas/profile-analysis-v2.schema";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useRouter } from "next/navigation";
 
 interface EnhanceSectionProps {
   studentId: string;
@@ -42,6 +44,9 @@ export function EnhanceSection({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingRun, setPendingRun] = useState(false);
   const [roadmapExpanded, setRoadmapExpanded] = useState(false);
+  
+  const { isFree } = useSubscription();
+  const router = useRouter();
 
   const PILLAR_LABELS: Record<string, string> = {
     academic: "Học thuật",
@@ -216,13 +221,25 @@ export function EnhanceSection({
           {latestEnhance.enhance_result.list_suggestion?.length > 0 && (
             <div className="mb-4 rounded-xl border-l-4 border-l-amber-500 bg-amber-500/10 dark:bg-amber-500/10 p-4">
               <p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mb-2">Gợi ý ưu tiên</p>
-              <ul className="list-disc list-inside text-sm text-foreground space-y-1">
-                {latestEnhance.enhance_result.list_suggestion.slice(0, 5).map((s, i) => (
-                  <li key={i}>
-                    <span className="font-medium text-amber-900 dark:text-amber-100">{formatPrior(s.prior)}</span>: {s.what_to_do}
-                  </li>
-                ))}
-              </ul>
+              <div className="relative">
+                <ul className={`list-disc list-inside text-sm text-foreground space-y-1 ${isFree ? "blur-[4px] select-none opacity-60 pointer-events-none" : ""}`}>
+                  {latestEnhance.enhance_result.list_suggestion.slice(0, 5).map((s, i) => (
+                    <li key={i}>
+                      <span className="font-medium text-amber-900 dark:text-amber-100">{formatPrior(s.prior)}</span>: {isFree ? "Nội dung gợi ý chi tiết đã bị ẩn do giới hạn gói đăng ký" : s.what_to_do}
+                    </li>
+                  ))}
+                </ul>
+                {isFree && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer" onClick={() => router.push("/student/pricing")}>
+                    <div className="bg-amber-100 dark:bg-amber-900/80 px-4 py-2 rounded-full border border-amber-300 dark:border-amber-700 shadow-sm flex items-center gap-2 hover:bg-amber-200 transition-colors">
+                      <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        Nâng cấp Plus/Premium để xem chi tiết
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           {latestEnhance.enhance_result.roadmap?.months?.length > 0 && (
@@ -237,11 +254,23 @@ export function EnhanceSection({
                     <p className="font-semibold text-teal-800 dark:text-teal-200">Tháng {m.month}</p>
                     <p className="text-muted-foreground mt-1">{m.target}</p>
                     {m.tasks?.length > 0 && (
-                      <ul className="mt-2 list-disc list-inside text-muted-foreground">
-                        {(roadmapExpanded ? m.tasks : m.tasks.slice(0, 2)).map((t, j) => (
-                          <li key={j}>{t}</li>
-                        ))}
-                      </ul>
+                      <div className="relative mt-2">
+                        <ul className={`list-disc list-inside text-muted-foreground ${isFree ? "blur-[4px] select-none opacity-50 pointer-events-none" : ""}`}>
+                          {(roadmapExpanded ? m.tasks : m.tasks.slice(0, 2)).map((t, j) => (
+                            <li key={j}>{isFree ? "Yêu cầu hành động chi tiết đã bị ẩn do giới hạn gói đăng ký" : t}</li>
+                          ))}
+                        </ul>
+                        {isFree && (
+                          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center cursor-pointer" onClick={() => router.push("/student/pricing")}>
+                            <div className="bg-teal-100 dark:bg-teal-900/60 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800 shadow-sm flex items-center gap-1.5 hover:bg-teal-200 dark:hover:bg-teal-800/80 transition-colors">
+                              <Lock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                              <span className="text-xs font-medium text-teal-800 dark:text-teal-200">
+                                Mở khóa chi tiết
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}

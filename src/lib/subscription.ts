@@ -34,7 +34,7 @@ export const PLAN_LIMITS: Record<SubscriptionPlan, PlanConfig> = {
     profileAnalysisLimit: 1,
     profileEnhanceLimit: 1,
     recommendFacultyLimit: 1,
-    facultyWishlistLimit: 2,
+    facultyWishlistLimit: 3,
     schoolWishlistLimit: 2,
     admissionChanceLimit: 2,
     majorListCount: 3,
