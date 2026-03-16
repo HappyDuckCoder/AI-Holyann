@@ -1,23 +1,43 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useSubscription } from '@/hooks/useSubscription';
-import { DISPLAY_PLANS, type SubscriptionPlan } from '@/lib/subscription';
-import { StudentPageContainer } from '@/components/student';
-import RoleGuard from '@/components/auth/RoleGuard';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
-import { Lock } from 'lucide-react';
+import { useState } from "react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { DISPLAY_PLANS, type SubscriptionPlan } from "@/lib/subscription";
+import { StudentPageContainer } from "@/components/student";
+import RoleGuard from "@/components/auth/RoleGuard";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { LeadGenerationButton } from "@/components/landing/LeadGenerationModal";
+import { toast } from "sonner";
+import { Lock } from "lucide-react";
 
-type BillingCycle = '6months' | '1year';
+type BillingCycle = "6months" | "1year";
 
 const PLUS_PRICE = {
-  '6months': { amount: 399000, label: '399.000đ', period: '/6 tháng' },
-  '1year': { amount: 599000, label: '599.000đ', period: '/năm' },
+  "6months": { amount: 399000, label: "399.000đ", period: "/6 tháng" },
+  "1year": { amount: 599000, label: "599.000đ", period: "/năm" },
 } as const;
 
 const PLANS: {
@@ -29,46 +49,52 @@ const PLANS: {
   badge?: string;
   contactSales?: boolean;
 }[] = [
-    {
-      key: 'FREE',
-      name: 'Free',
-      priceLabel: '0đ',
-      description: 'Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.',
-    },
-    {
-      key: 'PLUS',
-      name: 'Plus (AI)',
-      priceLabel: PLUS_PRICE['6months'].label,
-      pricePeriod: PLUS_PRICE['6months'].period,
-      description: 'Mở khóa đầy đủ chi tiết AI cho profile & ngành học.',
-      badge: 'Phổ biến',
-    },
-    {
-      key: 'PREMIUM',
-      name: 'Premium (AI + All Advisors)',
-      priceLabel: 'Liên hệ',
-      description: 'Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.',
-      badge: 'Tốt nhất',
-      contactSales: true,
-    },
-  ];
+  {
+    key: "FREE",
+    name: "Free",
+    priceLabel: "0đ",
+    description:
+      "Dùng thử cơ bản với 1 lần cho mỗi module AI chính. Chi tiết bị làm mờ.",
+  },
+  {
+    key: "PLUS",
+    name: "Plus (AI)",
+    priceLabel: PLUS_PRICE["6months"].label,
+    pricePeriod: PLUS_PRICE["6months"].period,
+    description: "Mở khóa đầy đủ chi tiết AI cho profile & ngành học.",
+    badge: "Phổ biến",
+  },
+  {
+    key: "PREMIUM",
+    name: "Premium (AI + All Advisors)",
+    priceLabel: "Liên hệ",
+    description: "Truy cập mọi cố vấn (AS/ACS/ARD) và AI không giới hạn.",
+    badge: "Tốt nhất",
+    contactSales: true,
+  },
+];
 
-const CHECK = '✓';
+const CHECK = "✓";
 
 export default function StudentPricingPage() {
   const { plan: currentPlan } = useSubscription();
   const [loadingPlan, setLoadingPlan] = useState<SubscriptionPlan | null>(null);
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>('6months');
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("6months");
+  const [isUpgradeNoticeOpen, setIsUpgradeNoticeOpen] = useState(false);
 
   const plusPrice = PLUS_PRICE[billingCycle];
 
   async function handleUpgrade(targetPlan: SubscriptionPlan) {
-    if (targetPlan === 'FREE') return;
-    if (targetPlan === 'PREMIUM') {
-      // Contact sales: open mailto or track CTA
-      window.location.href = 'mailto:sales@holyann.com?subject=Đăng ký gói Premium';
+    if (targetPlan === "FREE") return;
+    if (targetPlan === "PREMIUM") {
+      // Liên hệ bán hàng: dùng modal LeadGeneration giống landing
+      // (đã được handle bằng LeadGenerationButton trong JSX, nên không làm gì ở đây)
       return;
     }
+    // Tạm thời chưa mở nâng cấp trên server: show modal thông báo
+    setIsUpgradeNoticeOpen(true);
+    return;
+    /*
     setLoadingPlan(targetPlan);
     try {
       const res = await fetch('/api/subscription/upgrade', {
@@ -88,27 +114,34 @@ export default function StudentPricingPage() {
     } finally {
       setLoadingPlan(null);
     }
+    */
   }
 
   return (
-    <RoleGuard allowedRoles={['user', 'student', 'STUDENT']}>
+    <RoleGuard allowedRoles={["user", "student", "STUDENT"]}>
       <StudentPageContainer>
         <div className="max-w-6xl mx-auto pb-10 space-y-8">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">Gói đăng ký Holyann cho học sinh</h1>
-
+            <h1 className="text-2xl font-bold tracking-tight">
+              Gói đăng ký Holyann cho học sinh
+            </h1>
           </div>
 
           {/* 6‑month cycle callout */}
           <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-center text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Tất cả gói được tính theo chu kỳ 6 tháng</span>
-            {' — '}
+            <span className="font-medium text-foreground">
+              Tất cả gói được tính theo chu kỳ 6 tháng
+            </span>
+            {" — "}
             Tính năng và lượt dùng sẽ được làm mới mỗi 6 tháng.
           </div>
 
           {/* Billing toggle for Plus (6‑month vs 1‑year) */}
           <div className="flex justify-center">
-            <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as BillingCycle)}>
+            <Tabs
+              value={billingCycle}
+              onValueChange={(v) => setBillingCycle(v as BillingCycle)}
+            >
               <TabsList className="grid w-full max-w-[280px] grid-cols-2">
                 <TabsTrigger value="6months">6 tháng</TabsTrigger>
                 <TabsTrigger value="1year">1 năm</TabsTrigger>
@@ -120,20 +153,29 @@ export default function StudentPricingPage() {
           <div className="grid gap-4 md:grid-cols-3">
             {PLANS.filter((p) => DISPLAY_PLANS.includes(p.key)).map((p) => {
               const isCurrent = currentPlan === p.key;
-              const isUpgradable = !isCurrent && p.key !== 'FREE' && !p.contactSales;
+              const isUpgradable =
+                !isCurrent && p.key !== "FREE" && !p.contactSales;
               const isContactSales = p.contactSales;
               const priceLabel =
-                p.key === 'PLUS' ? plusPrice.label : p.priceLabel;
-              const pricePeriod = p.key === 'PLUS' ? plusPrice.period : p.pricePeriod;
+                p.key === "PLUS" ? plusPrice.label : p.priceLabel;
+              const pricePeriod =
+                p.key === "PLUS" ? plusPrice.period : p.pricePeriod;
 
               return (
-                <Card key={p.key} className={p.key === 'PREMIUM' ? 'border-primary/60 shadow-md' : ''}>
+                <Card
+                  key={p.key}
+                  className={
+                    p.key === "PREMIUM" ? "border-primary/60 shadow-md" : ""
+                  }
+                >
                   <CardHeader className="space-y-1">
                     <div className="flex items-center justify-between gap-2">
                       <CardTitle className="text-base">{p.name}</CardTitle>
                       {p.badge && (
                         <Badge
-                          variant={p.key === 'PREMIUM' ? 'default' : 'secondary'}
+                          variant={
+                            p.key === "PREMIUM" ? "default" : "secondary"
+                          }
                           className="text-[10px] px-2 py-0.5"
                         >
                           {p.badge}
@@ -141,8 +183,14 @@ export default function StudentPricingPage() {
                       )}
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-xl font-semibold">{priceLabel}</span>
-                      {pricePeriod && <span className="text-xs text-muted-foreground">{pricePeriod}</span>}
+                      <span className="text-xl font-semibold">
+                        {priceLabel}
+                      </span>
+                      {pricePeriod && (
+                        <span className="text-xs text-muted-foreground">
+                          {pricePeriod}
+                        </span>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground">
@@ -154,19 +202,16 @@ export default function StudentPricingPage() {
                         Gói hiện tại
                       </Button>
                     ) : isContactSales ? (
-                      <Button
-                        className="w-full"
-                        onClick={() => handleUpgrade(p.key)}
-                      >
+                      <LeadGenerationButton className="w-full">
                         Liên hệ bán hàng
-                      </Button>
+                      </LeadGenerationButton>
                     ) : isUpgradable ? (
                       <Button
                         className="w-full"
                         onClick={() => handleUpgrade(p.key)}
                         disabled={loadingPlan === p.key}
                       >
-                        {loadingPlan === p.key ? 'Đang xử lý...' : 'Nâng cấp'}
+                        {loadingPlan === p.key ? "Đang xử lý..." : "Nâng cấp"}
                       </Button>
                     ) : (
                       <Button className="w-full" variant="outline" disabled>
@@ -181,7 +226,9 @@ export default function StudentPricingPage() {
 
           {/* Comparison table — 3 columns: Free, Plus, Premium */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">So sánh chi tiết 6 Feature AI</h2>
+            <h2 className="text-lg font-semibold">
+              So sánh chi tiết 6 Feature AI
+            </h2>
             <div className="overflow-x-auto rounded-lg border">
               <Table className="min-w-[640px] text-xs">
                 <TableHeader>
@@ -201,7 +248,9 @@ export default function StudentPricingPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Phân tích profile gốc</TableCell>
-                    <TableCell>1 lần (điểm + nhận xét ngắn, chi tiết mờ)</TableCell>
+                    <TableCell>
+                      1 lần (điểm + nhận xét ngắn, chi tiết mờ)
+                    </TableCell>
                     <TableCell>1 lần đầy đủ</TableCell>
                     <TableCell>1 lần đầy đủ</TableCell>
                   </TableRow>
@@ -214,7 +263,9 @@ export default function StudentPricingPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Làm trắc nghiệm</TableCell>
-                    <TableCell>1 lần (chỉ 3 ngành, % mờ; làm lại sau 6 tháng)</TableCell>
+                    <TableCell>
+                      1 lần (chỉ 3 ngành, % mờ; làm lại sau 6 tháng)
+                    </TableCell>
                     <TableCell>1 lần — 15 ngành, đầy đủ</TableCell>
                     <TableCell>1 lần — 15 ngành, đầy đủ</TableCell>
                   </TableRow>
@@ -239,19 +290,31 @@ export default function StudentPricingPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Major fit % (từ Feature 2)</TableCell>
-                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> Chỉ 1 ngành cao nhất</span></TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1">
+                        <Lock className="h-3 w-3" /> Chỉ 1 ngành cao nhất
+                      </span>
+                    </TableCell>
                     <TableCell>Top 15 ngành {CHECK}</TableCell>
                     <TableCell>Top 15 ngành {CHECK}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Match score chi tiết</TableCell>
-                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> Mờ</span></TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1">
+                        <Lock className="h-3 w-3" /> Mờ
+                      </span>
+                    </TableCell>
                     <TableCell>{CHECK}</TableCell>
                     <TableCell>{CHECK}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Roadmap cải thiện</TableCell>
-                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> Chung chung, chi tiết mờ</span></TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1">
+                        <Lock className="h-3 w-3" /> Chung chung, chi tiết mờ
+                      </span>
+                    </TableCell>
                     <TableCell>Đầy đủ</TableCell>
                     <TableCell>Đầy đủ</TableCell>
                   </TableRow>
@@ -263,15 +326,24 @@ export default function StudentPricingPage() {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Profile: đánh giá + cải thiện (Feature 1)</TableCell>
+                    <TableCell>
+                      Profile: đánh giá + cải thiện (Feature 1)
+                    </TableCell>
                     <TableCell>1 lần / gói Free (mờ)</TableCell>
                     <TableCell>5 đánh giá + 5 cải thiện</TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>CV: upload + enhance + analysis</TableCell>
-                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> 1 upload (khóa) + 1 enhance + 1 analysis</span></TableCell>
-                    <TableCell>1 upload (khóa) + 10 enhance + 10 analysis</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1">
+                        <Lock className="h-3 w-3" /> 1 upload (khóa) + 1 enhance
+                        + 1 analysis
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      1 upload (khóa) + 10 enhance + 10 analysis
+                    </TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
                   <TableRow>
@@ -302,7 +374,11 @@ export default function StudentPricingPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Báo cáo tổng hợp (PDF / in)</TableCell>
-                    <TableCell><span className="inline-flex items-center gap-1"><Lock className="h-3 w-3" /> 1 lần</span></TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1">
+                        <Lock className="h-3 w-3" /> 1 lần
+                      </span>
+                    </TableCell>
                     <TableCell>Không giới hạn</TableCell>
                     <TableCell>Không giới hạn</TableCell>
                   </TableRow>
@@ -310,6 +386,23 @@ export default function StudentPricingPage() {
               </Table>
             </div>
           </div>
+
+          {/* Modal thông báo nâng cấp đang được cập nhật trên server */}
+          <Dialog
+            open={isUpgradeNoticeOpen}
+            onOpenChange={setIsUpgradeNoticeOpen}
+          >
+            <DialogContent className="sm:max-w-[420px] p-4">
+              <DialogHeader>
+                <DialogTitle>Hệ thống nâng cấp đang được cập nhật</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                Tính năng nâng cấp gói sẽ sớm được mở trên server. Trong thời
+                gian này, nếu bạn cần tư vấn nâng cấp, hãy dùng nút &quot;Liên
+                hệ bán hàng&quot; để để lại thông tin cho đội ngũ Holyann.
+              </p>
+            </DialogContent>
+          </Dialog>
         </div>
       </StudentPageContainer>
     </RoleGuard>
