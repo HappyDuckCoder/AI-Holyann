@@ -7,7 +7,7 @@ import { MBTI_QUESTIONS_SORTED } from "@/data/mbti-questions";
 import { randomUUID } from "crypto";
 
 const getBaseUrl = () => {
-  const base = process.env.AI_API_URL || "http://127.0.0.1:8000";
+  const base = process.env.AI_SERVER_URL || process.env.AI_API_URL || "http://127.0.0.1:8000";
   return base.replace(/\/+$/, "");
 };
 
@@ -123,7 +123,8 @@ export async function POST(
       );
     }
 
-    const url = `${getBaseUrl()}/api/recommend-faculty/`;
+    // FastAPI feature2 recommend-faculty endpoint
+    const url = `${getBaseUrl()}/api/v1/feature2/recommend-faculty`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

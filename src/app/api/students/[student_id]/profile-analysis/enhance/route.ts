@@ -71,10 +71,14 @@ export async function POST(
       );
     }
 
-    const result = (await callEnhanceProfile({
+    const rawResult = await callEnhanceProfile({
       analysis_information: fullResult,
       willing_area,
-    })) as Feature1EnhanceOutput;
+    });
+    const result =
+      rawResult && typeof rawResult === "object" && "data" in rawResult
+        ? (rawResult as { data: Feature1EnhanceOutput }).data
+        : (rawResult as Feature1EnhanceOutput);
 
     if (!result?.list_suggestion || !result?.roadmap) {
       return NextResponse.json(
@@ -84,30 +88,16 @@ export async function POST(
     }
 
     const now = new Date();
-    const existing = await prisma.profile_improve_results.findFirst({
-      where: { student_id: studentId },
-      select: { id: true },
+    // Lưu mỗi lần cải thiện như một record riêng để phục vụ lịch sử
+    await prisma.profile_improve_results.create({
+      data: {
+        id: randomUUID(),
+        student_id: studentId,
+        enhance_result: result as unknown as object,
+        enhance_at: now,
+        updated_at: now,
+      },
     });
-    if (existing) {
-      await prisma.profile_improve_results.update({
-        where: { id: existing.id },
-        data: {
-          enhance_result: result as unknown as object,
-          enhance_at: now,
-          updated_at: now,
-        },
-      });
-    } else {
-      await prisma.profile_improve_results.create({
-        data: {
-          id: randomUUID(),
-          student_id: studentId,
-          enhance_result: result as unknown as object,
-          enhance_at: now,
-          updated_at: now,
-        },
-      });
-    }
 
     return NextResponse.json({ success: true, data: result });
   } catch (e) {

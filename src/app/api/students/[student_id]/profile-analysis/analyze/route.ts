@@ -88,7 +88,11 @@ export async function POST(
       );
     }
 
-    const result = (await callProfileAnalysis(body)) as Feature1AnalysisOutput;
+    const rawResult = await callProfileAnalysis(body);
+    const result = (rawResult && typeof rawResult === "object" && "data" in rawResult
+      ? (rawResult as { data: Feature1AnalysisOutput }).data
+      : (rawResult as Feature1AnalysisOutput));
+
     if (!result?.pillar_scores || !result?.areas || !result?.swot) {
       return NextResponse.json(
         { error: "Dữ liệu phân tích không hợp lệ từ AI" },

@@ -1,12 +1,15 @@
 /**
- * Gọi API đánh giá MBTI, GRIT, RIASEC từ server-ai (Django).
- * Base URL: AI_API_URL hoặc http://127.0.0.1:8000.
- * Path: /api/mbti/, /api/grit-scale/, /api/riasec/ (api_urls) hoặc /hoexapp/api/... (hoexapp.urls).
+ * Gọi API đánh giá MBTI, GRIT, RIASEC từ FastAPI server-ai.
+ * Base URL: AI_SERVER_URL hoặc http://127.0.0.1:8000.
+ * Path (FastAPI):
+ *   - /api/v1/feature2/mbti
+ *   - /api/v1/feature2/grit-scale
+ *   - /api/v1/feature2/riasec
  * Server-AI trả về trực tiếp: MBTI { personality_type, dimension_scores, confidence }, GRIT { score, level, description, ... }, RIASEC { code, scores, top3 } — không bọc success/mbti/grit/riasec.
  */
 
 const getBaseUrl = () => {
-  const base = process.env.AI_API_URL || "http://127.0.0.1:8000";
+  const base = process.env.AI_SERVER_URL || process.env.AI_API_URL || "http://127.0.0.1:8000";
   return base.replace(/\/+$/, "");
 };
 
@@ -31,7 +34,7 @@ export async function callMBTI(
   if (arr.length !== 60 || arr.some((v) => v === undefined || v === null)) {
     throw new Error("MBTI cần đủ 60 câu trả lời (-3 đến 3).");
   }
-  const url = `${getBaseUrl()}/api/mbti/`;
+  const url = `${getBaseUrl()}/api/v1/feature2/mbti`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -67,7 +70,7 @@ export async function callGRIT(answers: AnswersRecord): Promise<{
     }
     obj[i] = v;
   }
-  const url = `${getBaseUrl()}/api/grit-scale/`;
+  const url = `${getBaseUrl()}/api/v1/feature2/grit-scale`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -153,7 +156,7 @@ export async function callRIASEC(answers: AnswersRecord): Promise<{
     }
     obj[i] = v;
   }
-  const url = `${getBaseUrl()}/api/riasec/`;
+  const url = `${getBaseUrl()}/api/v1/feature2/riasec`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
